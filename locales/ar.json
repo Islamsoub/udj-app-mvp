@@ -1,0 +1,54 @@
+{
+  "common": {
+    "offline": "وضع عدم الاتصال",
+    "lastSync": "آخر مزامنة",
+    "retry": "إعادة المحاولة",
+    "loading": "جارٍ التحميل...",
+    "error": "حدث خطأ",
+    "noClasses": "لا توجد دروس اليوم 🌴",
+    "enjoyDay": "استمتع بيومك!",
+    "offlineBanner": "وضع عدم الاتصال · آخر مزامنة : {{time}}"
+  },
+  "auth": {
+    "welcome": "مرحباً بك في UDJ",
+    "studentId": "رقم الطالب",
+    "password": "كلمة المرور",
+    "login": "تسجيل الدخول",
+    "wrongCredentials": "معرف الطالب أو كلمة المرور غير صحيحة",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "attemptsLeft": "{{count}} محاولة(محاولات) متبقية",
+    "lockedOut": "الحساب مقفل. حاول مجدداً خلال {{time}}",
+    "networkError": "تحقق من اتصالك وحاول مجدداً.",
+    "biometricPrompt": "تسجيل الدخول البيومتري"
+  },
+  "onboarding": {
+    "step1Title": "اختر لغتك",
+    "step2Title": "الإشعارات",
+    "step3Title": "لوحة التحكم",
+    "notifCourses": "الدروس",
+    "notifGrades": "النتائج",
+    "notifNews": "الأخبار",
+    "widgetAgenda": "جدول الأعمال",
+    "widgetStats": "النتائج",
+    "widgetNews": "الأخبار",
+    "next": "التالي",
+    "back": "رجوع",
+    "start": "ابدأ",
+    "rtlRestart": "يجب إعادة تشغيل التطبيق لتفعيل اللغة العربية. هل تريد المتابعة؟",
+    "restart": "إعادة التشغيل"
+  },
+  "tabs": {
+    "home": "الرئيسية",
+    "schedule": "جدول المحاضرات",
+    "grades": "النتائج",
+    "news": "الأخبار",
+    "profile": "الملف الشخصي"
+  },
+  "screens": {
+    "home": "الرئيسية",
+    "schedule": "جدول المحاضرات",
+    "grades": "النتائج",
+    "news": "الأخبار",
+    "profile": "الملف الشخصي"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-expo-app@latest . --template blank-typescript)",
+      "Bash(mkdir -p /tmp/udj-scaffold)",
+      "Read(//tmp/**)",
+      "Bash(cp /tmp/udj-scaffold/App.tsx /c/Users/hp/udj-app-mvp/)",
+      "Bash(cp /tmp/udj-scaffold/app.json /c/Users/hp/udj-app-mvp/)",
+      "Bash(cp /tmp/udj-scaffold/index.ts /c/Users/hp/udj-app-mvp/)",
+      "Bash(cp /tmp/udj-scaffold/tsconfig.json /c/Users/hp/udj-app-mvp/)",
+      "Bash(cp /tmp/udj-scaffold/package.json /c/Users/hp/udj-app-mvp/)",
+      "Bash(npm install *)",
+      "Bash(node -e \"const p = require\\('./node_modules/expo-sqlite/package.json'\\); console.log\\('expo-sqlite:', p.version\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/expo-router/package.json'\\); console.log\\('expo-router:', p.version\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/zustand/package.json'\\); console.log\\('zustand:', p.version\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/i18next/package.json'\\); console.log\\('i18next:', p.version\\)\")",
+      "Bash(node -e \"const p = require\\('./node_modules/react-i18next/package.json'\\); console.log\\('react-i18next:', p.version\\)\")",
+      "Bash(node -e \"try{const p=require\\('./node_modules/@react-native-async-storage/async-storage/package.json'\\);console.log\\('async-storage:',p.version\\)}catch\\(e\\){console.log\\('NOT installed'\\)}\")",
+      "Bash(node -e \"const p = require\\('./node_modules/expo/package.json'\\); console.log\\('expo:', p.version\\)\")",
+      "Bash(node -e \"const p=require\\('./node_modules/@react-native-async-storage/async-storage/package.json'\\);console.log\\(p.version, p.main || p.exports\\)\")",
+      "Bash(node -e \"const AS=require\\('@react-native-async-storage/async-storage'\\); console.log\\(Object.keys\\(AS\\)\\)\")",
+      "Bash(npx tsc *)"
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "common": {
+    "offline": "Mode hors-ligne",
+    "lastSync": "Dernière sync",
+    "retry": "Réessayer",
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "noClasses": "Pas de cours aujourd'hui 🌴",
+    "enjoyDay": "Profitez de votre journée !",
+    "offlineBanner": "Mode hors-ligne · Dernière sync : {{time}}"
+  },
+  "auth": {
+    "welcome": "Bienvenue sur UDJ",
+    "studentId": "Votre numéro étudiant",
+    "password": "Mot de passe",
+    "login": "Se connecter",
+    "wrongCredentials": "ID ou mot de passe incorrect",
+    "forgotPassword": "Mot de passe oublié ?",
+    "attemptsLeft": "{{count}} tentative(s) restante(s)",
+    "lockedOut": "Compte verrouillé. Réessayez dans {{time}}",
+    "networkError": "Vérifiez votre connexion et réessayez.",
+    "biometricPrompt": "Connexion biométrique"
+  },
+  "onboarding": {
+    "step1Title": "Choisissez votre langue",
+    "step2Title": "Notifications",
+    "step3Title": "Tableau de bord",
+    "notifCourses": "Cours",
+    "notifGrades": "Notes",
+    "notifNews": "Actualités",
+    "widgetAgenda": "Agenda",
+    "widgetStats": "Notes",
+    "widgetNews": "Actualités",
+    "next": "Suivant",
+    "back": "Retour",
+    "start": "Commencer",
+    "rtlRestart": "L'application doit redémarrer pour activer l'arabe. Voulez-vous continuer ?",
+    "restart": "Redémarrer"
+  },
+  "tabs": {
+    "home": "Accueil",
+    "schedule": "Emploi du temps",
+    "grades": "Notes",
+    "news": "Actualités",
+    "profile": "Profil"
+  },
+  "screens": {
+    "home": "Accueil",
+    "schedule": "Emploi du temps",
+    "grades": "Notes",
+    "news": "Actualités",
+    "profile": "Profil"
+  }
+}
