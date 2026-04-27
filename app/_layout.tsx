@@ -26,7 +26,17 @@ export default function RootLayout() {
   const authLoaded = useAuthStore((s) => s.loaded);
 
   // Font files go here once assets/fonts/ is populated — empty map loads instantly
-  const [fontsLoaded] = useFonts({});
+  const [fontsLoaded] = useFonts({
+    'PlusJakartaSans': require('../assets/fonts/PlusJakartaSans-Regular.ttf'),
+    'PlusJakartaSans-Medium': require('../assets/fonts/PlusJakartaSans-Medium.ttf'),
+    'PlusJakartaSans-SemiBold': require('../assets/fonts/PlusJakartaSans-SemiBold.ttf'),
+    'PlusJakartaSans-Bold': require('../assets/fonts/PlusJakartaSans-Bold.ttf'),
+    'PlusJakartaSans-ExtraBold': require('../assets/fonts/PlusJakartaSans-ExtraBold.ttf'),
+    'DMmono': require('../assets/fonts/DMMono-Regular.ttf'),
+    'DMmono-Medium': require('../assets/fonts/DMMono-Medium.ttf'),
+    'NotoNaskhArabic': require('../assets/fonts/NotoNaskhArabic-Regular.ttf'),
+    'NotoNaskhArabic-Bold': require('../assets/fonts/NotoNaskhArabic-Bold.ttf'),
+  });
 
   useEffect(() => {
     async function prepare() {
