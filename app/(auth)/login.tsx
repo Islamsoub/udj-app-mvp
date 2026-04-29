@@ -1,392 +1,878 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
+  StatusBar,
+  Animated,
   ActivityIndicator,
-  I18nManager,
   ScrollView,
-  Alert,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
-import * as LocalAuthentication from 'expo-local-authentication';
-import * as SecureStore from 'expo-secure-store';
-import axios from 'axios';
-import { login as loginApi } from '@/services/api';
-import { useAuthStore } from '@/stores/authStore';
-import { useSettingsStore } from '@/stores/settingsStore';
-import i18n from '@/i18n';
-import { colors, spacing, radius } from '@/constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, fonts, spacing, radius } from '@/constants/theme';
 
-const BIOMETRIC_KEY = 'udj_biometric_enabled';
-const MAX_ATTEMPTS = 3;
-const LOCKOUT_SECONDS = 300;
+const LogoSVG = (
+  require('@/assets/Logo.svg') as { default: React.FC<{ width: number; height: number }> }
+).default;
+
+type LoginState =
+  | 'default'
+  | 'submitting'
+  | 'network-error'
+  | 'error'
+  | 'locked-out'
+  | 'session-expired'
+  | 'skeleton';
+
+const DEV_STATES: LoginState[] = [
+  'default',
+  'submitting',
+  'network-error',
+  'error',
+  'locked-out',
+  'session-expired',
+  'skeleton',
+];
+
+// One-off RGBA values not expressible as opaque hex tokens in theme.ts
+const WHITE_12 = 'rgba(255,255,255,0.12)';
+const WHITE_80 = 'rgba(255,255,255,0.8)';
+const WHITE_15 = 'rgba(255,255,255,0.15)';
+const WHITE_40 = 'rgba(255,255,255,0.4)';
+const WHITE_60 = 'rgba(255,255,255,0.6)';
+const WARNING_15 = 'rgba(245,158,11,0.15)';
+const WARNING_12 = 'rgba(245,158,11,0.12)';
+const DANGER_08 = 'rgba(239,68,68,0.08)';
+const EXAM_12 = 'rgba(139,92,246,0.12)';
+const SKELETON_BG = 'rgba(217,217,217,0.6)';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
-  const setAuth = useAuthStore((s) => s.setAuth);
-  const { language, setLanguage } = useSettingsStore();
-
+  const [loginState, setLoginState] = useState<LoginState>('default');
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [failedAttempts, setFailedAttempts] = useState(0);
-  const [isLockedOut, setIsLockedOut] = useState(false);
-  const [countdown, setCountdown] = useState('');
-  const [networkError, setNetworkError] = useState(false);
+  const [countdown, setCountdown] = useState(5 * 60);
 
-  const lockoutEndRef = useRef<number>(0);
+  const pulseAnim = useRef(new Animated.Value(0.4)).current;
 
-  // Lockout countdown
+  // Locked-out countdown
   useEffect(() => {
-    if (!isLockedOut) return;
-    lockoutEndRef.current = Date.now() + LOCKOUT_SECONDS * 1000;
-
+    if (loginState !== 'locked-out') {
+      setCountdown(5 * 60);
+      return;
+    }
     const interval = setInterval(() => {
-      const remaining = Math.max(0, lockoutEndRef.current - Date.now());
-      const mins = Math.floor(remaining / 60000);
-      const secs = Math.floor((remaining % 60000) / 1000);
-      setCountdown(`${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`);
-      if (remaining <= 0) {
-        clearInterval(interval);
-        setIsLockedOut(false);
-        setFailedAttempts(0);
-        setError(null);
-        setCountdown('');
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isLockedOut]);
-
-  // Biometric prompt on mount if previously enabled
-  useEffect(() => {
-    async function tryBiometric() {
-      try {
-        const enabled = await SecureStore.getItemAsync(BIOMETRIC_KEY);
-        if (!enabled) return;
-        const hasHardware = await LocalAuthentication.hasHardwareAsync();
-        const isEnrolled = await LocalAuthentication.isEnrolledAsync();
-        if (!hasHardware || !isEnrolled) return;
-
-        const result = await LocalAuthentication.authenticateAsync({
-          promptMessage: t('auth.biometricPrompt'),
-          cancelLabel: t('common.retry'),
-        });
-        if (result.success) {
-          // Biometric passed — credentials already in SecureStore from authStore; re-hydrate
-          router.replace('/(tabs)/home');
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setLoginState('default');
+          return 5 * 60;
         }
-      } catch {
-        // Biometric not available — silent fail
-      }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [loginState]);
+
+  // Skeleton pulse animation
+  useEffect(() => {
+    if (loginState !== 'skeleton') {
+      pulseAnim.setValue(0.4);
+      return;
     }
-    tryBiometric();
-  }, [router, t]);
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 0.8, duration: 800, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0.4, duration: 800, useNativeDriver: true }),
+      ])
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [loginState, pulseAnim]);
 
-  const handleLogin = useCallback(async () => {
-    if (!studentId.trim() || !password || isLoading || isLockedOut) return;
-    setIsLoading(true);
-    setError(null);
-    setNetworkError(false);
+  const formatCountdown = (secs: number): string => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
 
-    try {
-      const response = await loginApi(studentId.trim(), password);
-      await setAuth(response.token, response.refreshToken, response.studentId);
-      await SecureStore.setItemAsync(BIOMETRIC_KEY, 'true');
-      router.replace('/(tabs)/home');
-    } catch (err) {
-      const next = failedAttempts + 1;
-      setFailedAttempts(next);
+  const loginHandler = async (): Promise<void> => {
+    router.replace('/(tabs)/home');
+  };
 
-      if (next >= MAX_ATTEMPTS) {
-        setIsLockedOut(true);
-      } else if (axios.isAxiosError(err) && err.response?.status === 401) {
-        setError(
-          t('auth.attemptsLeft', { count: MAX_ATTEMPTS - next }) +
-            ' — ' +
-            t('auth.wrongCredentials')
-        );
-      } else {
-        setNetworkError(true);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [studentId, password, isLoading, isLockedOut, failedAttempts, setAuth, router, t]);
+  const biometricHandler = (): void => {
+    router.replace('/(tabs)/home');
+  };
 
-  const toggleLanguage = useCallback(() => {
-    const next = language === 'fr' ? 'ar' : 'fr';
-    setLanguage(next);
-    i18n.changeLanguage(next);
-    if (next === 'ar' && !I18nManager.isRTL) {
-      Alert.alert(t('onboarding.rtlRestart'), '', [
-        {
-          text: t('onboarding.restart'),
-          onPress: () => I18nManager.forceRTL(true),
-        },
-        { text: t('common.retry'), style: 'cancel' },
-      ]);
-    } else if (next === 'fr' && I18nManager.isRTL) {
-      I18nManager.forceRTL(false);
-    }
-  }, [language, setLanguage, t]);
+  const isSkeleton = loginState === 'skeleton';
+  const isLocked = loginState === 'locked-out';
+  const isSubmitting = loginState === 'submitting';
+  const isError = loginState === 'error';
+  const isNetworkError = loginState === 'network-error';
+  const isSessionExpired = loginState === 'session-expired';
 
-  const hasError = !!error || networkError;
-  const canSubmit = studentId.trim().length > 0 && password.length > 0 && !isLockedOut;
+  const showSubtitle = loginState === 'default';
+  const inputsEditable = !isSubmitting && !isLocked && !isNetworkError;
+
+  const studentIdInputStyle = isError
+    ? { backgroundColor: DANGER_08, borderColor: colors.danger }
+    : { backgroundColor: colors.surface, borderColor: colors.jade600 };
+
+  const passwordInputStyle = isError
+    ? { backgroundColor: DANGER_08, borderColor: colors.danger }
+    : { backgroundColor: colors.jade50, borderColor: '#D9D9D9' };
+
+  const buttonBg = isNetworkError || isLocked ? '#D9D9D9' : colors.jade400;
+  const buttonTextGrey = isNetworkError || isLocked;
+  const buttonDisabled = isSubmitting || isNetworkError || isLocked;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.jade600} translucent={false} />
+
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        bounces={false}
+        showsVerticalScrollIndicator={false}
       >
-        {/* Language toggle */}
-        <TouchableOpacity style={styles.langToggle} onPress={toggleLanguage} hitSlop={8}>
-          <Text style={styles.langText}>{language === 'fr' ? 'AR' : 'FR'}</Text>
-        </TouchableOpacity>
+        {/* ── GREEN TOP BLOCK ── */}
+        <View style={styles.greenBlock}>
+          <View style={styles.blob1} />
+          <View style={styles.blob2} />
+          <View style={styles.blob3} />
 
-        {/* Header */}
-        <Text style={styles.title}>{t('auth.welcome')}</Text>
+          {isSkeleton ? (
+            <Animated.View style={[styles.greenContent, { opacity: pulseAnim }]}>
+              <View style={[styles.skeletonBox, { width: 87, height: 81, borderRadius: 14 }]} />
+              <View style={[styles.skeletonBox, { width: 158, height: 20, borderRadius: 18, marginTop: 12 }]} />
+              <View style={[styles.skeletonBox, { width: 207, height: 20, borderRadius: 18, marginTop: 8 }]} />
+            </Animated.View>
+          ) : (
+            <View style={styles.greenContent}>
+              <LogoSVG width={63} height={92} />
+              <Text style={styles.greenTitle}>Universite de Djibouti</Text>
+              {showSubtitle && (
+                <Text style={styles.greenSubtitle}>
+                  Connectez-vous à votre espace étudiant
+                </Text>
+              )}
+            </View>
+          )}
+        </View>
 
-        {/* Lockout banner */}
-        {isLockedOut && (
-          <View style={styles.lockoutBanner}>
-            <Text style={styles.lockoutText}>
-              {t('auth.lockedOut', { time: countdown })}
+        {/* ── OFFLINE BANNER (network-error only) ── */}
+        {isNetworkError && (
+          <View style={styles.offlineBanner}>
+            <View style={styles.offlineDot} />
+            <Text style={styles.offlineBannerText}>
+              Mode hors-ligne / Dernière synchro : hier 14h30
             </Text>
           </View>
         )}
 
-        {/* Network error */}
-        {networkError && (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorBannerText}>{t('auth.networkError')}</Text>
-          </View>
-        )}
+        {/* ── WHITE BODY ── */}
+        <View style={styles.body}>
 
-        {/* Student ID field */}
-        <View style={styles.fieldWrapper}>
-          <Text style={styles.fieldLabel}>{t('auth.studentId')}</Text>
-          <View style={[styles.inputRow, hasError && styles.inputRowError]}>
-            <View style={styles.inputIcon}>
-              <Text style={styles.inputIconText}>👤</Text>
-            </View>
-            <TextInput
-              style={styles.input}
-              value={studentId}
-              onChangeText={setStudentId}
-              keyboardType="numeric"
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!isLockedOut && !isLoading}
-              placeholder={t('auth.studentId')}
-              placeholderTextColor={colors.textTertiary}
-            />
-            {studentId.length > 0 && (
-              <TouchableOpacity
-                onPress={() => setStudentId('')}
-                hitSlop={8}
-                style={styles.clearBtn}
-              >
-                <Text style={styles.clearBtnText}>✕</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-
-        {/* Password field */}
-        <View style={styles.fieldWrapper}>
-          <Text style={styles.fieldLabel}>{t('auth.password')}</Text>
-          <View style={[styles.inputRow, hasError && styles.inputRowError]}>
-            <TextInput
-              style={[styles.input, { flex: 1 }]}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!isLockedOut && !isLoading}
-              placeholder={t('auth.password')}
-              placeholderTextColor={colors.textTertiary}
-            />
-            <TouchableOpacity
-              onPress={() => setShowPassword((v) => !v)}
-              hitSlop={8}
-              style={styles.clearBtn}
-            >
-              <Text style={styles.clearBtnText}>{showPassword ? '🙈' : '👁'}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Inline error message */}
-        {error && <Text style={styles.errorText}>{error}</Text>}
-
-        {/* Forgot password */}
-        <TouchableOpacity hitSlop={8}>
-          <Text style={styles.forgotText}>{t('auth.forgotPassword')}</Text>
-        </TouchableOpacity>
-
-        {/* CTA */}
-        <TouchableOpacity
-          style={[styles.cta, (!canSubmit || isLoading) && styles.ctaDisabled]}
-          onPress={handleLogin}
-          disabled={!canSubmit || isLoading}
-          activeOpacity={0.8}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.ctaText}>{t('auth.login')}</Text>
+          {/* ── SKELETON BODY ── */}
+          {isSkeleton && (
+            <Animated.View style={{ opacity: pulseAnim }}>
+              <View style={[styles.skeletonBox, styles.skeletonLabel]} />
+              <View style={[styles.skeletonBox, styles.skeletonInput]} />
+              <View style={[styles.skeletonBox, styles.skeletonLabel, { marginTop: spacing.sp16 }]} />
+              <View style={[styles.skeletonBox, styles.skeletonInput]} />
+              <View style={[styles.skeletonBox, styles.skeletonButton, { marginTop: spacing.sp20 }]} />
+              <View style={styles.skeletonDivRow}>
+                <View style={[styles.skeletonBox, { width: 26, height: 10, borderRadius: 18 }]} />
+              </View>
+              <View style={styles.skeletonCircleRow}>
+                <View style={[styles.skeletonBox, { width: 44, height: 44, borderRadius: radius.rFull }]} />
+              </View>
+              <View style={styles.skeletonHelpRow}>
+                <View style={[styles.skeletonBox, { width: 183, height: 15, borderRadius: 18 }]} />
+              </View>
+            </Animated.View>
           )}
-        </TouchableOpacity>
+
+          {!isSkeleton && (
+            <>
+              {/* ── LOCKOUT CARD ── */}
+              {isLocked && (
+                <View style={styles.lockoutCard}>
+                  <Ionicons name="warning-outline" size={28} color={colors.warning} />
+                  <Text style={styles.lockoutTitle}>Compte temporairement bloqué</Text>
+                  <Text style={styles.lockoutSubtitle}>
+                    3 tentatives échouées. Réessayez dans :
+                  </Text>
+                  <Text style={styles.lockoutTimer}>{formatCountdown(countdown)}</Text>
+                  <Text style={styles.lockoutMinutes}>minutes restantes</Text>
+                </View>
+              )}
+
+              {/* ── SESSION-EXPIRED CARD + SAVED ACCOUNT ── */}
+              {isSessionExpired && (
+                <>
+                  <View style={styles.sessionCard}>
+                    <View style={styles.sessionRow}>
+                      <Ionicons name="key-outline" size={24} color={colors.warning} />
+                      <View style={styles.sessionTexts}>
+                        <Text style={styles.sessionTitle}>Session expirée</Text>
+                        <Text style={styles.sessionBody}>
+                          Votre session de 30 jours a expiré. Reconnectez-vous pour accéder à vos données.
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                  <View style={styles.savedRow}>
+                    <View style={styles.avatarCircle}>
+                      <Text style={styles.avatarText}>AO</Text>
+                    </View>
+                    <View style={styles.savedInfo}>
+                      <Text style={styles.savedName}>Ahmed Omar Said</Text>
+                      <Text style={styles.savedId}>UDJ-2024-0432</Text>
+                    </View>
+                    <Pressable onPress={() => setLoginState('default')} hitSlop={8}>
+                      <Text style={styles.changerText}>Changer ›</Text>
+                    </Pressable>
+                  </View>
+                </>
+              )}
+
+              {/* ── STUDENT ID INPUT (all states except locked-out + session-expired) ── */}
+              {!isLocked && !isSessionExpired && (
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Numéro étudiant</Text>
+                  <TextInput
+                    style={[styles.textInput, styles.monoInput, studentIdInputStyle]}
+                    value={studentId}
+                    onChangeText={setStudentId}
+                    placeholder="UDJ-2024-0432"
+                    placeholderTextColor={colors.textTertiary}
+                    keyboardType="default"
+                    autoCapitalize="characters"
+                    editable={inputsEditable}
+                  />
+                </View>
+              )}
+
+              {/* ── LOCKED-OUT: disabled input ── */}
+              {isLocked && (
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Mot de passe</Text>
+                  <TextInput
+                    style={[styles.textInput, styles.monoInput, styles.textInputDisabled]}
+                    placeholder="UDJ-2024-0432"
+                    placeholderTextColor={colors.textTertiary}
+                    editable={false}
+                  />
+                </View>
+              )}
+
+              {/* ── PASSWORD INPUT (default / submitting / network-error / error) ── */}
+              {!isLocked && !isSessionExpired && (
+                <View style={styles.inputGroup}>
+                  <View style={styles.passwordLabelRow}>
+                    <Text style={styles.inputLabel}>Mot de passe</Text>
+                    {loginState === 'default' && (
+                      <Pressable hitSlop={8}>
+                        <Text style={styles.forgotInline}>Mot de passe oublié ?</Text>
+                      </Pressable>
+                    )}
+                  </View>
+                  <TextInput
+                    style={[styles.textInput, passwordInputStyle]}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    placeholder="••••••••"
+                    placeholderTextColor={colors.textTertiary}
+                    editable={inputsEditable}
+                  />
+                </View>
+              )}
+
+              {/* ── SESSION-EXPIRED: password input ── */}
+              {isSessionExpired && (
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Mot de passe</Text>
+                  <TextInput
+                    style={[styles.textInput, { backgroundColor: colors.surface, borderColor: colors.jade600 }]}
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry
+                    placeholder="••••••••"
+                    placeholderTextColor={colors.textTertiary}
+                    editable
+                  />
+                </View>
+              )}
+
+              {/* ── ERROR CARD ── */}
+              {isError && (
+                <View style={styles.errorCard}>
+                  <View style={styles.cardRow}>
+                    <Ionicons name="warning-outline" size={24} color={colors.warning} />
+                    <View style={styles.cardTexts}>
+                      <Text style={styles.errorCardTitle}>Identifiants incorrects</Text>
+                      <Text style={styles.errorCardBody}>
+                        Numéro étudiant ou mot de passe invalide. 2 tentatives restantes avant blocage temporaire.
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {/* ── PRIMARY BUTTON ── */}
+              <Pressable
+                style={[styles.loginButton, { backgroundColor: buttonBg }]}
+                onPress={loginHandler}
+                disabled={buttonDisabled}
+                hitSlop={8}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color={colors.surface} />
+                ) : (
+                  <Text style={[styles.loginButtonText, buttonTextGrey && styles.loginButtonTextGrey]}>
+                    {isError ? 'Réessayer' : 'Se connecter'}
+                  </Text>
+                )}
+              </Pressable>
+
+              {/* ── NETWORK INFO CARD (below button) ── */}
+              {isNetworkError && (
+                <View style={styles.networkCard}>
+                  <View style={styles.cardRow}>
+                    <View style={styles.globeCircle}>
+                      <Ionicons name="globe-outline" size={18} color={colors.surface} />
+                    </View>
+                    <Text style={styles.networkCardText}>
+                      Une connexion internet est requise pour la première connexion. Activez vos données mobiles ou Wi-Fi.
+                    </Text>
+                  </View>
+                </View>
+              )}
+
+              {/* ── ERROR: forgot password link below button ── */}
+              {isError && (
+                <Pressable hitSlop={8} style={styles.forgotBelow}>
+                  <Text style={styles.forgotBelowText}>Mot de passe oublié ?</Text>
+                </Pressable>
+              )}
+
+              {/* ── LOCKED-OUT: help link ── */}
+              {isLocked && (
+                <Pressable hitSlop={8} style={styles.helpLink}>
+                  <Text style={styles.helpLinkText}>Besoin d'aide ? Contactez la scolarité</Text>
+                </Pressable>
+              )}
+
+              {/* ── DIVIDER + BIOMETRIC (default only) ── */}
+              {loginState === 'default' && (
+                <>
+                  <View style={styles.dividerRow}>
+                    <View style={styles.dividerLine} />
+                    <Text style={styles.dividerText}>ou</Text>
+                    <View style={styles.dividerLine} />
+                  </View>
+                  <View style={styles.biometricContainer}>
+                    <Pressable
+                      style={styles.biometricCircle}
+                      onPress={biometricHandler}
+                      hitSlop={8}
+                    >
+                      <Ionicons name="scan-outline" size={24} color={colors.warning} />
+                    </Pressable>
+                    <Text style={styles.biometricLabel}>Empreinte digitale ou Face ID</Text>
+                  </View>
+                </>
+              )}
+            </>
+          )}
+        </View>
       </ScrollView>
-    </SafeAreaView>
+
+      {/* ── DEV STATE SWITCHER ── */}
+      {__DEV__ && (
+        <View style={styles.devRow}>
+          {DEV_STATES.map((s) => (
+            <Pressable
+              key={s}
+              style={[styles.devButton, loginState === s && styles.devButtonActive]}
+              onPress={() => setLoginState(s)}
+            >
+              <Text style={styles.devButtonText}>{s}</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  root: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
   },
   scroll: {
+    flex: 1,
+  },
+  scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: spacing.sp24,
-    paddingTop: spacing.sp32,
-    paddingBottom: spacing.sp32,
+    paddingBottom: spacing.sp64,
   },
-  langToggle: {
-    alignSelf: 'flex-end',
-    paddingVertical: spacing.sp8,
-    paddingHorizontal: spacing.sp12,
-    borderRadius: radius.rMd,
-    borderWidth: 1,
-    borderColor: colors.border,
-    minWidth: 44,
-    minHeight: 44,
+
+  // ── Green block ──
+  greenBlock: {
+    height: 277,
+    backgroundColor: colors.jade600,
+    overflow: 'hidden',
+  },
+  blob1: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: WHITE_12,
+    top: -40,
+    start: -40,
+  },
+  blob2: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: WHITE_12,
+    top: -60,
+    end: -50,
+  },
+  blob3: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: WHITE_12,
+    bottom: -40,
+    start: 60,
+  },
+  greenContent: {
+    position: 'absolute',
+    top: 71,
+    start: 0,
+    end: 0,
     alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: spacing.sp24,
   },
-  langText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: colors.textPrimary,
-    marginTop: spacing.sp32,
-    marginBottom: spacing.sp32,
-  },
-  lockoutBanner: {
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: radius.rMd,
-    padding: spacing.sp12,
-    marginBottom: spacing.sp16,
-  },
-  lockoutText: {
-    color: colors.danger,
-    fontSize: 14,
-    fontWeight: '500',
+  greenTitle: {
+    fontFamily: fonts.sans,
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.surface,
     textAlign: 'center',
+    marginTop: 12,
   },
-  errorBanner: {
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: radius.rMd,
-    padding: spacing.sp12,
-    marginBottom: spacing.sp16,
-  },
-  errorBannerText: {
-    color: colors.danger,
+  greenSubtitle: {
+    fontFamily: fonts.sans,
     fontSize: 13,
+    color: WHITE_80,
+    textAlign: 'center',
+    marginTop: 4,
   },
-  fieldWrapper: {
-    marginBottom: spacing.sp16,
-  },
-  fieldLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginBottom: spacing.sp6,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  inputRow: {
+
+  // ── Offline banner ──
+  offlineBanner: {
+    height: 46,
+    backgroundColor: WARNING_15,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.warning,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.rMd,
-    minHeight: 48,
-    paddingHorizontal: spacing.sp12,
+    paddingHorizontal: spacing.sp16,
+    gap: spacing.sp8,
   },
-  inputRowError: {
-    borderColor: colors.danger,
+  offlineDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.offline,
+    flexShrink: 0,
   },
-  inputIcon: {
-    marginEnd: spacing.sp8,
-  },
-  inputIconText: {
-    fontSize: 16,
-  },
-  input: {
+  offlineBannerText: {
+    fontFamily: fonts.sans,
+    fontSize: 12,
+    color: colors.warning,
     flex: 1,
-    fontSize: 15,
-    color: colors.textPrimary,
-    paddingVertical: spacing.sp12,
   },
-  clearBtn: {
-    paddingStart: spacing.sp8,
-    minWidth: 32,
-    minHeight: 32,
+
+  // ── Body ──
+  body: {
+    paddingHorizontal: spacing.sp16,
+    paddingTop: spacing.sp24,
+  },
+
+  // ── Inputs ──
+  inputGroup: {
+    marginBottom: spacing.sp16,
+  },
+  inputLabel: {
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
+    marginBottom: spacing.sp6,
+  },
+  textInput: {
+    height: 46,
+    borderRadius: radius.rLg,
+    borderWidth: 1,
+    paddingHorizontal: spacing.sp16,
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    color: colors.textPrimary,
+  },
+  monoInput: {
+    fontFamily: fonts.mono,
+  },
+  textInputDisabled: {
+    backgroundColor: '#D9D9D9',
+    borderColor: '#D9D9D9',
+  },
+  passwordLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sp6,
+  },
+  forgotInline: {
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    color: colors.jade600,
+  },
+
+  // ── Login button ──
+  loginButton: {
+    height: 56,
+    borderRadius: radius.rLg,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: spacing.sp8,
+    minHeight: 44,
   },
-  clearBtnText: {
+  loginButtonText: {
+    fontFamily: fonts.sans,
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.surface,
+  },
+  loginButtonTextGrey: {
+    color: colors.textSecondary,
+  },
+
+  // ── Error card ──
+  errorCard: {
+    borderRadius: radius.rLg,
+    backgroundColor: WARNING_12,
+    borderWidth: 1,
+    borderColor: colors.warning,
+    padding: spacing.sp16,
+    marginBottom: spacing.sp16,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sp12,
+  },
+  cardTexts: {
+    flex: 1,
+  },
+  errorCardTitle: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.danger,
+    marginBottom: spacing.sp4,
+  },
+  errorCardBody: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    color: colors.warning,
+    lineHeight: 18,
+  },
+
+  // ── Forgot password (error state) ──
+  forgotBelow: {
+    alignItems: 'center',
+    marginTop: spacing.sp16,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  forgotBelowText: {
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    color: colors.jade600,
+  },
+
+  // ── Network card ──
+  networkCard: {
+    borderRadius: radius.rLg,
+    backgroundColor: WARNING_12,
+    borderWidth: 1,
+    borderColor: colors.warning,
+    padding: spacing.sp16,
+    marginTop: spacing.sp12,
+  },
+  globeCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.jade400,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  networkCardText: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    color: colors.warning,
+    flex: 1,
+    lineHeight: 18,
+  },
+
+  // ── Lockout card ──
+  lockoutCard: {
+    borderRadius: radius.rLg,
+    backgroundColor: WARNING_15,
+    borderWidth: 1,
+    borderColor: colors.warning,
+    padding: 20,
+    marginTop: spacing.sp24,
+    marginBottom: spacing.sp24,
+    alignItems: 'center',
+  },
+  lockoutTitle: {
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#92400E',
+    textAlign: 'center',
+    marginTop: spacing.sp8,
+  },
+  lockoutSubtitle: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    color: '#92400E',
+    textAlign: 'center',
+    marginTop: spacing.sp4,
+  },
+  lockoutTimer: {
+    fontFamily: fonts.mono,
+    fontSize: 48,
+    fontWeight: '800',
+    color: '#92400E',
+    textAlign: 'center',
+    lineHeight: 56,
+    marginTop: spacing.sp8,
+  },
+  lockoutMinutes: {
+    fontFamily: fonts.sans,
+    fontSize: 12,
+    color: '#92400E',
+    textAlign: 'center',
+  },
+
+  // ── Help link (locked-out) ──
+  helpLink: {
+    alignItems: 'center',
+    marginTop: spacing.sp16,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  helpLinkText: {
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+
+  // ── Session-expired card ──
+  sessionCard: {
+    borderRadius: radius.rLg,
+    backgroundColor: EXAM_12,
+    borderWidth: 1,
+    borderColor: colors.exam,
+    padding: spacing.sp16,
+    marginTop: spacing.sp24,
+  },
+  sessionRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sp12,
+  },
+  sessionTexts: {
+    flex: 1,
+  },
+  sessionTitle: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.exam,
+    marginBottom: spacing.sp4,
+  },
+  sessionBody: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    color: colors.exam,
+    lineHeight: 18,
+  },
+
+  // ── Saved account row ──
+  savedRow: {
+    height: 67,
+    borderRadius: radius.rLg,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginTop: spacing.sp16,
+    marginBottom: spacing.sp16,
+    paddingHorizontal: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sp12,
+  },
+  avatarCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 66,
+    backgroundColor: colors.jade400,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  avatarText: {
+    fontFamily: fonts.sans,
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.surface,
+  },
+  savedInfo: {
+    flex: 1,
+  },
+  savedName: {
+    fontFamily: fonts.sans,
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  savedId: {
+    fontFamily: fonts.mono,
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  changerText: {
+    fontFamily: fonts.sans,
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+
+  // ── Divider ──
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.sp24,
+    gap: spacing.sp8,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  dividerText: {
+    fontFamily: fonts.sans,
     fontSize: 14,
     color: colors.textTertiary,
   },
-  errorText: {
-    color: colors.danger,
-    fontSize: 13,
-    marginBottom: spacing.sp12,
+
+  // ── Biometric ──
+  biometricContainer: {
+    alignItems: 'center',
+    marginTop: spacing.sp16,
   },
-  forgotText: {
-    color: colors.jade400,
-    fontSize: 13,
-    fontWeight: '500',
-    marginBottom: spacing.sp32,
-    alignSelf: 'flex-end',
-  },
-  cta: {
-    backgroundColor: colors.jade400,
-    borderRadius: radius.rLg,
-    height: 52,
+  biometricCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.rFull,
+    backgroundColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 44,
   },
-  ctaDisabled: {
-    opacity: 0.45,
+  biometricLabel: {
+    fontFamily: fonts.sans,
+    fontSize: 11,
+    color: colors.textTertiary,
+    textAlign: 'center',
+    marginTop: spacing.sp6,
   },
-  ctaText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
+
+  // ── Skeleton ──
+  skeletonBox: {
+    backgroundColor: SKELETON_BG,
+  },
+  skeletonLabel: {
+    width: 138,
+    height: 15,
+    borderRadius: 18,
+    marginBottom: spacing.sp6,
+  },
+  skeletonInput: {
+    height: 46,
+    borderRadius: radius.rLg,
+    marginBottom: spacing.sp4,
+  },
+  skeletonButton: {
+    height: 56,
+    borderRadius: radius.rLg,
+  },
+  skeletonDivRow: {
+    alignItems: 'center',
+    marginTop: spacing.sp24,
+  },
+  skeletonCircleRow: {
+    alignItems: 'center',
+    marginTop: spacing.sp16,
+  },
+  skeletonHelpRow: {
+    alignItems: 'center',
+    marginTop: spacing.sp8,
+  },
+
+  // ── DEV switcher ──
+  devRow: {
+    position: 'absolute',
+    bottom: 8,
+    start: 0,
+    end: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.sp4,
+    paddingHorizontal: spacing.sp8,
+  },
+  devButton: {
+    backgroundColor: WHITE_15,
+    paddingHorizontal: spacing.sp6,
+    paddingVertical: spacing.sp2,
+    borderRadius: radius.rSm,
+  },
+  devButtonActive: {
+    backgroundColor: 'rgba(29,158,117,0.4)',
+  },
+  devButtonText: {
+    color: WHITE_60,
+    fontSize: 9,
+    fontFamily: fonts.mono,
   },
 });

@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id           String       @id @default(cuid())
+  studentId    String       @unique
+  name         String
+  password     String
+  programme    String
+  faculty      String
+  year         Int
+  photoUrl     String?
+  fcmToken     String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  schedules    Schedule[]
+  grades       Grade[]
+  attendance   Attendance[]
+}
+
+model Schedule {
+  id           String   @id @default(cuid())
+  studentId    String
+  subjectName  String
+  subjectCode  String
+  lecturerName String
+  room         String
+  dayOfWeek    Int
+  startTime    String
+  endTime      String
+  semester     String
+  isExam       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  student      Student  @relation(fields: [studentId], references: [studentId])
+}
+
+model Grade {
+  id          String   @id @default(cuid())
+  studentId   String
+  subjectCode String
+  semester    String
+  ccScore     Float?
+  examScore   Float?
+  finalScore  Float?
+  coefficient Int
+  passed      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  student     Student  @relation(fields: [studentId], references: [studentId])
+}
+
+model News {
+  id          String   @id @default(cuid())
+  title       String
+  body        String
+  category    String
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+}
+
+model Attendance {
+  id              String   @id @default(cuid())
+  studentId       String
+  subjectCode     String
+  sessionsTotal   Int
+  sessionsPresent Int
+  threshold       Float    @default(0.75)
+  createdAt       DateTime @default(now())
+  student         Student  @relation(fields: [studentId], references: [studentId])
+}
