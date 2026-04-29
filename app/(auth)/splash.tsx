@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
-  Dimensions,
   Linking,
   Pressable,
   StatusBar,
@@ -20,7 +19,6 @@ const LogoSVG = (
   require('@/assets/Logo.svg') as { default: React.FC<{ width: number; height: number }> }
 ).default;
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const JWT_KEY = 'udj_jwt';
 
 // RGBA variants not expressible as opaque hex tokens in theme.ts
@@ -68,19 +66,12 @@ export default function SplashScreen() {
   const [currentState, setCurrentState] = useState<SplashState>('loading');
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const progressAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 400,
       useNativeDriver: true,
-    }).start();
-
-    Animated.timing(progressAnim, {
-      toValue: 1,
-      duration: 1500,
-      useNativeDriver: false,
     }).start();
 
     // const timer = setTimeout(async () => {
@@ -97,21 +88,23 @@ export default function SplashScreen() {
     // }, 1500);
 
     // return () => clearTimeout(timer);
-  }, [fadeAnim, progressAnim, router]);
-
-  const progressWidth = progressAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, SCREEN_WIDTH],
-  });
+  }, [fadeAnim, router]);
 
   return (
     <View style={styles.container}>
       <StatusBar hidden />
 
-      {/* Logo + app name — fades in on mount, visible in all states */}
-      <Animated.View style={[styles.logoSection, { opacity: fadeAnim }]}>
-        <LogoSVG width={120} height={120} />
-        <Text style={styles.appName}>Unipocket</Text>
+      {/* Logo — absolute. Loading: Y=305. All other states: Y=161. */}
+      <Animated.View
+        style={[
+          styles.logoAbsolute,
+          {
+            opacity: fadeAnim,
+            top: currentState === 'loading' ? 305 : 161,
+          },
+        ]}
+      >
+        <LogoSVG width={99} height={169} />
       </Animated.View>
 
       {/* ── State: no-connection ── */}
@@ -204,14 +197,14 @@ export default function SplashScreen() {
         </View>
       )}
 
-      {/* ── State: loading — progress bar + label at bottom ── */}
+      {/* ── State: loading — static pill + label ── */}
       {currentState === 'loading' && (
-        <View style={styles.loadingBottom}>
-          <Text style={styles.loadingText}>Chargement...</Text>
-          <View style={styles.progressTrack}>
-            <Animated.View style={[styles.progressFill, { width: progressWidth }]} />
+        <>
+          <View style={styles.pillTrack}>
+            <View style={styles.pillFill} />
           </View>
-        </View>
+          <Text style={styles.loadingText}>Chargement</Text>
+        </>
       )}
 
       {/* DEV-only state switcher */}
@@ -241,23 +234,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.jade900,
     alignItems: 'center',
   },
-  // Logo center is at ~40% from top:
-  // paddingTop = 0.40 * H - 60  (60 = half of 120px logo)
-  logoSection: {
-    alignItems: 'center',
-    marginTop: SCREEN_HEIGHT * 0.40 - 60,
-  },
-  appName: {
-    color: colors.surface,
-    fontFamily: fonts.sans,
-    fontSize: 18,
-    fontWeight: '700',
-    marginTop: spacing.sp12,
+  // Logo is absolutely positioned; top varies by state
+  logoAbsolute: {
+    position: 'absolute',
+    alignSelf: 'center',
   },
   stateContent: {
+    position: 'absolute',
+    top: 330,
     alignItems: 'center',
     paddingHorizontal: spacing.sp24,
-    marginTop: spacing.sp32,
     width: '100%',
   },
   stateBoldText: {
@@ -284,6 +270,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.jade600,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 33,
   },
   iconCircleDanger: {
     width: 64,
@@ -292,6 +279,7 @@ const styles = StyleSheet.create({
     backgroundColor: DANGER_20,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 33,
   },
   // Primary filled button
   primaryButton: {
@@ -419,28 +407,30 @@ const styles = StyleSheet.create({
   updateButton: {
     marginTop: spacing.sp24,
   },
-  // Loading state bottom area
-  loadingBottom: {
+  // Loading state: static pill indicator
+  pillTrack: {
     position: 'absolute',
-    bottom: 0,
-    start: 0,
-    end: 0,
-    alignItems: 'center',
+    top: 691,
+    alignSelf: 'center',
+    width: 37,
+    height: 3,
+    borderRadius: 12,
+    backgroundColor: '#6B7B74',
+  },
+  pillFill: {
+    width: 24,
+    height: 3,
+    borderRadius: 12,
+    backgroundColor: '#D9D9D9',
   },
   loadingText: {
-    color: WHITE_60,
+    position: 'absolute',
+    top: 705,
+    alignSelf: 'center',
     fontFamily: fonts.sans,
-    fontSize: 13,
-    marginBottom: spacing.sp8,
-  },
-  progressTrack: {
-    width: '100%',
-    height: 3,
-    backgroundColor: WHITE_15,
-  },
-  progressFill: {
-    height: 3,
-    backgroundColor: colors.jade400,
+    fontSize: 12,
+    fontWeight: '600',
+    color: WHITE_60,
   },
   // DEV switcher
   devRow: {
