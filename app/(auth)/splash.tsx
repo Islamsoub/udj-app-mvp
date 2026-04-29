@@ -54,7 +54,9 @@ function isTokenValid(token: string): boolean {
     const parts = token.split('.');
     const encodedPayload = parts[1];
     if (!encodedPayload) return false;
-    const payload = JSON.parse(atob(encodedPayload)) as { exp?: number };
+    const base64 = encodedPayload.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
+    const payload = JSON.parse(atob(padded)) as { exp?: number };
     return typeof payload.exp === 'number' && payload.exp * 1000 > Date.now();
   } catch {
     return false;
@@ -74,20 +76,20 @@ export default function SplashScreen() {
       useNativeDriver: true,
     }).start();
 
-    // const timer = setTimeout(async () => {
-    //   try {
-    //     const token = await SecureStore.getItemAsync(JWT_KEY);
-    //     if (token !== null && isTokenValid(token)) {
-    //       router.replace('/(tabs)/home');
-    //     } else {
-    //       router.replace('/(auth)/login');
-    //     }
-    //   } catch {
-    //     router.replace('/(auth)/login');
-    //   }
-    // }, 1500);
+    const timer = setTimeout(async () => {
+      try {
+        const token = await SecureStore.getItemAsync(JWT_KEY);
+        if (token !== null && isTokenValid(token)) {
+          router.replace('/(tabs)/home');
+        } else {
+          router.replace('/(auth)/login');
+        }
+      } catch {
+        router.replace('/(auth)/login');
+      }
+    }, 1500);
 
-    // return () => clearTimeout(timer);
+    return () => clearTimeout(timer);
   }, [fadeAnim, router]);
 
   return (
