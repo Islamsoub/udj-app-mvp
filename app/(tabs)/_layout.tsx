@@ -5,29 +5,22 @@ import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { colors, spacing } from '@/constants/theme';
 
-interface TabIconProps {
-  label: string;
-  focused: boolean;
-}
-
-function TabIcon({ label, focused }: TabIconProps) {
-  return (
-    <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
-      <Text style={[styles.iconText, focused && styles.iconTextActive]}>{label}</Text>
-    </View>
-  );
-}
+const HomeIcon = (require('../../assets/icons/home.svg') as { default: React.FC<{ width: number; height: number; color?: string }> }).default;
+const AgendaIcon = (require('../../assets/icons/agenda.svg') as { default: React.FC<{ width: number; height: number; color?: string }> }).default;
+const NotesIcon = (require('../../assets/icons/notes.svg') as { default: React.FC<{ width: number; height: number; color?: string }> }).default;
+const ActusIcon = (require('../../assets/icons/actus.svg') as { default: React.FC<{ width: number; height: number; color?: string }> }).default;
+const ProfileIcon = (require('../../assets/icons/profile.svg') as { default: React.FC<{ width: number; height: number; color?: string }> }).default;
 
 export default function TabsLayout() {
   const { t } = useTranslation();
   const isRTL = useSettingsStore((s) => s.isRTL);
 
   const tabs = [
-    { name: 'home', title: t('tabs.home'), icon: '⌂' },
-    { name: 'schedule', title: t('tabs.schedule'), icon: '📅' },
-    { name: 'grades', title: t('tabs.grades'), icon: '🎓' },
-    { name: 'news', title: t('tabs.news'), icon: '📰' },
-    { name: 'profile', title: t('tabs.profile'), icon: '👤' },
+    { name: 'home', title: t('tabs.home'), Icon: HomeIcon },
+    { name: 'schedule', title: t('tabs.schedule'), Icon: AgendaIcon },
+    { name: 'grades', title: t('tabs.grades'), Icon: NotesIcon },
+    { name: 'news', title: t('tabs.news'), Icon: ActusIcon },
+    { name: 'profile', title: t('tabs.profile'), Icon: ProfileIcon },
   ];
 
   // Mirror tab order for Arabic RTL
@@ -37,10 +30,22 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: colors.jade400,
-        tabBarInactiveTintColor: colors.textTertiary,
-        tabBarLabelStyle: styles.tabLabel,
+        tabBarStyle: {
+          height: 72,
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 1,
+          borderTopColor: '#E8ECE9',
+          paddingBottom: 12,
+          paddingTop: 6,
+        },
+        tabBarActiveTintColor: '#1D9E75',
+        tabBarInactiveTintColor: '#9EADA7',
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontFamily: 'PlusJakartaSans',
+          fontWeight: '500',
+          marginTop: 0,
+        },
       }}
     >
       {orderedTabs.map((tab) => (
@@ -53,15 +58,15 @@ export default function TabsLayout() {
               <Text
                 style={[
                   styles.tabLabel,
-                  { color: focused ? colors.jade400 : colors.textTertiary },
+                  { color: focused ? '#1D9E75' : '#9EADA7' },
                   focused && styles.tabLabelActive,
                 ]}
               >
                 {tab.title}
               </Text>
             ),
-            tabBarIcon: ({ focused }) => (
-              <TabIcon label={tab.icon} focused={focused} />
+            tabBarIcon: ({ color }) => (
+              <tab.Icon width={24} height={24} color={color} />
             ),
           }}
         />
@@ -71,32 +76,10 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  tabBar: {
-    height: 56,
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingBottom: 0,
-  },
-  iconWrap: {
-    width: 40,
-    height: 28,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  iconWrapActive: {
-    backgroundColor: colors.jade50,
-  },
-  iconText: {
-    fontSize: 18,
-  },
-  iconTextActive: {
-    // tint handled by tabBarActiveTintColor
-  },
   tabLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '500',
+    marginTop: 2,
   },
   tabLabelActive: {
     fontWeight: '700',
