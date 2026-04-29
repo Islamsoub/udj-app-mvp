@@ -68,12 +68,34 @@ export default function SplashScreen() {
   const [currentState, setCurrentState] = useState<SplashState>('loading');
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const textOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    Animated.sequence([
+      Animated.timing(logoOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(textOpacity, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
     Animated.timing(fadeAnim, {
       toValue: 1,
       duration: 400,
       useNativeDriver: true,
+    }).start();
+
+    Animated.timing(progressAnim, {
+      toValue: 1,
+      duration: 1500,
+      useNativeDriver: false,
     }).start();
 
     const timer = setTimeout(async () => {
@@ -106,7 +128,12 @@ export default function SplashScreen() {
           },
         ]}
       >
-        <LogoSVG width={99} height={169} />
+        <Animated.View style={{ opacity: logoOpacity }}>
+          <LogoSVG width={99} height={169} />
+        </Animated.View>
+        <Animated.View style={{ opacity: textOpacity }}>
+          <Text style={styles.logoText}>Unipocket</Text>
+        </Animated.View>
       </Animated.View>
 
       {/* ── State: no-connection ── */}
@@ -203,7 +230,14 @@ export default function SplashScreen() {
       {currentState === 'loading' && (
         <>
           <View style={styles.pillTrack}>
-            <View style={styles.pillFill} />
+            <Animated.View
+              style={{
+                width: progressAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 37] }),
+                height: 3,
+                borderRadius: 12,
+                backgroundColor: '#D9D9D9',
+              }}
+            />
           </View>
           <Text style={styles.loadingText}>Chargement</Text>
         </>
@@ -239,11 +273,22 @@ const styles = StyleSheet.create({
   // Logo is absolutely positioned; top varies by state
   logoAbsolute: {
     position: 'absolute',
+    left: 0,
+    right: 0,
     alignSelf: 'center',
+    alignItems: 'center',
+  },
+  logoText: {
+    fontFamily: fonts.sans,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginTop: -18,
+    textAlign: 'center',
   },
   stateContent: {
     position: 'absolute',
-    top: 330,
+    top: 355,
     alignItems: 'center',
     paddingHorizontal: spacing.sp24,
     width: '100%',
