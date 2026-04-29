@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing, radius } from '@/constants/theme';
 
 const LogoSVG = (
-  require('@/assets/Logo.svg') as { default: React.FC<{ width: number; height: number }> }
+  require('@/assets/icons/Logo.svg') as { default: React.FC<{ width: number; height: number }> }
 ).default;
 
 type LoginState =

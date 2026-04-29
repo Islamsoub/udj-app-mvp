@@ -16,7 +16,7 @@ import type { ComponentProps } from 'react';
 
 // SVG transformer handles the module — typed explicitly to avoid `any` exposure
 const LogoSVG = (
-  require('@/assets/Logo.svg') as { default: React.FC<{ width: number; height: number }> }
+  require('@/assets/icons/Logo.svg') as { default: React.FC<{ width: number; height: number }> }
 ).default;
 
 const JWT_KEY = 'udj_jwt';

@@ -5,11 +5,11 @@
     "version": "1.0.0",
     "scheme": "udj",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icons/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/icons/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0A3D2E"
     },
@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icons/adaptive-icon.png",
         "backgroundColor": "#0A3D2E"
       },
       "edgeToEdgeEnabled": true,
@@ -27,7 +27,7 @@
       "package": "dj.univ.udj"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/icons/favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -37,7 +37,7 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#0A3D2E",
-          "image": "./assets/splash-icon.png",
+          "image": "./assets/icons/splash-icon.png",
           "imageWidth": 200
         }
       ],
