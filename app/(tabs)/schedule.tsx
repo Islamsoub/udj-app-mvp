@@ -78,7 +78,7 @@ function SkeletonScheduleHeader({ topInset }: { topInset: number }) {
     <View style={[skelStyles.header, { paddingTop: topInset + spacing.sp16 }]}>
       {/* Title row */}
       <View style={skelStyles.titleRow}>
-        <SkeletonBox width={180} height={20} borderRadius={8} />
+        <SkeletonBox width={169} height={15} borderRadius={8} />
         <View style={skelStyles.actions}>
           <View style={skelStyles.circle} />
           <View style={skelStyles.circle} />
@@ -97,10 +97,10 @@ function SkeletonScheduleHeader({ topInset }: { topInset: number }) {
 
       {/* Subtitle shimmer */}
       <SkeletonBox
-        width={180}
-        height={14}
+        width={142}
+        height={15}
         borderRadius={8}
-        style={{ marginStart: spacing.sp16, marginTop: spacing.sp12 }}
+        style={{ marginStart: spacing.sp16, marginTop: spacing.sp16 }}
       />
 
       {/* Bottom divider shimmer */}
@@ -247,24 +247,24 @@ function EmptyStateBody({ onExport, onNextWeek }: EmptyStateProps) {
   const { t } = useTranslation();
 
   return (
-    <View style={styles.centerBody}>
+    <View style={[styles.centerBody, { paddingTop: 184 }]}>
       <Text style={styles.palmEmoji}>🌴</Text>
       <Text style={styles.stateTitle}>{t('schedule.empty.title')}</Text>
       <Text style={styles.stateBody}>{t('schedule.empty.body')}</Text>
 
-      {/* Next course card */}
+      {/* Next course card — 250×71 per Figma */}
       <View style={styles.nextCourseCard}>
         <Text style={styles.nextCourseLabel}>{t('schedule.empty.next_course_label')}</Text>
         <Text style={styles.nextCourseTime}>{t('schedule.empty.next_course_time')}</Text>
         <Text style={styles.nextCourseName}>{t('schedule.empty.next_course_name')}</Text>
       </View>
 
-      {/* Action buttons */}
+      {/* Action buttons — fixed widths 139+151 per Figma */}
       <View style={styles.emptyBtnRow}>
-        <Pressable style={[styles.emptyBtn, styles.emptyBtnPrimary]} onPress={onExport}>
+        <Pressable style={[styles.emptyBtnPrimary]} onPress={onExport}>
           <Text style={styles.emptyBtnPrimaryText}>{t('schedule.empty.export')}</Text>
         </Pressable>
-        <Pressable style={[styles.emptyBtn, styles.emptyBtnOutline]} onPress={onNextWeek}>
+        <Pressable style={[styles.emptyBtnOutline]} onPress={onNextWeek}>
           <Text style={styles.emptyBtnOutlineText}>{t('schedule.empty.next_week')}</Text>
         </Pressable>
       </View>
@@ -283,7 +283,7 @@ function ErrorStateBody({ onRetry, onViewCache }: ErrorStateProps) {
   const { t } = useTranslation();
 
   return (
-    <View style={styles.centerBody}>
+    <View style={[styles.centerBody, { paddingTop: 193 }]}>
       <View style={styles.errorIconCircle}>
         <Image
           source={require('../../assets/icons/calendar-error.png')}
@@ -517,26 +517,27 @@ const styles = StyleSheet.create({
     gap: 0,
   },
 
-  // ── Offline body
+  // ── Offline body — 14px gap between cache banner and cards per Figma
   offlineBody: {
     paddingHorizontal: spacing.sp16,
-    paddingTop: spacing.sp16,
-    gap: spacing.sp12,
+    paddingTop: 14,
+    gap: 14,
   },
 
-  // ── Center states (empty / error)
+  // ── Center states (empty / error) — paddingTop set per-state in component
   centerBody: {
     flex: 1,
     alignItems: 'center',
     paddingHorizontal: spacing.sp24,
-    paddingTop: 80,
   },
   palmEmoji: {
     fontSize: 80,
     textAlign: 'center',
+    lineHeight: 100,
+    height: 100,
   },
   stateTitle: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -544,115 +545,117 @@ const styles = StyleSheet.create({
     marginTop: spacing.sp16,
   },
   stateBody: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
     textAlign: 'center',
-    maxWidth: 280,
-    lineHeight: 24,
+    maxWidth: 245,
+    lineHeight: 22,
     marginTop: spacing.sp8,
   },
 
-  // ── Empty: next course card
+  // ── Empty: next course card — 250×71 per Figma
   nextCourseCard: {
-    width: '100%',
-    borderRadius: radius.rLg,
+    width: 250,
+    borderRadius: radius.rMd,
     backgroundColor: colors.jade75,
     borderWidth: 1,
     borderColor: colors.jade400,
     padding: spacing.sp16,
-    marginTop: spacing.sp24,
+    marginTop: 18,
     alignItems: 'center',
     gap: spacing.sp4,
   },
   nextCourseLabel: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.jade600,
     textAlign: 'center',
   },
   nextCourseTime: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.jade600,
     textAlign: 'center',
   },
   nextCourseName: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.jade600,
     textAlign: 'center',
   },
 
-  // ── Empty: buttons
+  // ── Empty: buttons — fixed widths 139+151 per Figma
   emptyBtnRow: {
     flexDirection: 'row',
-    gap: spacing.sp12,
-    width: '100%',
-    marginTop: spacing.sp24,
+    gap: 10,
+    marginTop: 39,
   },
-  emptyBtn: {
-    flex: 1,
-    height: 56,
+  emptyBtnPrimary: {
+    width: 139,
+    height: 55,
     borderRadius: radius.rLg,
+    backgroundColor: colors.jade400,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emptyBtnPrimary: {
-    backgroundColor: colors.jade400,
-  },
   emptyBtnPrimaryText: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.surface,
   },
   emptyBtnOutline: {
+    width: 151,
+    height: 55,
+    borderRadius: radius.rLg,
     backgroundColor: colors.surface,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: colors.jade600,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyBtnOutlineText: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.jade600,
   },
 
-  // ── Error state
+  // ── Error state — 72×72 circle per Figma
   errorIconCircle: {
-    width: 96,
-    height: 96,
+    width: 72,
+    height: 72,
     borderRadius: 216,
     backgroundColor: colors.dangerLight,
     alignItems: 'center',
     justifyContent: 'center',
   },
   retryBtn: {
-    width: '100%',
+    width: 168,
     height: 56,
     borderRadius: radius.rLg,
     backgroundColor: colors.jade400,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: spacing.sp24,
+    marginTop: 48,
   },
   retryBtnText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.surface,
   },
   viewCacheLink: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
     fontFamily: fonts.sans,
-    color: colors.jade400,
-    marginTop: spacing.sp16,
+    color: colors.jade600,
+    marginTop: spacing.sp24,
     textAlign: 'center',
   },
 

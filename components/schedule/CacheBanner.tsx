@@ -1,15 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { colors, fonts, radius } from '@/constants/theme';
 
 export function CacheBanner() {
   const { t } = useTranslation();
 
   return (
     <View style={styles.banner}>
-      <Text style={styles.text}>
-        <Text>{'🗓 '}</Text>
+      <Ionicons name="calendar-outline" size={22} color={colors.offline} style={styles.icon} />
+      <Text style={styles.text} numberOfLines={1}>
         <Text style={styles.normal}>{t('schedule.offline.cache_prefix')}</Text>
         <Text style={styles.bold}>{t('schedule.offline.cache_semester')}</Text>
         <Text style={styles.normal}>{t('schedule.offline.cache_suffix')}</Text>
@@ -20,19 +21,26 @@ export function CacheBanner() {
 
 const styles = StyleSheet.create({
   banner: {
+    height: 27,
     borderWidth: 1,
     borderColor: colors.offline,
-    borderRadius: radius.rLg,
+    borderRadius: radius.rMd,
     backgroundColor: colors.offlineBg,
-    paddingHorizontal: spacing.sp16,
-    paddingVertical: spacing.sp12,
-    marginBottom: spacing.sp16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingStart: 22,
+    paddingEnd: 8,
+    gap: 8,
+    overflow: 'hidden',
+  },
+  icon: {
+    flexShrink: 0,
   },
   text: {
-    fontSize: 13,
+    fontSize: 10,
     fontFamily: fonts.sans,
     color: colors.textPrimary,
-    flexWrap: 'wrap',
+    flexShrink: 1,
   },
   normal: {
     fontWeight: '500',

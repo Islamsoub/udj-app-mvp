@@ -16,8 +16,8 @@ export function ScheduleHeader({ topInset, selectedDayIndex, onDaySelect }: Sche
 
   return (
     <View style={styles.header}>
-      {/* Title row */}
-      <View style={[styles.titleRow, { paddingTop: topInset + spacing.sp16 }]}>
+      {/* Title row — Y=14 from content top per Figma */}
+      <View style={[styles.titleRow, { paddingTop: topInset + 14 }]}>
         <Text style={styles.title}>{t('schedule.title')}</Text>
         <View style={styles.actions}>
           <View style={styles.iconCircle}>
@@ -29,16 +29,13 @@ export function ScheduleHeader({ topInset, selectedDayIndex, onDaySelect }: Sche
         </View>
       </View>
 
-      {/* Divider between title and day strip */}
-      <View style={styles.divider} />
-
-      {/* Day strip */}
+      {/* Day strip — has its own top/bottom border per Figma */}
       <DayStrip selectedIndex={selectedDayIndex} onSelect={onDaySelect} />
 
-      {/* Today subtitle */}
+      {/* Today subtitle — Y=120 from content top (16px gap after strip end at Y=104) */}
       <Text style={styles.subtitle}>{t('schedule.today_prefix')}</Text>
 
-      {/* Bottom divider */}
+      {/* Header bottom border */}
       <View style={styles.divider} />
     </View>
   );
@@ -75,7 +72,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: colors.scheduleBorder,
   },
   subtitle: {
     fontSize: 14,
@@ -83,6 +80,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
     color: colors.jade400,
     paddingHorizontal: spacing.sp16,
-    paddingVertical: spacing.sp12,
+    paddingTop: spacing.sp16,
+    paddingBottom: 9,
   },
 });

@@ -38,6 +38,7 @@ export const colors = {
   dangerLight: '#FECACA', // error state icon circle bg
   connectorLine: '#C7CDCB', // timeline connector dot/line
   greyMuted: '#C7CDCB',    // past-status accent bar
+  scheduleBorder: '#D9D9D9', // Figma-spec border for schedule header, day strip, offline cards
 
   // Skeleton shimmer — neutral grey, no jade tint
   skeletonBase: '#E5E7EB',

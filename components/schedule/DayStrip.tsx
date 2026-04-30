@@ -75,6 +75,9 @@ const styles = StyleSheet.create({
     gap: spacing.sp4,
     height: 56,
     alignItems: 'center',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: colors.scheduleBorder,
   },
   cell: {
     flex: 1,

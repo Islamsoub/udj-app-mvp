@@ -42,11 +42,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: colors.surface,
     borderRadius: radius.rLg,
-    height: 104,
+    borderWidth: 1,
+    borderColor: colors.scheduleBorder,
+    height: 80,
     overflow: 'hidden',
   },
   accentBar: {
-    width: 6,
+    width: 9,
   },
   content: {
     flex: 1,
