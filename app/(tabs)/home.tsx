@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, spacing, radius } from '@/constants/theme';
 
 
@@ -173,9 +174,9 @@ function SkeletonBody() {
 }
 
 // ─── Loaded header ────────────────────────────────────────────────────────────
-function LoadedHeader({ isOffline }: { isOffline: boolean }) {
+function LoadedHeader({ isOffline, topInset }: { isOffline: boolean; topInset: number }) {
   return (
-    <View style={styles.headerSection}>
+    <View style={[styles.headerSection, { paddingTop: topInset + 16 }]}>
       <Text style={styles.dateLabel}>LUNDI 23 MARS 2025</Text>
       <Text style={styles.greeting}>
         <Text style={styles.greetingBase}>Bonjour, </Text>
@@ -210,9 +211,9 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub: st
 }
 
 // ─── Simple header (error / empty / loading) ──────────────────────────────────
-function SimpleHeader() {
+function SimpleHeader({ topInset }: { topInset: number }) {
   return (
-    <View style={styles.simpleHeader}>
+    <View style={[styles.simpleHeader, { paddingTop: topInset + 0 }]}>
       <Text style={styles.simpleHeaderTitle}>Accueil</Text>
       <View style={styles.divider} />
     </View>
@@ -293,6 +294,7 @@ function DevSwitcher({ current, onChange, showModal, onToggleModal }: DevSwitche
 export default function HomeScreen() {
   const [homeState, setHomeState] = useState<HomeState>('loaded');
   const [showSessionModal, setShowSessionModal] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const isLoaded = homeState === 'loaded';
   const isOffline = homeState === 'offline';
@@ -311,11 +313,11 @@ export default function HomeScreen() {
       >
         {/* Header */}
         {homeState === 'skeleton' ? (
-          <SkeletonHeader />
+          <View style={{ paddingTop: insets.top }}><SkeletonHeader /></View>
         ) : showLoadedHeader ? (
-          <LoadedHeader isOffline={isOffline} />
+          <LoadedHeader isOffline={isOffline} topInset={insets.top} />
         ) : (
-          <SimpleHeader />
+          <SimpleHeader topInset={insets.top} />
         )}
 
         {/* Body */}
