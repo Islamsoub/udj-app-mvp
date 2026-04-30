@@ -13,18 +13,16 @@ const ProfileIcon = (require('../../assets/icons/profile.svg') as { default: Rea
 
 export default function TabsLayout() {
   const { t } = useTranslation();
-  const isRTL = useSettingsStore((s) => s.isRTL);
 
   const tabs = [
-    { name: 'home', title: t('tabs.home'), Icon: HomeIcon },
-    { name: 'schedule', title: t('tabs.schedule'), Icon: AgendaIcon },
-    { name: 'grades', title: t('tabs.grades'), Icon: NotesIcon },
-    { name: 'news', title: t('tabs.news'), Icon: ActusIcon },
-    { name: 'profile', title: t('tabs.profile'), Icon: ProfileIcon },
+    { name: 'home', title: t('tabs.home'), Icon: HomeIcon, iconW: 28, iconH: 28 },
+    { name: 'schedule', title: t('tabs.schedule'), Icon: AgendaIcon, iconW: 24, iconH: 24 },
+    { name: 'grades', title: t('tabs.grades'), Icon: NotesIcon, iconW: 28, iconH: 28 },
+    { name: 'news', title: t('tabs.news'), Icon: ActusIcon, iconW: 24, iconH: 24 },
+    { name: 'profile', title: t('tabs.profile'), Icon: ProfileIcon, iconW: 24, iconH: 24 },
   ];
 
-  // Mirror tab order for Arabic RTL
-  const orderedTabs = isRTL ? [...tabs].reverse() : tabs;
+  const orderedTabs = tabs;
 
   return (
     <Tabs
@@ -66,7 +64,9 @@ export default function TabsLayout() {
               </Text>
             ),
             tabBarIcon: ({ color }) => (
-              <tab.Icon width={24} height={24} color={color} />
+              <View style={{ width: tab.iconW, height: tab.iconH, overflow: 'hidden' }}>
+                <tab.Icon width={tab.iconW} height={tab.iconH} color={color} />
+              </View>
             ),
           }}
         />
