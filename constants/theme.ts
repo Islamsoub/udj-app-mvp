@@ -30,6 +30,18 @@ export const colors = {
   dmBgPrimary: '#141E1A',
   dmSurface: '#1C2B26',
   dmCard: '#243328',
+
+  // Extended tokens
+  jade75: '#D1F0E2',     // "En cours" status pill bg
+  infoLight: '#EFF6FF',  // "À venir" status pill bg
+  offlineBg: '#FEF3EC',  // offline banner / cache banner bg
+  dangerLight: '#FECACA', // error state icon circle bg
+  connectorLine: '#C7CDCB', // timeline connector dot/line
+  greyMuted: '#C7CDCB',    // past-status accent bar
+
+  // Skeleton shimmer — neutral grey, no jade tint
+  skeletonBase: '#E5E7EB',
+  skeletonHighlight: '#F3F4F6',
 } as const;
 
 export const spacing = {

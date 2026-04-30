@@ -50,5 +50,42 @@
     "grades": "Notes",
     "news": "Actualités",
     "profile": "Profil"
+  },
+  "schedule": {
+    "title": "Emploi du temps",
+    "today_prefix": "Aujourd'hui – Jeudi 20 mars",
+    "pause_hours": "Pause de {{count}} heures",
+    "status": {
+      "done": "Fini",
+      "active": "En cours",
+      "upcoming": "À venir"
+    },
+    "empty": {
+      "title": "Aucun cours ce week-end",
+      "body": "Pas de cours programmé le samedi. Rechargez pour vérifier les mises à jour.",
+      "next_course_label": "Prochain cours programmé",
+      "next_course_time": "Lundi · 08h00",
+      "next_course_name": "Mathématiques Générales L2",
+      "export": "Exporter Calendrier",
+      "next_week": "Voir sem. suivante"
+    },
+    "error": {
+      "title": "Emploi du temps indisponible",
+      "body": "Impossible de récupérer les cours de cette semaine. Vérifiez votre connexion.",
+      "retry": "Réessayer",
+      "view_cache": "Voir le cache local (22 mars) →"
+    },
+    "offline": {
+      "banner": "Mode hors-ligne / Dernière synchro : hier 14h30",
+      "cache_prefix": "Emploi du temps du ",
+      "cache_semester": "sem. 2",
+      "cache_suffix": " · mis en cache le 22/03"
+    },
+    "session": {
+      "title": "Session expirée",
+      "body": "Votre session a expiré pour des raisons de sécurité. Reconnectez-vous pour continuer.",
+      "login": "Se connecter",
+      "continue_offline": "Continuer en hors-ligne"
+    }
   }
 }

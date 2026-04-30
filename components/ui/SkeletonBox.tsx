@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleProp, ViewStyle, DimensionValue } from 'react-native';
+import { colors } from '@/constants/theme';
 
 interface SkeletonBoxProps {
   width: DimensionValue;
@@ -30,7 +31,7 @@ export function SkeletonBox({ width, height, borderRadius = 4, style }: Skeleton
 
   const backgroundColor = shimmer.interpolate({
     inputRange: [0, 0.5, 1],
-    outputRange: ['#E8ECE9', '#D4EDE5', '#E8ECE9'],
+    outputRange: [colors.skeletonBase, colors.skeletonHighlight, colors.skeletonBase],
   });
 
   // backgroundColor is an AnimatedInterpolation; cast via unknown to satisfy TS
