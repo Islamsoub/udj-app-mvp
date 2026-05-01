@@ -39,6 +39,8 @@ export const colors = {
   connectorLine: '#C7CDCB', // timeline connector dot/line
   greyMuted: '#C7CDCB',    // past-status accent bar
   scheduleBorder: '#D9D9D9', // Figma-spec border for schedule header, day strip, offline cards
+  mentionBien: 'rgb(99,200,168)', // Mention Bien badge bg + skeleton stats row bg
+  offlineText: '#9A3412',         // offline banner body text (dark brown per Figma)
 
   // Skeleton shimmer — neutral grey, no jade tint
   skeletonBase: '#E5E7EB',

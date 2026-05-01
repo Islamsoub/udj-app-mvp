@@ -87,5 +87,50 @@
       "login": "Se connecter",
       "continue_offline": "Continuer en hors-ligne"
     }
+  },
+  "grades": {
+    "title": "Notes",
+    "gpa_label": "MOYENNE GENERALE – SEMESTRE {{semester}}",
+    "gpa_label_s1": "MOYENNE GENERALE – SEMESTRE 1",
+    "gpa_label_s2": "MOYENNE GENERALE – SEMESTRE 2",
+    "mention": "Mention Bien",
+    "credits": "{{count}} crédits validés sur {{total}}",
+    "semester1": "Semestre 1",
+    "semester2": "Semestre 2",
+    "header": {
+      "unavailable": "Données indisponibles",
+      "no_results": "Aucun résultat publié"
+    },
+    "subject": {
+      "cc": "CC",
+      "exam": "CF",
+      "coef": "COEF",
+      "finale": "NF",
+      "valid": "Validé",
+      "at_risk": "à risque",
+      "warning": "Notes inférieur à la moyenne"
+    },
+    "empty": {
+      "title": "Notes pas encore publiées",
+      "body": "Les résultats du semestre seront disponibles dès que l'administration les aura publiés.",
+      "retry": "Réessayer",
+      "contact": "Contacter la scolarité →"
+    },
+    "error": {
+      "title": "Notes indisponibles",
+      "body": "Impossible de récupérer vos notes. Vérifiez votre connexion et réessayez.",
+      "notification_title": "🔔 Notification activée",
+      "notification_body": "Vous recevrez une notif dès la publication"
+    },
+    "offline": {
+      "banner": "Mode hors-ligne / Dernière synchro: hier 14h30",
+      "data_notice": "⚠️ Données locales · Mise à jour: 22/03 14:30"
+    },
+    "session": {
+      "title": "Session expirée",
+      "body": "Votre session a expiré pour des raisons de sécurité. Reconnectez-vous pour continuer.",
+      "login": "Se connecter",
+      "continue_offline": "Continuer en hors-ligne"
+    }
   }
 }
