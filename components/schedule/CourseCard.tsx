@@ -19,7 +19,7 @@ interface CourseCardProps {
   course: Course;
 }
 
-function getAccentColor(course: Course): string {
+export function getAccentColor(course: Course): string {
   if (course.status === 'past') return colors.greyMuted;
   if (course.status === 'active') return colors.jade400;
   return subjectColor(course.subject);
@@ -45,7 +45,7 @@ export function CourseCard({ course }: CourseCardProps) {
     <View style={styles.card}>
       {!isRTL && accentBar}
       <View style={styles.content}>
-        <Text style={styles.subject} numberOfLines={2}>{course.subject}</Text>
+        <Text style={styles.subject} numberOfLines={1}>{course.subject}</Text>
         <Text style={styles.subtitle}>{`${course.teacher} · ${course.room}`}</Text>
         <View style={styles.pillRow}>
           <View style={styles.timePill}>
@@ -64,47 +64,50 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: colors.surface,
     borderRadius: radius.rLg,
-    minHeight: 87,
+    borderWidth: 1,
+    borderColor: colors.scheduleBorder,
     overflow: 'hidden',
-    width: '100%',
+    width: 253,
   },
   accentBar: {
-    width: 6,
+    width: 9,
   },
   content: {
     flex: 1,
-    paddingHorizontal: spacing.sp12,
-    paddingVertical: spacing.sp12,
-    gap: spacing.sp2,
+    paddingStart: 11,
+    paddingEnd: 11,
+    paddingTop: 11,
+    paddingBottom: 11,
   },
   subject: {
-    fontSize: 16,
-    fontWeight: '600',
-    fontFamily: fonts.sans,
-    color: colors.textPrimary,
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans-Bold',
+    color: colors.dmCard,
+    marginBottom: 4,
   },
   subtitle: {
-    fontSize: 13,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
+    fontSize: 11,
+    fontFamily: 'PlusJakartaSans-Medium',
     color: colors.textSecondary,
+    marginBottom: 7,
   },
   pillRow: {
     flexDirection: 'row',
-    gap: spacing.sp8,
-    marginTop: spacing.sp8,
+    gap: 14,
     alignItems: 'center',
   },
   timePill: {
+    height: 20,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radius.rFull,
-    paddingHorizontal: spacing.sp12,
-    paddingVertical: spacing.sp6,
+    borderRadius: 999,
+    paddingHorizontal: 14,
     backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   timePillText: {
-    fontSize: 13,
+    fontSize: 11,
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textPrimary,

@@ -21,7 +21,8 @@
       "Bash(node -e \"const AS=require\\('@react-native-async-storage/async-storage'\\); console.log\\(Object.keys\\(AS\\)\\)\")",
       "Bash(npx tsc *)",
       "Bash(npx expo-doctor *)",
-      "Bash(node *)"
+      "Bash(node *)",
+      "Bash(npm uninstall *)"
     ]
   }
 }

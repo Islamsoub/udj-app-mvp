@@ -2,8 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, I18nManager } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, spacing } from '@/constants/theme';
-import { CourseCard, Course } from './CourseCard';
-import { subjectColor } from '@/utils/subjectColor';
+import { CourseCard, Course, getAccentColor } from './CourseCard';
 
 export type PauseEntry = { type: 'pause'; time: string; durationHours: number };
 export type DayEntry   = Course | PauseEntry;
@@ -22,13 +21,14 @@ export function TimelineRow({ entry, isLast }: TimelineRowProps) {
   const isRTL = I18nManager.isRTL;
 
   const timeLabel = isPause(entry) ? entry.time : (entry.gutter ?? entry.start);
-  const dotColor  = isPause(entry) || entry.status !== 'active'
-    ? colors.connectorLine
-    : subjectColor(entry.subject);
+  const dotColor = isPause(entry) ? colors.connectorLine : getAccentColor(entry);
 
   const gutter = (
     <View style={styles.gutter}>
-      <Text style={[styles.timeLabel, { textAlign: isRTL ? 'left' : 'right' }]}>
+      <Text
+        style={[styles.timeLabel, { textAlign: isRTL ? 'left' : 'right' }]}
+        numberOfLines={1}
+      >
         {timeLabel}
       </Text>
     </View>
@@ -37,7 +37,7 @@ export function TimelineRow({ entry, isLast }: TimelineRowProps) {
   const connector = (
     <View style={styles.connectorCol}>
       <View style={[styles.dot, { backgroundColor: dotColor }]} />
-      {!isLast && <View style={styles.line} />}
+      <View style={[styles.line, { backgroundColor: dotColor }]} />
     </View>
   );
 
@@ -67,36 +67,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: spacing.sp16,
     alignItems: 'flex-start',
-    marginStart: -spacing.sp8,
+    paddingStart: 33,
   },
   gutter: {
-    width: 44,
+    width: 48,
     paddingTop: 6,
-    paddingEnd: spacing.sp8,
   },
   timeLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans-Bold',
     color: colors.textSecondary,
   },
   connectorCol: {
-    width: 20,
+    width: 11,
     alignItems: 'center',
     paddingTop: 6,
-    alignSelf: 'stretch',
+    marginStart: 3,
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 11,
+    height: 11,
+    borderRadius: 5.517,
   },
   line: {
-    flex: 1,
     width: 1,
+    height: 30,
     backgroundColor: colors.connectorLine,
-    marginTop: spacing.sp4,
-    minHeight: 20,
+    marginTop: 0,
   },
   pauseContent: {
     flex: 1,
@@ -110,6 +107,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   cardContent: {
-    flex: 1,
+    marginStart: 7,
   },
 });

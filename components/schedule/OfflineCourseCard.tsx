@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, I18nManager } from 'react-native';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { colors, radius } from '@/constants/theme';
 import { subjectColor } from '@/utils/subjectColor';
 import { Course } from './CourseCard';
 
@@ -44,7 +44,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.rLg,
     borderWidth: 1,
     borderColor: colors.scheduleBorder,
-    height: 80,
     overflow: 'hidden',
   },
   accentBar: {
@@ -52,27 +51,27 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: spacing.sp16,
-    paddingVertical: spacing.sp12,
-    justifyContent: 'center',
-    gap: spacing.sp4,
+    paddingStart: 11,
+    paddingEnd: 11,
+    paddingTop: 13,
+    paddingBottom: 17,
+    gap: 0,
   },
   timeRange: {
-    fontSize: 14,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans-Medium',
     color: colors.textSecondary,
+    marginBottom: 4,
   },
   subject: {
-    fontSize: 17,
-    fontWeight: '600',
-    fontFamily: fonts.sans,
-    color: colors.textPrimary,
+    fontSize: 12,
+    fontFamily: 'PlusJakartaSans-Bold',
+    color: colors.dmCard,
+    marginBottom: 4,
   },
   subtitle: {
-    fontSize: 14,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
+    fontSize: 11,
+    fontFamily: 'PlusJakartaSans-Medium',
     color: colors.textSecondary,
   },
 });

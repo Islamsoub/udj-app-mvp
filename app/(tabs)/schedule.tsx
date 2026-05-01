@@ -189,10 +189,10 @@ function SkeletonScheduleBody() {
 
 // ─── Offline banner ───────────────────────────────────────────────────────────
 
-function ScheduleOfflineBanner() {
+function ScheduleOfflineBanner({ topInset }: { topInset: number }) {
   const { t } = useTranslation();
   return (
-    <View style={styles.offlineBanner}>
+    <View style={[styles.offlineBanner, { paddingTop: topInset + spacing.sp12 }]}>
       <View style={styles.offlineDot} />
       <Text style={styles.offlineBannerText}>{t('schedule.offline.banner')}</Text>
     </View>
@@ -247,16 +247,16 @@ function EmptyStateBody({ onExport, onNextWeek }: EmptyStateProps) {
   const { t } = useTranslation();
 
   return (
-    <View style={[styles.centerBody, { paddingTop: 184 }]}>
+    <View style={[styles.centerBody, { paddingTop: 40 }]}>
       <Text style={styles.palmEmoji}>🌴</Text>
       <Text style={styles.stateTitle}>{t('schedule.empty.title')}</Text>
       <Text style={styles.stateBody}>{t('schedule.empty.body')}</Text>
 
       {/* Next course card — 250×71 per Figma */}
       <View style={styles.nextCourseCard}>
-        <Text style={styles.nextCourseLabel}>{t('schedule.empty.next_course_label')}</Text>
-        <Text style={styles.nextCourseTime}>{t('schedule.empty.next_course_time')}</Text>
-        <Text style={styles.nextCourseName}>{t('schedule.empty.next_course_name')}</Text>
+        <Text style={styles.nextCourseText}>
+          {`${t('schedule.empty.next_course_label')}\n${t('schedule.empty.next_course_time')}\n${t('schedule.empty.next_course_name')}`}
+        </Text>
       </View>
 
       {/* Action buttons — fixed widths 139+151 per Figma */}
@@ -283,7 +283,7 @@ function ErrorStateBody({ onRetry, onViewCache }: ErrorStateProps) {
   const { t } = useTranslation();
 
   return (
-    <View style={[styles.centerBody, { paddingTop: 193 }]}>
+    <View style={[styles.centerBody, { paddingTop: 40 }]}>
       <View style={styles.errorIconCircle}>
         <Image
           source={require('../../assets/icons/calendar-error.png')}
@@ -353,7 +353,10 @@ interface DevSwitcherProps {
 
 function DevSwitcher({ current, onChange }: DevSwitcherProps) {
   return (
-    <View style={styles.devSwitcher}>
+    <View
+      style={styles.devSwitcher}
+      onLayout={(e) => console.log('[DEV] switcher layout:', JSON.stringify(e.nativeEvent.layout))}
+    >
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.devScroll}>
         {ALL_STATES.map((s) => (
           <Pressable
@@ -382,10 +385,13 @@ export default function ScheduleScreen() {
   const showOfflineBanner = schedState === 'offline';
 
   return (
-    <View style={styles.root}>
+    <View
+      style={styles.root}
+      onLayout={(e) => console.log('[DEV] root layout:', JSON.stringify(e.nativeEvent.layout))}
+    >
       <StatusBar barStyle="dark-content" />
 
-      {showOfflineBanner && <ScheduleOfflineBanner />}
+      {showOfflineBanner && <ScheduleOfflineBanner topInset={insets.top} />}
 
       <ScrollView
         style={styles.scroll}
@@ -422,7 +428,7 @@ export default function ScheduleScreen() {
           />
         )}
 
-        <View style={{ height: spacing.sp64 }} />
+        <View style={{ height: 120 }} />
       </ScrollView>
 
       {schedState === 'session' && (
@@ -455,13 +461,13 @@ const styles = StyleSheet.create({
 
   // ── Offline banner
   offlineBanner: {
-    height: 46,
     backgroundColor: colors.offlineBg,
     borderBottomWidth: 1,
     borderBottomColor: colors.offline,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.sp16,
+    paddingBottom: spacing.sp12,
     gap: spacing.sp8,
   },
   offlineDot: {
@@ -480,7 +486,6 @@ const styles = StyleSheet.create({
 
   // ── Timeline body (loaded & skeleton)
   timelineBody: {
-    paddingHorizontal: spacing.sp16,
     paddingTop: spacing.sp16,
   },
 
@@ -491,7 +496,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   skelGutter: {
-    width: 60,
+    width: 44,
     paddingTop: 6,
     alignItems: 'flex-end',
     paddingEnd: spacing.sp8,
@@ -533,8 +538,6 @@ const styles = StyleSheet.create({
   palmEmoji: {
     fontSize: 80,
     textAlign: 'center',
-    lineHeight: 100,
-    height: 100,
   },
   stateTitle: {
     fontSize: 14,
@@ -555,38 +558,26 @@ const styles = StyleSheet.create({
     marginTop: spacing.sp8,
   },
 
-  // ── Empty: next course card — 250×71 per Figma
+  // ── Empty: next course card — 250px wide per Figma
   nextCourseCard: {
     width: 250,
+    alignSelf: 'center',
     borderRadius: radius.rMd,
     backgroundColor: colors.jade75,
     borderWidth: 1,
     borderColor: colors.jade400,
-    padding: spacing.sp16,
+    paddingTop: 9,
+    paddingBottom: 8,
+    paddingHorizontal: 38,
     marginTop: 18,
-    alignItems: 'center',
-    gap: spacing.sp4,
   },
-  nextCourseLabel: {
-    fontSize: 14,
-    fontWeight: '600',
+  nextCourseText: {
     fontFamily: fonts.sans,
-    color: colors.jade600,
-    textAlign: 'center',
-  },
-  nextCourseTime: {
-    fontSize: 14,
     fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.jade600,
-    textAlign: 'center',
-  },
-  nextCourseName: {
     fontSize: 12,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
     color: colors.jade600,
     textAlign: 'center',
+    lineHeight: 18,
   },
 
   // ── Empty: buttons — fixed widths 139+151 per Figma
@@ -604,8 +595,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyBtnPrimaryText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.surface,
   },
@@ -620,8 +611,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyBtnOutlineText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.jade600,
   },
@@ -636,6 +627,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   retryBtn: {
+    alignSelf: 'center',
     width: 168,
     height: 56,
     borderRadius: radius.rLg,
@@ -728,7 +720,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: radius.rLg,
     borderWidth: 1,
-    borderColor: colors.jade400,
+    borderColor: colors.jade600,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.sp12,
@@ -743,7 +735,7 @@ const styles = StyleSheet.create({
   // ── DEV switcher
   devSwitcher: {
     position: 'absolute',
-    bottom: 8,
+    bottom: 67,
     start: 0,
     end: 0,
   },

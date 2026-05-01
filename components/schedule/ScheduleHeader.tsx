@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import MenuSchIcon from '@/assets/icons/menu_sch_icon.svg';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { DayStrip } from './DayStrip';
 
@@ -13,6 +14,10 @@ interface ScheduleHeaderProps {
 
 export function ScheduleHeader({ topInset, selectedDayIndex, onDaySelect }: ScheduleHeaderProps) {
   const { t } = useTranslation();
+  const DAYS_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+  const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  const today = new Date();
+  const todaySubtitle = `Aujourd'hui – ${DAYS_FR[today.getDay()]} ${today.getDate()} ${MONTHS_FR[today.getMonth()]}`;
 
   return (
     <View style={styles.header}>
@@ -21,10 +26,10 @@ export function ScheduleHeader({ topInset, selectedDayIndex, onDaySelect }: Sche
         <Text style={styles.title}>{t('schedule.title')}</Text>
         <View style={styles.actions}>
           <View style={styles.iconCircle}>
-            <Ionicons name="search-outline" size={16} color={colors.textSecondary} />
+            <Ionicons name="search-outline" size={20} color={colors.textSecondary} />
           </View>
           <View style={styles.iconCircle}>
-            <Ionicons name="menu-outline" size={16} color={colors.textSecondary} />
+            <MenuSchIcon width={20} height={20} />
           </View>
         </View>
       </View>
@@ -33,7 +38,7 @@ export function ScheduleHeader({ topInset, selectedDayIndex, onDaySelect }: Sche
       <DayStrip selectedIndex={selectedDayIndex} onSelect={onDaySelect} />
 
       {/* Today subtitle — Y=120 from content top (16px gap after strip end at Y=104) */}
-      <Text style={styles.subtitle}>{t('schedule.today_prefix')}</Text>
+      <Text style={styles.subtitle}>{todaySubtitle}</Text>
 
       {/* Header bottom border */}
       <View style={styles.divider} />
@@ -65,7 +70,7 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 34,
     height: 34,
-    borderRadius: radius.rFull,
+    borderRadius: 30,
     backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
