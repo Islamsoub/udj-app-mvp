@@ -133,6 +133,59 @@
       "continue_offline": "Continuer en hors-ligne"
     }
   },
+  "profile": {
+    "title": "Mon profil",
+    "menu": "Menu",
+    "gpa": "GPA",
+    "credits": "CREDITS",
+    "presence": "PRESENCE",
+    "card": {
+      "title": "Carte etudiante digitale",
+      "subtitle": "Carte etudiante digitale",
+      "programme": "PROGRAMME",
+      "annee": "ANNEE",
+      "statut": "STATUT"
+    },
+    "section": {
+      "academic": "INFORMATIONS ACADEMIQUES",
+      "settings": "PARAMETRES"
+    },
+    "row": {
+      "filiere": "Filiere",
+      "niveau": "Niveau",
+      "langue": "Langue de l'app",
+      "annee": "Annee academique",
+      "notifications": "Notifications",
+      "notifications_value": "Activées",
+      "documents": "Documents",
+      "documents_value": "3 disponibles",
+      "logout": "Se déconnecter"
+    },
+    "offline": {
+      "banner": "Profil local · QR disponible hors-ligne",
+      "timestamp": "hier 14:30"
+    },
+    "error": {
+      "title": "Profil indisponible",
+      "body": "Impossible de récupérer votre profil. Vérifiez votre connexion et réessayez.",
+      "retry": "Réessayer",
+      "qr_available": "Carte QR disponible hors-ligne",
+      "qr_subtitle": "Votre carte étudiant reste accessible →"
+    },
+    "incomplete": {
+      "title": "Profil incomplet",
+      "body": "Votre profil est en cours de validation par l'administration. Cela peut prendre quelques jours.",
+      "validated": "✅ Numéro étudiant validé : UDJ-2024-0432",
+      "pending_photo": "Photo d'identité en attente de validation par l'administration",
+      "pending_qr": "Carte QR temporairement indisponible"
+    },
+    "session": {
+      "title": "Session expirée",
+      "body": "Votre session a expiré pour des raisons de sécurité. Reconnectez-vous pour continuer.",
+      "login": "Se connecter",
+      "continue_offline": "Continuer en hors-ligne"
+    }
+  },
   "news": {
     "title": "Actualités",
     "search": "Rechercher",
