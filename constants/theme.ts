@@ -45,6 +45,15 @@ export const colors = {
   // Skeleton shimmer — neutral grey, no jade tint
   skeletonBase: '#E5E7EB',
   skeletonHighlight: '#F3F4F6',
+
+  // News-specific tokens
+  newsHeaderBorder: '#AE9292',           // news header bottom border per Figma
+  urgentPillBg: 'rgba(217,217,217,0.5)', // HeroCard "Officiel – Urgent" pill
+  newsOfflineBg: '#F6EAE0',              // news offline banner background
+  warningLight: 'rgba(245,158,11,0.2)',  // saved articles warning banner bg
+  warningBorder: '#FFA629',              // saved articles warning banner border
+  newsNotifBg: '#E1F5F0',               // empty-state notification banner bg
+  greyMedium: '#757575',                 // search icon, inactive filter pill border
 } as const;
 
 export const spacing = {

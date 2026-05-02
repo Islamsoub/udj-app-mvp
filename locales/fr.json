@@ -132,5 +132,45 @@
       "login": "Se connecter",
       "continue_offline": "Continuer en hors-ligne"
     }
+  },
+  "news": {
+    "title": "Actualités",
+    "search": "Rechercher",
+    "filter": {
+      "all": "Tout",
+      "events": "Evenements",
+      "scolarite": "Scolarite",
+      "sport": "Sport",
+      "youth": "Jeunesse",
+      "sponsors": "Sponsors"
+    },
+    "hero": {
+      "urgent_label": "Officiel – Urgent"
+    },
+    "article": {
+      "read_time": "{{time}} de lecture"
+    },
+    "offline": {
+      "banner": "Articles sauvegardés · Pas de nouveaux contenus",
+      "saved_count": "Articles sauvegardés (3) · Ces articles peuvent ne pas être à jour"
+    },
+    "empty": {
+      "title": "Aucune annonce officielle",
+      "body": "Les annonces et actualités officielles de l'université apparaîtront ici dès leur publication.",
+      "notification": "🔔 Vous serez notifié dès la publication d'un nouvel article.",
+      "see_all": "Voir toutes les catégories pour plus d'articles"
+    },
+    "error": {
+      "title": "Actualités indisponibles",
+      "body": "Impossible de récupérer les actualités. Vérifiez votre connexion et réessayez.",
+      "retry": "Réessayer",
+      "saved_articles": "Voir les articles sauvegardés (3) →"
+    },
+    "session": {
+      "title": "Session expirée",
+      "body": "Votre session a expiré. Reconnectez-vous pour accéder aux dernières actualités.",
+      "login": "Se connecter",
+      "continue_offline": "Continuer en hors-ligne"
+    }
   }
 }
