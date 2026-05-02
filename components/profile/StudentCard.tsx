@@ -41,7 +41,7 @@ export function StudentCard({ name, id, programme, annee, statut }: StudentCardP
 
       {/* Info pills row */}
       <View style={styles.pillsRow}>
-        <View style={styles.pill}>
+        <View style={[styles.pill, styles.pillLg]}>
           <Text style={styles.pillLabel}>{t('profile.card.programme')}</Text>
           <Text style={styles.pillValue} numberOfLines={1}>
             {programme}
@@ -136,11 +136,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.sp8,
   },
+  pillLg: {
+    width: 110,
+  },
   pillSm: {
     width: 84,
   },
   pillLabel: {
-    fontSize: 9,
+    fontSize: 8,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: CARD_TEXT_DIM,

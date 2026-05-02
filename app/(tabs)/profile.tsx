@@ -116,9 +116,7 @@ function ProfileBody() {
         value={t('profile.row.documents_value')}
       />
 
-      <View style={styles.logoutSpacer}>
-        <InfoRow label={t('profile.row.logout')} isLogout />
-      </View>
+      <InfoRow label={t('profile.row.logout')} isLogout />
     </View>
   );
 }
@@ -315,18 +313,15 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sp16,
   },
   sectionHeader: {
+    paddingVertical: spacing.sp12,
     paddingHorizontal: spacing.sp16,
-    paddingTop: spacing.sp24,
-    paddingBottom: spacing.sp8,
+    backgroundColor: colors.background,
     fontSize: 12,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
-  },
-  logoutSpacer: {
-    marginTop: spacing.sp16,
   },
 
   // ── Shared center layout (error)
