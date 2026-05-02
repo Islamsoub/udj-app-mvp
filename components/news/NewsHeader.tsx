@@ -36,7 +36,7 @@ export function NewsHeader({ state, topInset }: NewsHeaderProps) {
         {state === 'skeleton' ? (
           <View style={styles.searchIconPlaceholder} />
         ) : (
-          <Ionicons name="search-outline" size={17} color={colors.greyMedium} />
+          <Ionicons name="search-outline" size={20} color={colors.greyMedium} />
         )}
       </View>
     </View>

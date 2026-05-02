@@ -157,7 +157,7 @@
     "empty": {
       "title": "Aucune annonce officielle",
       "body": "Les annonces et actualités officielles de l'université apparaîtront ici dès leur publication.",
-      "notification": "🔔 Vous serez notifié dès la publication d'un nouvel article.",
+      "notification": "Vous serez notifié dès la publication d'un nouvel article.",
       "see_all": "Voir toutes les catégories pour plus d'articles"
     },
     "error": {

@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.danger,
   },
   urgentLabel: {
-    fontSize: 9,
+    fontSize: 12,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.surface,

@@ -156,9 +156,12 @@ function EmptyBody() {
   const { t } = useTranslation();
 
   return (
-    <View style={styles.centerBody}>
-      {/* Mailbox icon — emoji fallback (no Mailbox.png available) */}
-      <Text style={styles.emptyIcon}>📬</Text>
+    <View style={styles.centeredBody}>
+      <Image
+        source={require('../../assets/icons/Mailbox.png')}
+        style={{ width: 100, height: 100 }}
+        resizeMode="contain"
+      />
 
       <Text style={styles.stateTitle}>{t('news.empty.title')}</Text>
       <Text style={styles.stateBody}>{t('news.empty.body')}</Text>
@@ -186,10 +189,10 @@ function ErrorBody({ onRetry }: ErrorBodyProps) {
   const { t } = useTranslation();
 
   return (
-    <View style={styles.centerBody}>
+    <View style={styles.centeredBody}>
       <View style={styles.errorIconCircle}>
         <Image
-          source={require('../../assets/icons/calendar-error.png')}
+          source={require('../../assets/icons/News.png')}
           style={{ width: 48, height: 48 }}
           resizeMode="contain"
         />
@@ -387,11 +390,12 @@ const styles = StyleSheet.create({
   },
 
   // ── Shared center layout (empty + error)
-  centerBody: {
+  centeredBody: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: spacing.sp24,
-    paddingTop: 153,
+    paddingBottom: 40,
   },
   stateTitle: {
     fontSize: 14,
@@ -451,9 +455,9 @@ const styles = StyleSheet.create({
 
   // ── Error state
   errorIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 216,
+    width: 90,
+    height: 90,
+    borderRadius: 270,
     backgroundColor: colors.dangerLight,
     alignItems: 'center',
     justifyContent: 'center',
