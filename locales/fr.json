@@ -94,7 +94,7 @@
     "gpa_label_s1": "MOYENNE GENERALE – SEMESTRE 1",
     "gpa_label_s2": "MOYENNE GENERALE – SEMESTRE 2",
     "mention": "Mention Bien",
-    "credits": "{{count}} crédits validés sur {{total}}",
+    "credits_format": "Crédits: {{earned}}/{{total}}",
     "semester1": "Semestre 1",
     "semester2": "Semestre 2",
     "header": {
@@ -107,7 +107,7 @@
       "coef": "COEF",
       "finale": "NF",
       "valid": "Validé",
-      "at_risk": "à risque",
+      "at_risk": "À Risque",
       "warning": "Notes inférieur à la moyenne"
     },
     "empty": {

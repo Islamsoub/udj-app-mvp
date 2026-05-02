@@ -14,6 +14,7 @@ interface GradesHeaderProps {
   gpa: number | null;
   activeSemester: 1 | 2;
   onSemesterChange: (s: 1 | 2) => void;
+  credits?: { earned: number; total: number } | null;
 }
 
 // Spec heights per state (topInset is added at render time)
@@ -25,7 +26,7 @@ const SPEC_HEIGHT: Record<GradesHeaderState, number> = {
   skeleton: 305,
 };
 
-export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterChange }: GradesHeaderProps) {
+export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterChange, credits }: GradesHeaderProps) {
   const { t } = useTranslation();
   const totalH = SPEC_HEIGHT[state] + topInset;
 
@@ -97,9 +98,13 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
   const mention = getMention(gpa);
 
   // ── Subtitle text ───────────────────────────────────────────────────────────
-  let subtitleText: string;
+  const creditsText = credits
+    ? t('grades.credits_format', { earned: credits.earned, total: credits.total })
+    : null;
+
+  let subtitleText: string | null;
   if (state === 'loaded') {
-    subtitleText = t('grades.credits', { count: 18, total: 30 });
+    subtitleText = creditsText;
   } else if (state === 'offline') {
     subtitleText = t('grades.offline.data_notice');
   } else if (state === 'empty') {
@@ -135,15 +140,17 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
       </View>
 
       {/* Subtitle line */}
-      <Text
-        style={[
-          styles.subtitle,
-          { position: 'absolute', top: topInset + subtitleY, start: spacing.sp16, end: spacing.sp16 },
-        ]}
-        numberOfLines={1}
-      >
-        {subtitleText}
-      </Text>
+      {subtitleText !== null && (
+        <Text
+          style={[
+            styles.subtitle,
+            { position: 'absolute', top: topInset + subtitleY, start: spacing.sp16, end: spacing.sp16 },
+          ]}
+          numberOfLines={1}
+        >
+          {subtitleText}
+        </Text>
+      )}
 
       {/* Semester tabs — pinned to bottom of header */}
       {hasTabs && (

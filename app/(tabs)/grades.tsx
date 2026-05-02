@@ -112,7 +112,11 @@ function EmptyStateBody({ onRetry, onContact }: EmptyStateProps) {
 
   return (
     <View style={[styles.centerBody, { paddingTop: 40 }]}>
-      <Text style={styles.hourglassEmoji}>⏳</Text>
+      <Image
+        source={require('../../assets/icons/Hourglass.png')}
+        style={{ width: 76, height: 76 }}
+        resizeMode="contain"
+      />
       <Text style={styles.stateTitle}>{t('grades.empty.title')}</Text>
       <Text style={styles.stateBody}>{t('grades.empty.body')}</Text>
       <Pressable style={styles.retryBtn} onPress={onRetry}>
@@ -243,6 +247,7 @@ export default function GradesScreen() {
           gpa={headerGpa}
           activeSemester={activeSemester}
           onSemesterChange={setActiveSemester}
+          credits={{ earned: 18, total: 30 }}
         />
 
         {/* Body content */}
@@ -333,10 +338,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     paddingHorizontal: spacing.sp24,
-  },
-  hourglassEmoji: {
-    fontSize: 76,
-    textAlign: 'center',
   },
   stateTitle: {
     fontSize: 14,

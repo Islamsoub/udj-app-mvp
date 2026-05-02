@@ -94,7 +94,7 @@
     "gpa_label_s1": "المعدل العام – الفصل 1",
     "gpa_label_s2": "المعدل العام – الفصل 2",
     "mention": "تقدير جيد جداً",
-    "credits": "{{count}} وحدة معتمدة من {{total}}",
+    "credits_format": "الوحدات: {{earned}}/{{total}}",
     "semester1": "الفصل 1",
     "semester2": "الفصل 2",
     "header": {
