@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { colors, fonts, spacing, radius } from '@/constants/theme';
 
 const LogoSVG = (
@@ -107,6 +108,8 @@ export default function LoginScreen() {
     router.replace('/(tabs)/home');
   };
 
+  const { t } = useTranslation();
+
   const isSkeleton = loginState === 'skeleton';
   const isLocked = loginState === 'locked-out';
   const isSubmitting = loginState === 'submitting';
@@ -170,7 +173,7 @@ export default function LoginScreen() {
           <View style={styles.offlineBanner}>
             <View style={styles.offlineDot} />
             <Text style={styles.offlineBannerText}>
-              Mode hors-ligne / Dernière synchro : hier 14h30
+              {t('common.offline')} / {t('common.last_sync', { time: 'hier 14h30' })}
             </Text>
           </View>
         )}

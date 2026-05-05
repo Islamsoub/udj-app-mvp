@@ -7,7 +7,10 @@
     "error": "Une erreur est survenue",
     "noClasses": "Pas de cours aujourd'hui 🌴",
     "enjoyDay": "Profitez de votre journée !",
-    "offlineBanner": "Mode hors-ligne · Dernière sync : {{time}}"
+    "offlineBanner": "Mode hors-ligne · Dernière sync : {{time}}",
+    "last_sync": "Dernière synchro : {{time}}",
+    "last_sync_short": "Mise à jour: {{time}}",
+    "sync_value": "Hier à {{time}}"
   },
   "auth": {
     "welcome": "Bienvenue sur UDJ",

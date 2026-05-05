@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { colors, fonts, spacing, radius } from '@/constants/theme';
 
 
@@ -33,12 +34,13 @@ function SkeletonBox({ style }: { style: object }) {
 }
 
 // ─── Offline banner ───────────────────────────────────────────────────────────
-function OfflineBanner() {
+function OfflineBanner({ lastSyncTime }: { lastSyncTime?: string }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.offlineBanner}>
       <View style={styles.offlineDot} />
       <Text style={styles.offlineBannerText}>
-        Mode hors-ligne / Dernière synchro : hier 14h30
+        {t('common.offline')} / {t('common.last_sync', { time: lastSyncTime ?? 'hier 14h30' })}
       </Text>
     </View>
   );
@@ -174,7 +176,8 @@ function SkeletonBody() {
 }
 
 // ─── Loaded header ────────────────────────────────────────────────────────────
-function LoadedHeader({ isOffline, topInset }: { isOffline: boolean; topInset: number }) {
+function LoadedHeader({ isOffline, topInset, lastSyncTime }: { isOffline: boolean; topInset: number; lastSyncTime?: string }) {
+  const { t } = useTranslation();
   return (
     <View style={[styles.headerSection, { paddingTop: topInset + 16 }]}>
       <Text style={styles.dateLabel}>LUNDI 23 MARS 2025</Text>
@@ -185,7 +188,7 @@ function LoadedHeader({ isOffline, topInset }: { isOffline: boolean; topInset: n
       {isOffline ? (
         <Text style={styles.subtitleOffline}>
           <Text style={styles.subtitleOfflineNormal}>Données locales – </Text>
-          <Text style={styles.subtitleOfflineTime}>Mise à jour: hier 14h30</Text>
+          <Text style={styles.subtitleOfflineTime}>{t('common.last_sync_short', { time: lastSyncTime ?? 'hier 14h30' })}</Text>
         </Text>
       ) : (
         <Text style={styles.subtitle}>3 cours aujourd'hui – Prochain dans 12 min</Text>
@@ -295,6 +298,7 @@ export default function HomeScreen() {
   const [homeState, setHomeState] = useState<HomeState>('loaded');
   const [showSessionModal, setShowSessionModal] = useState(false);
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const isLoaded = homeState === 'loaded';
   const isOffline = homeState === 'offline';
@@ -419,7 +423,7 @@ export default function HomeScreen() {
               <Text style={styles.retryBtnText}>Réessayer</Text>
             </Pressable>
             <Text style={styles.syncLabel}>DERNIÈRE SYNCHRONISATION</Text>
-            <Text style={styles.syncValue}>Hier à 14:30</Text>
+            <Text style={styles.syncValue}>{t('common.sync_value', { time: '14:30' })}</Text>
             <Text style={styles.offlineLink}>Afficher les données hors-ligne →</Text>
           </View>
         )}
@@ -432,6 +436,7 @@ export default function HomeScreen() {
               Profitez de votre dimanche — pas de cours programmé. Bon repos !
             </Text>
             <View style={styles.nextCourseCard}>
+              {/* TODO: replace with real API data in Phase 2 */}
               <Text style={styles.nextCourseTitle}>Prochain cours : lundi 08h00</Text>
               <Text style={styles.nextCourseSub}>Mathématiques Générales L2</Text>
             </View>

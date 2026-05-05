@@ -30,6 +30,7 @@ const MOCK_ARTICLES: Article[] = [
     id: '0',
     category: 'Scolarite',
     title: 'Calendrier des examens du Semestre 2 – Session juin 2025',
+    // TODO: replace with real API data in Phase 2
     timestamp: 'Hier a 16H00',
     readTime: '5 min de lecture',
     isHero: true,
