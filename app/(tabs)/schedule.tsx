@@ -8,11 +8,11 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
+import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import { ScheduleHeader } from '@/components/schedule/ScheduleHeader';
 import { TimelineRow, DayEntry } from '@/components/schedule/TimelineRow';
@@ -187,55 +187,6 @@ function SkeletonScheduleBody() {
   );
 }
 
-// ─── Offline banner ───────────────────────────────────────────────────────────
-
-function ScheduleOfflineBanner({ topInset }: { topInset: number }) {
-  const { t } = useTranslation();
-  return (
-    <View style={[styles.offlineBanner, { paddingTop: topInset + spacing.sp12 }]}>
-      <View style={styles.offlineDot} />
-      <Text style={styles.offlineBannerText}>{t('schedule.offline.banner')}</Text>
-    </View>
-  );
-}
-
-// ─── Session expired modal ────────────────────────────────────────────────────
-
-interface SessionModalProps {
-  onClose: () => void;
-  onOffline: () => void;
-}
-
-function SessionExpiredModal({ onClose, onOffline }: SessionModalProps) {
-  const { t } = useTranslation();
-  const router = useRouter();
-
-  return (
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalSheet}>
-        <View style={styles.dragHandle} />
-        <View style={styles.modalIconCircle}>
-          <Ionicons name="key-outline" size={36} color={colors.exam} />
-        </View>
-        <Text style={styles.modalTitle}>{t('schedule.session.title')}</Text>
-        <Text style={styles.modalBody}>{t('schedule.session.body')}</Text>
-        <Pressable
-          style={styles.modalPrimaryBtn}
-          onPress={() => router.replace('/(auth)/login')}
-        >
-          <Text style={styles.modalPrimaryBtnText}>{t('schedule.session.login')}</Text>
-        </Pressable>
-        <Pressable
-          style={styles.modalOutlineBtn}
-          onPress={() => { onClose(); onOffline(); }}
-        >
-          <Text style={styles.modalOutlineBtnText}>{t('schedule.session.continue_offline')}</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
 interface EmptyStateProps {
@@ -382,7 +333,6 @@ export default function ScheduleScreen() {
   const insets = useSafeAreaInsets();
 
   const showHeader = schedState !== 'skeleton';
-  const showOfflineBanner = schedState === 'offline';
 
   return (
     <View
@@ -391,7 +341,7 @@ export default function ScheduleScreen() {
     >
       <StatusBar barStyle="dark-content" />
 
-      {showOfflineBanner && <ScheduleOfflineBanner topInset={insets.top} />}
+      <OfflineBanner />
 
       <ScrollView
         style={styles.scroll}
@@ -431,12 +381,10 @@ export default function ScheduleScreen() {
         <View style={{ height: 120 }} />
       </ScrollView>
 
-      {schedState === 'session' && (
-        <SessionExpiredModal
-          onClose={() => setSchedState('loaded')}
-          onOffline={() => setSchedState('offline')}
-        />
-      )}
+      <SessionExpiredModal
+        visible={schedState === 'session'}
+        onContinueOffline={() => setSchedState('offline')}
+      />
 
       {__DEV__ && (
         <DevSwitcher current={schedState} onChange={setSchedState} />
@@ -457,31 +405,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-  },
-
-  // ── Offline banner
-  offlineBanner: {
-    backgroundColor: colors.offlineBg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.offline,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sp16,
-    paddingBottom: spacing.sp12,
-    gap: spacing.sp8,
-  },
-  offlineDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.offline,
-  },
-  offlineBannerText: {
-    fontSize: 14,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
-    color: colors.offline,
-    flex: 1,
   },
 
   // ── Timeline body (loaded & skeleton)
@@ -649,87 +572,6 @@ const styles = StyleSheet.create({
     color: colors.jade600,
     marginTop: spacing.sp24,
     textAlign: 'center',
-  },
-
-  // ── Session expired modal
-  modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    start: 0,
-    end: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalSheet: {
-    backgroundColor: colors.surface,
-    borderTopStartRadius: radius.r2xl,
-    borderTopEndRadius: radius.r2xl,
-    padding: spacing.sp24,
-    paddingBottom: 40,
-  },
-  dragHandle: {
-    width: 49,
-    height: 9,
-    borderRadius: spacing.sp8,
-    backgroundColor: colors.border,
-    alignSelf: 'center',
-    marginBottom: spacing.sp24,
-  },
-  modalIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 216,
-    backgroundColor: 'rgba(139,92,246,0.15)',
-    alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginTop: spacing.sp16,
-  },
-  modalBody: {
-    fontSize: 14,
-    fontFamily: fonts.sans,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.sp8,
-  },
-  modalPrimaryBtn: {
-    width: '100%',
-    height: 56,
-    borderRadius: radius.rLg,
-    backgroundColor: colors.jade400,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.sp24,
-  },
-  modalPrimaryBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.surface,
-  },
-  modalOutlineBtn: {
-    width: '100%',
-    height: 56,
-    borderRadius: radius.rLg,
-    borderWidth: 1,
-    borderColor: colors.jade600,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.sp12,
-  },
-  modalOutlineBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-    fontFamily: fonts.sans,
-    color: colors.jade400,
   },
 
   // ── DEV switcher

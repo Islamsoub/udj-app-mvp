@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, spacing, radius } from '@/constants/theme';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
 
 
 type HomeState = 'loaded' | 'error' | 'empty' | 'skeleton' | 'offline';
@@ -31,19 +32,6 @@ function SkeletonBox({ style }: { style: object }) {
   }, [opacity]);
 
   return <Animated.View style={[style, { opacity }]} />;
-}
-
-// ─── Offline banner ───────────────────────────────────────────────────────────
-function OfflineBanner({ lastSyncTime }: { lastSyncTime?: string }) {
-  const { t } = useTranslation();
-  return (
-    <View style={styles.offlineBanner}>
-      <View style={styles.offlineDot} />
-      <Text style={styles.offlineBannerText}>
-        {t('common.offline')} / {t('common.last_sync', { time: lastSyncTime ?? 'hier 14h30' })}
-      </Text>
-    </View>
-  );
 }
 
 // ─── Agenda card ─────────────────────────────────────────────────────────────
@@ -308,7 +296,7 @@ export default function HomeScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
 
-      {isOffline && <OfflineBanner />}
+      <OfflineBanner />
 
       <ScrollView
         style={styles.scroll}
@@ -472,29 +460,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-  },
-
-  // ── Offline banner
-  offlineBanner: {
-    height: 46,
-    backgroundColor: 'rgba(245,158,11,0.15)',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.warning,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sp16,
-    gap: spacing.sp8,
-  },
-  offlineDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.warning,
-  },
-  offlineBannerText: {
-    fontSize: 12,
-    color: colors.warning,
-    fontFamily: fonts.sans,
   },
 
   // ── Header

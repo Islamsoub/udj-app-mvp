@@ -8,11 +8,11 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
+import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import {
   ProfileHeader,
   ProfileHeaderStudent,
@@ -42,48 +42,6 @@ const MOCK_CARD = {
   annee: '2024-2025',
   statut: 'ACTIF',
 };
-
-// ─── Session expired modal ────────────────────────────────────────────────────
-
-interface SessionModalProps {
-  onClose: () => void;
-  onOffline: () => void;
-}
-
-function SessionExpiredModal({ onClose, onOffline }: SessionModalProps) {
-  const { t } = useTranslation();
-  const router = useRouter();
-
-  return (
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalSheet}>
-        <View style={styles.dragHandle} />
-        <View style={styles.modalIconCircle}>
-          <Ionicons name="key-outline" size={36} color={colors.exam} />
-        </View>
-        <Text style={styles.modalTitle}>{t('profile.session.title')}</Text>
-        <Text style={styles.modalBody}>{t('profile.session.body')}</Text>
-        <Pressable
-          style={styles.modalPrimaryBtn}
-          onPress={() => router.replace('/(auth)/login')}
-        >
-          <Text style={styles.modalPrimaryBtnText}>{t('profile.session.login')}</Text>
-        </Pressable>
-        <Pressable
-          style={styles.modalOutlineBtn}
-          onPress={() => {
-            onClose();
-            onOffline();
-          }}
-        >
-          <Text style={styles.modalOutlineBtnText}>
-            {t('profile.session.continue_offline')}
-          </Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
 
 // ─── Loaded / Offline body ────────────────────────────────────────────────────
 
@@ -255,6 +213,8 @@ export default function ProfileScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
 
+      <OfflineBanner />
+
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -278,13 +238,10 @@ export default function ProfileScreen() {
         <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* Session expired modal overlay */}
-      {profileState === 'session' && (
-        <SessionExpiredModal
-          onClose={() => setProfileState('loaded')}
-          onOffline={() => setProfileState('offline')}
-        />
-      )}
+      <SessionExpiredModal
+        visible={profileState === 'session'}
+        onContinueOffline={() => setProfileState('offline')}
+      />
 
       {__DEV__ && (
         <DevSwitcher current={profileState} onChange={setProfileState} />
@@ -451,87 +408,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
     color: colors.danger,
     lineHeight: 18,
-  },
-
-  // ── Session expired modal
-  modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    start: 0,
-    end: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalSheet: {
-    backgroundColor: colors.surface,
-    borderTopStartRadius: radius.r2xl,
-    borderTopEndRadius: radius.r2xl,
-    padding: spacing.sp24,
-    paddingBottom: 40,
-  },
-  dragHandle: {
-    width: 49,
-    height: 9,
-    borderRadius: spacing.sp8,
-    backgroundColor: colors.border,
-    alignSelf: 'center',
-    marginBottom: spacing.sp24,
-  },
-  modalIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 216,
-    backgroundColor: 'rgba(139,92,246,0.15)',
-    alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginTop: spacing.sp16,
-  },
-  modalBody: {
-    fontSize: 14,
-    fontFamily: fonts.sans,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.sp8,
-  },
-  modalPrimaryBtn: {
-    width: '100%',
-    height: 56,
-    borderRadius: radius.rLg,
-    backgroundColor: colors.jade400,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.sp24,
-  },
-  modalPrimaryBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.surface,
-  },
-  modalOutlineBtn: {
-    width: '100%',
-    height: 56,
-    borderRadius: radius.rLg,
-    borderWidth: 1,
-    borderColor: colors.jade600,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.sp12,
-  },
-  modalOutlineBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-    fontFamily: fonts.sans,
-    color: colors.jade400,
   },
 
   // ── DEV switcher

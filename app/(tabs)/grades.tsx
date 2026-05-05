@@ -8,11 +8,11 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
+import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { GradesHeader } from '@/components/grades/GradesHeader';
 import { SemesterTabs } from '@/components/grades/SemesterTabs';
 import { SubjectCard, Subject } from '@/components/grades/SubjectCard';
@@ -50,55 +50,6 @@ const MOCK_SUBJECTS: Subject[] = [
     finale: 14.2,
   },
 ];
-
-// ─── Offline banner ───────────────────────────────────────────────────────────
-
-function GradesOfflineBanner({ topInset }: { topInset: number }) {
-  const { t } = useTranslation();
-  return (
-    <View style={[styles.offlineBanner, { paddingTop: topInset + spacing.sp12 }]}>
-      <View style={styles.offlineDot} />
-      <Text style={styles.offlineBannerText}>{t('grades.offline.banner')}</Text>
-    </View>
-  );
-}
-
-// ─── Session expired modal ────────────────────────────────────────────────────
-
-interface SessionModalProps {
-  onClose: () => void;
-  onOffline: () => void;
-}
-
-function SessionExpiredModal({ onClose, onOffline }: SessionModalProps) {
-  const { t } = useTranslation();
-  const router = useRouter();
-
-  return (
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalSheet}>
-        <View style={styles.dragHandle} />
-        <View style={styles.modalIconCircle}>
-          <Ionicons name="key-outline" size={36} color={colors.exam} />
-        </View>
-        <Text style={styles.modalTitle}>{t('grades.session.title')}</Text>
-        <Text style={styles.modalBody}>{t('grades.session.body')}</Text>
-        <Pressable
-          style={styles.modalPrimaryBtn}
-          onPress={() => router.replace('/(auth)/login')}
-        >
-          <Text style={styles.modalPrimaryBtnText}>{t('grades.session.login')}</Text>
-        </Pressable>
-        <Pressable
-          style={styles.modalOutlineBtn}
-          onPress={() => { onClose(); onOffline(); }}
-        >
-          <Text style={styles.modalOutlineBtnText}>{t('grades.session.continue_offline')}</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
 
 // ─── Empty state body ─────────────────────────────────────────────────────────
 
@@ -219,10 +170,6 @@ export default function GradesScreen() {
   const [activeSemester, setActiveSemester] = useState<1 | 2>(2);
   const insets = useSafeAreaInsets();
 
-  const showOfflineBanner = gradesState === 'offline';
-  // For offline state the green block sits below the 46px banner;
-  // topInset is consumed by the banner so the header gets 0.
-  const headerTopInset = showOfflineBanner ? 0 : insets.top;
   const headerGpa =
     gradesState === 'loaded' || gradesState === 'offline' || gradesState === 'session'
       ? 14.2
@@ -232,8 +179,7 @@ export default function GradesScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="light-content" />
 
-      {/* Offline banner — appears above the green block */}
-      {showOfflineBanner && <GradesOfflineBanner topInset={insets.top} />}
+      <OfflineBanner />
 
       <ScrollView
         style={styles.scroll}
@@ -243,7 +189,7 @@ export default function GradesScreen() {
         {/* Green top bar */}
         <GradesHeader
           state={gradesState === 'session' ? 'loaded' : gradesState}
-          topInset={headerTopInset}
+          topInset={insets.top}
           gpa={headerGpa}
           activeSemester={activeSemester}
           onSemesterChange={setActiveSemester}
@@ -273,13 +219,10 @@ export default function GradesScreen() {
         <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* Session expired modal overlay */}
-      {gradesState === 'session' && (
-        <SessionExpiredModal
-          onClose={() => setGradesState('loaded')}
-          onOffline={() => setGradesState('offline')}
-        />
-      )}
+      <SessionExpiredModal
+        visible={gradesState === 'session'}
+        onContinueOffline={() => setGradesState('offline')}
+      />
 
       {__DEV__ && (
         <DevSwitcher current={gradesState} onChange={setGradesState} />
@@ -300,31 +243,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-  },
-
-  // ── Offline banner
-  offlineBanner: {
-    backgroundColor: colors.offlineBg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.offline,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sp16,
-    paddingBottom: spacing.sp12,
-    gap: spacing.sp8,
-  },
-  offlineDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.offline,
-  },
-  offlineBannerText: {
-    fontSize: 12,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
-    color: colors.offlineText,
-    flex: 1,
   },
 
   // ── Cards body
@@ -420,87 +338,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
     color: colors.jade600,
     marginTop: spacing.sp4,
-  },
-
-  // ── Session expired modal
-  modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    start: 0,
-    end: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalSheet: {
-    backgroundColor: colors.surface,
-    borderTopStartRadius: radius.r2xl,
-    borderTopEndRadius: radius.r2xl,
-    padding: spacing.sp24,
-    paddingBottom: 40,
-  },
-  dragHandle: {
-    width: 49,
-    height: 9,
-    borderRadius: spacing.sp8,
-    backgroundColor: colors.border,
-    alignSelf: 'center',
-    marginBottom: spacing.sp24,
-  },
-  modalIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 216,
-    backgroundColor: 'rgba(139,92,246,0.15)',
-    alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginTop: spacing.sp16,
-  },
-  modalBody: {
-    fontSize: 14,
-    fontFamily: fonts.sans,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.sp8,
-  },
-  modalPrimaryBtn: {
-    width: '100%',
-    height: 56,
-    borderRadius: radius.rLg,
-    backgroundColor: colors.jade400,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.sp24,
-  },
-  modalPrimaryBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.surface,
-  },
-  modalOutlineBtn: {
-    width: '100%',
-    height: 56,
-    borderRadius: radius.rLg,
-    borderWidth: 1,
-    borderColor: colors.jade600,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.sp12,
-  },
-  modalOutlineBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-    fontFamily: fonts.sans,
-    color: colors.jade400,
   },
 
   // ── DEV switcher

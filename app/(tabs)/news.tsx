@@ -8,11 +8,11 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
+import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { NewsHeader } from '@/components/news/NewsHeader';
 import { FilterRow, FilterKey } from '@/components/news/FilterRow';
 import { HeroCard } from '@/components/news/HeroCard';
@@ -61,18 +61,6 @@ const MOCK_ARTICLES: Article[] = [
 const HERO_ARTICLE = MOCK_ARTICLES[0];
 const LIST_ARTICLES = MOCK_ARTICLES.slice(1);
 
-// ─── News offline banner ──────────────────────────────────────────────────────
-
-function NewsOfflineBanner() {
-  const { t } = useTranslation();
-  return (
-    <View style={styles.offlineBanner}>
-      <View style={styles.offlineDot} />
-      <Text style={styles.offlineBannerText}>{t('news.offline.banner')}</Text>
-    </View>
-  );
-}
-
 // ─── Saved articles warning (offline body) ────────────────────────────────────
 
 function SavedArticlesBanner() {
@@ -80,43 +68,6 @@ function SavedArticlesBanner() {
   return (
     <View style={styles.savedBanner}>
       <Text style={styles.savedBannerText}>{t('news.offline.saved_count')}</Text>
-    </View>
-  );
-}
-
-// ─── Session expired modal ────────────────────────────────────────────────────
-
-interface SessionModalProps {
-  onClose: () => void;
-  onOffline: () => void;
-}
-
-function SessionExpiredModal({ onClose, onOffline }: SessionModalProps) {
-  const { t } = useTranslation();
-  const router = useRouter();
-
-  return (
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalSheet}>
-        <View style={styles.dragHandle} />
-        <View style={styles.modalIconCircle}>
-          <Ionicons name="key-outline" size={36} color={colors.exam} />
-        </View>
-        <Text style={styles.modalTitle}>{t('news.session.title')}</Text>
-        <Text style={styles.modalBody}>{t('news.session.body')}</Text>
-        <Pressable
-          style={styles.modalPrimaryBtn}
-          onPress={() => router.replace('/(auth)/login')}
-        >
-          <Text style={styles.modalPrimaryBtnText}>{t('news.session.login')}</Text>
-        </Pressable>
-        <Pressable
-          style={styles.modalOutlineBtn}
-          onPress={() => { onClose(); onOffline(); }}
-        >
-          <Text style={styles.modalOutlineBtnText}>{t('news.session.continue_offline')}</Text>
-        </Pressable>
-      </View>
     </View>
   );
 }
@@ -258,7 +209,6 @@ export default function NewsScreen() {
   const insets = useSafeAreaInsets();
 
   const showFilterRow = newsState === 'loaded' || newsState === 'offline' || newsState === 'session';
-  const showOfflineBanner = newsState === 'offline';
 
   return (
     <View style={styles.root}>
@@ -275,8 +225,7 @@ export default function NewsScreen() {
           topInset={insets.top}
         />
 
-        {/* Offline banner — appears directly below header in offline state */}
-        {showOfflineBanner && <NewsOfflineBanner />}
+        <OfflineBanner />
 
         {/* Filter row — loaded, offline, and session states */}
         {showFilterRow && (
@@ -299,13 +248,10 @@ export default function NewsScreen() {
         <View style={{ height: 120 }} />
       </ScrollView>
 
-      {/* Session expired modal overlay */}
-      {newsState === 'session' && (
-        <SessionExpiredModal
-          onClose={() => setNewsState('loaded')}
-          onOffline={() => setNewsState('offline')}
-        />
-      )}
+      <SessionExpiredModal
+        visible={newsState === 'session'}
+        onContinueOffline={() => setNewsState('offline')}
+      />
 
       {__DEV__ && (
         <DevSwitcher current={newsState} onChange={setNewsState} />
@@ -326,30 +272,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-  },
-
-  // ── Offline banner (news-specific, below header)
-  offlineBanner: {
-    height: 57,
-    backgroundColor: colors.newsOfflineBg,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.offline,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sp16,
-    gap: spacing.sp8,
-  },
-  offlineDot: {
-    width: 10,
-    height: 11,
-    borderRadius: radius.rFull,
-    backgroundColor: colors.offline,
-  },
-  offlineBannerText: {
-    fontSize: 12,
-    fontFamily: fonts.sans,
-    color: colors.danger,
-    flex: 1,
   },
 
   // ── Saved articles warning banner (offline body)
@@ -484,87 +406,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
     color: colors.jade600,
     textAlign: 'center',
-  },
-
-  // ── Session expired modal
-  modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    start: 0,
-    end: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalSheet: {
-    backgroundColor: colors.surface,
-    borderTopStartRadius: radius.r2xl,
-    borderTopEndRadius: radius.r2xl,
-    padding: spacing.sp24,
-    paddingBottom: 40,
-  },
-  dragHandle: {
-    width: 49,
-    height: 9,
-    borderRadius: spacing.sp8,
-    backgroundColor: colors.border,
-    alignSelf: 'center',
-    marginBottom: spacing.sp24,
-  },
-  modalIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 216,
-    backgroundColor: 'rgba(139,92,246,0.15)',
-    alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginTop: spacing.sp16,
-  },
-  modalBody: {
-    fontSize: 14,
-    fontFamily: fonts.sans,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.sp8,
-  },
-  modalPrimaryBtn: {
-    width: '100%',
-    height: 56,
-    borderRadius: radius.rLg,
-    backgroundColor: colors.jade400,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.sp24,
-  },
-  modalPrimaryBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.surface,
-  },
-  modalOutlineBtn: {
-    width: '100%',
-    height: 56,
-    borderRadius: radius.rLg,
-    borderWidth: 1,
-    borderColor: colors.jade600,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.sp12,
-  },
-  modalOutlineBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-    fontFamily: fonts.sans,
-    color: colors.jade400,
   },
 
   // ── DEV switcher

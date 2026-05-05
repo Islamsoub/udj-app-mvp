@@ -10,7 +10,13 @@
     "offlineBanner": "Mode hors-ligne · Dernière sync : {{time}}",
     "last_sync": "Dernière synchro : {{time}}",
     "last_sync_short": "Mise à jour: {{time}}",
-    "sync_value": "Hier à {{time}}"
+    "sync_value": "Hier à {{time}}",
+    "session": {
+      "title": "Session expirée",
+      "body": "Votre session a expiré pour des raisons de sécurité. Reconnectez-vous pour continuer.",
+      "login": "Se connecter",
+      "continue_offline": "Continuer en hors-ligne"
+    }
   },
   "auth": {
     "welcome": "Bienvenue sur UDJ",
