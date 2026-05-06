@@ -18,6 +18,7 @@ import { FilterRow, FilterKey } from '@/components/news/FilterRow';
 import { HeroCard } from '@/components/news/HeroCard';
 import { ArticleCard, Article } from '@/components/news/ArticleCard';
 import { NewsSkeleton } from '@/components/news/NewsSkeleton';
+import { DevSwitcher } from '@/components/ui/DevSwitcher';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -176,31 +177,6 @@ const STATE_LABELS: Record<NewsState, string> = {
   session:  'session',
 };
 
-interface DevSwitcherProps {
-  current: NewsState;
-  onChange: (s: NewsState) => void;
-}
-
-function DevSwitcher({ current, onChange }: DevSwitcherProps) {
-  return (
-    <View style={styles.devSwitcher}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.devScroll}>
-        {ALL_STATES.map((s) => (
-          <Pressable
-            key={s}
-            style={[styles.devBtn, current === s && styles.devBtnActive]}
-            onPress={() => onChange(s)}
-          >
-            <Text style={[styles.devBtnText, current === s && styles.devBtnTextActive]}>
-              {STATE_LABELS[s]}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </View>
-  );
-}
-
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function NewsScreen() {
@@ -253,9 +229,12 @@ export default function NewsScreen() {
         onContinueOffline={() => setNewsState('offline')}
       />
 
-      {__DEV__ && (
-        <DevSwitcher current={newsState} onChange={setNewsState} />
-      )}
+      <DevSwitcher
+        states={ALL_STATES}
+        labels={STATE_LABELS}
+        current={newsState}
+        onChange={setNewsState}
+      />
     </View>
   );
 }
@@ -408,32 +387,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // ── DEV switcher
-  devSwitcher: {
-    position: 'absolute',
-    bottom: 67,
-    start: 0,
-    end: 0,
-  },
-  devScroll: {
-    paddingHorizontal: spacing.sp8,
-    gap: spacing.sp4,
-  },
-  devBtn: {
-    paddingHorizontal: spacing.sp8,
-    paddingVertical: spacing.sp4,
-    borderRadius: radius.rSm,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-  },
-  devBtnActive: {
-    backgroundColor: colors.jade400,
-  },
-  devBtnText: {
-    fontSize: 11,
-    color: colors.surface,
-    fontFamily: fonts.sans,
-  },
-  devBtnTextActive: {
-    fontWeight: '700',
-  },
 });

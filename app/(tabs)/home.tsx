@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, spacing, radius } from '@/constants/theme';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
+import { DevSwitcher } from '@/components/ui/DevSwitcher';
 
 
 type HomeState = 'loaded' | 'error' | 'empty' | 'skeleton' | 'offline';
@@ -245,41 +246,13 @@ function SessionExpiredModal({ onClose }: SessionModalProps) {
 
 // ─── DEV switcher ─────────────────────────────────────────────────────────────
 const ALL_STATES: HomeState[] = ['loaded', 'error', 'empty', 'skeleton', 'offline'];
-
-interface DevSwitcherProps {
-  current: HomeState;
-  onChange: (s: HomeState) => void;
-  showModal: boolean;
-  onToggleModal: () => void;
-}
-
-function DevSwitcher({ current, onChange, showModal, onToggleModal }: DevSwitcherProps) {
-  return (
-    <View style={styles.devSwitcher}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.devScroll}>
-        {ALL_STATES.map((s) => (
-          <Pressable
-            key={s}
-            style={[styles.devBtn, current === s && styles.devBtnActive]}
-            onPress={() => onChange(s)}
-          >
-            <Text style={[styles.devBtnText, current === s && styles.devBtnTextActive]}>
-              {s === 'skeleton' ? 'loading/skeleton' : s}
-            </Text>
-          </Pressable>
-        ))}
-        <Pressable
-          style={[styles.devBtn, showModal && styles.devBtnModal]}
-          onPress={onToggleModal}
-        >
-          <Text style={[styles.devBtnText, showModal && styles.devBtnTextActive]}>
-            session modal
-          </Text>
-        </Pressable>
-      </ScrollView>
-    </View>
-  );
-}
+const STATE_LABELS: Record<HomeState, string> = {
+  loaded:   'loaded',
+  error:    'error',
+  empty:    'empty',
+  skeleton: 'loading/skeleton',
+  offline:  'offline',
+};
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
 export default function HomeScreen() {
@@ -440,10 +413,13 @@ export default function HomeScreen() {
       )}
 
       <DevSwitcher
+        states={ALL_STATES}
+        labels={STATE_LABELS}
         current={homeState}
         onChange={setHomeState}
         showModal={showSessionModal}
         onToggleModal={() => setShowSessionModal((v) => !v)}
+        modalLabel="modal"
       />
     </View>
   );
@@ -961,35 +937,4 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
   },
 
-  // ── DEV switcher
-  devSwitcher: {
-    position: 'absolute',
-    bottom: 8,
-    start: 0,
-    end: 0,
-  },
-  devScroll: {
-    paddingHorizontal: spacing.sp8,
-    gap: spacing.sp4,
-  },
-  devBtn: {
-    paddingHorizontal: spacing.sp8,
-    paddingVertical: spacing.sp4,
-    borderRadius: radius.rSm,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-  },
-  devBtnActive: {
-    backgroundColor: colors.jade400,
-  },
-  devBtnModal: {
-    backgroundColor: colors.warning,
-  },
-  devBtnText: {
-    fontSize: 11,
-    color: '#fff',
-    fontFamily: fonts.sans,
-  },
-  devBtnTextActive: {
-    fontWeight: '700',
-  },
 });

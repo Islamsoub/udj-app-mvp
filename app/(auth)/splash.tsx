@@ -13,6 +13,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import type { ComponentProps } from 'react';
+import { DevSwitcher } from '@/components/ui/DevSwitcher';
 
 // SVG transformer handles the module — typed explicitly to avoid `any` exposure
 const LogoSVG = (
@@ -41,13 +42,20 @@ const FEATURES: Array<{ icon: IoniconsName; label: string }> = [
   { icon: 'card-outline', label: 'Carte étudiante digitale QR' },
 ];
 
-const DEV_STATES: SplashState[] = [
+const ALL_STATES: SplashState[] = [
   'loading',
   'no-connection',
   'maintenance',
   'first-install',
   'force-update',
 ];
+const STATE_LABELS: Record<SplashState, string> = {
+  'loading':       'loading',
+  'no-connection': 'no-connection',
+  'maintenance':   'maintenance',
+  'first-install': 'first-install',
+  'force-update':  'force-update',
+};
 
 function isTokenValid(token: string): boolean {
   try {
@@ -65,7 +73,7 @@ function isTokenValid(token: string): boolean {
 
 export default function SplashScreen() {
   const router = useRouter();
-  const [currentState, setCurrentState] = useState<SplashState>('loading');
+  const [splashState, setSplashState] = useState<SplashState>('loading');
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
@@ -124,7 +132,7 @@ export default function SplashScreen() {
           styles.logoAbsolute,
           {
             opacity: fadeAnim,
-            top: currentState === 'loading' ? 305 : 161,
+            top: splashState === 'loading' ? 305 : 161,
           },
         ]}
       >
@@ -137,7 +145,7 @@ export default function SplashScreen() {
       </Animated.View>
 
       {/* ── State: no-connection ── */}
-      {currentState === 'no-connection' && (
+      {splashState === 'no-connection' && (
         <View style={styles.stateContent}>
           <View style={styles.iconCircleDark}>
             <Ionicons name="cloud-offline-outline" size={32} color={colors.surface} />
@@ -148,7 +156,7 @@ export default function SplashScreen() {
           </Text>
           <Pressable
             style={styles.primaryButton}
-            onPress={() => setCurrentState('loading')}
+            onPress={() => setSplashState('loading')}
             hitSlop={8}
           >
             <Text style={styles.primaryButtonText}>Réessayer</Text>
@@ -157,7 +165,7 @@ export default function SplashScreen() {
       )}
 
       {/* ── State: maintenance ── */}
-      {currentState === 'maintenance' && (
+      {splashState === 'maintenance' && (
         <View style={styles.stateContent}>
           <View style={styles.iconCircleDanger}>
             <Ionicons name="construct-outline" size={32} color={colors.danger} />
@@ -173,7 +181,7 @@ export default function SplashScreen() {
       )}
 
       {/* ── State: first-install ── */}
-      {currentState === 'first-install' && (
+      {splashState === 'first-install' && (
         <View style={styles.stateContent}>
           <Text style={styles.welcomeHeading}>Bienvenue !</Text>
           <Text style={styles.welcomeSubtitle}>
@@ -199,7 +207,7 @@ export default function SplashScreen() {
       )}
 
       {/* ── State: force-update ── */}
-      {currentState === 'force-update' && (
+      {splashState === 'force-update' && (
         <View style={styles.stateContent}>
           <Text style={styles.stateBoldText}>Mise à jour requise</Text>
           <Text style={styles.stateBodyText}>
@@ -227,7 +235,7 @@ export default function SplashScreen() {
       )}
 
       {/* ── State: loading — static pill + label ── */}
-      {currentState === 'loading' && (
+      {splashState === 'loading' && (
         <>
           <View style={styles.pillTrack}>
             <Animated.View
@@ -243,20 +251,12 @@ export default function SplashScreen() {
         </>
       )}
 
-      {/* DEV-only state switcher */}
-      {__DEV__ && (
-        <View style={styles.devRow}>
-          {DEV_STATES.map((s) => (
-            <Pressable
-              key={s}
-              style={[styles.devButton, currentState === s && styles.devButtonActive]}
-              onPress={() => setCurrentState(s)}
-            >
-              <Text style={styles.devButtonText}>{s}</Text>
-            </Pressable>
-          ))}
-        </View>
-      )}
+      <DevSwitcher
+        states={ALL_STATES}
+        labels={STATE_LABELS}
+        current={splashState}
+        onChange={setSplashState}
+      />
 
       {/* Version badge — always visible, bottom-right */}
       <Text style={styles.version}>v1.0.0</Text>
@@ -478,32 +478,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: WHITE_60,
-  },
-  // DEV switcher
-  devRow: {
-    position: 'absolute',
-    bottom: 36,
-    start: 0,
-    end: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    gap: spacing.sp4,
-    paddingHorizontal: spacing.sp8,
-  },
-  devButton: {
-    backgroundColor: WHITE_15,
-    paddingHorizontal: spacing.sp6,
-    paddingVertical: spacing.sp2,
-    borderRadius: radius.rSm,
-  },
-  devButtonActive: {
-    backgroundColor: JADE400_40,
-  },
-  devButtonText: {
-    color: WHITE_60,
-    fontSize: 9,
-    fontFamily: fonts.mono,
   },
   // Version badge
   version: {

@@ -14,6 +14,7 @@ import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
+import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { ScheduleHeader } from '@/components/schedule/ScheduleHeader';
 import { TimelineRow, DayEntry } from '@/components/schedule/TimelineRow';
 import { CacheBanner } from '@/components/schedule/CacheBanner';
@@ -297,34 +298,6 @@ const STATE_LABELS: Record<ScheduleState, string> = {
   session:  'session',
 };
 
-interface DevSwitcherProps {
-  current: ScheduleState;
-  onChange: (s: ScheduleState) => void;
-}
-
-function DevSwitcher({ current, onChange }: DevSwitcherProps) {
-  return (
-    <View
-      style={styles.devSwitcher}
-      onLayout={(e) => console.log('[DEV] switcher layout:', JSON.stringify(e.nativeEvent.layout))}
-    >
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.devScroll}>
-        {ALL_STATES.map((s) => (
-          <Pressable
-            key={s}
-            style={[styles.devBtn, current === s && styles.devBtnActive]}
-            onPress={() => onChange(s)}
-          >
-            <Text style={[styles.devBtnText, current === s && styles.devBtnTextActive]}>
-              {STATE_LABELS[s]}
-            </Text>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </View>
-  );
-}
-
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function ScheduleScreen() {
@@ -386,9 +359,12 @@ export default function ScheduleScreen() {
         onContinueOffline={() => setSchedState('offline')}
       />
 
-      {__DEV__ && (
-        <DevSwitcher current={schedState} onChange={setSchedState} />
-      )}
+      <DevSwitcher
+        states={ALL_STATES}
+        labels={STATE_LABELS}
+        current={schedState}
+        onChange={setSchedState}
+      />
     </View>
   );
 }
@@ -574,32 +550,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // ── DEV switcher
-  devSwitcher: {
-    position: 'absolute',
-    bottom: 67,
-    start: 0,
-    end: 0,
-  },
-  devScroll: {
-    paddingHorizontal: spacing.sp8,
-    gap: spacing.sp4,
-  },
-  devBtn: {
-    paddingHorizontal: spacing.sp8,
-    paddingVertical: spacing.sp4,
-    borderRadius: radius.rSm,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-  },
-  devBtnActive: {
-    backgroundColor: colors.jade400,
-  },
-  devBtnText: {
-    fontSize: 11,
-    color: colors.surface,
-    fontFamily: fonts.sans,
-  },
-  devBtnTextActive: {
-    fontWeight: '700',
-  },
 });

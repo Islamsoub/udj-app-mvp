@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, spacing, radius } from '@/constants/theme';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
+import { DevSwitcher } from '@/components/ui/DevSwitcher';
 
 const LogoSVG = (
   require('@/assets/icons/Logo.svg') as { default: React.FC<{ width: number; height: number }> }
@@ -29,7 +30,7 @@ type LoginState =
   | 'session-expired'
   | 'skeleton';
 
-const DEV_STATES: LoginState[] = [
+const ALL_STATES: LoginState[] = [
   'default',
   'submitting',
   'network-error',
@@ -38,6 +39,15 @@ const DEV_STATES: LoginState[] = [
   'session-expired',
   'skeleton',
 ];
+const STATE_LABELS: Record<LoginState, string> = {
+  'default':         'default',
+  'submitting':      'submitting',
+  'network-error':   'network-error',
+  'error':           'error',
+  'locked-out':      'locked-out',
+  'session-expired': 'session-expired',
+  'skeleton':        'skeleton',
+};
 
 // One-off RGBA values not expressible as opaque hex tokens in theme.ts
 const WHITE_12 = 'rgba(255,255,255,0.12)';
@@ -392,20 +402,12 @@ export default function LoginScreen() {
         </View>
       </ScrollView>
 
-      {/* ── DEV STATE SWITCHER ── */}
-      {__DEV__ && (
-        <View style={styles.devRow}>
-          {DEV_STATES.map((s) => (
-            <Pressable
-              key={s}
-              style={[styles.devButton, loginState === s && styles.devButtonActive]}
-              onPress={() => setLoginState(s)}
-            >
-              <Text style={styles.devButtonText}>{s}</Text>
-            </Pressable>
-          ))}
-        </View>
-      )}
+      <DevSwitcher
+        states={ALL_STATES}
+        labels={STATE_LABELS}
+        current={loginState}
+        onChange={setLoginState}
+      />
     </View>
   );
 }
@@ -821,30 +823,4 @@ const styles = StyleSheet.create({
     marginTop: spacing.sp8,
   },
 
-  // ── DEV switcher ──
-  devRow: {
-    position: 'absolute',
-    bottom: 8,
-    start: 0,
-    end: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    gap: spacing.sp4,
-    paddingHorizontal: spacing.sp8,
-  },
-  devButton: {
-    backgroundColor: WHITE_15,
-    paddingHorizontal: spacing.sp6,
-    paddingVertical: spacing.sp2,
-    borderRadius: radius.rSm,
-  },
-  devButtonActive: {
-    backgroundColor: 'rgba(29,158,117,0.4)',
-  },
-  devButtonText: {
-    color: WHITE_60,
-    fontSize: 9,
-    fontFamily: fonts.mono,
-  },
 });
