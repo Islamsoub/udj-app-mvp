@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, spacing, radius } from '@/constants/theme';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
 
 const LogoSVG = (
   require('@/assets/icons/Logo.svg') as { default: React.FC<{ width: number; height: number }> }
@@ -169,14 +170,7 @@ export default function LoginScreen() {
         </View>
 
         {/* ── OFFLINE BANNER (network-error only) ── */}
-        {isNetworkError && (
-          <View style={styles.offlineBanner}>
-            <View style={styles.offlineDot} />
-            <Text style={styles.offlineBannerText}>
-              {t('common.offline')} / {t('common.last_sync', { time: 'hier 14h30' })}
-            </Text>
-          </View>
-        )}
+        <OfflineBanner />
 
         {/* ── WHITE BODY ── */}
         <View style={styles.body}>
@@ -484,31 +478,6 @@ const styles = StyleSheet.create({
     color: WHITE_80,
     textAlign: 'center',
     marginTop: 4,
-  },
-
-  // ── Offline banner ──
-  offlineBanner: {
-    height: 46,
-    backgroundColor: WARNING_15,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.warning,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sp16,
-    gap: spacing.sp8,
-  },
-  offlineDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.offline,
-    flexShrink: 0,
-  },
-  offlineBannerText: {
-    fontFamily: fonts.sans,
-    fontSize: 12,
-    color: colors.warning,
-    flex: 1,
   },
 
   // ── Body ──
