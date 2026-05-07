@@ -64,8 +64,6 @@ export function SubjectCard({ subject }: SubjectCardProps) {
           <Text style={styles.gridLabel}>{t('grades.subject.finale')}</Text>
           <Text style={styles.gridValue}>{subject.finale.toFixed(2)}</Text>
         </View>
-        {/* Horizontal divider at grid midpoint (Y=36 within grid) */}
-        <View style={styles.dividerH} />
       </View>
 
       {/* ── Progress bar (Y=107, H=3) ─────────────────────────── */}
@@ -146,6 +144,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
     height: 72,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.textSecondary,
   },
   gridLabel: {
     fontSize: 11,
@@ -164,15 +164,6 @@ const styles = StyleSheet.create({
     height: 72,
     backgroundColor: colors.textSecondary,
   },
-  dividerH: {
-    position: 'absolute',
-    top: 36,
-    start: 0,
-    end: 0,
-    height: 1,
-    backgroundColor: colors.textSecondary,
-  },
-
   // ── Progress bar
   progressTrack: {
     height: 3,

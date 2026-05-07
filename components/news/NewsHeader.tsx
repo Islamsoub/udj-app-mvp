@@ -17,17 +17,11 @@ const CONTENT_H = 69;
 
 export function NewsHeader({ state, topInset }: NewsHeaderProps) {
   const { t } = useTranslation();
-  const totalH = CONTENT_H + topInset;
 
   return (
-    <View style={[styles.container, { height: totalH }]}>
+    <View style={[styles.container, { paddingTop: topInset }]}>
       {state === 'skeleton' ? (
-        <SkeletonBox
-          width={120}
-          height={15}
-          borderRadius={8}
-          style={[styles.titleSkeleton, { bottom: 14 }]}
-        />
+        <SkeletonBox width={120} height={15} borderRadius={8} />
       ) : (
         <Text style={styles.title}>{t('news.title')}</Text>
       )}
@@ -45,33 +39,30 @@ export function NewsHeader({ state, topInset }: NewsHeaderProps) {
 
 const styles = StyleSheet.create({
   container: {
+    height: CONTENT_H,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.newsHeaderBorder,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.sp16,
+    paddingBottom: 14,
   },
   title: {
-    position: 'absolute',
-    bottom: 14,
-    start: spacing.sp16,
     fontSize: 18,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
   },
-  titleSkeleton: {
-    position: 'absolute',
-    start: spacing.sp16,
-  },
   searchCircle: {
-    position: 'absolute',
-    bottom: 8,
-    end: spacing.sp16,
     width: 34,
     height: 34,
     borderRadius: 30,
     backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 6,
   },
   searchIconPlaceholder: {
     width: 16,

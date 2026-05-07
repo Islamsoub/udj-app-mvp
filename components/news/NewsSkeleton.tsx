@@ -27,42 +27,18 @@ function SkeletonHeroCard() {
 function SkeletonArticleCard() {
   return (
     <View style={styles.articleCard}>
-      <SkeletonBox
-        width={37}
-        height={35}
-        borderRadius={radius.rMd}
-        style={{ position: 'absolute', top: 25, start: spacing.sp16 }}
-      />
-      <SkeletonBox
-        width={80}
-        height={19}
-        borderRadius={10}
-        style={{ position: 'absolute', top: 15, start: 65 }}
-      />
-      <SkeletonBox
-        width={37}
-        height={15}
-        borderRadius={6}
-        style={{ position: 'absolute', top: 14, end: spacing.sp16 }}
-      />
-      <SkeletonBox
-        width={160}
-        height={15}
-        borderRadius={6}
-        style={{ position: 'absolute', top: 37, start: 65 }}
-      />
-      <SkeletonBox
-        width={110}
-        height={15}
-        borderRadius={6}
-        style={{ position: 'absolute', top: 55, start: 65 }}
-      />
-      <SkeletonBox
-        width={60}
-        height={15}
-        borderRadius={6}
-        style={{ position: 'absolute', top: 85, start: 65 }}
-      />
+      <View style={styles.articleThumb}>
+        <SkeletonBox width={37} height={35} borderRadius={radius.rMd} />
+      </View>
+      <View style={styles.articleContent}>
+        <View style={styles.articleTopRow}>
+          <SkeletonBox width={80} height={19} borderRadius={10} />
+          <SkeletonBox width={37} height={15} borderRadius={6} />
+        </View>
+        <SkeletonBox width={160} height={15} borderRadius={6} />
+        <SkeletonBox width={110} height={15} borderRadius={6} />
+        <SkeletonBox width={60} height={15} borderRadius={6} />
+      </View>
     </View>
   );
 }
@@ -107,5 +83,21 @@ const styles = StyleSheet.create({
     borderColor: colors.scheduleBorder,
     marginHorizontal: 15,
     overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sp16,
+    paddingVertical: spacing.sp16,
+  },
+  articleThumb: {
+    marginEnd: spacing.sp12,
+  },
+  articleContent: {
+    flex: 1,
+    gap: spacing.sp8,
+  },
+  articleTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 });

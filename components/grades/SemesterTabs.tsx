@@ -45,8 +45,8 @@ const styles = StyleSheet.create({
     width: 154,
     height: 44,
     alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
+    justifyContent: 'space-between',
+    paddingTop: 10,
   },
   gap: {
     flex: 1,
@@ -61,8 +61,6 @@ const styles = StyleSheet.create({
     color: colors.jade600,
   },
   underline: {
-    position: 'absolute',
-    bottom: 1,
     width: 130,
     height: 1,
     backgroundColor: colors.jade600,

@@ -156,9 +156,11 @@ export default function LoginScreen() {
       >
         {/* ── GREEN TOP BLOCK ── */}
         <View style={styles.greenBlock}>
-          <View style={styles.blob1} />
-          <View style={styles.blob2} />
-          <View style={styles.blob3} />
+          <View style={StyleSheet.absoluteFill}>
+            <View style={styles.blob1} />
+            <View style={styles.blob2} />
+            <View style={styles.blob3} />
+          </View>
 
           {isSkeleton ? (
             <Animated.View style={[styles.greenContent, { opacity: pulseAnim }]}>
@@ -430,6 +432,8 @@ const styles = StyleSheet.create({
     height: 277,
     backgroundColor: colors.jade600,
     overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   blob1: {
     position: 'absolute',
@@ -459,10 +463,6 @@ const styles = StyleSheet.create({
     start: 60,
   },
   greenContent: {
-    position: 'absolute',
-    top: 71,
-    start: 0,
-    end: 0,
     alignItems: 'center',
     paddingHorizontal: spacing.sp24,
   },

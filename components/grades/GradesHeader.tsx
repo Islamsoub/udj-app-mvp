@@ -17,7 +17,7 @@ interface GradesHeaderProps {
   credits?: { earned: number; total: number } | null;
 }
 
-// Spec heights per state (topInset is added at render time)
+// Spec heights per state (topInset added via paddingTop at render)
 const SPEC_HEIGHT: Record<GradesHeaderState, number> = {
   loaded:   235,
   offline:  235,
@@ -28,40 +28,34 @@ const SPEC_HEIGHT: Record<GradesHeaderState, number> = {
 
 export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterChange, credits }: GradesHeaderProps) {
   const { t } = useTranslation();
-  const totalH = SPEC_HEIGHT[state] + topInset;
 
   // ── Skeleton state ──────────────────────────────────────────────────────────
   if (state === 'skeleton') {
     return (
-      <View style={[styles.greenBlock, { height: totalH }]}>
-        {/* Title shimmer */}
+      <View style={[styles.greenBlock, { height: SPEC_HEIGHT.skeleton, paddingTop: topInset }]}>
+        {/* Title shimmer — top: 19 from content start */}
         <SkeletonBox
           width={208}
           height={15}
           borderRadius={8}
-          style={{ position: 'absolute', top: topInset + 19, start: spacing.sp16 }}
+          style={{ marginTop: 19, marginStart: spacing.sp16 }}
         />
-        {/* GPA block shimmer */}
+        {/* GPA block shimmer — top: 55 → marginTop: 55 - (19+15) = 21 */}
         <SkeletonBox
           width={160}
           height={62}
           borderRadius={8}
-          style={{ position: 'absolute', top: topInset + 55, start: spacing.sp16 }}
+          style={{ marginTop: 21, marginStart: spacing.sp16 }}
         />
-        {/* Subtitle shimmer */}
+        {/* Subtitle shimmer — top: 133 → marginTop: 133 - (55+62) = 16 */}
         <SkeletonBox
           width={280}
           height={15}
           borderRadius={8}
-          style={{ position: 'absolute', top: topInset + 133, start: spacing.sp16 }}
+          style={{ marginTop: 16, marginStart: spacing.sp16 }}
         />
-        {/* Stats row — jade-tinted block with 3 shimmer columns */}
-        <View
-          style={[
-            styles.statsRow,
-            { position: 'absolute', top: topInset + 174, start: spacing.sp16, end: spacing.sp16 },
-          ]}
-        >
+        {/* Stats row — top: 174 → marginTop: 174 - (133+15) = 26 */}
+        <View style={[styles.statsRow, { marginTop: 26, marginHorizontal: spacing.sp16 }]}>
           <View style={{ flex: 1, alignItems: 'center' }}>
             <SkeletonBox width={60} height={39} borderRadius={8} />
           </View>
@@ -74,8 +68,10 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
             <SkeletonBox width={60} height={39} borderRadius={8} />
           </View>
         </View>
+        {/* Spacer pushes tabsShimmerRow to bottom (305 - 236 - 44 = 25px) */}
+        <View style={{ flex: 1 }} />
         {/* Tabs shimmer — white band with two pill shimmers */}
-        <View style={[styles.tabsShimmerRow, { position: 'absolute', top: topInset + 261 }]}>
+        <View style={styles.tabsShimmerRow}>
           <SkeletonBox
             width={130}
             height={24}
@@ -113,24 +109,18 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
     subtitleText = t('grades.header.unavailable');
   }
 
-  // ── Subtitle Y-offset (from content top, after topInset) ───────────────────
-  const subtitleY = state === 'loaded' || state === 'offline' ? 153 : 115;
-
   // ── Whether to show the semester tabs at the bottom ─────────────────────────
   const hasTabs = state !== 'error';
 
   return (
-    <View style={[styles.greenBlock, { height: totalH }]}>
+    <View style={[styles.greenBlock, { height: SPEC_HEIGHT[state], paddingTop: topInset }]}>
       {/* GPA section label */}
-      <Text
-        style={[styles.gpaLabel, { position: 'absolute', top: topInset + 19, start: spacing.sp16, end: spacing.sp16 }]}
-        numberOfLines={1}
-      >
+      <Text style={styles.gpaLabel} numberOfLines={1}>
         {activeSemester === 1 ? t('grades.gpa_label_s1') : t('grades.gpa_label_s2')}
       </Text>
 
       {/* GPA number + Mention Bien badge */}
-      <View style={[styles.gpaRow, { position: 'absolute', top: topInset + 55, start: spacing.sp16 }]}>
+      <View style={styles.gpaRow}>
         <Text style={styles.gpaNumber}>{gpaText}</Text>
         {mention !== null && (
           <View style={styles.mentionBadge}>
@@ -139,22 +129,19 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
         )}
       </View>
 
+      {/* Spacer — pushes subtitle and tabs to bottom */}
+      <View style={{ flex: 1 }} />
+
       {/* Subtitle line */}
       {subtitleText !== null && (
-        <Text
-          style={[
-            styles.subtitle,
-            { position: 'absolute', top: topInset + subtitleY, start: spacing.sp16, end: spacing.sp16 },
-          ]}
-          numberOfLines={1}
-        >
+        <Text style={styles.subtitle} numberOfLines={1}>
           {subtitleText}
         </Text>
       )}
 
-      {/* Semester tabs — pinned to bottom of header */}
+      {/* Semester tabs — sits at bottom of header */}
       {hasTabs && (
-        <View style={[styles.tabsWrapper, { position: 'absolute', bottom: 0, start: 0, end: 0 }]}>
+        <View style={styles.tabsWrapper}>
           <SemesterTabs active={activeSemester} onChange={onSemesterChange} />
         </View>
       )}
@@ -165,6 +152,7 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
 const styles = StyleSheet.create({
   greenBlock: {
     backgroundColor: colors.jade400,
+    flexDirection: 'column',
   },
 
   // ── Typography
@@ -174,11 +162,15 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
     color: colors.surface,
     letterSpacing: 0.5,
+    paddingHorizontal: spacing.sp16,
+    marginTop: 19,
   },
   gpaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    marginTop: spacing.sp8,
+    marginStart: spacing.sp16,
   },
   gpaNumber: {
     fontSize: 52,
@@ -206,6 +198,8 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.surface,
+    paddingHorizontal: spacing.sp16,
+    marginBottom: spacing.sp8,
   },
   tabsWrapper: {
     height: 44,

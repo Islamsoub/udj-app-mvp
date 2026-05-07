@@ -39,35 +39,22 @@ export function ProfileSkeleton() {
     <View>
       {/* Card skeleton */}
       <View style={styles.cardSkeleton}>
-        {/* QR grey square */}
-        <View style={styles.qrBox} />
-        {/* Title shimmers */}
-        <SkeletonBox
-          width={150}
-          height={14}
-          borderRadius={8}
-          style={{ position: 'absolute', top: 17, start: spacing.sp16 }}
-        />
-        <SkeletonBox
-          width={120}
-          height={12}
-          borderRadius={8}
-          style={{ position: 'absolute', top: 35, start: spacing.sp16 }}
-        />
-        {/* Name / ID shimmers */}
-        <SkeletonBox
-          width={130}
-          height={14}
-          borderRadius={8}
-          style={{ position: 'absolute', top: 104, start: spacing.sp16 }}
-        />
-        <SkeletonBox
-          width={100}
-          height={12}
-          borderRadius={8}
-          style={{ position: 'absolute', top: 125, start: spacing.sp16 }}
-        />
-        {/* Pills row shimmers */}
+        {/* Top row: title+subtitle column left, QR box right */}
+        <View style={styles.topRow}>
+          <View style={styles.topLeft}>
+            <SkeletonBox width={150} height={14} borderRadius={8} />
+            <SkeletonBox width={120} height={12} borderRadius={8} />
+          </View>
+          <View style={styles.qrBox} />
+        </View>
+
+        {/* Middle: name + ID shimmers */}
+        <View style={styles.middleSection}>
+          <SkeletonBox width={130} height={14} borderRadius={8} />
+          <SkeletonBox width={100} height={12} borderRadius={8} />
+        </View>
+
+        {/* Bottom: pills row */}
         <View style={styles.pillsShimmerRow}>
           <SkeletonBox width={94} height={32} borderRadius={16} />
           <SkeletonBox width={94} height={32} borderRadius={16} />
@@ -109,21 +96,32 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: SKELETON_CARD_BG,
     overflow: 'hidden',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.sp16,
+    paddingTop: spacing.sp16,
+    paddingBottom: spacing.sp24,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  topLeft: {
+    flex: 1,
+    marginEnd: spacing.sp8,
+    gap: spacing.sp4,
   },
   qrBox: {
-    position: 'absolute',
-    top: 27,
-    end: spacing.sp16,
     width: 77,
     height: 77,
     borderRadius: radius.rMd,
     backgroundColor: colors.scheduleBorder,
+    flexShrink: 0,
+  },
+  middleSection: {
+    gap: spacing.sp8,
   },
   pillsShimmerRow: {
-    position: 'absolute',
-    top: 158,
-    start: spacing.sp16,
-    end: spacing.sp16,
     flexDirection: 'row',
     gap: spacing.sp8,
   },

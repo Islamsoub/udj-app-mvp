@@ -24,30 +24,24 @@ interface ArticleCardProps {
 export function ArticleCard({ article }: ArticleCardProps) {
   return (
     <View style={styles.card}>
-      {/* Thumbnail placeholder */}
       <View style={styles.thumbnail} />
-
-      {/* Category pill */}
-      <View style={styles.categoryPill}>
-        <Text style={[styles.categoryText, { color: categoryTextColor(article.category) }]}>
-          {article.category}
-        </Text>
+      <View style={styles.content}>
+        <View style={styles.topRow}>
+          <View style={styles.categoryPill}>
+            <Text style={[styles.categoryText, { color: categoryTextColor(article.category) }]}>
+              {article.category}
+            </Text>
+          </View>
+          <Text style={styles.timestamp}>{article.timestamp}</Text>
+        </View>
+        <Text style={styles.title} numberOfLines={2}>{article.title}</Text>
+        <Text style={styles.readTime}>{article.readTime}</Text>
       </View>
-
-      {/* Timestamp — end-aligned */}
-      <Text style={styles.timestamp}>{article.timestamp}</Text>
-
-      {/* Title */}
-      <Text style={styles.title} numberOfLines={2}>{article.title}</Text>
-
-      {/* Read time */}
-      <Text style={styles.readTime}>{article.readTime}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  // X=15 per Figma → marginHorizontal: 15 gives W=330 on 360dp screen
   card: {
     height: 122,
     borderRadius: 14,
@@ -56,24 +50,34 @@ const styles = StyleSheet.create({
     borderColor: colors.scheduleBorder,
     marginHorizontal: 15,
     overflow: 'hidden',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sp16,
   },
 
-  // X=16, Y=25 within card
   thumbnail: {
-    position: 'absolute',
-    top: 25,
-    start: spacing.sp16,
     width: 37,
     height: 35,
     borderRadius: radius.rMd,
     backgroundColor: colors.scheduleBorder,
+    marginEnd: spacing.sp12,
+    flexShrink: 0,
   },
 
-  // X=65, Y=15, H=19, radius=10, bg=colors.border
+  content: {
+    flex: 1,
+    justifyContent: 'space-between',
+    alignSelf: 'stretch',
+    paddingVertical: spacing.sp16,
+  },
+
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
   categoryPill: {
-    position: 'absolute',
-    top: 15,
-    start: 65,
     height: 19,
     borderRadius: 10,
     backgroundColor: colors.border,
@@ -87,23 +91,14 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
   },
 
-  // X=277→end=16, Y=14
   timestamp: {
-    position: 'absolute',
-    top: 14,
-    end: spacing.sp16,
     fontSize: 12,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
   },
 
-  // X=65, Y=37, end=16
   title: {
-    position: 'absolute',
-    top: 37,
-    start: 65,
-    end: spacing.sp16,
     fontSize: 14,
     fontWeight: '700',
     fontFamily: fonts.sans,
@@ -111,11 +106,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
-  // X=65, Y=85
   readTime: {
-    position: 'absolute',
-    top: 85,
-    start: 65,
     fontSize: 12,
     fontWeight: '700',
     fontFamily: fonts.sans,

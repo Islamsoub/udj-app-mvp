@@ -20,26 +20,30 @@ export function StudentCard({ name, id, programme, annee, statut }: StudentCardP
 
   return (
     <View style={styles.card}>
-      {/* QR placeholder — absolute top-end */}
-      <View style={styles.qrBox} />
+      {/* Top row: title+subtitle column left, QR box right */}
+      <View style={styles.topRow}>
+        <View style={styles.topLeft}>
+          <Text style={styles.cardTitle} numberOfLines={1}>
+            {t('profile.card.title')}
+          </Text>
+          <Text style={styles.cardSubtitle} numberOfLines={1}>
+            {t('profile.card.subtitle')}
+          </Text>
+        </View>
+        <View style={styles.qrBox} />
+      </View>
 
-      {/* Card title & subtitle */}
-      <Text style={styles.cardTitle} numberOfLines={1}>
-        {t('profile.card.title')}
-      </Text>
-      <Text style={styles.cardSubtitle} numberOfLines={1}>
-        {t('profile.card.subtitle')}
-      </Text>
+      {/* Middle: student name & ID */}
+      <View style={styles.middleSection}>
+        <Text style={styles.cardName} numberOfLines={1}>
+          {name}
+        </Text>
+        <Text style={styles.cardStudentId} numberOfLines={1}>
+          {id}
+        </Text>
+      </View>
 
-      {/* Student name & ID */}
-      <Text style={styles.cardName} numberOfLines={1}>
-        {name}
-      </Text>
-      <Text style={styles.cardStudentId} numberOfLines={1}>
-        {id}
-      </Text>
-
-      {/* Info pills row */}
+      {/* Bottom: info pills row */}
       <View style={styles.pillsRow}>
         <View style={[styles.pill, styles.pillLg]}>
           <Text style={styles.pillLabel}>{t('profile.card.programme')}</Text>
@@ -71,59 +75,51 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: colors.jade600,
     overflow: 'hidden',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.sp16,
+    paddingTop: spacing.sp16,
+    paddingBottom: spacing.sp24,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  topLeft: {
+    flex: 1,
+    marginEnd: spacing.sp8,
   },
   qrBox: {
-    position: 'absolute',
-    top: 27,
-    end: spacing.sp16,
     width: 77,
     height: 77,
     borderRadius: radius.rMd,
     backgroundColor: colors.scheduleBorder,
+    flexShrink: 0,
   },
   cardTitle: {
-    position: 'absolute',
-    top: 17,
-    start: spacing.sp16,
-    end: 110,
     fontSize: 16,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.surface,
   },
   cardSubtitle: {
-    position: 'absolute',
-    top: 37,
-    start: spacing.sp16,
-    end: 110,
     fontSize: 12,
     fontFamily: fonts.sans,
     color: CARD_TEXT_DIM,
   },
+  middleSection: {},
   cardName: {
-    position: 'absolute',
-    top: 104,
-    start: spacing.sp16,
-    end: spacing.sp16,
     fontSize: 16,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.surface,
   },
   cardStudentId: {
-    position: 'absolute',
-    top: 125,
-    start: spacing.sp16,
-    end: spacing.sp16,
     fontSize: 12,
     fontFamily: fonts.mono,
     color: CARD_TEXT_DIM,
   },
   pillsRow: {
-    position: 'absolute',
-    top: 158,
-    start: spacing.sp16,
-    end: spacing.sp16,
     flexDirection: 'row',
     gap: spacing.sp8,
   },

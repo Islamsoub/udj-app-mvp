@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ViewStyle } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
@@ -28,28 +28,21 @@ interface ProfileHeaderProps {
   student?: ProfileHeaderStudent;
 }
 
-// Spec-derived heights (content area, topInset added at render)
+// Spec-derived heights (content area, topInset added via paddingTop at render)
 const HEADER_STRIP_H = 93;
 const WHITE_AREA_H = 305;
 const OFFLINE_WHITE_H = 280; // 275 spec + 5px so tiles don't clip
 const OFFLINE_BANNER_H = 46;
 
-// Y positions within white area content (measured from white-area top)
+// Y positions within white area (measured from white-area top, after paddingTop)
 const AVATAR_Y_LOADED = 121;
 const AVATAR_Y_OFFLINE = 99;
-const STATS_Y = 216;
 
 // ── Header strip inner ────────────────────────────────────────────────────────
 
-function HeaderStrip({
-  topInset,
-  t,
-}: {
-  topInset: number;
-  t: ReturnType<typeof useTranslation>['t'];
-}) {
+function HeaderStrip({ t }: { t: ReturnType<typeof useTranslation>['t'] }) {
   return (
-    <View style={[styles.headerStrip, { height: HEADER_STRIP_H + topInset }]}>
+    <View style={styles.headerStrip}>
       <Text style={styles.headerTitle}>{t('profile.title')}</Text>
       <Pressable style={styles.dotsButton} hitSlop={8}>
         <Ionicons name="ellipsis-horizontal" size={18} color={colors.greyMedium} />
@@ -88,21 +81,14 @@ function OfflineBannerStrip({
 function StatTiles({
   student,
   isSkeleton,
-  topPos,
   t,
 }: {
   student: ProfileHeaderStudent;
   isSkeleton: boolean;
-  topPos: number;
   t: ReturnType<typeof useTranslation>['t'];
 }) {
   return (
-    <View
-      style={[
-        styles.tilesRow,
-        { position: 'absolute', top: topPos, start: spacing.sp16, end: spacing.sp16 },
-      ]}
-    >
+    <View style={styles.tilesRow}>
       {isSkeleton ? (
         <>
           <View style={{ flex: 1 }}>
@@ -142,72 +128,37 @@ function StatTiles({
 function ProfileInfoBlock({
   student,
   isSkeleton,
-  avatarTop,
+  style,
 }: {
   student: ProfileHeaderStudent;
   isSkeleton: boolean;
-  avatarTop: number;
+  style?: ViewStyle;
 }) {
   return (
-    <>
-      {/* Avatar circle */}
-      <View
-        style={[
-          styles.avatar,
-          { position: 'absolute', top: avatarTop, start: spacing.sp16 },
-        ]}
-      />
-
-      {isSkeleton ? (
-        <>
-          <SkeletonBox
-            width={157}
-            height={18}
-            borderRadius={8}
-            style={{ position: 'absolute', top: avatarTop, start: 103 }}
-          />
-          <SkeletonBox
-            width={120}
-            height={14}
-            borderRadius={8}
-            style={{ position: 'absolute', top: avatarTop + 25, start: 103 }}
-          />
-          <SkeletonBox
-            width={140}
-            height={12}
-            borderRadius={8}
-            style={{ position: 'absolute', top: avatarTop + 45, start: 103 }}
-          />
-        </>
-      ) : (
-        <>
-          <Text
-            style={[styles.profileName, { position: 'absolute', top: avatarTop, start: 103, end: spacing.sp16 }]}
-            numberOfLines={1}
-          >
-            {student.name}
-          </Text>
-          <Text
-            style={[
-              styles.profileStudentId,
-              { position: 'absolute', top: avatarTop + 25, start: 103, end: spacing.sp16 },
-            ]}
-            numberOfLines={1}
-          >
-            {student.id}
-          </Text>
-          <Text
-            style={[
-              styles.profileFiliere,
-              { position: 'absolute', top: avatarTop + 45, start: 103, end: spacing.sp16 },
-            ]}
-            numberOfLines={1}
-          >
-            {student.filiere}
-          </Text>
-        </>
-      )}
-    </>
+    <View style={[styles.infoBlock, style]}>
+      <View style={styles.avatar} />
+      <View style={styles.infoText}>
+        {isSkeleton ? (
+          <>
+            <SkeletonBox width={157} height={18} borderRadius={8} />
+            <SkeletonBox width={120} height={14} borderRadius={8} />
+            <SkeletonBox width={140} height={12} borderRadius={8} />
+          </>
+        ) : (
+          <>
+            <Text style={styles.profileName} numberOfLines={1}>
+              {student.name}
+            </Text>
+            <Text style={styles.profileStudentId} numberOfLines={1}>
+              {student.id}
+            </Text>
+            <Text style={styles.profileFiliere} numberOfLines={1}>
+              {student.filiere}
+            </Text>
+          </>
+        )}
+      </View>
+    </View>
   );
 }
 
@@ -221,26 +172,15 @@ export function ProfileHeader({ state, topInset, student }: ProfileHeaderProps) 
     return (
       <>
         <OfflineBannerStrip topInset={topInset} t={t} />
-        <View
-          style={[
-            styles.whiteArea,
-            styles.whiteAreaBorder,
-            { height: OFFLINE_WHITE_H },
-          ]}
-        >
+        <View style={[styles.whiteArea, styles.whiteAreaBorder, { height: OFFLINE_WHITE_H }]}>
           {student && (
             <>
               <ProfileInfoBlock
                 student={student}
                 isSkeleton={false}
-                avatarTop={AVATAR_Y_OFFLINE}
+                style={{ marginTop: AVATAR_Y_OFFLINE }}
               />
-              <StatTiles
-                student={student}
-                isSkeleton={false}
-                topPos={STATS_Y}
-                t={t}
-              />
+              <StatTiles student={student} isSkeleton={false} t={t} />
             </>
           )}
         </View>
@@ -251,35 +191,32 @@ export function ProfileHeader({ state, topInset, student }: ProfileHeaderProps) 
   // ── Error / Incomplete: header strip only ──────────────────────────────────
   if (state === 'error' || state === 'incomplete') {
     return (
-      <View style={[styles.whiteArea, { height: HEADER_STRIP_H + topInset }]}>
-        <HeaderStrip topInset={topInset} t={t} />
+      <View style={[styles.whiteArea, { height: HEADER_STRIP_H, paddingTop: topInset }]}>
+        <HeaderStrip t={t} />
       </View>
     );
   }
 
   // ── Loaded / Session / Skeleton: full white area ───────────────────────────
   const isSkeleton = state === 'skeleton';
-  const totalH = WHITE_AREA_H + topInset;
-  const avatarTop = topInset + AVATAR_Y_LOADED;
-  const statsTop = topInset + STATS_Y;
 
   return (
-    <View style={[styles.whiteArea, styles.whiteAreaBorder, { height: totalH }]}>
-      <HeaderStrip topInset={topInset} t={t} />
-
+    <View
+      style={[
+        styles.whiteArea,
+        styles.whiteAreaBorder,
+        { height: WHITE_AREA_H, paddingTop: topInset },
+      ]}
+    >
+      <HeaderStrip t={t} />
       {student && (
         <>
           <ProfileInfoBlock
             student={student}
             isSkeleton={isSkeleton}
-            avatarTop={avatarTop}
+            style={{ marginTop: AVATAR_Y_LOADED - HEADER_STRIP_H }}
           />
-          <StatTiles
-            student={student}
-            isSkeleton={isSkeleton}
-            topPos={statsTop}
-            t={t}
-          />
+          <StatTiles student={student} isSkeleton={isSkeleton} t={t} />
         </>
       )}
     </View>
@@ -292,6 +229,7 @@ const styles = StyleSheet.create({
   // White area container
   whiteArea: {
     backgroundColor: colors.surface,
+    flexDirection: 'column',
   },
   whiteAreaBorder: {
     borderBottomWidth: 1,
@@ -300,28 +238,29 @@ const styles = StyleSheet.create({
 
   // Header strip
   headerStrip: {
+    height: HEADER_STRIP_H,
     borderBottomWidth: 1,
     borderBottomColor: colors.newsHeaderBorder,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.sp16,
+    paddingBottom: 14,
   },
   headerTitle: {
-    position: 'absolute',
-    bottom: 14,
-    start: spacing.sp16,
     fontSize: 18,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
   },
   dotsButton: {
-    position: 'absolute',
-    bottom: 8,
-    end: spacing.sp16,
     width: 34,
     height: 34,
     borderRadius: 30,
     backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 6,
   },
 
   // Offline banner
@@ -352,12 +291,27 @@ const styles = StyleSheet.create({
     color: colors.danger,
   },
 
+  // Profile info block (flex row: avatar left, text column right)
+  infoBlock: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingHorizontal: spacing.sp16,
+  },
+
   // Avatar placeholder
   avatar: {
     width: 64,
     height: 64,
     borderRadius: 32,
     backgroundColor: colors.scheduleBorder,
+    flexShrink: 0,
+  },
+
+  // Text column
+  infoText: {
+    flex: 1,
+    marginStart: spacing.sp16,
+    gap: spacing.sp6,
   },
 
   // Profile text
@@ -384,6 +338,8 @@ const styles = StyleSheet.create({
     height: 62,
     flexDirection: 'row',
     gap: 14,
+    marginHorizontal: spacing.sp16,
+    marginTop: spacing.sp16,
   },
   tile: {
     flex: 1,
