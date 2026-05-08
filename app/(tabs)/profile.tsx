@@ -117,7 +117,11 @@ function IncompleteBody() {
 
   return (
     <View style={styles.incompleteBody}>
-      <Text style={styles.incompleteEmoji}>👤</Text>
+      <Image
+        source={require('../../assets/icons/Profile_inc.png')}
+        style={styles.incompleteImage}
+        resizeMode="contain"
+      />
       <Text style={styles.stateTitle}>{t('profile.incomplete.title')}</Text>
       <Text style={styles.stateBody}>{t('profile.incomplete.body')}</Text>
 
@@ -341,9 +345,9 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     gap: spacing.sp16,
   },
-  incompleteEmoji: {
-    fontSize: 64,
-    lineHeight: 76,
+  incompleteImage: {
+    width: 72,
+    height: 72,
   },
   validatedBanner: {
     width: 328,

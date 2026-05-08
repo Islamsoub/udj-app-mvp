@@ -36,7 +36,6 @@ const OFFLINE_BANNER_H = 46;
 
 // Y positions within white area (measured from white-area top, after paddingTop)
 const AVATAR_Y_LOADED = 121;
-const AVATAR_Y_OFFLINE = 99;
 
 // ── Header strip inner ────────────────────────────────────────────────────────
 
@@ -178,7 +177,7 @@ export function ProfileHeader({ state, topInset, student }: ProfileHeaderProps) 
               <ProfileInfoBlock
                 student={student}
                 isSkeleton={false}
-                style={{ marginTop: AVATAR_Y_OFFLINE }}
+                style={{ marginTop: spacing.sp16 }}
               />
               <StatTiles student={student} isSkeleton={false} t={t} />
             </>
