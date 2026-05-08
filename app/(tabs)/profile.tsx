@@ -8,6 +8,7 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
@@ -176,6 +177,7 @@ const STATE_LABELS: Record<ProfileState, string> = {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const [profileState, setProfileState] = useState<ProfileState>('loaded');
   const insets = useSafeAreaInsets();
 
@@ -200,6 +202,7 @@ export default function ProfileScreen() {
           state={profileState}
           topInset={insets.top}
           student={MOCK_STUDENT}
+          onDotsPress={() => router.push('/settings')}
         />
 
         {/* Body per state */}

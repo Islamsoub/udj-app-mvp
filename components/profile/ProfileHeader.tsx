@@ -26,6 +26,7 @@ interface ProfileHeaderProps {
   state: ProfileHeaderState;
   topInset: number;
   student?: ProfileHeaderStudent;
+  onDotsPress?: () => void;
 }
 
 // Spec-derived heights (content area, topInset added via paddingTop at render)
@@ -37,11 +38,17 @@ const AVATAR_Y_LOADED = 121;
 
 // ── Header strip inner ────────────────────────────────────────────────────────
 
-function HeaderStrip({ t }: { t: ReturnType<typeof useTranslation>['t'] }) {
+function HeaderStrip({
+  t,
+  onDotsPress,
+}: {
+  t: ReturnType<typeof useTranslation>['t'];
+  onDotsPress?: () => void;
+}) {
   return (
     <View style={styles.headerStrip}>
       <Text style={styles.headerTitle}>{t('profile.title')}</Text>
-      <Pressable style={styles.dotsButton} hitSlop={8}>
+      <Pressable style={styles.dotsButton} hitSlop={8} onPress={onDotsPress}>
         <Ionicons name="ellipsis-horizontal" size={18} color={colors.greyMedium} />
       </Pressable>
     </View>
@@ -161,7 +168,7 @@ function ProfileInfoBlock({
 
 // ── Main export ───────────────────────────────────────────────────────────────
 
-export function ProfileHeader({ state, topInset, student }: ProfileHeaderProps) {
+export function ProfileHeader({ state, topInset, student, onDotsPress }: ProfileHeaderProps) {
   const { t } = useTranslation();
 
   // ── Offline: banner above white area, no header strip ──────────────────────
@@ -189,7 +196,7 @@ export function ProfileHeader({ state, topInset, student }: ProfileHeaderProps) 
   if (state === 'error' || state === 'incomplete') {
     return (
       <View style={[styles.whiteArea, { height: HEADER_STRIP_H + topInset, paddingTop: topInset }]}>
-        <HeaderStrip t={t} />
+        <HeaderStrip t={t} onDotsPress={onDotsPress} />
       </View>
     );
   }
@@ -205,7 +212,7 @@ export function ProfileHeader({ state, topInset, student }: ProfileHeaderProps) 
         { paddingTop: topInset, paddingBottom: spacing.sp16 },
       ]}
     >
-      <HeaderStrip t={t} />
+      <HeaderStrip t={t} onDotsPress={onDotsPress} />
       {student && (
         <>
           <ProfileInfoBlock

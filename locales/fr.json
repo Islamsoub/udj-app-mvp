@@ -195,6 +195,39 @@
       "continue_offline": "Continuer en hors-ligne"
     }
   },
+  "settings": {
+    "title": "Paramètres",
+    "section": {
+      "preferences": "PRÉFÉRENCES",
+      "notifications": "NOTIFICATIONS",
+      "data": "DONNÉES & CACHE",
+      "account": "COMPTE"
+    },
+    "row": {
+      "language": "Langue",
+      "language_value": "Français",
+      "theme": "Thème",
+      "theme_value": "Système",
+      "text_size": "Taille du texte",
+      "text_size_value": "Normal",
+      "notif_grades": "Notes disponibles",
+      "notif_courses": "Rappel de cours",
+      "notif_attendance": "Alertes présence",
+      "quiet_hours": "Heures de silence",
+      "quiet_hours_value": "22h – 7h",
+      "offline_storage": "Stockage hors-ligne",
+      "offline_storage_value": "12.4 MB",
+      "clear_cache": "Vider le cache",
+      "last_sync": "Dernière synchronisation",
+      "last_sync_value": "Aujourd'hui 14:30",
+      "account_info": "Informations du compte",
+      "account_info_value": "Ahmed Omar",
+      "logout": "Déconnexion"
+    },
+    "error": {
+      "title": "Impossible de charger les paramètres"
+    }
+  },
   "news": {
     "title": "Actualités",
     "search": "Rechercher",
