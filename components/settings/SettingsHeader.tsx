@@ -7,18 +7,20 @@ import { colors, fonts, spacing } from '@/constants/theme';
 interface SettingsHeaderProps {
   topInset: number;
   onBack: () => void;
+  title?: string;
 }
 
 const CONTENT_H = 69;
 
-export function SettingsHeader({ topInset, onBack }: SettingsHeaderProps) {
+export function SettingsHeader({ topInset, onBack, title }: SettingsHeaderProps) {
   const { t } = useTranslation();
+  const displayTitle = title ?? t('settings.title');
 
   return (
     <View style={[styles.container, { paddingTop: topInset }]}>
       <Pressable style={styles.backBtn} onPress={onBack} hitSlop={8}>
         <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
-        <Text style={styles.title}>{t('settings.title')}</Text>
+        <Text style={styles.title}>{displayTitle}</Text>
       </Pressable>
     </View>
   );
@@ -29,7 +31,7 @@ const styles = StyleSheet.create({
     height: CONTENT_H,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.newsHeaderBorder,
+    borderBottomColor: colors.border,
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: spacing.sp16,

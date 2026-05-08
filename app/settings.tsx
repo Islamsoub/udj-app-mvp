@@ -17,6 +17,12 @@ import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
 import { SettingsRow } from '@/components/settings/SettingsRow';
 import { SettingsSkeleton } from '@/components/settings/SettingsSkeleton';
+import { LanguePicker } from '@/components/settings/LanguePicker';
+import { ThemePicker } from '@/components/settings/ThemePicker';
+import { TextSizePicker } from '@/components/settings/TextSizePicker';
+import { QuietHoursPicker } from '@/components/settings/QuietHoursPicker';
+import { ClearCacheConfirm } from '@/components/settings/ClearCacheConfirm';
+import { LogoutConfirm } from '@/components/settings/LogoutConfirm';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,10 +44,24 @@ const STATE_LABELS: Record<SettingsState, string> = {
 
 function SettingsBody({ isOffline }: { isOffline: boolean }) {
   const { t } = useTranslation();
+  const router = useRouter();
 
   const [notifGrades, setNotifGrades] = useState(true);
   const [notifCours, setNotifCours] = useState(true);
   const [notifPresence, setNotifPresence] = useState(true);
+
+  const [langueVisible, setLangueVisible] = useState(false);
+  const [themeVisible, setThemeVisible] = useState(false);
+  const [textSizeVisible, setTextSizeVisible] = useState(false);
+  const [quietHoursVisible, setQuietHoursVisible] = useState(false);
+  const [clearCacheVisible, setClearCacheVisible] = useState(false);
+  const [logoutVisible, setLogoutVisible] = useState(false);
+
+  const [langue, setLangue] = useState<'fr' | 'ar'>('fr');
+  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
+  const [textSize, setTextSize] = useState<'small' | 'normal' | 'large'>('normal');
+  const [quietStart, setQuietStart] = useState(22);
+  const [quietEnd, setQuietEnd] = useState(7);
 
   return (
     <View>
@@ -50,17 +70,17 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
       <SettingsRow
         label={t('settings.row.language')}
         value={t('settings.row.language_value')}
-        onPress={() => {}}
+        onPress={() => setLangueVisible(true)}
       />
       <SettingsRow
         label={t('settings.row.theme')}
         value={t('settings.row.theme_value')}
-        onPress={() => {}}
+        onPress={() => setThemeVisible(true)}
       />
       <SettingsRow
         label={t('settings.row.text_size')}
         value={t('settings.row.text_size_value')}
-        onPress={() => {}}
+        onPress={() => setTextSizeVisible(true)}
       />
 
       {/* NOTIFICATIONS */}
@@ -89,7 +109,7 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
       <SettingsRow
         label={t('settings.row.quiet_hours')}
         value={t('settings.row.quiet_hours_value')}
-        onPress={() => {}}
+        onPress={() => setQuietHoursVisible(true)}
       />
 
       {/* DONNÉES & CACHE */}
@@ -97,12 +117,12 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
       <SettingsRow
         label={t('settings.row.offline_storage')}
         value={t('settings.row.offline_storage_value')}
-        onPress={() => {}}
+        onPress={() => router.push('/storage-detail')}
       />
       <SettingsRow
         label={t('settings.row.clear_cache')}
         isDestructive
-        onPress={() => {}}
+        onPress={() => setClearCacheVisible(true)}
       />
       <SettingsRow
         label={t('settings.row.last_sync')}
@@ -115,15 +135,51 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
       <SettingsRow
         label={t('settings.row.account_info')}
         value={t('settings.row.account_info_value')}
-        onPress={() => {}}
+        onPress={() => router.push('/account-info')}
       />
       <SettingsRow
         label={t('settings.row.logout')}
         isDestructive
-        onPress={() => {}}
+        onPress={() => setLogoutVisible(true)}
       />
 
       <View style={{ height: 120 }} />
+
+      <LanguePicker
+        visible={langueVisible}
+        onClose={() => setLangueVisible(false)}
+        currentValue={langue}
+        onSelect={(v) => { setLangue(v); setLangueVisible(false); }}
+      />
+      <ThemePicker
+        visible={themeVisible}
+        onClose={() => setThemeVisible(false)}
+        currentValue={theme}
+        onSelect={(v) => { setTheme(v); setThemeVisible(false); }}
+      />
+      <TextSizePicker
+        visible={textSizeVisible}
+        onClose={() => setTextSizeVisible(false)}
+        currentValue={textSize}
+        onSelect={(v) => { setTextSize(v); setTextSizeVisible(false); }}
+      />
+      <QuietHoursPicker
+        visible={quietHoursVisible}
+        onClose={() => setQuietHoursVisible(false)}
+        startHour={quietStart}
+        endHour={quietEnd}
+        onSave={(start, end) => { setQuietStart(start); setQuietEnd(end); }}
+      />
+      <ClearCacheConfirm
+        visible={clearCacheVisible}
+        onClose={() => setClearCacheVisible(false)}
+        onConfirm={() => {}}
+      />
+      <LogoutConfirm
+        visible={logoutVisible}
+        onClose={() => setLogoutVisible(false)}
+        onConfirm={() => {}}
+      />
     </View>
   );
 }

@@ -1,0 +1,83 @@
+import React, { ReactNode } from 'react';
+import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
+import { colors, fonts, radius, spacing } from '@/constants/theme';
+
+interface SettingsSheetProps {
+  visible: boolean;
+  onClose: () => void;
+  title?: string;
+  subtitle?: string;
+  height?: number;
+  children: ReactNode;
+}
+
+export function SettingsSheet({
+  visible,
+  onClose,
+  title,
+  subtitle,
+  height,
+  children,
+}: SettingsSheetProps) {
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <Pressable style={styles.scrim} onPress={onClose}>
+        <Pressable
+          style={[styles.sheet, height ? { minHeight: height } : undefined]}
+          onPress={() => {}}
+        >
+          <View style={styles.handle} />
+          {title ? <Text style={styles.title}>{title}</Text> : null}
+          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+          <View style={styles.content}>{children}</View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  scrim: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: radius.r2xl,
+    borderTopRightRadius: radius.r2xl,
+    paddingBottom: 28,
+  },
+  handle: {
+    alignSelf: 'center',
+    width: 36,
+    height: 4,
+    borderRadius: radius.rFull,
+    backgroundColor: colors.skeletonBase,
+    marginTop: spacing.sp12,
+    marginBottom: spacing.sp16,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '700',
+    fontFamily: fonts.sans,
+    color: colors.textPrimary,
+    paddingHorizontal: spacing.sp20,
+  },
+  subtitle: {
+    fontSize: 13,
+    fontWeight: '400',
+    fontFamily: fonts.sans,
+    color: colors.greyMedium,
+    paddingHorizontal: spacing.sp20,
+    marginTop: spacing.sp4,
+  },
+  content: {
+    marginTop: spacing.sp8,
+  },
+});

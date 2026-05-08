@@ -38,8 +38,10 @@ export function SettingsRow({
           value={toggleValue}
           onValueChange={onToggle}
           disabled={disabled}
-          trackColor={{ false: '#D9D9D9', true: colors.jade400 }}
+          trackColor={{ false: colors.scheduleBorder, true: colors.jade400 }}
           thumbColor={colors.surface}
+          ios_backgroundColor={colors.scheduleBorder}
+          style={{ transform: [{ scaleX: 1.1 }, { scaleY: 1.1 }] }}
         />
       </View>
     );
@@ -83,7 +85,7 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
     marginEnd: spacing.sp8,
