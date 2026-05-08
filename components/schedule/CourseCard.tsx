@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.scheduleBorder,
     overflow: 'hidden',
-    width: 253,
+    flex: 1,
   },
   accentBar: {
     width: 9,

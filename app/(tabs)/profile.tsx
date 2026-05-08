@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   },
   qrBanner: {
     marginTop: spacing.sp24,
-    width: 328,
+    marginHorizontal: spacing.sp16,
     borderRadius: radius.rMd,
     backgroundColor: colors.newsNotifBg,
     borderWidth: 1,
@@ -346,11 +346,12 @@ const styles = StyleSheet.create({
     gap: spacing.sp16,
   },
   incompleteImage: {
-    width: 72,
-    height: 72,
+    width: 100,
+    height: 100,
+    marginTop: spacing.sp16,
   },
   validatedBanner: {
-    width: 328,
+    marginHorizontal: spacing.sp16,
     height: 40,
     borderRadius: radius.rMd,
     backgroundColor: colors.newsNotifBg,
@@ -368,7 +369,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   pendingBanner: {
-    width: 328,
+    marginHorizontal: spacing.sp16,
     minHeight: 54,
     borderRadius: radius.rMd,
     backgroundColor: colors.newsOfflineBg,

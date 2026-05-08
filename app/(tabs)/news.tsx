@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   },
   notifBanner: {
     marginTop: spacing.sp24,
-    width: 328,
+    marginHorizontal: spacing.sp16,
     minHeight: 63,
     borderRadius: radius.rMd,
     backgroundColor: colors.newsNotifBg,

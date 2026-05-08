@@ -30,8 +30,6 @@ interface ProfileHeaderProps {
 
 // Spec-derived heights (content area, topInset added via paddingTop at render)
 const HEADER_STRIP_H = 93;
-const WHITE_AREA_H = 305;
-const OFFLINE_WHITE_H = 280; // 275 spec + 5px so tiles don't clip
 const OFFLINE_BANNER_H = 46;
 
 // Y positions within white area (measured from white-area top, after paddingTop)
@@ -171,13 +169,13 @@ export function ProfileHeader({ state, topInset, student }: ProfileHeaderProps) 
     return (
       <>
         <OfflineBannerStrip topInset={topInset} t={t} />
-        <View style={[styles.whiteArea, styles.whiteAreaBorder, { height: OFFLINE_WHITE_H }]}>
+        <View style={[styles.whiteArea, styles.whiteAreaBorder, { paddingBottom: spacing.sp16 }]}>
           {student && (
             <>
               <ProfileInfoBlock
                 student={student}
                 isSkeleton={false}
-                style={{ marginTop: spacing.sp16 }}
+                style={{ marginTop: spacing.sp32 }}
               />
               <StatTiles student={student} isSkeleton={false} t={t} />
             </>
@@ -190,7 +188,7 @@ export function ProfileHeader({ state, topInset, student }: ProfileHeaderProps) 
   // ── Error / Incomplete: header strip only ──────────────────────────────────
   if (state === 'error' || state === 'incomplete') {
     return (
-      <View style={[styles.whiteArea, { height: HEADER_STRIP_H, paddingTop: topInset }]}>
+      <View style={[styles.whiteArea, { height: HEADER_STRIP_H + topInset, paddingTop: topInset }]}>
         <HeaderStrip t={t} />
       </View>
     );
@@ -204,7 +202,7 @@ export function ProfileHeader({ state, topInset, student }: ProfileHeaderProps) 
       style={[
         styles.whiteArea,
         styles.whiteAreaBorder,
-        { height: WHITE_AREA_H, paddingTop: topInset },
+        { paddingTop: topInset, paddingBottom: spacing.sp16 },
       ]}
     >
       <HeaderStrip t={t} />

@@ -107,6 +107,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   cardContent: {
+    flex: 1,
     marginStart: 7,
+    marginEnd: spacing.sp16,
   },
 });

@@ -83,13 +83,12 @@ export function SubjectCard({ subject }: SubjectCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    width: 330,
+    marginHorizontal: 15,
     borderRadius: 14,
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.scheduleBorder,
     overflow: 'hidden',
-    alignSelf: 'center',
     paddingTop: 11,
     paddingBottom: spacing.sp12,
   },

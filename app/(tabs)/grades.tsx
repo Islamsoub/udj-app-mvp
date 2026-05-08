@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   // ── Error notification banner
   notifBanner: {
     marginTop: spacing.sp24,
-    width: 328,
+    marginHorizontal: spacing.sp16,
     minHeight: 64,
     borderRadius: radius.rMd,
     backgroundColor: colors.jade50,
