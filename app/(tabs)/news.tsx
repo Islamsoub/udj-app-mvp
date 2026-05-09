@@ -9,6 +9,7 @@ import {
   Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
@@ -19,6 +20,7 @@ import { HeroCard } from '@/components/news/HeroCard';
 import { ArticleCard, Article } from '@/components/news/ArticleCard';
 import { NewsSkeleton } from '@/components/news/NewsSkeleton';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
+import { useArticleStore } from '@/stores/articleStore';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -62,6 +64,18 @@ const MOCK_ARTICLES: Article[] = [
 const HERO_ARTICLE = MOCK_ARTICLES[0];
 const LIST_ARTICLES = MOCK_ARTICLES.slice(1);
 
+const MOCK_EXTENDED_ARTICLE = {
+  id: '0',
+  category: 'Scolarite' as const,
+  title: 'Inscriptions aux examens de rattrapage : ouverture des dépôts',
+  timestamp: 'Hier a 16H00',
+  readTime: '3 min',
+  author: 'Service Scolarité',
+  fullDate: '12 mai 2026 · 09:30',
+  body:
+    "Les dépôts de dossiers pour les examens de rattrapage de la session de juin 2026 sont désormais ouverts. Tous les étudiants concernés sont invités à se présenter au service de la scolarité muni de leur carte étudiant et des pièces justificatives requises.\n\nLes dépôts se dérouleront du lundi 12 mai au vendredi 16 mai 2026, de 08h00 à 14h00 du lundi au jeudi, et de 08h00 à 11h30 le vendredi. Passé ce délai, aucun dossier ne sera accepté.\n\nPour toute question relative aux modalités d'inscription, les étudiants peuvent contacter directement le service de la scolarité ou consulter l'affichage officiel sur le tableau d'annonces de leur faculté.",
+};
+
 // ─── Saved articles warning (offline body) ────────────────────────────────────
 
 function SavedArticlesBanner() {
@@ -75,13 +89,21 @@ function SavedArticlesBanner() {
 
 // ─── Loaded body ──────────────────────────────────────────────────────────────
 
-function LoadedBody() {
+interface ArticleListProps {
+  onArticlePress: () => void;
+}
+
+function LoadedBody({ onArticlePress }: ArticleListProps) {
   return (
     <View style={styles.loadedBody}>
-      <HeroCard article={HERO_ARTICLE} />
+      <Pressable onPress={onArticlePress}>
+        <HeroCard article={HERO_ARTICLE} />
+      </Pressable>
       <View style={styles.loadedArticleList}>
         {LIST_ARTICLES.map((article) => (
-          <ArticleCard key={article.id} article={article} />
+          <Pressable key={article.id} onPress={onArticlePress}>
+            <ArticleCard article={article} />
+          </Pressable>
         ))}
       </View>
     </View>
@@ -90,13 +112,15 @@ function LoadedBody() {
 
 // ─── Offline body ─────────────────────────────────────────────────────────────
 
-function OfflineBody() {
+function OfflineBody({ onArticlePress }: ArticleListProps) {
   return (
     <View style={styles.offlineBody}>
       <SavedArticlesBanner />
       <View style={styles.offlineArticleList}>
         {LIST_ARTICLES.map((article) => (
-          <ArticleCard key={article.id} article={article} />
+          <Pressable key={article.id} onPress={onArticlePress}>
+            <ArticleCard article={article} />
+          </Pressable>
         ))}
       </View>
     </View>
@@ -183,8 +207,15 @@ export default function NewsScreen() {
   const [newsState, setNewsState] = useState<NewsState>('loaded');
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const setSelectedArticle = useArticleStore((s) => s.setSelectedArticle);
 
   const showFilterRow = newsState === 'loaded' || newsState === 'offline' || newsState === 'session';
+
+  function handleArticlePress() {
+    setSelectedArticle(MOCK_EXTENDED_ARTICLE);
+    router.push('/article-reader');
+  }
 
   return (
     <View style={styles.root}>
@@ -211,9 +242,13 @@ export default function NewsScreen() {
         {/* Body content per state */}
         {newsState === 'skeleton' && <NewsSkeleton />}
 
-        {(newsState === 'loaded' || newsState === 'session') && <LoadedBody />}
+        {(newsState === 'loaded' || newsState === 'session') && (
+          <LoadedBody onArticlePress={handleArticlePress} />
+        )}
 
-        {newsState === 'offline' && <OfflineBody />}
+        {newsState === 'offline' && (
+          <OfflineBody onArticlePress={handleArticlePress} />
+        )}
 
         {newsState === 'empty' && <EmptyBody />}
 

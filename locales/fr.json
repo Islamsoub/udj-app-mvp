@@ -299,6 +299,17 @@
       "value_device": "Samsung Galaxy A14"
     }
   },
+  "article": {
+    "error": {
+      "title": "Article indisponible",
+      "body": "Impossible de charger cet article. Vérifiez votre connexion puis réessayez.",
+      "retry": "Réessayer"
+    },
+    "offline": {
+      "banner": "Mode hors-ligne · Contenu en cache"
+    },
+    "share": "Partager"
+  },
   "news": {
     "title": "Actualités",
     "search": "Rechercher",
