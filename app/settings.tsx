@@ -108,7 +108,7 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
       />
       <SettingsRow
         label={t('settings.row.quiet_hours')}
-        value={t('settings.row.quiet_hours_value')}
+        value={`${String(quietStart).padStart(2, '0')}h – ${String(quietEnd).padStart(2, '0')}h`}
         onPress={() => setQuietHoursVisible(true)}
       />
 

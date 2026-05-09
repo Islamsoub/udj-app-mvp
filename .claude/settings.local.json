@@ -23,7 +23,8 @@
       "Bash(npx expo-doctor *)",
       "Bash(node *)",
       "Bash(npm uninstall *)",
-      "Bash(Get-ChildItem *)"
+      "Bash(Get-ChildItem *)",
+      "Bash(npx expo *)"
     ]
   }
 }
