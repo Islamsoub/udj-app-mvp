@@ -15,9 +15,106 @@ import { useTranslation } from 'react-i18next';
 import { colors, fonts, spacing, radius } from '@/constants/theme';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
+import { CourseDetailSheet } from '@/components/schedule/CourseDetailSheet';
+import { useCourseDetailStore, ExtendedCourse } from '@/stores/courseDetailStore';
 
 
 type HomeState = 'loaded' | 'error' | 'empty' | 'skeleton' | 'offline';
+
+// ─── Agenda mock data ─────────────────────────────────────────────────────────
+
+interface MockAgendaItem {
+  // AgendaCard display props
+  id: string;
+  accentColor: string;
+  time: string;
+  course: string;
+  teacher: string;
+  location: string;
+  statusLabel?: string;
+  statusBg?: string;
+  statusColor?: string;
+  statusBorder?: string;
+  isOffline?: boolean;
+  // ExtendedCourse fields
+  courseStatus: 'active' | 'past' | 'upcoming';
+  code: string;
+  coefficient: number;
+}
+
+function toExtendedCourse(item: MockAgendaItem): ExtendedCourse {
+  const parts = item.time.split(' - ');
+  return {
+    id: item.id,
+    subject: item.course,
+    teacher: item.teacher,
+    room: item.location,
+    start: parts[0].trim(),
+    end: parts[1]?.trim() ?? '',
+    status: item.courseStatus,
+    code: item.code,
+    coefficient: item.coefficient,
+  };
+}
+
+const MOCK_AGENDA_LOADED: MockAgendaItem[] = [
+  {
+    id: 'home-1',
+    accentColor: colors.jade400,
+    time: '08:00 - 10:00',
+    course: 'Mathématiques Générales L2',
+    teacher: 'Pr. Abdi Hassan',
+    location: 'Amphi A1',
+    statusLabel: 'Présent',
+    statusBg: 'rgba(29,158,117,0.15)',
+    statusColor: colors.jade400,
+    courseStatus: 'active',
+    code: 'MAT-201',
+    coefficient: 4,
+  },
+  {
+    id: 'home-2',
+    accentColor: colors.exam,
+    time: '10:30 - 12:30',
+    course: 'Algorithmique et Structures',
+    teacher: 'Dr. Fadumo Ali',
+    location: 'Labo 3',
+    statusLabel: 'Examen',
+    statusBg: 'rgba(139,92,246,0.15)',
+    statusColor: colors.exam,
+    statusBorder: colors.exam,
+    courseStatus: 'upcoming',
+    code: 'INFO-301',
+    coefficient: 4,
+  },
+  {
+    id: 'home-3',
+    accentColor: colors.info,
+    time: '14:00 - 16:00',
+    course: 'Physique Quantique L2',
+    teacher: 'Pr. Mohamed Wais',
+    location: 'Salle 204',
+    courseStatus: 'upcoming',
+    code: 'PHY-202',
+    coefficient: 3,
+  },
+];
+
+const MOCK_AGENDA_OFFLINE: MockAgendaItem = {
+  id: 'home-offline-1',
+  accentColor: colors.jade400,
+  time: '08:00 - 10:00',
+  course: 'Mathématiques Générales L2',
+  teacher: 'Pr. Abdi Hassan',
+  location: 'Amphi A1',
+  statusLabel: 'Confirmé (hors-ligne)',
+  statusBg: colors.background,
+  statusColor: colors.textSecondary,
+  isOffline: true,
+  courseStatus: 'upcoming',
+  code: 'MAT-201',
+  coefficient: 4,
+};
 
 // ─── Skeleton pulse ───────────────────────────────────────────────────────────
 function SkeletonBox({ style }: { style: object }) {
@@ -258,8 +355,16 @@ const STATE_LABELS: Record<HomeState, string> = {
 export default function HomeScreen() {
   const [homeState, setHomeState] = useState<HomeState>('loaded');
   const [showSessionModal, setShowSessionModal] = useState(false);
+  const [courseDetailVisible, setCourseDetailVisible] = useState(false);
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+
+  const setSelectedCourse = useCourseDetailStore((s) => s.setSelectedCourse);
+
+  const handleAgendaPress = (item: MockAgendaItem) => {
+    setSelectedCourse(toExtendedCourse(item));
+    setCourseDetailVisible(true);
+  };
 
   const isLoaded = homeState === 'loaded';
   const isOffline = homeState === 'offline';
@@ -298,47 +403,36 @@ export default function HomeScreen() {
 
             {isLoaded ? (
               <>
-                <AgendaCard
-                  accentColor="#1D9E75"
-                  time="08:00 - 10:00"
-                  course="Mathématiques Générales L2"
-                  teacher="Pr. Abdi Hassan"
-                  location="Amphi A1"
-                  statusLabel="Présent"
-                  statusBg="rgba(29,158,117,0.15)"
-                  statusColor="#1D9E75"
-                />
-                <AgendaCard
-                  accentColor="#8B5CF6"
-                  time="10:30 - 12:30"
-                  course="Algorithmique et Structures"
-                  teacher="Dr. Fadumo Ali"
-                  location="Labo 3"
-                  statusLabel="Examen"
-                  statusBg="rgba(139,92,246,0.15)"
-                  statusColor="#8B5CF6"
-                  statusBorder="#8B5CF6"
-                />
-                <AgendaCard
-                  accentColor="#3B82F6"
-                  time="14:00 - 16:00"
-                  course="Physique Quantique L2"
-                  teacher="Pr. Mohamed Wais"
-                  location="Salle 204"
-                />
+                {MOCK_AGENDA_LOADED.map((item) => (
+                  <Pressable key={item.id} onPress={() => handleAgendaPress(item)}>
+                    <AgendaCard
+                      accentColor={item.accentColor}
+                      time={item.time}
+                      course={item.course}
+                      teacher={item.teacher}
+                      location={item.location}
+                      statusLabel={item.statusLabel}
+                      statusBg={item.statusBg}
+                      statusColor={item.statusColor}
+                      statusBorder={item.statusBorder}
+                    />
+                  </Pressable>
+                ))}
               </>
             ) : (
-              <AgendaCard
-                accentColor="#1D9E75"
-                time="08:00 - 10:00"
-                course="Mathématiques Générales L2"
-                teacher="Pr. Abdi Hassan"
-                location="Amphi A1"
-                statusLabel="Confirmé (hors-ligne)"
-                statusBg="#F5F7F6"
-                statusColor="#6B7B74"
-                isOffline
-              />
+              <Pressable onPress={() => handleAgendaPress(MOCK_AGENDA_OFFLINE)}>
+                <AgendaCard
+                  accentColor={MOCK_AGENDA_OFFLINE.accentColor}
+                  time={MOCK_AGENDA_OFFLINE.time}
+                  course={MOCK_AGENDA_OFFLINE.course}
+                  teacher={MOCK_AGENDA_OFFLINE.teacher}
+                  location={MOCK_AGENDA_OFFLINE.location}
+                  statusLabel={MOCK_AGENDA_OFFLINE.statusLabel}
+                  statusBg={MOCK_AGENDA_OFFLINE.statusBg}
+                  statusColor={MOCK_AGENDA_OFFLINE.statusColor}
+                  isOffline
+                />
+              </Pressable>
             )}
 
             {/* News section */}
@@ -411,6 +505,11 @@ export default function HomeScreen() {
       {showSessionModal && (
         <SessionExpiredModal onClose={() => setShowSessionModal(false)} />
       )}
+
+      <CourseDetailSheet
+        visible={courseDetailVisible}
+        onClose={() => setCourseDetailVisible(false)}
+      />
 
       <DevSwitcher
         states={ALL_STATES}

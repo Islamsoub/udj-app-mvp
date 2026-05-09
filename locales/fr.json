@@ -349,5 +349,18 @@
       "login": "Se connecter",
       "continue_offline": "Continuer en hors-ligne"
     }
+  },
+  "course": {
+    "room": "Salle",
+    "time": "Horaire",
+    "code": "Code matière",
+    "coefficient": "Coefficient",
+    "status": "Statut",
+    "notes_section": "NOTES PERSONNELLES",
+    "notes_placeholder": "Ajouter une note...",
+    "save": "Enregistrer",
+    "status_active": "En cours",
+    "status_past": "Fini",
+    "status_upcoming": "À venir"
   }
 }

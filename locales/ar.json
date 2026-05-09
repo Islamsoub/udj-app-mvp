@@ -346,5 +346,18 @@
       "login": "تسجيل الدخول",
       "continue_offline": "المتابعة بدون اتصال"
     }
+  },
+  "course": {
+    "room": "القاعة",
+    "time": "التوقيت",
+    "code": "رمز المادة",
+    "coefficient": "المعامل",
+    "status": "الحالة",
+    "notes_section": "ملاحظات شخصية",
+    "notes_placeholder": "أضف ملاحظة...",
+    "save": "حفظ",
+    "status_active": "جارٍ",
+    "status_past": "انتهى",
+    "status_upcoming": "قادم"
   }
 }

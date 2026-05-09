@@ -16,10 +16,12 @@ import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { ScheduleHeader } from '@/components/schedule/ScheduleHeader';
-import { TimelineRow, DayEntry } from '@/components/schedule/TimelineRow';
+import { TimelineRow, PauseEntry } from '@/components/schedule/TimelineRow';
 import { CacheBanner } from '@/components/schedule/CacheBanner';
 import { OfflineCourseCard } from '@/components/schedule/OfflineCourseCard';
 import { Course } from '@/components/schedule/CourseCard';
+import { CourseDetailSheet } from '@/components/schedule/CourseDetailSheet';
+import { useCourseDetailStore, ExtendedCourse } from '@/stores/courseDetailStore';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -27,7 +29,7 @@ type ScheduleState = 'skeleton' | 'loaded' | 'offline' | 'empty' | 'error' | 'se
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
-const MOCK_ENTRIES: DayEntry[] = [
+const MOCK_ENTRIES: (ExtendedCourse | PauseEntry)[] = [
   {
     id: '1',
     subject: 'Mathématiques Générales L2',
@@ -37,6 +39,8 @@ const MOCK_ENTRIES: DayEntry[] = [
     start: '08:00',
     end: '10:00',
     status: 'past',
+    code: 'MAT-201',
+    coefficient: 4,
   },
   {
     id: '2',
@@ -46,6 +50,8 @@ const MOCK_ENTRIES: DayEntry[] = [
     start: '08:00',
     end: '10:00',
     status: 'active',
+    code: 'MAT-201',
+    coefficient: 4,
   },
   { type: 'pause', time: '10:00', durationHours: 4 },
   {
@@ -56,6 +62,8 @@ const MOCK_ENTRIES: DayEntry[] = [
     start: '14:00',
     end: '16:00',
     status: 'upcoming',
+    code: 'INFO-301',
+    coefficient: 4,
   },
   {
     id: '4',
@@ -65,11 +73,13 @@ const MOCK_ENTRIES: DayEntry[] = [
     start: '16:30',
     end: '18:30',
     status: 'upcoming',
+    code: 'PHY-202',
+    coefficient: 3,
   },
 ];
 
 const MOCK_OFFLINE_COURSES: Course[] = MOCK_ENTRIES.filter(
-  (e): e is Course => !('type' in e),
+  (e): e is ExtendedCourse => !('type' in e),
 );
 
 // ─── Skeleton: header ─────────────────────────────────────────────────────────
@@ -259,16 +269,26 @@ function ErrorStateBody({ onRetry, onViewCache }: ErrorStateProps) {
 
 // ─── Loaded timeline body ──────────────────────────────────────────────────────
 
-function LoadedTimeline() {
+interface LoadedTimelineProps {
+  onCoursePress: (course: ExtendedCourse) => void;
+}
+
+function LoadedTimeline({ onCoursePress }: LoadedTimelineProps) {
   return (
     <View style={styles.timelineBody}>
-      {MOCK_ENTRIES.map((entry, i) => (
-        <TimelineRow
-          key={'id' in entry ? entry.id : `pause-${i}`}
-          entry={entry}
-          isLast={i === MOCK_ENTRIES.length - 1}
-        />
-      ))}
+      {MOCK_ENTRIES.map((entry, i) => {
+        const isLast = i === MOCK_ENTRIES.length - 1;
+        if ('type' in entry) {
+          return (
+            <TimelineRow key={`pause-${i}`} entry={entry} isLast={isLast} />
+          );
+        }
+        return (
+          <Pressable key={entry.id} onPress={() => onCoursePress(entry)}>
+            <TimelineRow entry={entry} isLast={isLast} />
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
@@ -303,7 +323,15 @@ const STATE_LABELS: Record<ScheduleState, string> = {
 export default function ScheduleScreen() {
   const [schedState, setSchedState] = useState<ScheduleState>('loaded');
   const [selectedDay, setSelectedDay] = useState(() => new Date().getDay());
+  const [courseDetailVisible, setCourseDetailVisible] = useState(false);
   const insets = useSafeAreaInsets();
+
+  const setSelectedCourse = useCourseDetailStore((s) => s.setSelectedCourse);
+
+  const handleCoursePress = (course: ExtendedCourse) => {
+    setSelectedCourse(course);
+    setCourseDetailVisible(true);
+  };
 
   const showHeader = schedState !== 'skeleton';
 
@@ -333,7 +361,9 @@ export default function ScheduleScreen() {
 
         {schedState === 'skeleton' && <SkeletonScheduleBody />}
 
-        {(schedState === 'loaded' || schedState === 'session') && <LoadedTimeline />}
+        {(schedState === 'loaded' || schedState === 'session') && (
+          <LoadedTimeline onCoursePress={handleCoursePress} />
+        )}
 
         {schedState === 'offline' && <OfflineBody />}
 
@@ -357,6 +387,11 @@ export default function ScheduleScreen() {
       <SessionExpiredModal
         visible={schedState === 'session'}
         onContinueOffline={() => setSchedState('offline')}
+      />
+
+      <CourseDetailSheet
+        visible={courseDetailVisible}
+        onClose={() => setCourseDetailVisible(false)}
       />
 
       <DevSwitcher
