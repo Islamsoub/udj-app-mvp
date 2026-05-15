@@ -168,7 +168,8 @@
       "notifications_value": "Activées",
       "documents": "Documents",
       "documents_value": "3 disponibles",
-      "logout": "Se déconnecter"
+      "logout": "Se déconnecter",
+      "presence": "Présence"
     },
     "offline": {
       "banner": "Profil local · QR disponible hors-ligne",
@@ -348,6 +349,33 @@
       "body": "Votre session a expiré. Reconnectez-vous pour accéder aux dernières actualités.",
       "login": "Se connecter",
       "continue_offline": "Continuer en hors-ligne"
+    }
+  },
+  "attendance": {
+    "title": "PRÉSENCE",
+    "badge_regular": "Régulier",
+    "badge_warning": "Attention",
+    "badge_critical": "Critique",
+    "summary": "{{absences}} absences sur {{total}} séances",
+    "section_subjects": "MATIÈRES",
+    "section_justification": "JUSTIFICATIFS",
+    "upload": "Envoyer un justificatif",
+    "projection_safe": "Tu peux manquer encore {{count}} cours",
+    "projection_warning": "{{count}} absences restantes",
+    "projection_critical": "⚠ Limite atteinte",
+    "projection_perfect": "Présence parfaite",
+    "sessions": "{{attended}}/{{total}} séances",
+    "empty": {
+      "title": "Aucune donnée de présence",
+      "body": "Votre suivi de présence apparaîtra ici dès le début des cours."
+    },
+    "error": {
+      "title": "Impossible de charger la présence",
+      "body": "Vérifiez votre connexion puis réessayez.",
+      "retry": "Réessayer"
+    },
+    "offline": {
+      "banner": "Mode hors-ligne · Contenu en cache"
     }
   },
   "course": {

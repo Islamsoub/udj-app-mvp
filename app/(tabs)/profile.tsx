@@ -47,7 +47,7 @@ const MOCK_CARD = {
 
 // ─── Loaded / Offline body ────────────────────────────────────────────────────
 
-function ProfileBody() {
+function ProfileBody({ onPresencePress }: { onPresencePress: () => void }) {
   const { t } = useTranslation();
 
   return (
@@ -63,6 +63,11 @@ function ProfileBody() {
       <Text style={styles.sectionHeader}>{t('profile.section.academic')}</Text>
       <InfoRow label={t('profile.row.filiere')} value="Informatique" />
       <InfoRow label={t('profile.row.niveau')} value="Licence 2" />
+      <InfoRow
+        label={t('profile.row.presence')}
+        value={`${MOCK_STUDENT.presence}%`}
+        onPress={onPresencePress}
+      />
 
       <Text style={styles.sectionHeader}>{t('profile.section.settings')}</Text>
       <InfoRow label={t('profile.row.langue')} value="Français" />
@@ -207,7 +212,7 @@ export default function ProfileScreen() {
 
         {/* Body per state */}
         {profileState === 'skeleton' && <ProfileSkeleton />}
-        {showBody && <ProfileBody />}
+        {showBody && <ProfileBody onPresencePress={() => router.push('/attendance')} />}
         {profileState === 'error' && (
           <ErrorBody onRetry={() => console.log('[PROFILE] retry')} />
         )}
