@@ -138,6 +138,10 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
         onPress={() => router.push('/account-info')}
       />
       <SettingsRow
+        label={t('infoCenter.title')}
+        onPress={() => router.push('/info-center')}
+      />
+      <SettingsRow
         label={t('settings.row.logout')}
         isDestructive
         onPress={() => setLogoutVisible(true)}

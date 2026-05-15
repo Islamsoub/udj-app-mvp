@@ -387,5 +387,27 @@
     "status_active": "جارٍ",
     "status_past": "انتهى",
     "status_upcoming": "قادم"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "markAllRead": "تعليم الكل كمقروء",
+    "today": "اليوم",
+    "yesterday": "الأمس",
+    "thisWeek": "هذا الأسبوع",
+    "emptyTitle": "لا توجد إشعارات",
+    "emptyBody": "سيتم إشعارك فور وجود جديد.",
+    "errorTitle": "تعذّر تحميل الإشعارات",
+    "errorBody": "تحقق من اتصالك ثم أعد المحاولة.",
+    "retry": "إعادة المحاولة"
+  },
+  "infoCenter": {
+    "title": "مركز المعلومات",
+    "searchPlaceholder": "بحث...",
+    "campusDirectory": "دليل الحرم الجامعي",
+    "faq": "أسئلة متكررة",
+    "pdfForms": "نماذج PDF",
+    "errorTitle": "مركز المعلومات غير متاح",
+    "errorBody": "تحقق من اتصالك ثم أعد المحاولة.",
+    "retry": "إعادة المحاولة"
   }
 }

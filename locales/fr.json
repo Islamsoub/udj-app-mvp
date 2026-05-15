@@ -390,5 +390,27 @@
     "status_active": "En cours",
     "status_past": "Fini",
     "status_upcoming": "À venir"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Tout marquer comme lu",
+    "today": "AUJOURD'HUI",
+    "yesterday": "HIER",
+    "thisWeek": "CETTE SEMAINE",
+    "emptyTitle": "Aucune notification",
+    "emptyBody": "Vous serez notifié dès qu'il y a du nouveau.",
+    "errorTitle": "Impossible de charger les notifications",
+    "errorBody": "Vérifiez votre connexion puis réessayez.",
+    "retry": "Réessayer"
+  },
+  "infoCenter": {
+    "title": "Centre d'information",
+    "searchPlaceholder": "Rechercher...",
+    "campusDirectory": "ANNUAIRE CAMPUS",
+    "faq": "QUESTIONS FRÉQUENTES",
+    "pdfForms": "FORMULAIRES PDF",
+    "errorTitle": "Centre d'information indisponible",
+    "errorBody": "Vérifiez votre connexion puis réessayez.",
+    "retry": "Réessayer"
   }
 }

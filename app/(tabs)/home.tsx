@@ -218,7 +218,10 @@ function NewsCard({ title, category }: NewsCardProps) {
 function SkeletonHeader() {
   return (
     <View style={styles.headerSection}>
-      <SkeletonBox style={styles.skelBar180} />
+      <View style={styles.headerTopRow}>
+        <SkeletonBox style={styles.skelBar180} />
+        <SkeletonBox style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(217,217,217,0.6)' }} />
+      </View>
       <SkeletonBox style={[styles.skelBar, { width: 240, marginTop: 8 }]} />
       <SkeletonBox style={[styles.skelBar, { width: 160, marginTop: 8 }]} />
       <View style={styles.divider} />
@@ -264,9 +267,19 @@ function SkeletonBody() {
 // ─── Loaded header ────────────────────────────────────────────────────────────
 function LoadedHeader({ isOffline, topInset, lastSyncTime }: { isOffline: boolean; topInset: number; lastSyncTime?: string }) {
   const { t } = useTranslation();
+  const router = useRouter();
   return (
     <View style={[styles.headerSection, { paddingTop: topInset + 16 }]}>
-      <Text style={styles.dateLabel}>LUNDI 23 MARS 2025</Text>
+      <View style={styles.headerTopRow}>
+        <Text style={styles.dateLabel}>LUNDI 23 MARS 2025</Text>
+        <Pressable
+          style={styles.bellBtn}
+          onPress={() => router.push('/notifications')}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
+        </Pressable>
+      </View>
       <Text style={styles.greeting}>
         <Text style={styles.greetingBase}>Bonjour, </Text>
         <Text style={styles.greetingName}>Ahmed</Text>
@@ -301,9 +314,19 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub: st
 
 // ─── Simple header (error / empty / loading) ──────────────────────────────────
 function SimpleHeader({ topInset }: { topInset: number }) {
+  const router = useRouter();
   return (
     <View style={[styles.simpleHeader, { paddingTop: topInset + 0 }]}>
-      <Text style={styles.simpleHeaderTitle}>Accueil</Text>
+      <View style={styles.headerTopRow}>
+        <Text style={styles.simpleHeaderTitle}>Accueil</Text>
+        <Pressable
+          style={styles.bellBtn}
+          onPress={() => router.push('/notifications')}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
+        </Pressable>
+      </View>
       <View style={styles.divider} />
     </View>
   );
@@ -623,6 +646,19 @@ const styles = StyleSheet.create({
     color: colors.textTertiary,
     fontFamily: fonts.sans,
     marginTop: spacing.sp2,
+  },
+
+  // ── Shared header top row (date label / title + bell icon)
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  bellBtn: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // ── Simple header
