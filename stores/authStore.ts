@@ -1,63 +1,96 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 
-const TOKEN_KEY = 'udj_jwt';
-const REFRESH_KEY = 'udj_refresh';
+export const REFRESH_KEY = 'refreshToken';
+
+export type StudentProfile = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  studentIdDisplay: string;
+  email: string;
+  photoUrl: string | null;
+  currentSemester: number;
+  status: string;
+  programme: {
+    id: string;
+    nameFr: string;
+    nameAr: string;
+    code: string;
+    level: string;
+    durationSemesters?: number;
+    totalCredits?: number;
+  };
+  faculty: {
+    id: string;
+    nameFr: string;
+    nameAr: string;
+    code: string;
+    email?: string;
+    phone?: string;
+  };
+  stats?: {
+    gpa: number | null;
+    mention: string | null;
+    semesterCredits: { earned: number; total: number };
+    totalCredits: { earned: number; total: number };
+    attendancePercentage: number | null;
+  };
+  preferences?: {
+    notifGrades: boolean;
+    notifCourses: boolean;
+    notifAttendance: boolean;
+    quietHoursStart: string | null;
+    quietHoursEnd: string | null;
+  };
+};
 
 interface AuthState {
-  token: string | null;
-  refreshToken: string | null;
-  studentId: string | null;
-  isLoggedIn: boolean;
+  accessToken: string | null;
+  student: StudentProfile | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
   showSessionExpired: boolean;
   loaded: boolean;
-  setAuth: (token: string, refreshToken: string, studentId: string) => Promise<void>;
-  clearAuth: () => Promise<void>;
+  setTokens: (accessToken: string) => void;
+  setStudent: (student: StudentProfile) => void;
+  logout: () => void;
+  reset: () => void;
   setShowSessionExpired: (show: boolean) => void;
   loadAuthFromStorage: () => Promise<void>;
 }
 
-function decodeStudentId(token: string): string | null {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.sub ?? payload.studentId ?? null;
-  } catch {
-    return null;
-  }
-}
-
 export const useAuthStore = create<AuthState>((set) => ({
-  token: null,
-  refreshToken: null,
-  studentId: null,
-  isLoggedIn: false,
+  accessToken: null,
+  student: null,
+  isAuthenticated: false,
+  isLoading: false,
   showSessionExpired: false,
   loaded: false,
 
-  setAuth: async (token, refreshToken, studentId) => {
-    await SecureStore.setItemAsync(TOKEN_KEY, token);
-    await SecureStore.setItemAsync(REFRESH_KEY, refreshToken);
-    set({ token, refreshToken, studentId, isLoggedIn: true, showSessionExpired: false });
-  },
+  setTokens: (accessToken) =>
+    set({ accessToken, isAuthenticated: true, showSessionExpired: false }),
 
-  clearAuth: async () => {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
-    await SecureStore.deleteItemAsync(REFRESH_KEY);
-    set({ token: null, refreshToken: null, studentId: null, isLoggedIn: false });
-  },
+  setStudent: (student) => set({ student }),
+
+  logout: () =>
+    set({ accessToken: null, student: null, isAuthenticated: false, showSessionExpired: false }),
+
+  reset: () =>
+    set({
+      accessToken: null,
+      student: null,
+      isAuthenticated: false,
+      isLoading: false,
+      showSessionExpired: false,
+    }),
 
   setShowSessionExpired: (show) => set({ showSessionExpired: show }),
 
   loadAuthFromStorage: async () => {
     try {
-      const token = await SecureStore.getItemAsync(TOKEN_KEY);
-      const refreshToken = await SecureStore.getItemAsync(REFRESH_KEY);
-      if (token && refreshToken) {
-        const studentId = decodeStudentId(token);
-        set({ token, refreshToken, studentId, isLoggedIn: true, loaded: true });
-      } else {
-        set({ loaded: true });
-      }
+      const refresh = await SecureStore.getItemAsync(REFRESH_KEY);
+      set({ isAuthenticated: !!refresh, loaded: true });
     } catch {
       set({ loaded: true });
     }

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 
 export function useAuth() {
-  const { isLoggedIn, token, studentId, showSessionExpired, loaded, loadAuthFromStorage } =
+  const { isAuthenticated, accessToken, student, showSessionExpired, loaded, loadAuthFromStorage } =
     useAuthStore();
 
   useEffect(() => {
@@ -11,5 +11,5 @@ export function useAuth() {
     }
   }, [loaded, loadAuthFromStorage]);
 
-  return { isLoggedIn, token, studentId, showSessionExpired, loaded };
+  return { isAuthenticated, accessToken, student, showSessionExpired, loaded };
 }

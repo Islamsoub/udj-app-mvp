@@ -7,6 +7,8 @@ import { globalRateLimiter } from './middleware/rateLimiter';
 import { errorHandler } from './middleware/errorHandler';
 import prisma from './utils/prisma';
 import authRouter from './routes/auth';
+import studentRouter from './routes/student';
+import newsRouter from './routes/news';
 
 const app = express();
 
@@ -28,6 +30,8 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/auth', authRouter);
+app.use('/student', studentRouter);
+app.use('/news', newsRouter);
 
 app.use(errorHandler);
 

@@ -13,9 +13,11 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import axios from 'axios';
 import { colors, fonts, spacing, radius } from '@/constants/theme';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
+import { login } from '@/services/auth';
 
 const LogoSVG = (
   require('@/assets/icons/Logo.svg') as { default: React.FC<{ width: number; height: number }> }
@@ -67,6 +69,7 @@ export default function LoginScreen() {
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
   const [countdown, setCountdown] = useState(5 * 60);
+  const [attemptsLeft, setAttemptsLeft] = useState<number | null>(null);
 
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
 
@@ -112,7 +115,33 @@ export default function LoginScreen() {
   };
 
   const loginHandler = async (): Promise<void> => {
-    router.replace('/(tabs)/home');
+    setLoginState('submitting');
+    try {
+      await login(studentId.trim(), password);
+      router.replace('/(tabs)/home');
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        const data = error.response?.data as { attemptsLeft?: number; lockedUntil?: string } | undefined;
+        if (status === 401) {
+          setAttemptsLeft(data?.attemptsLeft ?? null);
+          setLoginState('error');
+        } else if (status === 423) {
+          if (data?.lockedUntil) {
+            const secsRemaining = Math.max(
+              0,
+              Math.round((new Date(data.lockedUntil).getTime() - Date.now()) / 1000)
+            );
+            setCountdown(secsRemaining);
+          }
+          setLoginState('locked-out');
+        } else {
+          setLoginState('network-error');
+        }
+      } else {
+        setLoginState('network-error');
+      }
+    }
   };
 
   const biometricHandler = (): void => {
@@ -326,10 +355,12 @@ export default function LoginScreen() {
                   <View style={styles.cardRow}>
                     <Ionicons name="warning-outline" size={24} color={colors.warning} />
                     <View style={styles.cardTexts}>
-                      <Text style={styles.errorCardTitle}>Identifiants incorrects</Text>
-                      <Text style={styles.errorCardBody}>
-                        Numéro étudiant ou mot de passe invalide. 2 tentatives restantes avant blocage temporaire.
-                      </Text>
+                      <Text style={styles.errorCardTitle}>{t('auth.wrongCredentials')}</Text>
+                      {attemptsLeft !== null && (
+                        <Text style={styles.errorCardBody}>
+                          {t('auth.attemptsLeft', { count: attemptsLeft })}
+                        </Text>
+                      )}
                     </View>
                   </View>
                 </View>

@@ -51,7 +51,10 @@
       "Bash(powershell -Command \"Get-WmiObject Win32_Process -Filter 'ProcessId=22604' | Select-Object ProcessId, Name, CommandLine\")",
       "Bash(taskkill /F /PID 22604)",
       "PowerShell(Stop-Process -Id 22604 -Force -ErrorAction SilentlyContinue)",
-      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue)"
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue)",
+      "Bash(echo \"PID=$!\")",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3 -c ' *)"
     ]
   }
 }

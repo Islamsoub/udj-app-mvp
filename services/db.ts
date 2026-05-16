@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import type { Schedule, Grade, NewsItem, StudentProfile, Attendance } from './api';
+import type { Schedule, Grade, NewsItem, StudentProfileCache, Attendance } from './api';
 
 let _db: SQLite.SQLiteDatabase | null = null;
 
@@ -119,7 +119,7 @@ export async function getCachedNews(limit: number): Promise<NewsItem[]> {
   return rows.map(rowToNews);
 }
 
-export async function getStudentProfile(): Promise<StudentProfile | null> {
+export async function getStudentProfile(): Promise<StudentProfileCache | null> {
   const db = await getDb();
   const row = await db.getFirstAsync<Record<string, SQLite.SQLiteBindValue>>(
     'SELECT * FROM student_profile LIMIT 1'
@@ -214,7 +214,7 @@ export async function upsertNews(items: NewsItem[]): Promise<void> {
   });
 }
 
-export async function upsertProfile(profile: StudentProfile): Promise<void> {
+export async function upsertProfile(profile: StudentProfileCache): Promise<void> {
   const db = await getDb();
   await db.runAsync(
     `INSERT OR REPLACE INTO student_profile
@@ -301,7 +301,7 @@ function rowToNews(row: Record<string, SQLite.SQLiteBindValue>): NewsItem {
   };
 }
 
-function rowToProfile(row: Record<string, SQLite.SQLiteBindValue>): StudentProfile {
+function rowToProfile(row: Record<string, SQLite.SQLiteBindValue>): StudentProfileCache {
   return {
     studentId: row.student_id as string,
     name: row.name as string,
