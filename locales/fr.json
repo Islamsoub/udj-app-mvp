@@ -350,6 +350,26 @@
       "continue_offline": "Continuer en hors-ligne"
     }
   },
+  "calculator": {
+    "title": "Calculateur de notes",
+    "subtitle": "Quelle note ai-je besoin à l'examen ?",
+    "subject_label": "MATIÈRE",
+    "cc_label": "Note CC actuelle",
+    "target_label": "NOTE FINALE VISÉE",
+    "target_placeholder": "12.00",
+    "calculate": "Calculer",
+    "result_label": "Note d'examen nécessaire",
+    "impossible": "Impossible — la note maximale est 20/20",
+    "warning": "Attention : note très élevée requise"
+  },
+  "gpa_history": {
+    "title": "Évolution de la moyenne",
+    "subtitle": "Progression par semestre",
+    "current_label": "MOYENNE ACTUELLE",
+    "trend_up": "↑ +{{diff}} vs semestre précédent",
+    "trend_down": "↓ −{{diff}} vs semestre précédent",
+    "admission": "admission"
+  },
   "course": {
     "room": "Salle",
     "time": "Horaire",

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
@@ -15,6 +16,8 @@ interface GradesHeaderProps {
   activeSemester: 1 | 2;
   onSemesterChange: (s: 1 | 2) => void;
   credits?: { earned: number; total: number } | null;
+  onCalculatorPress?: () => void;
+  onGpaPress?: () => void;
 }
 
 // Spec heights per state (topInset added via paddingTop at render)
@@ -26,7 +29,7 @@ const SPEC_HEIGHT: Record<GradesHeaderState, number> = {
   skeleton: 305,
 };
 
-export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterChange, credits }: GradesHeaderProps) {
+export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterChange, credits, onCalculatorPress, onGpaPress }: GradesHeaderProps) {
   const { t } = useTranslation();
 
   // ── Skeleton state ──────────────────────────────────────────────────────────
@@ -119,13 +122,24 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
         {activeSemester === 1 ? t('grades.gpa_label_s1') : t('grades.gpa_label_s2')}
       </Text>
 
-      {/* GPA number + Mention Bien badge */}
-      <View style={styles.gpaRow}>
-        <Text style={styles.gpaNumber}>{gpaText}</Text>
-        {mention !== null && (
-          <View style={styles.mentionBadge}>
-            <Text style={styles.mentionText}>{mention}</Text>
-          </View>
+      {/* GPA number + Mention Bien badge + Calculator icon */}
+      <View style={styles.gpaRowOuter}>
+        <Pressable style={styles.gpaRow} onPress={onGpaPress} hitSlop={8}>
+          <Text style={styles.gpaNumber}>{gpaText}</Text>
+          {mention !== null && (
+            <View style={styles.mentionBadge}>
+              <Text style={styles.mentionText}>{mention}</Text>
+            </View>
+          )}
+        </Pressable>
+        {onCalculatorPress != null && (
+          <Pressable
+            style={styles.calcIconBtn}
+            onPress={onCalculatorPress}
+            hitSlop={8}
+          >
+            <Ionicons name="calculator-outline" size={22} color={colors.surface} />
+          </Pressable>
         )}
       </View>
 
@@ -165,12 +179,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sp16,
     marginTop: 19,
   },
+  gpaRowOuter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.sp8,
+    marginStart: spacing.sp16,
+    marginEnd: spacing.sp16,
+  },
   gpaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginTop: spacing.sp8,
-    marginStart: spacing.sp16,
+    flex: 1,
+  },
+  calcIconBtn: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   gpaNumber: {
     fontSize: 52,

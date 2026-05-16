@@ -347,6 +347,26 @@
       "continue_offline": "المتابعة بدون اتصال"
     }
   },
+  "calculator": {
+    "title": "حاسبة الدرجات",
+    "subtitle": "ما الدرجة التي أحتاجها في الامتحان؟",
+    "subject_label": "المادة",
+    "cc_label": "درجة التقييم المستمر",
+    "target_label": "المعدل المستهدف",
+    "target_placeholder": "12.00",
+    "calculate": "احسب",
+    "result_label": "درجة الامتحان المطلوبة",
+    "impossible": "مستحيل — الدرجة القصوى هي 20/20",
+    "warning": "تنبيه: درجة مرتفعة جداً مطلوبة"
+  },
+  "gpa_history": {
+    "title": "تطور المعدل",
+    "subtitle": "التقدم حسب الفصل",
+    "current_label": "المعدل الحالي",
+    "trend_up": "↑ +{{diff}} مقارنة بالفصل السابق",
+    "trend_down": "↓ −{{diff}} مقارنة بالفصل السابق",
+    "admission": "القبول"
+  },
   "course": {
     "room": "القاعة",
     "time": "التوقيت",

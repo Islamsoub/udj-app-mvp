@@ -17,6 +17,8 @@ import { GradesHeader } from '@/components/grades/GradesHeader';
 import { SemesterTabs } from '@/components/grades/SemesterTabs';
 import { SubjectCard, Subject } from '@/components/grades/SubjectCard';
 import { GradesSkeleton } from '@/components/grades/GradesSkeleton';
+import { GradeCalculatorSheet } from '@/components/grades/GradeCalculatorSheet';
+import { GPAHistorySheet } from '@/components/grades/GPAHistorySheet';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -144,6 +146,8 @@ const STATE_LABELS: Record<GradesState, string> = {
 export default function GradesScreen() {
   const [gradesState, setGradesState] = useState<GradesState>('loaded');
   const [activeSemester, setActiveSemester] = useState<1 | 2>(2);
+  const [calculatorVisible, setCalculatorVisible] = useState(false);
+  const [gpaHistoryVisible, setGpaHistoryVisible] = useState(false);
   const insets = useSafeAreaInsets();
 
   const headerGpa =
@@ -170,6 +174,8 @@ export default function GradesScreen() {
           activeSemester={activeSemester}
           onSemesterChange={setActiveSemester}
           credits={{ earned: 18, total: 30 }}
+          onCalculatorPress={() => setCalculatorVisible(true)}
+          onGpaPress={() => setGpaHistoryVisible(true)}
         />
 
         {/* Body content */}
@@ -198,6 +204,17 @@ export default function GradesScreen() {
       <SessionExpiredModal
         visible={gradesState === 'session'}
         onContinueOffline={() => setGradesState('offline')}
+      />
+
+      <GradeCalculatorSheet
+        visible={calculatorVisible}
+        onClose={() => setCalculatorVisible(false)}
+        subjects={MOCK_SUBJECTS}
+      />
+
+      <GPAHistorySheet
+        visible={gpaHistoryVisible}
+        onClose={() => setGpaHistoryVisible(false)}
       />
 
       <DevSwitcher
