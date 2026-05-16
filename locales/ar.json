@@ -165,7 +165,8 @@
       "notifications_value": "مفعّلة",
       "documents": "الوثائق",
       "documents_value": "3 متاحة",
-      "logout": "تسجيل الخروج"
+      "logout": "تسجيل الخروج",
+      "presence": "الحضور"
     },
     "offline": {
       "banner": "ملف محلي · بطاقة QR متاحة بدون اتصال",
@@ -366,6 +367,33 @@
     "trend_up": "↑ +{{diff}} مقارنة بالفصل السابق",
     "trend_down": "↓ −{{diff}} مقارنة بالفصل السابق",
     "admission": "القبول"
+  },
+  "attendance": {
+    "title": "الحضور",
+    "badge_regular": "منتظم",
+    "badge_warning": "تنبيه",
+    "badge_critical": "حرج",
+    "summary": "{{absences}} غيابات من أصل {{total}} حصة",
+    "section_subjects": "المواد",
+    "section_justification": "المبررات",
+    "upload": "إرسال مبرر غياب",
+    "projection_safe": "يمكنك التغيب {{count}} حصص أخرى",
+    "projection_warning": "{{count}} غيابات متبقية",
+    "projection_critical": "⚠ الحد الأقصى بُلغ",
+    "projection_perfect": "حضور مثالي",
+    "sessions": "{{attended}}/{{total}} حصة",
+    "empty": {
+      "title": "لا توجد بيانات حضور",
+      "body": "سيظهر سجل حضورك هنا فور بدء الدروس."
+    },
+    "error": {
+      "title": "تعذّر تحميل الحضور",
+      "body": "تحقق من اتصالك ثم أعد المحاولة.",
+      "retry": "إعادة المحاولة"
+    },
+    "offline": {
+      "banner": "وضع عدم الاتصال · محتوى مخزّن مؤقتاً"
+    }
   },
   "course": {
     "room": "القاعة",
