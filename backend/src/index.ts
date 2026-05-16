@@ -6,6 +6,7 @@ import { logger } from './middleware/logger';
 import { globalRateLimiter } from './middleware/rateLimiter';
 import { errorHandler } from './middleware/errorHandler';
 import prisma from './utils/prisma';
+import authRouter from './routes/auth';
 
 const app = express();
 
@@ -25,6 +26,8 @@ app.use(globalRateLimiter);
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+app.use('/auth', authRouter);
 
 app.use(errorHandler);
 
