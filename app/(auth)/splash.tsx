@@ -112,10 +112,10 @@ export default function SplashScreen() {
         if (token !== null && isTokenValid(token)) {
           router.replace('/(tabs)/home');
         } else {
-          router.replace('/(auth)/login');
+          router.replace('/(auth)/onboarding');
         }
       } catch {
-        router.replace('/(auth)/login');
+        router.replace('/(auth)/onboarding');
       }
     }, 1500);
 

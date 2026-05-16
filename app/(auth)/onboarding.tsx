@@ -1,204 +1,214 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Switch,
-  Alert,
-  I18nManager,
-} from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import { useSettingsStore } from '@/stores/settingsStore';
 import i18n from '@/i18n';
 import { colors, spacing, radius } from '@/constants/theme';
 
-const ONBOARDED_KEY = 'udj_onboarded';
+type Lang = 'fr' | 'ar';
 
-const WIDGETS = ['agenda', 'stats', 'news'] as const;
+const TITLE_KEYS = [
+  'onboarding.step1Title',
+  'onboarding.step2Title',
+  'onboarding.step3Title',
+  'onboarding.step4Title',
+];
+
+const BODY_KEYS = [
+  'onboarding.step1Body',
+  'onboarding.step2Body',
+  'onboarding.step3Body',
+  'onboarding.step4Body',
+];
+
+const ILLUSTRATIONS = [
+  require('../../assets/icons/onboarding_schedule.png'),
+  require('../../assets/icons/onboarding_grades.png'),
+  require('../../assets/icons/onboarding_qr.png'),
+];
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { language, setLanguage, notificationsEnabled, setNotificationsEnabled, widgetOrder, setWidgetOrder } =
-    useSettingsStore();
+  const { language, setLanguage } = useSettingsStore();
 
-  const [step, setStep] = useState(0);
-  const [notifCourses, setNotifCourses] = useState(true);
-  const [notifGrades, setNotifGrades] = useState(true);
-  const [notifNews, setNotifNews] = useState(true);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [selectedLang, setSelectedLang] = useState<Lang>(language);
 
-  const handleLanguageSelect = (lang: 'fr' | 'ar') => {
+  const isLanguageStep = currentStep === 3;
+
+  const handleLangSelect = (lang: Lang) => {
+    setSelectedLang(lang);
     setLanguage(lang);
     i18n.changeLanguage(lang);
-    if (lang === 'ar' && !I18nManager.isRTL) {
-      Alert.alert(t('onboarding.rtlRestart'), '', [
-        {
-          text: t('onboarding.restart'),
-          onPress: () => {
-            I18nManager.forceRTL(true);
-          },
-        },
-        { text: t('common.retry'), style: 'cancel' },
-      ]);
+  };
+
+  const handleNext = () => {
+    if (currentStep < 3) {
+      setCurrentStep((prev) => prev + 1);
+    } else {
+      router.replace('/(auth)/login');
     }
   };
 
-  const moveWidget = (index: number, direction: -1 | 1) => {
-    const next = [...widgetOrder];
-    const target = index + direction;
-    if (target < 0 || target >= next.length) return;
-    [next[index], next[target]] = [next[target], next[index]];
-    setWidgetOrder(next);
-  };
-
-  const handleFinish = async () => {
-    setNotificationsEnabled(notifCourses || notifGrades || notifNews);
-    await AsyncStorage.setItem(ONBOARDED_KEY, 'true');
+  const handleSkip = () => {
     router.replace('/(auth)/login');
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      {/* Progress dots */}
-      <View style={styles.progressRow}>
-        {[0, 1, 2].map((i) => (
-          <View key={i} style={[styles.dot, i === step && styles.dotActive]} />
+    <SafeAreaView style={styles.container}>
+      {/* Skip button — hidden (opacity 0, non-interactive) on language step */}
+      <View
+        pointerEvents={isLanguageStep ? 'none' : 'auto'}
+        style={isLanguageStep ? styles.skipHidden : undefined}
+      >
+        <Pressable style={styles.skipButton} onPress={handleSkip}>
+          <Text style={styles.skipText}>{t('onboarding.skip')}</Text>
+          <Ionicons name="chevron-forward" size={14} color={colors.jade600} style={styles.skipIcon} />
+        </Pressable>
+      </View>
+
+      {/* Content area: illustration/lang cards + title + body as one centered block */}
+      <View style={styles.contentArea}>
+        {!isLanguageStep ? (
+          <Image
+            source={ILLUSTRATIONS[currentStep]}
+            style={styles.illustration}
+            resizeMode="contain"
+          />
+        ) : (
+          <View style={styles.langCards}>
+            <Pressable
+              style={[styles.langCard, selectedLang === 'fr' && styles.langCardSelected]}
+              onPress={() => handleLangSelect('fr')}
+            >
+              <Text style={styles.langCardText}>Français</Text>
+              {selectedLang === 'fr' && (
+                <Ionicons name="checkmark-circle" size={24} color={colors.jade400} />
+              )}
+            </Pressable>
+
+            <Pressable
+              style={[styles.langCard, selectedLang === 'ar' && styles.langCardSelected]}
+              onPress={() => handleLangSelect('ar')}
+            >
+              <Text style={styles.langCardText}>العربية</Text>
+              {selectedLang === 'ar' && (
+                <Ionicons name="checkmark-circle" size={24} color={colors.jade400} />
+              )}
+            </Pressable>
+          </View>
+        )}
+
+        <Text style={styles.title}>{t(TITLE_KEYS[currentStep])}</Text>
+        <Text style={styles.body}>{t(BODY_KEYS[currentStep])}</Text>
+      </View>
+
+      {/* 4-dot step indicators */}
+      <View style={styles.dotsRow}>
+        {[0, 1, 2, 3].map((i) => (
+          <View key={i} style={[styles.dot, i === currentStep && styles.dotActive]} />
         ))}
       </View>
 
-      <View style={styles.content}>
-        {/* Step 1 — Language */}
-        {step === 0 && (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>{t('onboarding.step1Title')}</Text>
-            <View style={styles.langRow}>
-              <TouchableOpacity
-                style={[styles.langBtn, language === 'fr' && styles.langBtnActive]}
-                onPress={() => handleLanguageSelect('fr')}
-              >
-                <Text style={[styles.langBtnText, language === 'fr' && styles.langBtnTextActive]}>
-                  Français
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.langBtn, language === 'ar' && styles.langBtnActive]}
-                onPress={() => handleLanguageSelect('ar')}
-              >
-                <Text style={[styles.langBtnText, language === 'ar' && styles.langBtnTextActive]}>
-                  العربية
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        {/* Step 2 — Notifications */}
-        {step === 1 && (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>{t('onboarding.step2Title')}</Text>
-            {[
-              { label: t('onboarding.notifCourses'), value: notifCourses, set: setNotifCourses },
-              { label: t('onboarding.notifGrades'), value: notifGrades, set: setNotifGrades },
-              { label: t('onboarding.notifNews'), value: notifNews, set: setNotifNews },
-            ].map(({ label, value, set }) => (
-              <View key={label} style={styles.toggleRow}>
-                <Text style={styles.toggleLabel}>{label}</Text>
-                <Switch
-                  value={value}
-                  onValueChange={set}
-                  trackColor={{ false: colors.border, true: colors.jade300 }}
-                  thumbColor={value ? colors.jade400 : colors.textTertiary}
-                />
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Step 3 — Widget order */}
-        {step === 2 && (
-          <View style={styles.stepContainer}>
-            <Text style={styles.stepTitle}>{t('onboarding.step3Title')}</Text>
-            {widgetOrder.map((widget, index) => {
-              const labels: Record<string, string> = {
-                agenda: t('onboarding.widgetAgenda'),
-                stats: t('onboarding.widgetStats'),
-                news: t('onboarding.widgetNews'),
-              };
-              return (
-                <View key={widget} style={styles.widgetRow}>
-                  <Text style={styles.widgetLabel}>{labels[widget] ?? widget}</Text>
-                  <View style={styles.widgetArrows}>
-                    <TouchableOpacity
-                      style={styles.arrowBtn}
-                      onPress={() => moveWidget(index, -1)}
-                      disabled={index === 0}
-                    >
-                      <Text style={[styles.arrowText, index === 0 && styles.arrowDisabled]}>
-                        ↑
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.arrowBtn}
-                      onPress={() => moveWidget(index, 1)}
-                      disabled={index === widgetOrder.length - 1}
-                    >
-                      <Text
-                        style={[
-                          styles.arrowText,
-                          index === widgetOrder.length - 1 && styles.arrowDisabled,
-                        ]}
-                      >
-                        ↓
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
-      </View>
-
-      {/* Navigation buttons */}
-      <View style={styles.navRow}>
-        {step > 0 ? (
-          <TouchableOpacity
-            style={styles.secondaryBtn}
-            onPress={() => setStep((s) => s - 1)}
-          >
-            <Text style={styles.secondaryBtnText}>{t('onboarding.back')}</Text>
-          </TouchableOpacity>
-        ) : (
-          <View />
-        )}
-
-        <TouchableOpacity
-          style={styles.primaryBtn}
-          onPress={step < 2 ? () => setStep((s) => s + 1) : handleFinish}
-        >
-          <Text style={styles.primaryBtnText}>
-            {step < 2 ? t('onboarding.next') : t('onboarding.start')}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {/* Primary action button */}
+      <Pressable style={styles.primaryButton} onPress={handleNext}>
+        <Text style={styles.primaryButtonText}>
+          {isLanguageStep ? t('onboarding.start') : t('onboarding.next')}
+        </Text>
+      </Pressable>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  progressRow: {
+  skipHidden: {
+    opacity: 0,
+  },
+  skipButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    paddingHorizontal: spacing.sp16,
+    paddingTop: spacing.sp8,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  skipText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.jade600,
+  },
+  skipIcon: {
+    marginStart: 2,
+  },
+  contentArea: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.sp32,
+  },
+  illustration: {
+    width: 200,
+    height: 200,
+  },
+  langCards: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sp16,
+    paddingHorizontal: spacing.sp32,
+  },
+  langCard: {
+    width: '100%',
+    maxWidth: 280,
+    height: 72,
+    borderRadius: radius.rXl,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sp12,
+  },
+  langCardSelected: {
+    borderColor: colors.jade400,
+    backgroundColor: '#E8F5F0',
+  },
+  langCardText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    textAlign: 'center',
+    marginTop: spacing.sp24,
+  },
+  body: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: colors.textSecondary,
+    textAlign: 'center',
+    maxWidth: 280,
+    lineHeight: 24,
+    marginTop: spacing.sp8,
+  },
+  dotsRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: spacing.sp8,
-    paddingTop: spacing.sp24,
+    marginBottom: spacing.sp24,
   },
   dot: {
     width: 8,
@@ -207,130 +217,23 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   dotActive: {
-    backgroundColor: colors.jade400,
     width: 24,
+    height: 8,
     borderRadius: 4,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: spacing.sp24,
-    paddingTop: spacing.sp32,
-  },
-  stepContainer: {
-    flex: 1,
-  },
-  stepTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: spacing.sp32,
-  },
-  langRow: {
-    gap: spacing.sp16,
-  },
-  langBtn: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.rLg,
-    paddingVertical: spacing.sp16,
-    alignItems: 'center',
-    marginBottom: spacing.sp8,
-    minHeight: 56,
-    justifyContent: 'center',
-  },
-  langBtnActive: {
-    borderColor: colors.jade400,
-    backgroundColor: colors.jade50,
-  },
-  langBtnText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  langBtnTextActive: {
-    color: colors.jade400,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sp16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    minHeight: 56,
-  },
-  toggleLabel: {
-    fontSize: 15,
-    color: colors.textPrimary,
-    fontWeight: '500',
-  },
-  widgetRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: spacing.sp12,
-    backgroundColor: colors.surface,
-    borderRadius: radius.rMd,
-    paddingHorizontal: spacing.sp16,
-    marginBottom: spacing.sp8,
-    minHeight: 56,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  widgetLabel: {
-    fontSize: 15,
-    color: colors.textPrimary,
-    fontWeight: '500',
-  },
-  widgetArrows: {
-    flexDirection: 'row',
-    gap: spacing.sp8,
-  },
-  arrowBtn: {
-    minWidth: 44,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  arrowText: {
-    fontSize: 20,
-    color: colors.jade400,
-  },
-  arrowDisabled: {
-    color: colors.textTertiary,
-  },
-  navRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sp24,
-    paddingBottom: spacing.sp32,
-    paddingTop: spacing.sp16,
-  },
-  secondaryBtn: {
-    paddingVertical: spacing.sp12,
-    paddingHorizontal: spacing.sp20,
-    minHeight: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  secondaryBtnText: {
-    fontSize: 15,
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-  primaryBtn: {
     backgroundColor: colors.jade400,
+  },
+  primaryButton: {
+    marginHorizontal: spacing.sp16,
+    marginBottom: spacing.sp32,
+    height: 56,
     borderRadius: radius.rLg,
-    paddingVertical: spacing.sp16,
-    paddingHorizontal: spacing.sp32,
-    minHeight: 44,
+    backgroundColor: colors.jade400,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  primaryBtnText: {
-    color: '#FFFFFF',
-    fontSize: 15,
+  primaryButtonText: {
+    fontSize: 16,
     fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
