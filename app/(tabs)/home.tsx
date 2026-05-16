@@ -17,6 +17,7 @@ import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { CourseDetailSheet } from '@/components/schedule/CourseDetailSheet';
 import { useCourseDetailStore, ExtendedCourse } from '@/stores/courseDetailStore';
+import { getStudentMe, getSchedule, getNews, ScheduleEntry, NewsArticleSummary } from '@/services/api';
 
 
 type HomeState = 'loaded' | 'error' | 'empty' | 'skeleton' | 'offline';
@@ -115,6 +116,71 @@ const MOCK_AGENDA_OFFLINE: MockAgendaItem = {
   code: 'MAT-201',
   coefficient: 4,
 };
+
+// ─── API data shape ───────────────────────────────────────────────────────────
+
+interface HomeData {
+  firstName: string;
+  gpa: number | null;
+  mention: string | null;
+  attendancePercentage: number | null;
+  creditsEarned: number;
+  creditsTotal: number;
+  todaySchedule: MockAgendaItem[];
+  newsArticle: NewsArticleSummary | null;
+  todayCount: number;
+  nextClassMinutes: number | null;
+}
+
+function scheduleEntryToCard(entry: ScheduleEntry): MockAgendaItem {
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const [sh, sm] = entry.startTime.split(':').map(Number);
+  const [eh, em] = entry.endTime.split(':').map(Number);
+  const startMins = sh * 60 + sm;
+  const endMins = eh * 60 + em;
+
+  const isExam = entry.type === 'EXAM';
+  const isActive = nowMins >= startMins && nowMins < endMins;
+  const isPast = nowMins >= endMins;
+  const courseStatus: 'active' | 'past' | 'upcoming' = isPast ? 'past' : isActive ? 'active' : 'upcoming';
+
+  let accentColor: string = colors.jade400;
+  let statusLabel: string | undefined;
+  let statusBg: string | undefined;
+  let statusColor: string | undefined;
+  let statusBorder: string | undefined;
+
+  if (isExam) {
+    accentColor = colors.exam;
+    statusLabel = 'Examen';
+    statusBg = 'rgba(139,92,246,0.15)';
+    statusColor = colors.exam;
+    statusBorder = colors.exam;
+  } else if (entry.type === 'TP') {
+    accentColor = colors.info;
+  } else if (isActive) {
+    statusLabel = 'En cours';
+    statusBg = 'rgba(29,158,117,0.15)';
+    statusColor = colors.jade400;
+  }
+
+  return {
+    id: entry.id,
+    accentColor,
+    time: `${entry.startTime} - ${entry.endTime}`,
+    course: entry.subject.nameFr,
+    teacher: entry.professorName,
+    location: entry.room,
+    statusLabel,
+    statusBg,
+    statusColor,
+    statusBorder,
+    courseStatus,
+    code: entry.subject.code,
+    coefficient: entry.subject.coefficient,
+  };
+}
 
 // ─── Skeleton pulse ───────────────────────────────────────────────────────────
 function SkeletonBox({ style }: { style: object }) {
@@ -265,13 +331,61 @@ function SkeletonBody() {
 }
 
 // ─── Loaded header ────────────────────────────────────────────────────────────
-function LoadedHeader({ isOffline, topInset, lastSyncTime }: { isOffline: boolean; topInset: number; lastSyncTime?: string }) {
+interface LoadedHeaderProps {
+  isOffline: boolean;
+  topInset: number;
+  lastSyncTime?: string;
+  firstName?: string;
+  gpa?: number | null;
+  mention?: string | null;
+  attendancePercentage?: number | null;
+  creditsEarned?: number;
+  creditsTotal?: number;
+  todayCount?: number;
+  nextClassMinutes?: number | null;
+}
+
+function LoadedHeader({
+  isOffline,
+  topInset,
+  lastSyncTime,
+  firstName,
+  gpa,
+  mention,
+  attendancePercentage,
+  creditsEarned,
+  creditsTotal,
+  todayCount,
+  nextClassMinutes,
+}: LoadedHeaderProps) {
   const { t } = useTranslation();
   const router = useRouter();
+
+  const today = new Date();
+  const dateStr = today
+    .toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+    .toUpperCase();
+
+  const displayName = firstName ?? 'Ahmed';
+  const displayGpa = gpa !== undefined ? (gpa !== null ? gpa.toFixed(1) : '--') : '14.2';
+  const displayMention = mention ?? (gpa !== undefined ? '' : '↑ +0.8 vs S1');
+  const displayAttendance =
+    attendancePercentage !== undefined
+      ? attendancePercentage !== null ? `${attendancePercentage}%` : '--'
+      : '87%';
+  const displayCredits = creditsEarned !== undefined ? String(creditsEarned) : '18';
+  const displayCreditsTotal = creditsTotal !== undefined ? creditsTotal : 30;
+
+  const tc = todayCount ?? 3;
+  const subtitle =
+    nextClassMinutes !== undefined && nextClassMinutes !== null
+      ? `${tc} cours aujourd'hui – Prochain dans ${nextClassMinutes} min`
+      : `${tc} cours aujourd'hui`;
+
   return (
     <View style={[styles.headerSection, { paddingTop: topInset + 16 }]}>
       <View style={styles.headerTopRow}>
-        <Text style={styles.dateLabel}>LUNDI 23 MARS 2025</Text>
+        <Text style={styles.dateLabel}>{dateStr}</Text>
         <Pressable
           style={styles.bellBtn}
           onPress={() => router.push('/notifications')}
@@ -282,7 +396,7 @@ function LoadedHeader({ isOffline, topInset, lastSyncTime }: { isOffline: boolea
       </View>
       <Text style={styles.greeting}>
         <Text style={styles.greetingBase}>Bonjour, </Text>
-        <Text style={styles.greetingName}>Ahmed</Text>
+        <Text style={styles.greetingName}>{displayName}</Text>
       </Text>
       {isOffline ? (
         <Text style={styles.subtitleOffline}>
@@ -290,13 +404,13 @@ function LoadedHeader({ isOffline, topInset, lastSyncTime }: { isOffline: boolea
           <Text style={styles.subtitleOfflineTime}>{t('common.last_sync_short', { time: lastSyncTime ?? 'hier 14h30' })}</Text>
         </Text>
       ) : (
-        <Text style={styles.subtitle}>3 cours aujourd'hui – Prochain dans 12 min</Text>
+        <Text style={styles.subtitle}>{subtitle}</Text>
       )}
       <View style={styles.divider} />
       <View style={styles.statRow}>
-        <StatCard label="GPA" value="14.2" sub="↑ +0.8 vs S1" />
-        <StatCard label="PRÉSENCE" value="87%" sub="Limite: 75%" />
-        <StatCard label="CRÉDITS" value="18" sub="/ 30 ce sem." />
+        <StatCard label="GPA" value={displayGpa} sub={displayMention} />
+        <StatCard label="PRÉSENCE" value={displayAttendance} sub="Limite: 75%" />
+        <StatCard label="CRÉDITS" value={displayCredits} sub={`/ ${displayCreditsTotal} ce sem.`} />
       </View>
     </View>
   );
@@ -379,19 +493,80 @@ export default function HomeScreen() {
   const [homeState, setHomeState] = useState<HomeState>('loaded');
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [courseDetailVisible, setCourseDetailVisible] = useState(false);
+  const [apiData, setApiData] = useState<HomeData | null>(null);
+  const [isFetching, setIsFetching] = useState(false);
+  const [fetchFailed, setFetchFailed] = useState(false);
+  const [fetchKey, setFetchKey] = useState(0);
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
 
   const setSelectedCourse = useCourseDetailStore((s) => s.setSelectedCourse);
+
+  useEffect(() => {
+    if (homeState !== 'loaded') return;
+    let cancelled = false;
+    setIsFetching(true);
+    setFetchFailed(false);
+    setApiData(null);
+
+    const todayDow = new Date().getDay();
+    const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+
+    Promise.all([getStudentMe(), getSchedule(), getNews({ limit: 1 })])
+      .then(([me, scheduleRes, newsList]) => {
+        if (cancelled) return;
+        const todayEntries = scheduleRes.entries.filter((e: ScheduleEntry) => e.dayOfWeek === todayDow);
+        const todaySchedule = todayEntries.map(scheduleEntryToCard);
+        const nextEntry = todayEntries.find((e: ScheduleEntry) => {
+          const [h, m] = e.startTime.split(':').map(Number);
+          return h * 60 + m > nowMins;
+        });
+        const nextClassMinutes = nextEntry
+          ? (() => {
+              const [h, m] = nextEntry.startTime.split(':').map(Number);
+              return h * 60 + m - nowMins;
+            })()
+          : null;
+        setApiData({
+          firstName: me.firstName,
+          gpa: me.stats?.gpa ?? null,
+          mention: me.stats?.mention ?? null,
+          attendancePercentage: me.stats?.attendancePercentage ?? null,
+          creditsEarned: me.stats?.semesterCredits?.earned ?? 0,
+          creditsTotal: me.stats?.semesterCredits?.total ?? 0,
+          todaySchedule,
+          newsArticle: newsList.articles[0] ?? null,
+          todayCount: todayEntries.length,
+          nextClassMinutes,
+        });
+        setIsFetching(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setIsFetching(false);
+        setFetchFailed(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [homeState, fetchKey]);
 
   const handleAgendaPress = (item: MockAgendaItem) => {
     setSelectedCourse(toExtendedCourse(item));
     setCourseDetailVisible(true);
   };
 
-  const isLoaded = homeState === 'loaded';
+  const handleRetry = () => {
+    if (homeState === 'loaded') setFetchKey((k) => k + 1);
+  };
+
+  const isRealLoaded = homeState === 'loaded' && !isFetching && !fetchFailed && apiData !== null;
+  const isLoaded = isRealLoaded;
   const isOffline = homeState === 'offline';
-  const showLoadedHeader = isLoaded || isOffline || homeState === 'skeleton';
+  const showSkeleton = homeState === 'skeleton' || (homeState === 'loaded' && isFetching);
+  const showError = homeState === 'error' || (homeState === 'loaded' && fetchFailed);
+  const showLoadedHeader = isLoaded || isOffline;
 
   return (
     <View style={styles.root}>
@@ -405,16 +580,27 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        {homeState === 'skeleton' ? (
+        {showSkeleton ? (
           <View style={{ paddingTop: insets.top }}><SkeletonHeader /></View>
         ) : showLoadedHeader ? (
-          <LoadedHeader isOffline={isOffline} topInset={insets.top} />
+          <LoadedHeader
+            isOffline={isOffline}
+            topInset={insets.top}
+            firstName={apiData?.firstName}
+            gpa={apiData?.gpa}
+            mention={apiData?.mention}
+            attendancePercentage={apiData?.attendancePercentage}
+            creditsEarned={apiData?.creditsEarned}
+            creditsTotal={apiData?.creditsTotal}
+            todayCount={apiData?.todayCount}
+            nextClassMinutes={apiData?.nextClassMinutes}
+          />
         ) : (
           <SimpleHeader topInset={insets.top} />
         )}
 
         {/* Body */}
-        {homeState === 'skeleton' && <SkeletonBody />}
+        {showSkeleton && <SkeletonBody />}
 
         {(isLoaded || isOffline) && (
           <View style={styles.bodySection}>
@@ -426,7 +612,7 @@ export default function HomeScreen() {
 
             {isLoaded ? (
               <>
-                {MOCK_AGENDA_LOADED.map((item) => (
+                {(apiData?.todaySchedule ?? []).map((item) => (
                   <Pressable key={item.id} onPress={() => handleAgendaPress(item)}>
                     <AgendaCard
                       accentColor={item.accentColor}
@@ -466,14 +652,12 @@ export default function HomeScreen() {
 
             {isLoaded ? (
               <>
-                <NewsCard
-                  title="Calendrier des examens du semestre 2 disponible"
-                  category="Examens"
-                />
-                <NewsCard
-                  title="Nouvelle bibliothèque numérique ouverte aux étudiants"
-                  category="Campus"
-                />
+                {apiData?.newsArticle != null && (
+                  <NewsCard
+                    title={apiData.newsArticle.titleFr}
+                    category={apiData.newsArticle.category}
+                  />
+                )}
               </>
             ) : (
               <View style={styles.newsOfflineCard}>
@@ -488,7 +672,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {homeState === 'error' && (
+        {showError && (
           <View style={styles.centerState}>
             <View style={styles.errorIconCircle}>
               <Ionicons name="wifi-outline" size={42} color={colors.textPrimary} />
@@ -497,7 +681,7 @@ export default function HomeScreen() {
             <Text style={styles.stateBody}>
               Vérifiez votre connexion internet et réessayez.
             </Text>
-            <Pressable style={styles.retryBtn}>
+            <Pressable style={styles.retryBtn} onPress={handleRetry}>
               <Text style={styles.retryBtnText}>Réessayer</Text>
             </Pressable>
             <Text style={styles.syncLabel}>DERNIÈRE SYNCHRONISATION</Text>

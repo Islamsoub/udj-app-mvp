@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,9 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { isAxiosError } from 'axios';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -20,12 +22,35 @@ import {
 } from '@/components/attendance/AttendanceHeader';
 import { AttendanceCard } from '@/components/attendance/AttendanceCard';
 import { AttendanceSkeleton } from '@/components/attendance/AttendanceSkeleton';
+import {
+  getAttendance,
+  AttendanceApiResponse,
+  AttendanceSubject,
+} from '@/services/api';
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+// ─── Projection helper ────────────────────────────────────────────────────────
 
-const MOCK_PERCENTAGE = 87;
-const MOCK_ABSENCES = 12;
-const MOCK_TOTAL_SESSIONS = 90;
+function computeProjection(
+  subject: AttendanceSubject,
+  t: TFunction,
+): string {
+  const threshold = 0.75;
+  const remaining = subject.remaining ?? 0;
+  const totalWithRemaining = subject.total + remaining;
+  const minRequired = Math.ceil(totalWithRemaining * threshold);
+  const canMiss = remaining - Math.max(0, minRequired - subject.present);
+
+  if (subject.percentage === 100 && remaining === 0) {
+    return t('attendance.projection_perfect');
+  }
+  if (subject.percentage < 75 || canMiss <= 0) {
+    return t('attendance.projection_critical');
+  }
+  if (subject.percentage >= 85) {
+    return t('attendance.projection_safe', { count: canMiss });
+  }
+  return t('attendance.projection_warning', { count: canMiss });
+}
 
 // ─── DEV switcher ─────────────────────────────────────────────────────────────
 
@@ -47,7 +72,7 @@ const STATE_LABELS: Record<AttendanceState, string> = {
   session:  'session',
 };
 
-// ─── Inline offline banner (same pattern as ArticleReader) ────────────────────
+// ─── Inline offline banner ────────────────────────────────────────────────────
 
 function AttendanceOfflineBanner() {
   const { t } = useTranslation();
@@ -60,41 +85,27 @@ function AttendanceOfflineBanner() {
 
 // ─── Cards body ───────────────────────────────────────────────────────────────
 
-function CardsBody() {
+interface CardsBodyProps {
+  data: AttendanceApiResponse;
+}
+
+function CardsBody({ data }: CardsBodyProps) {
   const { t } = useTranslation();
 
   return (
     <View style={styles.cardsBody}>
       <Text style={styles.sectionHeader}>{t('attendance.section_subjects')}</Text>
 
-      <AttendanceCard
-        name="Algorithmique avancée"
-        percentage={95}
-        attended={19}
-        total={20}
-        projection={t('attendance.projection_safe', { count: 3 })}
-      />
-      <AttendanceCard
-        name="Statistiques L2"
-        percentage={80}
-        attended={16}
-        total={20}
-        projection={t('attendance.projection_warning', { count: 2 })}
-      />
-      <AttendanceCard
-        name="Physique Quantique"
-        percentage={72}
-        attended={13}
-        total={18}
-        projection={t('attendance.projection_critical')}
-      />
-      <AttendanceCard
-        name="Anglais Technique"
-        percentage={100}
-        attended={12}
-        total={12}
-        projection={t('attendance.projection_perfect')}
-      />
+      {data.subjects.map((subject) => (
+        <AttendanceCard
+          key={subject.subjectCode}
+          name={subject.nameFr}
+          percentage={subject.percentage}
+          attended={subject.present}
+          total={subject.total}
+          projection={computeProjection(subject, t)}
+        />
+      ))}
 
       <Text style={styles.sectionHeader}>{t('attendance.section_justification')}</Text>
 
@@ -149,9 +160,37 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
 export default function AttendanceScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [screenState, setScreenState] = useState<AttendanceState>('loaded');
+  const [screenState, setScreenState] = useState<AttendanceState>('skeleton');
+  const [attendanceData, setAttendanceData] = useState<AttendanceApiResponse | null>(null);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    setScreenState('skeleton');
+
+    getAttendance()
+      .then((data) => {
+        if (cancelled) return;
+        setAttendanceData(data);
+        setScreenState(data.subjects.length === 0 ? 'empty' : 'loaded');
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (isAxiosError(err)) {
+          if (err.response?.status === 401) setScreenState('session');
+          else if (!err.response) setScreenState('offline');
+          else setScreenState('error');
+        } else {
+          setScreenState('error');
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  const overall = attendanceData?.overall ?? { percentage: 0, absent: 0, total: 0 };
   const headerState = screenState === 'skeleton' ? 'skeleton' : 'loaded';
+
   const showCards =
     screenState === 'loaded' ||
     screenState === 'offline' ||
@@ -169,19 +208,27 @@ export default function AttendanceScreen() {
         <AttendanceHeader
           topInset={insets.top}
           onBack={() => router.back()}
-          percentage={MOCK_PERCENTAGE}
-          absences={MOCK_ABSENCES}
-          totalSessions={MOCK_TOTAL_SESSIONS}
+          percentage={overall.percentage}
+          absences={overall.absent}
+          totalSessions={overall.total}
           state={headerState}
         />
 
         {screenState === 'offline' && <AttendanceOfflineBanner />}
 
         {screenState === 'skeleton' && <AttendanceSkeleton />}
-        {showCards && <CardsBody />}
+        {showCards && attendanceData != null && <CardsBody data={attendanceData} />}
         {screenState === 'empty' && <EmptyBody />}
         {screenState === 'error' && (
-          <ErrorBody onRetry={() => console.log('[ATTENDANCE] retry')} />
+          <ErrorBody onRetry={() => {
+            setScreenState('skeleton');
+            getAttendance()
+              .then((data) => {
+                setAttendanceData(data);
+                setScreenState(data.subjects.length === 0 ? 'empty' : 'loaded');
+              })
+              .catch(() => setScreenState('error'));
+          }} />
         )}
 
         <View style={{ height: 120 }} />

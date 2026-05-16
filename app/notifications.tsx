@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,87 +11,92 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { isAxiosError } from 'axios';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
-import { NotificationItem, NotificationItemData } from '@/components/notifications/NotificationItem';
+import {
+  NotificationItem,
+  NotificationItemData,
+  NotificationType,
+} from '@/components/notifications/NotificationItem';
 import { NotificationSkeleton } from '@/components/notifications/NotificationSkeleton';
+import {
+  getNotifications,
+  markAllNotificationsRead,
+  ApiNotification,
+} from '@/services/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type NotificationsState = 'loaded' | 'skeleton' | 'empty' | 'error' | 'offline' | 'session';
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
 
 type Section = {
   key: string;
   items: NotificationItemData[];
 };
 
-const MOCK_SECTIONS: Section[] = [
-  {
-    key: 'today',
-    items: [
-      {
-        id: '1',
-        type: 'grades',
-        title: 'Vos notes de Mathématiques Générales L2 sont disponibles',
-        body: 'Consultez votre relevé pour le détail des évaluations du semestre.',
-        timestamp: 'Il y a 12 min',
-        isUnread: true,
-      },
-      {
-        id: '2',
-        type: 'schedule',
-        title: 'Cours dans 15 minutes — Amphi A1',
-        body: 'Algorithmique avancée avec Pr. Hassan Robleh.',
-        timestamp: 'Il y a 1 h',
-        isUnread: true,
-      },
-    ],
-  },
-  {
-    key: 'yesterday',
-    items: [
-      {
-        id: '3',
-        type: 'attendance',
-        title: 'Présence Physique Quantique à 72% — sous le seuil',
-        body: "Vous risquez d'être déclaré non-assidu. Justifiez vos absences.",
-        timestamp: 'Hier, 14:32',
-        isUnread: false,
-      },
-      {
-        id: '4',
-        type: 'general',
-        title: '3 nouvelles notifications',
-        body: "Mises à jour d'emploi du temps et nouvelles publications.",
-        timestamp: 'Hier, 09:15',
-        isUnread: false,
-      },
-    ],
-  },
-  {
-    key: 'thisWeek',
-    items: [
-      {
-        id: '5',
-        type: 'schedule',
-        title: 'Examen final déplacé au 18 juin',
-        body: 'Statistiques L2 — nouvelle salle : Amphi C103.',
-        timestamp: 'Lundi 8 mai',
-        isUnread: false,
-      },
-    ],
-  },
-];
+// ─── Date grouping helpers ────────────────────────────────────────────────────
 
-const SECTION_LABEL_KEYS: Record<string, string> = {
-  today:     'notifications.today',
-  yesterday: 'notifications.yesterday',
-  thisWeek:  'notifications.thisWeek',
-};
+function mapNotifType(type: string): NotificationType {
+  if (type === 'grades') return 'grades';
+  if (type === 'schedule') return 'schedule';
+  if (type === 'attendance') return 'attendance';
+  return 'general';
+}
+
+function formatTimestamp(date: Date, now: Date): string {
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 60) return `Il y a ${diffMin} min`;
+  const diffH = Math.floor(diffMin / 60);
+  if (diffH < 24) return `Il y a ${diffH} h`;
+  return date.toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'short',
+  });
+}
+
+function groupNotificationsByDate(notifications: ApiNotification[]): Section[] {
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterdayStart = new Date(todayStart.getTime() - 86400000);
+  const weekAgoStart = new Date(todayStart.getTime() - 7 * 86400000);
+
+  const todayItems: NotificationItemData[] = [];
+  const yesterdayItems: NotificationItemData[] = [];
+  const thisWeekItems: NotificationItemData[] = [];
+
+  for (const n of notifications) {
+    const date = new Date(n.createdAt);
+    const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    const item: NotificationItemData = {
+      id: n.id,
+      type: mapNotifType(n.type),
+      title: n.titleFr,
+      body: n.bodyFr,
+      timestamp: formatTimestamp(date, now),
+      isUnread: !n.isRead,
+    };
+
+    if (dayStart.getTime() === todayStart.getTime()) {
+      todayItems.push(item);
+    } else if (dayStart.getTime() === yesterdayStart.getTime()) {
+      yesterdayItems.push(item);
+    } else if (dayStart.getTime() >= weekAgoStart.getTime()) {
+      thisWeekItems.push(item);
+    }
+  }
+
+  const sections: Section[] = [];
+  if (todayItems.length > 0) sections.push({ key: 'today', items: todayItems });
+  if (yesterdayItems.length > 0) sections.push({ key: 'yesterday', items: yesterdayItems });
+  if (thisWeekItems.length > 0) sections.push({ key: 'thisWeek', items: thisWeekItems });
+  return sections;
+}
 
 // ─── DEV switcher ─────────────────────────────────────────────────────────────
 
@@ -106,6 +111,12 @@ const STATE_LABELS: Record<NotificationsState, string> = {
   error:    'Error',
   offline:  'Offline',
   session:  'Session',
+};
+
+const SECTION_LABEL_KEYS: Record<string, string> = {
+  today:     'notifications.today',
+  yesterday: 'notifications.yesterday',
+  thisWeek:  'notifications.thisWeek',
 };
 
 // ─── Header ───────────────────────────────────────────────────────────────────
@@ -178,14 +189,14 @@ function SectionHeader({ labelKey }: { labelKey: string }) {
 
 // ─── Loaded content ───────────────────────────────────────────────────────────
 
-function LoadedContent() {
+function LoadedContent({ sections }: { sections: Section[] }) {
   return (
     <ScrollView
       style={styles.scroll}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {MOCK_SECTIONS.map((section) => (
+      {sections.map((section) => (
         <View key={section.key}>
           <SectionHeader labelKey={SECTION_LABEL_KEYS[section.key]} />
           {section.items.map((item) => (
@@ -240,7 +251,43 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
 export default function NotificationsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [screenState, setScreenState] = useState<NotificationsState>('loaded');
+  const [screenState, setScreenState] = useState<NotificationsState>('skeleton');
+  const [sections, setSections] = useState<Section[]>([]);
+
+  const fetchData = useCallback(async (cancelled: { value: boolean } = { value: false }) => {
+    setScreenState('skeleton');
+    try {
+      const res = await getNotifications();
+      if (cancelled.value) return;
+      const grouped = groupNotificationsByDate(res.notifications);
+      setSections(grouped);
+      setScreenState(grouped.length === 0 ? 'empty' : 'loaded');
+    } catch (err) {
+      if (cancelled.value) return;
+      if (isAxiosError(err)) {
+        if (err.response?.status === 401) setScreenState('session');
+        else if (!err.response) setScreenState('offline');
+        else setScreenState('error');
+      } else {
+        setScreenState('error');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const guard = { value: false };
+    fetchData(guard);
+    return () => { guard.value = true; };
+  }, [fetchData]);
+
+  const handleMarkAll = async () => {
+    try {
+      await markAllNotificationsRead();
+      fetchData();
+    } catch {
+      // ignore — UI stays as-is
+    }
+  };
 
   const showContent =
     screenState === 'loaded' ||
@@ -255,17 +302,17 @@ export default function NotificationsScreen() {
         topInset={insets.top}
         isSkeleton={screenState === 'skeleton'}
         onBack={() => router.back()}
-        onMarkAll={() => console.log('[NOTIFICATIONS] mark all read')}
+        onMarkAll={handleMarkAll}
       />
 
       <View style={styles.content}>
         {screenState === 'offline' && <NotificationsOfflineBanner />}
 
         {screenState === 'skeleton' && <NotificationSkeleton />}
-        {showContent && <LoadedContent />}
+        {showContent && <LoadedContent sections={sections} />}
         {screenState === 'empty' && <EmptyBody />}
         {screenState === 'error' && (
-          <ErrorBody onRetry={() => console.log('[NOTIFICATIONS] retry')} />
+          <ErrorBody onRetry={() => fetchData()} />
         )}
       </View>
 

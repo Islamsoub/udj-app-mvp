@@ -23,6 +23,9 @@ import { TextSizePicker } from '@/components/settings/TextSizePicker';
 import { QuietHoursPicker } from '@/components/settings/QuietHoursPicker';
 import { ClearCacheConfirm } from '@/components/settings/ClearCacheConfirm';
 import { LogoutConfirm } from '@/components/settings/LogoutConfirm';
+import { useAuthStore } from '@/stores/authStore';
+import { patchPreferences } from '@/services/api';
+import { logout } from '@/services/auth';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,10 +48,12 @@ const STATE_LABELS: Record<SettingsState, string> = {
 function SettingsBody({ isOffline }: { isOffline: boolean }) {
   const { t } = useTranslation();
   const router = useRouter();
+  const student = useAuthStore((s) => s.student);
+  const prefs = student?.preferences;
 
-  const [notifGrades, setNotifGrades] = useState(true);
-  const [notifCours, setNotifCours] = useState(true);
-  const [notifPresence, setNotifPresence] = useState(true);
+  const [notifGrades, setNotifGrades] = useState(prefs?.notifGrades ?? true);
+  const [notifCours, setNotifCours] = useState(prefs?.notifCourses ?? true);
+  const [notifPresence, setNotifPresence] = useState(prefs?.notifAttendance ?? true);
 
   const [langueVisible, setLangueVisible] = useState(false);
   const [themeVisible, setThemeVisible] = useState(false);
@@ -62,6 +67,21 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
   const [textSize, setTextSize] = useState<'small' | 'normal' | 'large'>('normal');
   const [quietStart, setQuietStart] = useState(22);
   const [quietEnd, setQuietEnd] = useState(7);
+
+  const handleNotifToggle = (key: 'notifGrades' | 'notifCourses' | 'notifAttendance') =>
+    (value: boolean) => {
+      patchPreferences({ [key]: value }).catch(() => {});
+    };
+
+  const handleLogout = () => {
+    logout()
+      .catch(() => {})
+      .finally(() => router.replace('/(auth)/login'));
+  };
+
+  const studentName = student
+    ? `${student.firstName} ${student.lastName}`
+    : t('settings.row.account_info_value');
 
   return (
     <View>
@@ -89,21 +109,30 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
         label={t('settings.row.notif_grades')}
         isToggle
         toggleValue={notifGrades}
-        onToggle={isOffline ? undefined : setNotifGrades}
+        onToggle={isOffline ? undefined : (v) => {
+          setNotifGrades(v);
+          handleNotifToggle('notifGrades')(v);
+        }}
         disabled={isOffline}
       />
       <SettingsRow
         label={t('settings.row.notif_courses')}
         isToggle
         toggleValue={notifCours}
-        onToggle={isOffline ? undefined : setNotifCours}
+        onToggle={isOffline ? undefined : (v) => {
+          setNotifCours(v);
+          handleNotifToggle('notifCourses')(v);
+        }}
         disabled={isOffline}
       />
       <SettingsRow
         label={t('settings.row.notif_attendance')}
         isToggle
         toggleValue={notifPresence}
-        onToggle={isOffline ? undefined : setNotifPresence}
+        onToggle={isOffline ? undefined : (v) => {
+          setNotifPresence(v);
+          handleNotifToggle('notifAttendance')(v);
+        }}
         disabled={isOffline}
       />
       <SettingsRow
@@ -134,7 +163,7 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
       <Text style={styles.sectionHeader}>{t('settings.section.account')}</Text>
       <SettingsRow
         label={t('settings.row.account_info')}
-        value={t('settings.row.account_info_value')}
+        value={studentName}
         onPress={() => router.push('/account-info')}
       />
       <SettingsRow
@@ -182,7 +211,7 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
       <LogoutConfirm
         visible={logoutVisible}
         onClose={() => setLogoutVisible(false)}
-        onConfirm={() => {}}
+        onConfirm={handleLogout}
       />
     </View>
   );

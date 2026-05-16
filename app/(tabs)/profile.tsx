@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { isAxiosError } from 'axios';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
@@ -23,55 +24,75 @@ import { StudentCard } from '@/components/profile/StudentCard';
 import { InfoRow } from '@/components/profile/InfoRow';
 import { ProfileSkeleton } from '@/components/profile/ProfileSkeleton';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
+import { useAuthStore } from '@/stores/authStore';
+import type { StudentProfile } from '@/stores/authStore';
+import { getStudentMe, getQrToken } from '@/services/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ProfileState = ProfileHeaderState;
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const MOCK_STUDENT: ProfileHeaderStudent = {
-  name: 'Ahmed Omar Said',
-  id: 'UDJ-2024-0432',
-  filiere: 'Licence Sciences Exactes . L2',
-  gpa: 14.2,
-  credits: 18,
-  presence: 87,
-};
+function toHeaderStudent(s: StudentProfile): ProfileHeaderStudent {
+  return {
+    name: `${s.firstName} ${s.lastName}`,
+    id: s.studentIdDisplay,
+    filiere: s.programme.nameFr,
+    gpa: s.stats?.gpa ?? 0,
+    credits: s.stats?.semesterCredits?.earned ?? 0,
+    presence: s.stats?.attendancePercentage ?? 0,
+  };
+}
 
-const MOCK_CARD = {
-  programme: 'Sc. Exactes L2',
-  annee: '2024-2025',
-  statut: 'ACTIF',
-};
+function deriveAcademicYear(): string {
+  const now = new Date();
+  // Academic year starts in October: before August = previous year started
+  const startYear = now.getMonth() < 7 ? now.getFullYear() - 1 : now.getFullYear();
+  return `${startYear}-${startYear + 1}`;
+}
 
 // ─── Loaded / Offline body ────────────────────────────────────────────────────
 
-function ProfileBody({ onPresencePress }: { onPresencePress: () => void }) {
+interface ProfileBodyProps {
+  student: StudentProfile | null;
+  onPresencePress: () => void;
+}
+
+function ProfileBody({ student, onPresencePress }: ProfileBodyProps) {
   const { t } = useTranslation();
+
+  const name = student ? `${student.firstName} ${student.lastName}` : '—';
+  const id = student?.studentIdDisplay ?? '—';
+  const programme = student?.programme.code ?? '—';
+  const annee = deriveAcademicYear();
+  const statut = student?.status ?? 'ACTIF';
+  const filiere = student?.programme.nameFr ?? '—';
+  const niveau = student?.programme.level ?? '—';
+  const presence = student?.stats?.attendancePercentage ?? 0;
 
   return (
     <View style={styles.body}>
       <StudentCard
-        name={MOCK_STUDENT.name}
-        id={MOCK_STUDENT.id}
-        programme={MOCK_CARD.programme}
-        annee={MOCK_CARD.annee}
-        statut={MOCK_CARD.statut}
+        name={name}
+        id={id}
+        programme={programme}
+        annee={annee}
+        statut={statut}
       />
 
       <Text style={styles.sectionHeader}>{t('profile.section.academic')}</Text>
-      <InfoRow label={t('profile.row.filiere')} value="Informatique" />
-      <InfoRow label={t('profile.row.niveau')} value="Licence 2" />
+      <InfoRow label={t('profile.row.filiere')} value={filiere} />
+      <InfoRow label={t('profile.row.niveau')} value={niveau} />
       <InfoRow
         label={t('profile.row.presence')}
-        value={`${MOCK_STUDENT.presence}%`}
+        value={`${presence}%`}
         onPress={onPresencePress}
       />
 
       <Text style={styles.sectionHeader}>{t('profile.section.settings')}</Text>
       <InfoRow label={t('profile.row.langue')} value="Français" />
-      <InfoRow label={t('profile.row.annee')} value="2024-2025" />
+      <InfoRow label={t('profile.row.annee')} value={annee} />
       <InfoRow
         label={t('profile.row.notifications')}
         value={t('profile.row.notifications_value')}
@@ -131,12 +152,10 @@ function IncompleteBody() {
       <Text style={styles.stateTitle}>{t('profile.incomplete.title')}</Text>
       <Text style={styles.stateBody}>{t('profile.incomplete.body')}</Text>
 
-      {/* Green validated banner */}
       <View style={styles.validatedBanner}>
         <Text style={styles.validatedBannerText}>{t('profile.incomplete.validated')}</Text>
       </View>
 
-      {/* Orange pending banner 1 */}
       <View style={styles.pendingBanner}>
         <Image
           source={require('../../assets/icons/Hourglass.png')}
@@ -146,7 +165,6 @@ function IncompleteBody() {
         <Text style={styles.pendingBannerText}>{t('profile.incomplete.pending_photo')}</Text>
       </View>
 
-      {/* Orange pending banner 2 */}
       <View style={styles.pendingBanner}>
         <Image
           source={require('../../assets/icons/Hourglass.png')}
@@ -183,8 +201,65 @@ const STATE_LABELS: Record<ProfileState, string> = {
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const [profileState, setProfileState] = useState<ProfileState>('loaded');
+  const [profileState, setProfileState] = useState<ProfileState>('skeleton');
   const insets = useSafeAreaInsets();
+
+  const [apiStudent, setApiStudent] = useState<StudentProfile | null>(
+    useAuthStore.getState().student,
+  );
+  const [, setQrToken] = useState<string | null>(null);
+  const qrIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    // Fetch fresh profile data
+    getStudentMe()
+      .then((data) => {
+        if (cancelled) return;
+        useAuthStore.getState().setStudent(data);
+        setApiStudent(data);
+        setProfileState('loaded');
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (isAxiosError(err)) {
+          if (err.response?.status === 401) setProfileState('session');
+          else if (!err.response) setProfileState('offline');
+          else setProfileState('error');
+        } else {
+          setProfileState('error');
+        }
+      });
+
+    // Fetch QR token immediately + every 55 seconds
+    const fetchQr = () => {
+      getQrToken()
+        .then((res) => {
+          if (!cancelled) setQrToken(res.token);
+        })
+        .catch(() => {});
+    };
+    fetchQr();
+    qrIntervalRef.current = setInterval(fetchQr, 55000);
+
+    return () => {
+      cancelled = true;
+      if (qrIntervalRef.current) clearInterval(qrIntervalRef.current);
+    };
+  }, []);
+
+  const headerStudent: ProfileHeaderStudent =
+    apiStudent != null
+      ? toHeaderStudent(apiStudent)
+      : {
+          name: '—',
+          id: '—',
+          filiere: '—',
+          gpa: 0,
+          credits: 0,
+          presence: 0,
+        };
 
   const showBody =
     profileState === 'loaded' ||
@@ -202,19 +277,22 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header — handles topInset and all state variations internally */}
         <ProfileHeader
           state={profileState}
           topInset={insets.top}
-          student={MOCK_STUDENT}
+          student={headerStudent}
           onDotsPress={() => router.push('/settings')}
         />
 
-        {/* Body per state */}
         {profileState === 'skeleton' && <ProfileSkeleton />}
-        {showBody && <ProfileBody onPresencePress={() => router.push('/attendance')} />}
+        {showBody && (
+          <ProfileBody
+            student={apiStudent}
+            onPresencePress={() => router.push('/attendance')}
+          />
+        )}
         {profileState === 'error' && (
-          <ErrorBody onRetry={() => console.log('[PROFILE] retry')} />
+          <ErrorBody onRetry={() => setProfileState('skeleton')} />
         )}
         {profileState === 'incomplete' && <IncompleteBody />}
 
@@ -396,5 +474,4 @@ const styles = StyleSheet.create({
     color: colors.danger,
     lineHeight: 18,
   },
-
 });

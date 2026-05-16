@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, spacing } from '@/constants/theme';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
+import { useAuthStore } from '@/stores/authStore';
 
 // ─── Info row ─────────────────────────────────────────────────────────────────
 
@@ -86,6 +87,18 @@ export default function AccountInfoScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const student = useAuthStore((s) => s.student);
+
+  const fullName = student ? `${student.firstName} ${student.lastName}` : '—';
+  const studentId = student?.studentIdDisplay ?? '—';
+  const email = student?.email ?? '—';
+  const filiere = student?.programme.nameFr ?? '—';
+  const niveau = student?.programme.level ?? '—';
+  const status = student?.status ?? '—';
+
+  const now = new Date();
+  const startYear = now.getMonth() < 7 ? now.getFullYear() - 1 : now.getFullYear();
+  const academicYear = `${startYear}-${startYear + 1}`;
 
   return (
     <View style={styles.root}>
@@ -104,24 +117,24 @@ export default function AccountInfoScreen() {
         {/* ── Avatar section ── */}
         <View style={styles.avatarSection}>
           <View style={styles.avatar} />
-          <Text style={styles.name}>{t('settings.account.value_name')}</Text>
-          <Text style={styles.studentId}>{t('settings.account.value_student_id')}</Text>
+          <Text style={styles.name}>{fullName}</Text>
+          <Text style={styles.studentId}>{studentId}</Text>
         </View>
 
         {/* ── Personal info ── */}
         <Text style={styles.sectionHeader}>{t('settings.account.section_personal')}</Text>
         <InfoRow
           label={t('settings.account.row_name')}
-          value={t('settings.account.value_name')}
+          value={fullName}
         />
         <InfoRow
           label={t('settings.account.row_student_id')}
-          value={t('settings.account.value_student_id')}
+          value={studentId}
           mono
         />
         <InfoRow
           label={t('settings.account.row_email')}
-          value={t('settings.account.value_email')}
+          value={email}
           isLast
         />
 
@@ -129,20 +142,20 @@ export default function AccountInfoScreen() {
         <Text style={styles.sectionHeader}>{t('settings.account.section_academic')}</Text>
         <InfoRow
           label={t('settings.account.row_filiere')}
-          value={t('settings.account.value_filiere')}
+          value={filiere}
         />
         <InfoRow
           label={t('settings.account.row_niveau')}
-          value={t('settings.account.value_niveau')}
+          value={niveau}
         />
         <InfoRow
           label={t('settings.account.row_academic_year')}
-          value={t('settings.account.value_academic_year')}
+          value={academicYear}
           mono
         />
         <InfoRow
           label={t('settings.account.row_status')}
-          value={t('settings.account.value_status')}
+          value={status}
           valueColor={colors.jade600}
           isLast
         />

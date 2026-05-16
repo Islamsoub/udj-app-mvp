@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,51 +8,29 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
+import { isAxiosError } from 'axios';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { GradesHeader } from '@/components/grades/GradesHeader';
-import { SemesterTabs } from '@/components/grades/SemesterTabs';
 import { SubjectCard, Subject } from '@/components/grades/SubjectCard';
 import { GradesSkeleton } from '@/components/grades/GradesSkeleton';
 import { GradeCalculatorSheet } from '@/components/grades/GradeCalculatorSheet';
 import { GPAHistorySheet } from '@/components/grades/GPAHistorySheet';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 
+import {
+  getGrades,
+  getGradesAllSemesters,
+  GradesResponse,
+  SemesterSummary,
+} from '@/services/api';
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type GradesState = 'skeleton' | 'loaded' | 'offline' | 'empty' | 'error' | 'session';
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const MOCK_SUBJECTS: Subject[] = [
-  {
-    id: '1',
-    name: 'Mathématiques générales',
-    cc: 13,
-    exam: 15,
-    coef: 4,
-    finale: 14.2,
-  },
-  {
-    id: '2',
-    name: 'Mathématiques générales',
-    cc: 13,
-    exam: 15,
-    coef: 4,
-    finale: 7.5,
-  },
-  {
-    id: '3',
-    name: 'Mathématiques générales',
-    cc: 13,
-    exam: 15,
-    coef: 4,
-    finale: 14.2,
-  },
-];
 
 // ─── Empty state body ─────────────────────────────────────────────────────────
 
@@ -119,10 +97,10 @@ function ErrorStateBody({ onRetry }: ErrorStateProps) {
 
 // ─── Loaded / Offline cards body ──────────────────────────────────────────────
 
-function CardsBody() {
+function CardsBody({ subjects }: { subjects: Subject[] }) {
   return (
     <View style={styles.cardsBody}>
-      {MOCK_SUBJECTS.map((subject) => (
+      {subjects.map((subject) => (
         <SubjectCard key={subject.id} subject={subject} />
       ))}
     </View>
@@ -144,15 +122,121 @@ const STATE_LABELS: Record<GradesState, string> = {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function GradesScreen() {
-  const [gradesState, setGradesState] = useState<GradesState>('loaded');
+  const [gradesState, setGradesState] = useState<GradesState>('skeleton');
   const [activeSemester, setActiveSemester] = useState<1 | 2>(2);
   const [calculatorVisible, setCalculatorVisible] = useState(false);
   const [gpaHistoryVisible, setGpaHistoryVisible] = useState(false);
+  const [gradesData, setGradesData] = useState<GradesResponse | null>(null);
+  const [allSemesterData, setAllSemesterData] = useState<SemesterSummary[]>([]);
+  // [s1Id, s2Id] mapped from the current academic year's sorted semesters
+  const [semesterTabIds, setSemesterTabIds] = useState<[string | null, string | null]>([null, null]);
   const insets = useSafeAreaInsets();
+
+  // Derived: Subject[] for SubjectCard and GradeCalculatorSheet
+  const subjects: Subject[] = useMemo(
+    () =>
+      (gradesData?.grades ?? []).map((g) => ({
+        id: g.id,
+        name: g.subject.nameFr,
+        cc: g.noteCc ?? 0,
+        exam: g.noteCf ?? 0,
+        coef: g.subject.coefficient,
+        finale: g.noteFinale ?? 0,
+      })),
+    [gradesData],
+  );
+
+  // Derived: chart data for GPAHistorySheet
+  const gpaChartData = useMemo(
+    () =>
+      allSemesterData
+        .filter((s) => s.gpa !== null)
+        .map((s) => ({ label: s.label, value: s.gpa as number })),
+    [allSemesterData],
+  );
+
+  // Fetch a single semester's grades and transition state
+  const fetchGrades = useCallback(async (semesterId?: string) => {
+    setGradesState('skeleton');
+    try {
+      const data = await getGrades(semesterId);
+      setGradesData(data);
+      setGradesState(data.grades.length === 0 ? 'empty' : 'loaded');
+    } catch (err) {
+      if (isAxiosError(err)) {
+        if (err.response?.status === 401) setGradesState('session');
+        else if (!err.response) setGradesState('offline');
+        else setGradesState('error');
+      } else {
+        setGradesState('error');
+      }
+    }
+  }, []);
+
+  // On mount: fetch current semester grades + all semesters in parallel
+  useEffect(() => {
+    let cancelled = false;
+
+    async function init() {
+      setGradesState('skeleton');
+      try {
+        const [gradesRes, allSemRes] = await Promise.all([
+          getGrades(),
+          // If allSemesters fails, degrade gracefully — don't block the grades display
+          getGradesAllSemesters().catch(() => ({ semesters: [] as SemesterSummary[] })),
+        ]);
+
+        if (cancelled) return;
+
+        setGradesData(gradesRes);
+        setAllSemesterData(allSemRes.semesters);
+
+        // Map sorted semesters for the current academic year to S1/S2 tabs
+        const yearSems = allSemRes.semesters
+          .filter((s) => s.academicYear === gradesRes.semester.academicYear)
+          .sort((a, b) => a.label.localeCompare(b.label));
+
+        setSemesterTabIds([yearSems[0]?.id ?? null, yearSems[1]?.id ?? null]);
+
+        // Set the active tab to the tab that matches the current semester
+        const currentIdx = yearSems.findIndex((s) => s.id === gradesRes.semester.id);
+        setActiveSemester(currentIdx === 1 ? 2 : 1);
+
+        setGradesState(gradesRes.grades.length === 0 ? 'empty' : 'loaded');
+      } catch (err) {
+        if (cancelled) return;
+        if (isAxiosError(err)) {
+          if (err.response?.status === 401) setGradesState('session');
+          else if (!err.response) setGradesState('offline');
+          else setGradesState('error');
+        } else {
+          setGradesState('error');
+        }
+      }
+    }
+
+    init();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Semester tab switch: re-fetch the selected semester by UUID
+  const handleSemesterChange = useCallback(
+    (s: 1 | 2) => {
+      setActiveSemester(s);
+      const semId = semesterTabIds[s - 1];
+      if (semId) fetchGrades(semId);
+    },
+    [semesterTabIds, fetchGrades],
+  );
 
   const headerGpa =
     gradesState === 'loaded' || gradesState === 'offline' || gradesState === 'session'
-      ? 14.2
+      ? (gradesData?.gpa ?? null)
+      : null;
+
+  const headerCredits =
+    gradesState === 'loaded' || gradesState === 'offline'
+      ? (gradesData?.credits ?? null)
       : null;
 
   return (
@@ -172,8 +256,8 @@ export default function GradesScreen() {
           topInset={insets.top}
           gpa={headerGpa}
           activeSemester={activeSemester}
-          onSemesterChange={setActiveSemester}
-          credits={{ earned: 18, total: 30 }}
+          onSemesterChange={handleSemesterChange}
+          credits={headerCredits}
           onCalculatorPress={() => setCalculatorVisible(true)}
           onGpaPress={() => setGpaHistoryVisible(true)}
         />
@@ -181,20 +265,22 @@ export default function GradesScreen() {
         {/* Body content */}
         {gradesState === 'skeleton' && <GradesSkeleton />}
 
-        {(gradesState === 'loaded' || gradesState === 'session') && <CardsBody />}
+        {(gradesState === 'loaded' || gradesState === 'session') && (
+          <CardsBody subjects={subjects} />
+        )}
 
-        {gradesState === 'offline' && <CardsBody />}
+        {gradesState === 'offline' && <CardsBody subjects={subjects} />}
 
         {gradesState === 'empty' && (
           <EmptyStateBody
-            onRetry={() => console.log('[GRADES] retry triggered')}
+            onRetry={() => fetchGrades()}
             onContact={() => console.log('[GRADES] contact triggered')}
           />
         )}
 
         {gradesState === 'error' && (
           <ErrorStateBody
-            onRetry={() => console.log('[GRADES] retry triggered')}
+            onRetry={() => fetchGrades()}
           />
         )}
 
@@ -209,12 +295,13 @@ export default function GradesScreen() {
       <GradeCalculatorSheet
         visible={calculatorVisible}
         onClose={() => setCalculatorVisible(false)}
-        subjects={MOCK_SUBJECTS}
+        subjects={subjects}
       />
 
       <GPAHistorySheet
         visible={gpaHistoryVisible}
         onClose={() => setGpaHistoryVisible(false)}
+        gpaData={gpaChartData}
       />
 
       <DevSwitcher

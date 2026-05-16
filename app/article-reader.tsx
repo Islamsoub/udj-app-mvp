@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,33 +7,65 @@ import {
   StyleSheet,
   StatusBar,
 } from 'react-native';
+import { isAxiosError } from 'axios';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
-import { useArticleStore, ExtendedArticle } from '@/stores/articleStore';
 import { ArticleReaderHeader } from '@/components/news/ArticleReaderHeader';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
+import { getNewsArticle, NewsArticleDetail } from '@/services/api';
+import type { ArticleCategory } from '@/components/news/ArticleCard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ArticleReaderState = 'loaded' | 'skeleton' | 'error' | 'offline';
 
-// ─── Mock data (fallback for dev) ─────────────────────────────────────────────
+interface ArticleData {
+  id: string;
+  category: ArticleCategory;
+  title: string;
+  fullDate: string;
+  author: string;
+  body: string;
+}
 
-const MOCK_ARTICLE: ExtendedArticle = {
+// ─── Mock data (fallback for dev / DevSwitcher) ───────────────────────────────
+
+const MOCK_ARTICLE: ArticleData = {
   id: '0',
   category: 'Scolarite',
   title: 'Inscriptions aux examens de rattrapage : ouverture des dépôts',
-  timestamp: 'Hier a 16H00',
-  readTime: '3 min',
-  author: 'Service Scolarité',
   fullDate: '12 mai 2026 · 09:30',
+  author: 'Service Scolarité',
   body:
     "Les dépôts de dossiers pour les examens de rattrapage de la session de juin 2026 sont désormais ouverts. Tous les étudiants concernés sont invités à se présenter au service de la scolarité muni de leur carte étudiant et des pièces justificatives requises.\n\nLes dépôts se dérouleront du lundi 12 mai au vendredi 16 mai 2026, de 08h00 à 14h00 du lundi au jeudi, et de 08h00 à 11h30 le vendredi. Passé ce délai, aucun dossier ne sera accepté.\n\nPour toute question relative aux modalités d'inscription, les étudiants peuvent contacter directement le service de la scolarité ou consulter l'affichage officiel sur le tableau d'annonces de leur faculté.",
 };
+
+// ─── API response → ArticleData mapper ───────────────────────────────────────
+
+function mapArticleDetail(detail: NewsArticleDetail): ArticleData {
+  const date = new Date(detail.publishedAt);
+  const dateStr = date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  const timeStr = date.toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  return {
+    id: detail.id,
+    category: detail.category as ArticleCategory,
+    title: detail.titleFr,
+    fullDate: `${dateStr} · ${timeStr}`,
+    author: detail.author ?? 'Service Communication',
+    body: detail.bodyFr,
+  };
+}
 
 // ─── Category label map ───────────────────────────────────────────────────────
 
@@ -69,7 +101,7 @@ function ArticleHero() {
 // ─── Loaded body ──────────────────────────────────────────────────────────────
 
 interface LoadedBodyProps {
-  article: ExtendedArticle;
+  article: ArticleData;
   bottomInset: number;
 }
 
@@ -227,12 +259,33 @@ const STATE_LABELS: Record<ArticleReaderState, string> = {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function ArticleReaderScreen() {
-  const [readerState, setReaderState] = useState<ArticleReaderState>('loaded');
+  const [readerState, setReaderState] = useState<ArticleReaderState>('skeleton');
+  const [articleData, setArticleData] = useState<ArticleData | null>(null);
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { selectedArticle } = useArticleStore();
+  const { id } = useLocalSearchParams<{ id: string }>();
 
-  const article = selectedArticle ?? MOCK_ARTICLE;
+  const fetchArticle = useCallback(async (articleId: string) => {
+    setReaderState('skeleton');
+    try {
+      const detail = await getNewsArticle(articleId);
+      setArticleData(mapArticleDetail(detail));
+      setReaderState('loaded');
+    } catch (err: unknown) {
+      if (isAxiosError(err)) {
+        if (!err.response) setReaderState('offline');
+        else setReaderState('error');
+      } else {
+        setReaderState('error');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (id) {
+      fetchArticle(id);
+    }
+  }, [id, fetchArticle]);
 
   function handleBack() {
     router.back();
@@ -246,6 +299,7 @@ export default function ArticleReaderScreen() {
     // Phase 2: persist bookmark to SQLite
   }
 
+  const article = articleData ?? MOCK_ARTICLE;
   const isError = readerState === 'error';
 
   return (
@@ -261,7 +315,7 @@ export default function ArticleReaderScreen() {
       {readerState === 'offline' && <ArticleOfflineBanner />}
 
       {isError ? (
-        <ErrorBody onRetry={() => setReaderState('loaded')} />
+        <ErrorBody onRetry={() => id && fetchArticle(id)} />
       ) : (
         <>
           {readerState === 'skeleton' && <SkeletonBody />}

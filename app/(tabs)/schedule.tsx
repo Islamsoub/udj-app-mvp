@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
+import { isAxiosError } from 'axios';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
@@ -22,38 +23,25 @@ import { OfflineCourseCard } from '@/components/schedule/OfflineCourseCard';
 import { Course } from '@/components/schedule/CourseCard';
 import { CourseDetailSheet } from '@/components/schedule/CourseDetailSheet';
 import { useCourseDetailStore, ExtendedCourse } from '@/stores/courseDetailStore';
+import { CourseStatus } from '@/components/schedule/StatusPill';
+import { getSchedule, ScheduleEntry } from '@/services/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ScheduleState = 'skeleton' | 'loaded' | 'offline' | 'empty' | 'error' | 'session';
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+// ─── Offline mock (placeholder until SQLite cache is wired) ──────────────────
 
-const MOCK_ENTRIES: (ExtendedCourse | PauseEntry)[] = [
+const MOCK_OFFLINE_COURSES: Course[] = [
   {
     id: '1',
     subject: 'Mathématiques Générales L2',
     teacher: 'Pr. Abdi Hassan',
     room: 'Amphi A1',
-    gutter: '07:30',
     start: '08:00',
     end: '10:00',
     status: 'past',
-    code: 'MAT-201',
-    coefficient: 4,
   },
-  {
-    id: '2',
-    subject: 'Mathématiques Générales L2',
-    teacher: 'Pr. Abdi Hassan',
-    room: 'Amphi A1',
-    start: '08:00',
-    end: '10:00',
-    status: 'active',
-    code: 'MAT-201',
-    coefficient: 4,
-  },
-  { type: 'pause', time: '10:00', durationHours: 4 },
   {
     id: '3',
     subject: 'Algorithmique et Structures',
@@ -62,25 +50,59 @@ const MOCK_ENTRIES: (ExtendedCourse | PauseEntry)[] = [
     start: '14:00',
     end: '16:00',
     status: 'upcoming',
-    code: 'INFO-301',
-    coefficient: 4,
-  },
-  {
-    id: '4',
-    subject: 'Physique Quantique L2',
-    teacher: 'Pr. Mohamed Wais',
-    room: 'Salle 204',
-    start: '16:30',
-    end: '18:30',
-    status: 'upcoming',
-    code: 'PHY-202',
-    coefficient: 3,
   },
 ];
 
-const MOCK_OFFLINE_COURSES: Course[] = MOCK_ENTRIES.filter(
-  (e): e is ExtendedCourse => !('type' in e),
-);
+// ─── API helpers ──────────────────────────────────────────────────────────────
+
+function computeStatus(startTime: string, endTime: string): CourseStatus {
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const [sh, sm] = startTime.split(':').map(Number);
+  const [eh, em] = endTime.split(':').map(Number);
+  if (nowMinutes >= eh * 60 + em) return 'past';
+  if (nowMinutes >= sh * 60 + sm) return 'active';
+  return 'upcoming';
+}
+
+function buildTimelineEntries(
+  entries: ScheduleEntry[],
+): (ExtendedCourse | PauseEntry)[] {
+  const sorted = [...entries].sort((a, b) =>
+    a.startTime.localeCompare(b.startTime),
+  );
+  const result: (ExtendedCourse | PauseEntry)[] = [];
+
+  sorted.forEach((entry, i) => {
+    result.push({
+      id: entry.id,
+      subject: entry.subject.nameFr,
+      teacher: entry.professorName,
+      room: entry.room,
+      start: entry.startTime,
+      end: entry.endTime,
+      status: computeStatus(entry.startTime, entry.endTime),
+      code: entry.subject.code,
+      coefficient: entry.subject.coefficient,
+    });
+
+    const next = sorted[i + 1];
+    if (next) {
+      const [eh, em] = entry.endTime.split(':').map(Number);
+      const [nh, nm] = next.startTime.split(':').map(Number);
+      const gapMinutes = nh * 60 + nm - (eh * 60 + em);
+      if (gapMinutes >= 60) {
+        result.push({
+          type: 'pause',
+          time: entry.endTime,
+          durationHours: Math.round(gapMinutes / 60),
+        });
+      }
+    }
+  });
+
+  return result;
+}
 
 // ─── Skeleton: header ─────────────────────────────────────────────────────────
 
@@ -270,14 +292,15 @@ function ErrorStateBody({ onRetry, onViewCache }: ErrorStateProps) {
 // ─── Loaded timeline body ──────────────────────────────────────────────────────
 
 interface LoadedTimelineProps {
+  entries: (ExtendedCourse | PauseEntry)[];
   onCoursePress: (course: ExtendedCourse) => void;
 }
 
-function LoadedTimeline({ onCoursePress }: LoadedTimelineProps) {
+function LoadedTimeline({ entries, onCoursePress }: LoadedTimelineProps) {
   return (
     <View style={styles.timelineBody}>
-      {MOCK_ENTRIES.map((entry, i) => {
-        const isLast = i === MOCK_ENTRIES.length - 1;
+      {entries.map((entry, i) => {
+        const isLast = i === entries.length - 1;
         if ('type' in entry) {
           return (
             <TimelineRow key={`pause-${i}`} entry={entry} isLast={isLast} />
@@ -321,19 +344,49 @@ const STATE_LABELS: Record<ScheduleState, string> = {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function ScheduleScreen() {
-  const [schedState, setSchedState] = useState<ScheduleState>('loaded');
+  const [schedState, setSchedState] = useState<ScheduleState>('skeleton');
   const [selectedDay, setSelectedDay] = useState(() => new Date().getDay());
   const [courseDetailVisible, setCourseDetailVisible] = useState(false);
+  const [scheduleEntries, setScheduleEntries] = useState<ScheduleEntry[]>([]);
   const insets = useSafeAreaInsets();
 
   const setSelectedCourse = useCourseDetailStore((s) => s.setSelectedCourse);
+
+  const fetchSchedule = useCallback(async () => {
+    setSchedState('skeleton');
+    try {
+      const data = await getSchedule();
+      const entries = data.entries ?? [];
+      setScheduleEntries(entries);
+      setSchedState(entries.length === 0 ? 'empty' : 'loaded');
+    } catch (err: unknown) {
+      if (isAxiosError(err)) {
+        if (err.response?.status === 401) {
+          setSchedState('session');
+        } else if (!err.response) {
+          setSchedState('offline');
+        } else {
+          setSchedState('error');
+        }
+      } else {
+        setSchedState('error');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSchedule();
+  }, [fetchSchedule]);
+
+  const dayEntries = useMemo(
+    () => buildTimelineEntries(scheduleEntries.filter((e) => e.dayOfWeek === selectedDay)),
+    [scheduleEntries, selectedDay],
+  );
 
   const handleCoursePress = (course: ExtendedCourse) => {
     setSelectedCourse(course);
     setCourseDetailVisible(true);
   };
-
-  const showHeader = schedState !== 'skeleton';
 
   return (
     <View
@@ -362,7 +415,7 @@ export default function ScheduleScreen() {
         {schedState === 'skeleton' && <SkeletonScheduleBody />}
 
         {(schedState === 'loaded' || schedState === 'session') && (
-          <LoadedTimeline onCoursePress={handleCoursePress} />
+          <LoadedTimeline entries={dayEntries} onCoursePress={handleCoursePress} />
         )}
 
         {schedState === 'offline' && <OfflineBody />}
@@ -376,7 +429,7 @@ export default function ScheduleScreen() {
 
         {schedState === 'error' && (
           <ErrorStateBody
-            onRetry={() => console.log('[SCHEDULE] retry triggered')}
+            onRetry={fetchSchedule}
             onViewCache={() => setSchedState('offline')}
           />
         )}

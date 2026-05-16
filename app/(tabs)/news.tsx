@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
+import { isAxiosError } from 'axios';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -17,43 +18,34 @@ import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { NewsHeader } from '@/components/news/NewsHeader';
 import { FilterRow, FilterKey } from '@/components/news/FilterRow';
 import { HeroCard } from '@/components/news/HeroCard';
-import { ArticleCard, Article } from '@/components/news/ArticleCard';
+import { ArticleCard, Article, ArticleCategory } from '@/components/news/ArticleCard';
 import { NewsSkeleton } from '@/components/news/NewsSkeleton';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
-import { useArticleStore } from '@/stores/articleStore';
+import { getNews, NewsArticleSummary } from '@/services/api';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type NewsState = 'skeleton' | 'loaded' | 'offline' | 'empty' | 'error' | 'session';
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+// ─── Offline mock (DevSwitcher offline/session states only) ───────────────────
 
-const MOCK_ARTICLES: Article[] = [
+const MOCK_OFFLINE_ARTICLES: Article[] = [
   {
-    id: '0',
-    category: 'Scolarite',
-    title: 'Calendrier des examens du Semestre 2 – Session juin 2025',
-    // TODO: replace with real API data in Phase 2
-    timestamp: 'Hier a 16H00',
-    readTime: '5 min de lecture',
-    isHero: true,
-  },
-  {
-    id: '1',
+    id: 'mock-1',
     category: 'Evenement',
     title: 'Cérémonie de remise des diplômes — Promotion 2025',
     timestamp: 'Il y a 2j',
     readTime: '3 min',
   },
   {
-    id: '2',
+    id: 'mock-2',
     category: 'Scolarite',
     title: 'Réinscriptions 2025-2026 : modalités et dates limites',
     timestamp: 'Il y a 2j',
     readTime: '3 min',
   },
   {
-    id: '3',
+    id: 'mock-3',
     category: 'Sport',
     title: 'Tournoi inter-facultés de football — inscriptions ouvertes',
     timestamp: 'Il y a 2j',
@@ -61,20 +53,53 @@ const MOCK_ARTICLES: Article[] = [
   },
 ];
 
-const HERO_ARTICLE = MOCK_ARTICLES[0];
-const LIST_ARTICLES = MOCK_ARTICLES.slice(1);
+// ─── Filter → API category mapping ───────────────────────────────────────────
 
-const MOCK_EXTENDED_ARTICLE = {
-  id: '0',
-  category: 'Scolarite' as const,
-  title: 'Inscriptions aux examens de rattrapage : ouverture des dépôts',
-  timestamp: 'Hier a 16H00',
-  readTime: '3 min',
-  author: 'Service Scolarité',
-  fullDate: '12 mai 2026 · 09:30',
-  body:
-    "Les dépôts de dossiers pour les examens de rattrapage de la session de juin 2026 sont désormais ouverts. Tous les étudiants concernés sont invités à se présenter au service de la scolarité muni de leur carte étudiant et des pièces justificatives requises.\n\nLes dépôts se dérouleront du lundi 12 mai au vendredi 16 mai 2026, de 08h00 à 14h00 du lundi au jeudi, et de 08h00 à 11h30 le vendredi. Passé ce délai, aucun dossier ne sera accepté.\n\nPour toute question relative aux modalités d'inscription, les étudiants peuvent contacter directement le service de la scolarité ou consulter l'affichage officiel sur le tableau d'annonces de leur faculté.",
+const FILTER_CATEGORY: Partial<Record<FilterKey, string>> = {
+  events:    'Evenement',
+  scolarite: 'Scolarite',
+  sport:     'Sport',
+  youth:     'youth',
+  sponsors:  'sponsors',
 };
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatTimestamp(publishedAt: string): string {
+  const now = new Date();
+  const date = new Date(publishedAt);
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / 86400000);
+  if (diffDays === 0) {
+    const h = date.getHours().toString().padStart(2, '0');
+    const m = date.getMinutes().toString().padStart(2, '0');
+    return `Aujourd'hui à ${h}H${m}`;
+  }
+  if (diffDays === 1) {
+    const h = date.getHours().toString().padStart(2, '0');
+    const m = date.getMinutes().toString().padStart(2, '0');
+    return `Hier à ${h}H${m}`;
+  }
+  return `Il y a ${diffDays}j`;
+}
+
+function toHeroProps(s: NewsArticleSummary) {
+  return {
+    id: s.id,
+    title: s.titleFr,
+    timestamp: formatTimestamp(s.publishedAt),
+    readTime: `${s.readTimeMinutes} min`,
+  };
+}
+
+function toCardProps(s: NewsArticleSummary): Article {
+  return {
+    id: s.id,
+    category: s.category as ArticleCategory,
+    title: s.titleFr,
+    timestamp: formatTimestamp(s.publishedAt),
+    readTime: `${s.readTimeMinutes} min`,
+  };
+}
 
 // ─── Saved articles warning (offline body) ────────────────────────────────────
 
@@ -89,20 +114,22 @@ function SavedArticlesBanner() {
 
 // ─── Loaded body ──────────────────────────────────────────────────────────────
 
-interface ArticleListProps {
-  onArticlePress: () => void;
+interface LoadedBodyProps {
+  heroArticle: NewsArticleSummary;
+  listArticles: NewsArticleSummary[];
+  onArticlePress: (id: string) => void;
 }
 
-function LoadedBody({ onArticlePress }: ArticleListProps) {
+function LoadedBody({ heroArticle, listArticles, onArticlePress }: LoadedBodyProps) {
   return (
     <View style={styles.loadedBody}>
-      <Pressable onPress={onArticlePress}>
-        <HeroCard article={HERO_ARTICLE} />
+      <Pressable onPress={() => onArticlePress(heroArticle.id)}>
+        <HeroCard article={toHeroProps(heroArticle)} />
       </Pressable>
       <View style={styles.loadedArticleList}>
-        {LIST_ARTICLES.map((article) => (
-          <Pressable key={article.id} onPress={onArticlePress}>
-            <ArticleCard article={article} />
+        {listArticles.map((article) => (
+          <Pressable key={article.id} onPress={() => onArticlePress(article.id)}>
+            <ArticleCard article={toCardProps(article)} />
           </Pressable>
         ))}
       </View>
@@ -112,13 +139,17 @@ function LoadedBody({ onArticlePress }: ArticleListProps) {
 
 // ─── Offline body ─────────────────────────────────────────────────────────────
 
-function OfflineBody({ onArticlePress }: ArticleListProps) {
+interface OfflineBodyProps {
+  onArticlePress: (id: string) => void;
+}
+
+function OfflineBody({ onArticlePress }: OfflineBodyProps) {
   return (
     <View style={styles.offlineBody}>
       <SavedArticlesBanner />
       <View style={styles.offlineArticleList}>
-        {LIST_ARTICLES.map((article) => (
-          <Pressable key={article.id} onPress={onArticlePress}>
+        {MOCK_OFFLINE_ARTICLES.map((article) => (
+          <Pressable key={article.id} onPress={() => onArticlePress(article.id)}>
             <ArticleCard article={article} />
           </Pressable>
         ))}
@@ -204,17 +235,47 @@ const STATE_LABELS: Record<NewsState, string> = {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function NewsScreen() {
-  const [newsState, setNewsState] = useState<NewsState>('loaded');
+  const [newsState, setNewsState] = useState<NewsState>('skeleton');
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
+  const [heroApiArticle, setHeroApiArticle] = useState<NewsArticleSummary | null>(null);
+  const [listApiArticles, setListApiArticles] = useState<NewsArticleSummary[]>([]);
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const setSelectedArticle = useArticleStore((s) => s.setSelectedArticle);
 
   const showFilterRow = newsState === 'loaded' || newsState === 'offline' || newsState === 'session';
 
-  function handleArticlePress() {
-    setSelectedArticle(MOCK_EXTENDED_ARTICLE);
-    router.push('/article-reader');
+  const fetchNews = useCallback(async (category?: string) => {
+    setNewsState('skeleton');
+    try {
+      const data = await getNews(category ? { category } : undefined);
+      const articles = data.articles ?? [];
+      const hero = articles.find((a) => a.isUrgent) ?? articles[0] ?? null;
+      const list = hero ? articles.filter((a) => a.id !== hero.id) : articles;
+      setHeroApiArticle(hero);
+      setListApiArticles(list);
+      setNewsState(articles.length === 0 ? 'empty' : 'loaded');
+    } catch (err: unknown) {
+      if (isAxiosError(err)) {
+        if (err.response?.status === 401) setNewsState('session');
+        else if (!err.response) setNewsState('offline');
+        else setNewsState('error');
+      } else {
+        setNewsState('error');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNews();
+  }, [fetchNews]);
+
+  function handleFilterChange(filter: FilterKey) {
+    setActiveFilter(filter);
+    fetchNews(filter === 'all' ? undefined : FILTER_CATEGORY[filter]);
+  }
+
+  function handleArticlePress(id: string) {
+    router.push({ pathname: '/article-reader', params: { id } });
   }
 
   return (
@@ -236,14 +297,18 @@ export default function NewsScreen() {
 
         {/* Filter row — loaded, offline, and session states */}
         {showFilterRow && (
-          <FilterRow activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+          <FilterRow activeFilter={activeFilter} onFilterChange={handleFilterChange} />
         )}
 
         {/* Body content per state */}
         {newsState === 'skeleton' && <NewsSkeleton />}
 
-        {(newsState === 'loaded' || newsState === 'session') && (
-          <LoadedBody onArticlePress={handleArticlePress} />
+        {(newsState === 'loaded' || newsState === 'session') && heroApiArticle && (
+          <LoadedBody
+            heroArticle={heroApiArticle}
+            listArticles={listApiArticles}
+            onArticlePress={handleArticlePress}
+          />
         )}
 
         {newsState === 'offline' && (
@@ -253,7 +318,7 @@ export default function NewsScreen() {
         {newsState === 'empty' && <EmptyBody />}
 
         {newsState === 'error' && (
-          <ErrorBody onRetry={() => console.log('[NEWS] retry')} />
+          <ErrorBody onRetry={() => fetchNews(FILTER_CATEGORY[activeFilter])} />
         )}
 
         <View style={{ height: 120 }} />

@@ -2,6 +2,7 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { API_BASE_URL, TIMEOUT } from '@/constants/api';
 import { useAuthStore, REFRESH_KEY } from '@/stores/authStore';
+import type { StudentProfile } from '@/stores/authStore';
 
 export type { StudentProfile } from '@/stores/authStore';
 
@@ -69,6 +70,43 @@ export interface NewsItem {
   bookmarked: boolean;
   read: boolean;
   cachedAt: string;
+}
+
+export interface ScheduleEntry {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  room: string;
+  professorName: string;
+  type: string;
+  subject: {
+    id: string;
+    nameFr: string;
+    nameAr: string;
+    code: string;
+    coefficient: number;
+  };
+}
+
+export interface ScheduleResponse {
+  semesterId: string;
+  entries: ScheduleEntry[];
+}
+
+export interface NewsArticleSummary {
+  id: string;
+  titleFr: string;
+  titleAr: string;
+  category: string;
+  heroImageUrl: string | null;
+  readTimeMinutes: number;
+  isUrgent: boolean;
+  publishedAt: string;
+}
+
+export interface NewsListResponse {
+  articles: NewsArticleSummary[];
 }
 
 export interface NewsParams {
@@ -170,22 +208,125 @@ instance.interceptors.response.use(
 
 // ── Endpoint helpers ─────────────────────────────────────────────────────────
 
+export const getStudentMe = () =>
+  instance.get<StudentProfile>('/student/me').then((r) => r.data);
+
 export const getSchedule = (semesterId?: string) =>
   instance
-    .get<{ semesterId: string; entries: object[] }>('/student/schedule', {
+    .get<ScheduleResponse>('/student/schedule', {
       params: semesterId ? { semesterId } : undefined,
     })
     .then((r) => r.data);
+
+export interface GradeItem {
+  id: string;
+  noteCc: number | null;
+  noteCf: number | null;
+  noteFinale: number | null;
+  isValidated: boolean;
+  subject: {
+    id: string;
+    nameFr: string;
+    nameAr: string;
+    code: string;
+    coefficient: number;
+    credits: number;
+  };
+}
+
+export interface GradesResponse {
+  semester: { id: string; label: string; academicYear: string };
+  gpa: number | null;
+  mention: string | null;
+  credits: { earned: number; total: number };
+  grades: GradeItem[];
+}
+
+export interface SemesterSummary {
+  id: string;
+  label: string;
+  academicYear: string;
+  gpa: number | null;
+  mention: string | null;
+  credits: { earned: number; total: number };
+}
+
+export interface AllSemestersResponse {
+  semesters: SemesterSummary[];
+}
 
 export const getGrades = (semesterId?: string) =>
   instance
-    .get<object>('/student/grades', {
+    .get<GradesResponse>('/student/grades', {
       params: semesterId ? { semesterId } : undefined,
     })
     .then((r) => r.data);
 
+export const getGradesAllSemesters = () =>
+  instance
+    .get<AllSemestersResponse>('/student/grades', {
+      params: { allSemesters: 'true' },
+    })
+    .then((r) => r.data);
+
+// ── Attendance ───────────────────────────────────────────────────────────────
+
+export interface AttendanceSubject {
+  subjectCode: string;
+  nameFr: string;
+  percentage: number;
+  present: number;
+  total: number;
+  remaining: number;
+}
+
+export interface AttendanceApiResponse {
+  overall: {
+    percentage: number;
+    absent: number;
+    total: number;
+  };
+  subjects: AttendanceSubject[];
+}
+
 export const getAttendance = () =>
-  instance.get<object>('/student/attendance').then((r) => r.data);
+  instance.get<AttendanceApiResponse>('/student/attendance').then((r) => r.data);
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+export interface ApiNotification {
+  id: string;
+  type: string;
+  titleFr: string;
+  bodyFr: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface NotificationsApiResponse {
+  notifications: ApiNotification[];
+}
+
+export const getNotifications = () =>
+  instance
+    .get<NotificationsApiResponse>('/student/notifications')
+    .then((r) => r.data);
+
+export const markAllNotificationsRead = () =>
+  instance.patch('/student/notifications/read-all').then((r) => r.data);
+
+// ── Preferences ───────────────────────────────────────────────────────────────
+
+export interface PreferencesPayload {
+  notifGrades?: boolean;
+  notifCourses?: boolean;
+  notifAttendance?: boolean;
+  quietHoursStart?: string | null;
+  quietHoursEnd?: string | null;
+}
+
+export const patchPreferences = (payload: PreferencesPayload) =>
+  instance.patch('/student/preferences', payload).then((r) => r.data);
 
 export const getQrToken = () =>
   instance
@@ -193,9 +334,26 @@ export const getQrToken = () =>
     .then((r) => r.data);
 
 export const getNews = (params?: NewsParams) =>
-  instance.get<NewsItem[]>('/news', { params }).then((r) => r.data);
+  instance.get<NewsListResponse>('/news', { params }).then((r) => r.data);
 
 export const registerFcmToken = (token: string) =>
   instance.post('/notifications/register', { token }).then((r) => r.data);
+
+export interface NewsArticleDetail {
+  id: string;
+  titleFr: string;
+  titleAr: string;
+  bodyFr: string;
+  bodyAr: string;
+  category: string;
+  heroImageUrl: string | null;
+  readTimeMinutes: number;
+  isUrgent: boolean;
+  publishedAt: string;
+  author?: string;
+}
+
+export const getNewsArticle = (id: string) =>
+  instance.get<NewsArticleDetail>(`/news/${id}`).then((r) => r.data);
 
 export default instance;
