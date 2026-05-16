@@ -10,211 +10,254 @@ datasource db {
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
 enum ProgrammeLevel {
+  DUT
   LICENCE
   MASTER
   DOCTORAT
-  BTS
 }
 
 enum StudentStatus {
   ACTIVE
-  INACTIVE
   SUSPENDED
   GRADUATED
 }
 
 enum ScheduleEntryType {
-  COURSE
-  EXAM
+  CM
   TD
   TP
+  EXAM
 }
 
 enum AttendanceStatus {
   PRESENT
   ABSENT
-  LATE
-  EXCUSED
+  JUSTIFIED
 }
 
 enum NotificationType {
-  INFO
-  WARNING
-  EXAM
-  NEWS
+  GRADES
+  SCHEDULE
   ATTENDANCE
+  GENERAL
 }
 
 // ─── Models ──────────────────────────────────────────────────────────────────
 
 model Faculty {
-  id         String      @id @default(cuid())
-  name       String
-  nameAr     String?
+  id         String      @id @default(uuid())
+  nameFr     String      @map("name_fr")
+  nameAr     String      @map("name_ar")
   code       String      @unique
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  email      String
+  phone      String
+  address    String
+  hours      String
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
   programmes Programme[]
+
+  @@map("faculties")
 }
 
 model Programme {
-  id        String         @id @default(cuid())
-  name      String
-  nameAr    String?
-  code      String         @unique
-  level     ProgrammeLevel
-  facultyId String
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  faculty   Faculty        @relation(fields: [facultyId], references: [id])
-  students  Student[]
+  id                String         @id @default(uuid())
+  facultyId         String         @map("faculty_id")
+  nameFr            String         @map("name_fr")
+  nameAr            String         @map("name_ar")
+  code              String         @unique
+  level             ProgrammeLevel
+  durationSemesters Int            @map("duration_semesters")
+  totalCredits      Int            @map("total_credits")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+  faculty           Faculty        @relation(fields: [facultyId], references: [id])
+  students          Student[]
+  subjects          Subject[]
+
+  @@map("programmes")
 }
 
 model Student {
-  id               String             @id @default(cuid())
-  studentId        String             @unique
-  name             String
-  password         String
-  email            String?            @unique
-  programmeId      String
-  year             Int
-  status           StudentStatus      @default(ACTIVE)
-  photoUrl         String?
-  fcmToken         String?
-  failedLoginCount Int                @default(0)
-  lockedUntil      DateTime?
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  programme        Programme          @relation(fields: [programmeId], references: [id])
-  grades           Grade[]
-  scheduleEntries  ScheduleEntry[]
-  attendanceRecords AttendanceRecord[]
-  notifications    Notification[]
-  qrTokens         QrToken[]
-  refreshTokens    RefreshToken[]
+  id                  String             @id @default(uuid())
+  programmeId         String             @map("programme_id")
+  studentIdDisplay    String             @unique @map("student_id_display")
+  firstName           String             @map("first_name")
+  lastName            String             @map("last_name")
+  email               String             @unique
+  photoUrl            String?            @map("photo_url")
+  currentSemester     Int                @map("current_semester")
+  status              StudentStatus      @default(ACTIVE)
+  passwordHash        String             @map("password_hash")
+  failedLoginAttempts Int                @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime?          @map("locked_until")
+  notifGrades         Boolean            @default(true) @map("notif_grades")
+  notifCourses        Boolean            @default(true) @map("notif_courses")
+  notifAttendance     Boolean            @default(true) @map("notif_attendance")
+  quietHoursStart     String?            @map("quiet_hours_start")
+  quietHoursEnd       String?            @map("quiet_hours_end")
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
+  programme           Programme          @relation(fields: [programmeId], references: [id])
+  grades              Grade[]
+  attendanceRecords   AttendanceRecord[]
+  notifications       Notification[]
+  qrTokens            QrToken[]
+  refreshTokens       RefreshToken[]
+
+  @@map("students")
 }
 
 model Semester {
-  id              String          @id @default(cuid())
-  label           String          @unique
-  startDate       DateTime
-  endDate         DateTime
-  isCurrent       Boolean         @default(false)
-  createdAt       DateTime        @default(now())
+  id              String          @id @default(uuid())
+  label           String
+  academicYear    String          @map("academic_year")
+  startDate       DateTime        @map("start_date")
+  endDate         DateTime        @map("end_date")
+  isCurrent       Boolean         @default(false) @map("is_current")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
   subjects        Subject[]
   grades          Grade[]
   scheduleEntries ScheduleEntry[]
+
+  @@map("semesters")
 }
 
 model Subject {
-  id               String             @id @default(cuid())
-  code             String             @unique
-  name             String
-  nameAr           String?
-  coefficient      Int                @default(1)
-  semesterId       String
-  createdAt        DateTime           @default(now())
-  semester         Semester           @relation(fields: [semesterId], references: [id])
-  grades           Grade[]
-  scheduleEntries  ScheduleEntry[]
+  id                String             @id @default(uuid())
+  programmeId       String             @map("programme_id")
+  semesterId        String             @map("semester_id")
+  nameFr            String             @map("name_fr")
+  nameAr            String             @map("name_ar")
+  code              String
+  coefficient       Int
+  credits           Int
+  hoursCm           Float              @default(0) @map("hours_cm")
+  hoursTd           Float              @default(0) @map("hours_td")
+  hoursTp           Float              @default(0) @map("hours_tp")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  updatedAt         DateTime           @updatedAt @map("updated_at")
+  programme         Programme          @relation(fields: [programmeId], references: [id])
+  semester          Semester           @relation(fields: [semesterId], references: [id])
+  grades            Grade[]
+  scheduleEntries   ScheduleEntry[]
   attendanceRecords AttendanceRecord[]
+
+  @@unique([programmeId, semesterId, code])
+  @@map("subjects")
 }
 
 model Grade {
-  id         String   @id @default(cuid())
-  studentId  String
-  subjectId  String
-  semesterId String
-  ccScore    Float?
-  examScore  Float?
-  finalScore Float?
-  passed     Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  student    Student  @relation(fields: [studentId], references: [id])
-  subject    Subject  @relation(fields: [subjectId], references: [id])
-  semester   Semester @relation(fields: [semesterId], references: [id])
+  id          String    @id @default(uuid())
+  studentId   String    @map("student_id")
+  subjectId   String    @map("subject_id")
+  semesterId  String    @map("semester_id")
+  noteCc      Float?    @map("note_cc")
+  noteCf      Float?    @map("note_cf")
+  noteFinale  Float?    @map("note_finale")
+  isValidated Boolean   @default(false) @map("is_validated")
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  student     Student   @relation(fields: [studentId], references: [id])
+  subject     Subject   @relation(fields: [subjectId], references: [id])
+  semester    Semester  @relation(fields: [semesterId], references: [id])
 
   @@unique([studentId, subjectId, semesterId])
+  @@map("grades")
 }
 
 model ScheduleEntry {
-  id           String            @id @default(cuid())
-  studentId    String
-  subjectId    String
-  semesterId   String
-  lecturerName String
-  room         String
-  dayOfWeek    Int
-  startTime    String
-  endTime      String
-  type         ScheduleEntryType @default(COURSE)
-  createdAt    DateTime          @default(now())
-  student      Student           @relation(fields: [studentId], references: [id])
-  subject      Subject           @relation(fields: [subjectId], references: [id])
-  semester     Semester          @relation(fields: [semesterId], references: [id])
+  id            String            @id @default(uuid())
+  subjectId     String            @map("subject_id")
+  semesterId    String            @map("semester_id")
+  dayOfWeek     Int               @map("day_of_week")
+  startTime     String            @map("start_time")
+  endTime       String            @map("end_time")
+  room          String
+  professorName String            @map("professor_name")
+  type          ScheduleEntryType
+  effectiveDate DateTime          @map("effective_date")
+  expiryDate    DateTime?         @map("expiry_date")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  subject       Subject           @relation(fields: [subjectId], references: [id])
+  semester      Semester          @relation(fields: [semesterId], references: [id])
+
+  @@map("schedule_entries")
 }
 
 model AttendanceRecord {
-  id              String           @id @default(cuid())
-  studentId       String
-  subjectId       String
-  sessionsTotal   Int
-  sessionsPresent Int
-  threshold       Float            @default(0.75)
-  status          AttendanceStatus @default(PRESENT)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  student         Student          @relation(fields: [studentId], references: [id])
-  subject         Subject          @relation(fields: [subjectId], references: [id])
+  id               String           @id @default(uuid())
+  studentId        String           @map("student_id")
+  subjectId        String           @map("subject_id")
+  sessionDate      DateTime         @map("session_date")
+  status           AttendanceStatus
+  justificationUrl String?          @map("justification_url")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+  student          Student          @relation(fields: [studentId], references: [id])
+  subject          Subject          @relation(fields: [subjectId], references: [id])
 
-  @@unique([studentId, subjectId])
+  @@unique([studentId, subjectId, sessionDate])
+  @@map("attendance_records")
 }
 
 model Notification {
-  id        String           @id @default(cuid())
-  studentId String
+  id        String           @id @default(uuid())
+  studentId String           @map("student_id")
   type      NotificationType
-  title     String
-  body      String
-  read      Boolean          @default(false)
-  createdAt DateTime         @default(now())
+  titleFr   String           @map("title_fr")
+  titleAr   String           @map("title_ar")
+  bodyFr    String           @map("body_fr")
+  bodyAr    String           @map("body_ar")
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
   student   Student          @relation(fields: [studentId], references: [id])
 
   @@index([createdAt])
+  @@map("notifications")
 }
 
 model NewsArticle {
-  id          String   @id @default(cuid())
-  title       String
-  titleAr     String?
-  body        String
-  bodyAr      String?
-  category    String
-  imageUrl    String?
-  publishedAt DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(uuid())
+  titleFr         String   @map("title_fr")
+  titleAr         String   @map("title_ar")
+  bodyFr          String   @map("body_fr")
+  bodyAr          String   @map("body_ar")
+  heroImageUrl    String?  @map("hero_image_url")
+  category        String
+  readTimeMinutes Int      @default(3) @map("read_time_minutes")
+  isUrgent        Boolean  @default(false) @map("is_urgent")
+  publishedAt     DateTime @map("published_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   @@index([publishedAt])
+  @@map("news_articles")
 }
 
 model QrToken {
-  id        String   @id @default(cuid())
-  studentId String
-  token     String   @unique
-  expiresAt DateTime
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id        String   @id @default(uuid())
+  studentId String   @map("student_id")
+  jwtToken  String   @map("jwt_token")
+  issuedAt  DateTime @map("issued_at")
+  expiresAt DateTime @map("expires_at")
   student   Student  @relation(fields: [studentId], references: [id])
+
+  @@map("qr_tokens")
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
-  studentId String
-  token     String   @unique
-  expiresAt DateTime
-  revoked   Boolean  @default(false)
-  createdAt DateTime @default(now())
-  student   Student  @relation(fields: [studentId], references: [id])
+  id         String   @id @default(uuid())
+  studentId  String   @map("student_id")
+  tokenHash  String   @map("token_hash")
+  deviceName String?  @map("device_name")
+  issuedAt   DateTime @map("issued_at")
+  expiresAt  DateTime @map("expires_at")
+  isRevoked  Boolean  @default(false) @map("is_revoked")
+  student    Student  @relation(fields: [studentId], references: [id])
+
+  @@map("refresh_tokens")
 }
