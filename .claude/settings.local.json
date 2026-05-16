@@ -34,7 +34,24 @@
       "Bash(npx tsx *)",
       "Bash(curl -s http://localhost:3000/health)",
       "Bash(kill %1)",
-      "Bash(npx prisma *)"
+      "Bash(npx prisma *)",
+      "Bash(timeout 8 npm run dev)",
+      "Bash(npm run *)",
+      "Bash(curl -sv http://localhost:3000/health)",
+      "Bash(jobs)",
+      "Bash(wait)",
+      "Bash(curl -si http://localhost:3000/health)",
+      "Bash(kill %1 %2 %3)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(curl -sD - http://localhost:3000/health)",
+      "Bash(netstat -ano)",
+      "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue | Select-Object -Property LocalAddress,LocalPort,State,OwningProcess\")",
+      "Bash(powershell -Command \"Get-Process -Id 22604 | Select-Object Id, Name, Path, CommandLine\")",
+      "Bash(tasklist /FI \"PID eq 22604\")",
+      "Bash(powershell -Command \"Get-WmiObject Win32_Process -Filter 'ProcessId=22604' | Select-Object ProcessId, Name, CommandLine\")",
+      "Bash(taskkill /F /PID 22604)",
+      "PowerShell(Stop-Process -Id 22604 -Force -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue)"
     ]
   }
 }
