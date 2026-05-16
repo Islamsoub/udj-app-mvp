@@ -7,69 +7,214 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Student {
-  id           String       @id @default(cuid())
-  studentId    String       @unique
-  name         String
-  password     String
-  programme    String
-  faculty      String
-  year         Int
-  photoUrl     String?
-  fcmToken     String?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  schedules    Schedule[]
-  grades       Grade[]
-  attendance   Attendance[]
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+enum ProgrammeLevel {
+  LICENCE
+  MASTER
+  DOCTORAT
+  BTS
 }
 
-model Schedule {
-  id           String   @id @default(cuid())
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  GRADUATED
+}
+
+enum ScheduleEntryType {
+  COURSE
+  EXAM
+  TD
+  TP
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  EXAM
+  NEWS
+  ATTENDANCE
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model Faculty {
+  id         String      @id @default(cuid())
+  name       String
+  nameAr     String?
+  code       String      @unique
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  programmes Programme[]
+}
+
+model Programme {
+  id        String         @id @default(cuid())
+  name      String
+  nameAr    String?
+  code      String         @unique
+  level     ProgrammeLevel
+  facultyId String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  faculty   Faculty        @relation(fields: [facultyId], references: [id])
+  students  Student[]
+}
+
+model Student {
+  id               String             @id @default(cuid())
+  studentId        String             @unique
+  name             String
+  password         String
+  email            String?            @unique
+  programmeId      String
+  year             Int
+  status           StudentStatus      @default(ACTIVE)
+  photoUrl         String?
+  fcmToken         String?
+  failedLoginCount Int                @default(0)
+  lockedUntil      DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  programme        Programme          @relation(fields: [programmeId], references: [id])
+  grades           Grade[]
+  scheduleEntries  ScheduleEntry[]
+  attendanceRecords AttendanceRecord[]
+  notifications    Notification[]
+  qrTokens         QrToken[]
+  refreshTokens    RefreshToken[]
+}
+
+model Semester {
+  id              String          @id @default(cuid())
+  label           String          @unique
+  startDate       DateTime
+  endDate         DateTime
+  isCurrent       Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  subjects        Subject[]
+  grades          Grade[]
+  scheduleEntries ScheduleEntry[]
+}
+
+model Subject {
+  id               String             @id @default(cuid())
+  code             String             @unique
+  name             String
+  nameAr           String?
+  coefficient      Int                @default(1)
+  semesterId       String
+  createdAt        DateTime           @default(now())
+  semester         Semester           @relation(fields: [semesterId], references: [id])
+  grades           Grade[]
+  scheduleEntries  ScheduleEntry[]
+  attendanceRecords AttendanceRecord[]
+}
+
+model Grade {
+  id         String   @id @default(cuid())
+  studentId  String
+  subjectId  String
+  semesterId String
+  ccScore    Float?
+  examScore  Float?
+  finalScore Float?
+  passed     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  student    Student  @relation(fields: [studentId], references: [id])
+  subject    Subject  @relation(fields: [subjectId], references: [id])
+  semester   Semester @relation(fields: [semesterId], references: [id])
+
+  @@unique([studentId, subjectId, semesterId])
+}
+
+model ScheduleEntry {
+  id           String            @id @default(cuid())
   studentId    String
-  subjectName  String
-  subjectCode  String
+  subjectId    String
+  semesterId   String
   lecturerName String
   room         String
   dayOfWeek    Int
   startTime    String
   endTime      String
-  semester     String
-  isExam       Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  student      Student  @relation(fields: [studentId], references: [studentId])
+  type         ScheduleEntryType @default(COURSE)
+  createdAt    DateTime          @default(now())
+  student      Student           @relation(fields: [studentId], references: [id])
+  subject      Subject           @relation(fields: [subjectId], references: [id])
+  semester     Semester          @relation(fields: [semesterId], references: [id])
 }
 
-model Grade {
-  id          String   @id @default(cuid())
-  studentId   String
-  subjectCode String
-  semester    String
-  ccScore     Float?
-  examScore   Float?
-  finalScore  Float?
-  coefficient Int
-  passed      Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  student     Student  @relation(fields: [studentId], references: [studentId])
-}
-
-model News {
-  id          String   @id @default(cuid())
-  title       String
-  body        String
-  category    String
-  publishedAt DateTime @default(now())
-  createdAt   DateTime @default(now())
-}
-
-model Attendance {
-  id              String   @id @default(cuid())
+model AttendanceRecord {
+  id              String           @id @default(cuid())
   studentId       String
-  subjectCode     String
+  subjectId       String
   sessionsTotal   Int
   sessionsPresent Int
-  threshold       Float    @default(0.75)
-  createdAt       DateTime @default(now())
-  student         Student  @relation(fields: [studentId], references: [studentId])
+  threshold       Float            @default(0.75)
+  status          AttendanceStatus @default(PRESENT)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  student         Student          @relation(fields: [studentId], references: [id])
+  subject         Subject          @relation(fields: [subjectId], references: [id])
+
+  @@unique([studentId, subjectId])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  studentId String
+  type      NotificationType
+  title     String
+  body      String
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  student   Student          @relation(fields: [studentId], references: [id])
+
+  @@index([createdAt])
+}
+
+model NewsArticle {
+  id          String   @id @default(cuid())
+  title       String
+  titleAr     String?
+  body        String
+  bodyAr      String?
+  category    String
+  imageUrl    String?
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([publishedAt])
+}
+
+model QrToken {
+  id        String   @id @default(cuid())
+  studentId String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  student   Student  @relation(fields: [studentId], references: [id])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  studentId String
+  token     String   @unique
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  student   Student  @relation(fields: [studentId], references: [id])
 }
