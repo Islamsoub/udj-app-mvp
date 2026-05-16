@@ -31,20 +31,19 @@
     "biometricPrompt": "Connexion biométrique"
   },
   "onboarding": {
-    "step1Title": "Choisissez votre langue",
-    "step2Title": "Notifications",
-    "step3Title": "Tableau de bord",
-    "notifCourses": "Cours",
-    "notifGrades": "Notes",
-    "notifNews": "Actualités",
-    "widgetAgenda": "Agenda",
-    "widgetStats": "Notes",
-    "widgetNews": "Actualités",
+    "skip": "Passer",
     "next": "Suivant",
-    "back": "Retour",
     "start": "Commencer",
-    "rtlRestart": "L'application doit redémarrer pour activer l'arabe. Voulez-vous continuer ?",
-    "restart": "Redémarrer"
+    "step1Title": "Votre emploi du temps, toujours à jour",
+    "step1Body": "Consultez vos cours, salles et horaires en un instant — même sans connexion.",
+    "step2Title": "Suivez vos résultats académiques",
+    "step2Body": "Notes, GPA et crédits disponibles dès leur publication. Calculez la note qu'il vous faut.",
+    "step3Title": "Votre identité universitaire, dans votre poche",
+    "step3Body": "Carte étudiante sécurisée avec QR rotatif. Valide partout sur le campus, même hors-ligne.",
+    "step4Title": "Choisissez votre langue",
+    "step4Body": "Vous pourrez changer à tout moment dans les paramètres.",
+    "langFr": "Français",
+    "langAr": "العربية"
   },
   "tabs": {
     "home": "Accueil",
