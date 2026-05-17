@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
-import { isAxiosError } from 'axios';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
@@ -24,34 +23,38 @@ import { Course } from '@/components/schedule/CourseCard';
 import { CourseDetailSheet } from '@/components/schedule/CourseDetailSheet';
 import { useCourseDetailStore, ExtendedCourse } from '@/stores/courseDetailStore';
 import { CourseStatus } from '@/components/schedule/StatusPill';
-import { getSchedule, ScheduleEntry } from '@/services/api';
+import { getSchedule, Schedule } from '@/services/api';
+import { useOfflineQuery } from '@/hooks/useOfflineQuery';
+import { getFullSemesterSchedule, upsertSchedules } from '@/services/db';
+import { mapScheduleToCache } from '@/services/cacheMappers';
+import { useAuthStore } from '@/stores/authStore';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ScheduleState = 'skeleton' | 'loaded' | 'offline' | 'empty' | 'error' | 'session';
 
-// ─── Offline mock (placeholder until SQLite cache is wired) ──────────────────
+// ─── Convert flat Schedule cache → ScheduleEntry ──────────────────────────────
 
-const MOCK_OFFLINE_COURSES: Course[] = [
-  {
-    id: '1',
-    subject: 'Mathématiques Générales L2',
-    teacher: 'Pr. Abdi Hassan',
-    room: 'Amphi A1',
-    start: '08:00',
-    end: '10:00',
-    status: 'past',
-  },
-  {
-    id: '3',
-    subject: 'Algorithmique et Structures',
-    teacher: 'Dr. Fadumo Ali',
-    room: 'Labo 3',
-    start: '14:00',
-    end: '16:00',
-    status: 'upcoming',
-  },
-];
+import type { ScheduleEntry } from '@/services/api';
+
+function scheduleToEntry(s: Schedule): ScheduleEntry {
+  return {
+    id: s.id,
+    dayOfWeek: s.dayOfWeek,
+    startTime: s.startTime,
+    endTime: s.endTime,
+    room: s.room,
+    professorName: s.lecturerName,
+    type: s.isExam ? 'EXAM' : 'CM',
+    subject: {
+      id: s.subjectCode,
+      nameFr: s.subjectName,
+      nameAr: s.subjectName,
+      code: s.subjectCode,
+      coefficient: s.coefficient,
+    },
+  };
+}
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
@@ -318,13 +321,19 @@ function LoadedTimeline({ entries, onCoursePress }: LoadedTimelineProps) {
 
 // ─── Offline body ──────────────────────────────────────────────────────────────
 
-function OfflineBody() {
+function OfflineBody({ courses }: { courses: Course[] }) {
   return (
     <View style={styles.offlineBody}>
       <CacheBanner />
-      {MOCK_OFFLINE_COURSES.map((course) => (
-        <OfflineCourseCard key={course.id} course={course} />
-      ))}
+      {courses.length > 0 ? (
+        courses.map((course) => (
+          <OfflineCourseCard key={course.id} course={course} />
+        ))
+      ) : (
+        <View style={styles.offlineEmpty}>
+          <Text style={styles.offlineEmptyText}>Aucun cours en cache pour ce jour</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -344,44 +353,66 @@ const STATE_LABELS: Record<ScheduleState, string> = {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function ScheduleScreen() {
-  const [schedState, setSchedState] = useState<ScheduleState>('skeleton');
+  const [devState, setDevState] = useState<ScheduleState | null>(null);
   const [selectedDay, setSelectedDay] = useState(() => new Date().getDay());
   const [courseDetailVisible, setCourseDetailVisible] = useState(false);
-  const [scheduleEntries, setScheduleEntries] = useState<ScheduleEntry[]>([]);
   const insets = useSafeAreaInsets();
 
   const setSelectedCourse = useCourseDetailStore((s) => s.setSelectedCourse);
+  const studentId = useAuthStore.getState().student?.id ?? 'me';
 
-  const fetchSchedule = useCallback(async () => {
-    setSchedState('skeleton');
-    try {
-      const data = await getSchedule();
-      const entries = data.entries ?? [];
-      setScheduleEntries(entries);
-      setSchedState(entries.length === 0 ? 'empty' : 'loaded');
-    } catch (err: unknown) {
-      if (isAxiosError(err)) {
-        if (err.response?.status === 401) {
-          setSchedState('session');
-        } else if (!err.response) {
-          setSchedState('offline');
-        } else {
-          setSchedState('error');
-        }
-      } else {
-        setSchedState('error');
-      }
-    }
-  }, []);
+  // ─── Offline query ──────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    fetchSchedule();
-  }, [fetchSchedule]);
+  const hook = useOfflineQuery<Schedule[]>({
+    cacheKey: 'schedule',
+    getCached: () => getFullSemesterSchedule(),
+    fetchFresh: async () => {
+      const res = await getSchedule();
+      return mapScheduleToCache(res.entries, studentId, res.semesterId);
+    },
+    updateCache: (data) => upsertSchedules(data),
+  });
+
+  // ─── Derive entries ─────────────────────────────────────────────────────────
+
+  const allEntries: ScheduleEntry[] = useMemo(
+    () => (hook.data ?? []).map(scheduleToEntry),
+    [hook.data],
+  );
 
   const dayEntries = useMemo(
-    () => buildTimelineEntries(scheduleEntries.filter((e) => e.dayOfWeek === selectedDay)),
-    [scheduleEntries, selectedDay],
+    () => buildTimelineEntries(allEntries.filter((e) => e.dayOfWeek === selectedDay)),
+    [allEntries, selectedDay],
   );
+
+  const offlineDayCourses: Course[] = useMemo(
+    () =>
+      (hook.data ?? [])
+        .filter((s) => s.dayOfWeek === selectedDay)
+        .sort((a, b) => a.startTime.localeCompare(b.startTime))
+        .map((s) => ({
+          id: s.id,
+          subject: s.subjectName,
+          teacher: s.lecturerName,
+          room: s.room,
+          start: s.startTime,
+          end: s.endTime,
+          status: computeStatus(s.startTime, s.endTime),
+        })),
+    [hook.data, selectedDay],
+  );
+
+  // ─── Derive screen state ────────────────────────────────────────────────────
+
+  const hookState: ScheduleState = useMemo(() => {
+    if (hook.isLoading && !hook.data) return 'skeleton';
+    if (hook.isOffline && hook.data) return 'offline';
+    if (hook.data) return dayEntries.length === 0 && !hook.isStale ? 'empty' : 'loaded';
+    if (hook.error) return 'error';
+    return 'skeleton';
+  }, [hook.isLoading, hook.data, hook.isOffline, hook.error, hook.isStale, dayEntries.length]);
+
+  const schedState = devState ?? hookState;
 
   const handleCoursePress = (course: ExtendedCourse) => {
     setSelectedCourse(course);
@@ -389,10 +420,7 @@ export default function ScheduleScreen() {
   };
 
   return (
-    <View
-      style={styles.root}
-      onLayout={(e) => console.log('[DEV] root layout:', JSON.stringify(e.nativeEvent.layout))}
-    >
+    <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
 
       <OfflineBanner />
@@ -418,7 +446,7 @@ export default function ScheduleScreen() {
           <LoadedTimeline entries={dayEntries} onCoursePress={handleCoursePress} />
         )}
 
-        {schedState === 'offline' && <OfflineBody />}
+        {schedState === 'offline' && <OfflineBody courses={offlineDayCourses} />}
 
         {schedState === 'empty' && (
           <EmptyStateBody
@@ -429,8 +457,8 @@ export default function ScheduleScreen() {
 
         {schedState === 'error' && (
           <ErrorStateBody
-            onRetry={fetchSchedule}
-            onViewCache={() => setSchedState('offline')}
+            onRetry={() => hook.refetch()}
+            onViewCache={() => setDevState('offline')}
           />
         )}
 
@@ -439,7 +467,7 @@ export default function ScheduleScreen() {
 
       <SessionExpiredModal
         visible={schedState === 'session'}
-        onContinueOffline={() => setSchedState('offline')}
+        onContinueOffline={() => setDevState('offline')}
       />
 
       <CourseDetailSheet
@@ -451,7 +479,7 @@ export default function ScheduleScreen() {
         states={ALL_STATES}
         labels={STATE_LABELS}
         current={schedState}
-        onChange={setSchedState}
+        onChange={(s) => setDevState(s)}
       />
     </View>
   );
@@ -514,6 +542,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sp16,
     paddingTop: 14,
     gap: 14,
+  },
+  offlineEmpty: {
+    padding: spacing.sp16,
+    alignItems: 'center',
+  },
+  offlineEmptyText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontFamily: fonts.sans,
   },
 
   // ── Center states (empty / error) — paddingTop set per-state in component

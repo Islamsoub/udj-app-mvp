@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { isAxiosError } from 'axios';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -23,10 +22,15 @@ import {
 import { AttendanceCard } from '@/components/attendance/AttendanceCard';
 import { AttendanceSkeleton } from '@/components/attendance/AttendanceSkeleton';
 import {
-  getAttendance,
+  getAttendance as getAttendanceApi,
   AttendanceApiResponse,
   AttendanceSubject,
+  Attendance,
 } from '@/services/api';
+import { useOfflineQuery } from '@/hooks/useOfflineQuery';
+import { getAttendance as getCachedAttendance, upsertAttendance } from '@/services/db';
+import { mapAttendanceToCache } from '@/services/cacheMappers';
+import { useAuthStore } from '@/stores/authStore';
 
 // ─── Projection helper ────────────────────────────────────────────────────────
 
@@ -160,33 +164,61 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
 export default function AttendanceScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [screenState, setScreenState] = useState<AttendanceState>('skeleton');
-  const [attendanceData, setAttendanceData] = useState<AttendanceApiResponse | null>(null);
+  const [devState, setDevState] = useState<AttendanceState | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  const studentId = useAuthStore.getState().student?.id ?? 'me';
 
-    setScreenState('skeleton');
+  // ─── Offline query ──────────────────────────────────────────────────────────
 
-    getAttendance()
-      .then((data) => {
-        if (cancelled) return;
-        setAttendanceData(data);
-        setScreenState(data.subjects.length === 0 ? 'empty' : 'loaded');
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        if (isAxiosError(err)) {
-          if (err.response?.status === 401) setScreenState('session');
-          else if (!err.response) setScreenState('offline');
-          else setScreenState('error');
-        } else {
-          setScreenState('error');
-        }
-      });
+  const hook = useOfflineQuery<Attendance[]>({
+    cacheKey: 'attendance',
+    getCached: async () => {
+      const cached = await getCachedAttendance();
+      return cached.length > 0 ? cached : null;
+    },
+    fetchFresh: async () => {
+      const res = await getAttendanceApi();
+      return mapAttendanceToCache(res.subjects, studentId);
+    },
+    updateCache: (data) => upsertAttendance(data),
+  });
 
-    return () => { cancelled = true; };
-  }, []);
+  // ─── Reconstruct AttendanceApiResponse from cached Attendance[] ─────────────
+
+  const attendanceData: AttendanceApiResponse | null = useMemo(() => {
+    const items = hook.data;
+    if (!items || items.length === 0) return null;
+    const totalPresent = items.reduce((s, a) => s + a.sessionsPresent, 0);
+    const totalSessions = items.reduce((s, a) => s + a.sessionsTotal, 0);
+    const overallPct = totalSessions > 0 ? Math.round(totalPresent / totalSessions * 100) : 0;
+    return {
+      overall: {
+        percentage: overallPct,
+        absent: totalSessions - totalPresent,
+        total: totalSessions,
+      },
+      subjects: items.map((a): AttendanceSubject => ({
+        subjectCode: a.subjectCode,
+        nameFr: a.subjectName,
+        percentage: a.percentage,
+        present: a.sessionsPresent,
+        total: a.sessionsTotal,
+        remaining: a.sessionsRemaining,
+      })),
+    };
+  }, [hook.data]);
+
+  // ─── Derive screen state ────────────────────────────────────────────────────
+
+  const hookState: AttendanceState = useMemo(() => {
+    if (hook.isLoading && !hook.data) return 'skeleton';
+    if (hook.isOffline && hook.data) return 'offline';
+    if (hook.data) return hook.data.length === 0 && !hook.isStale ? 'empty' : 'loaded';
+    if (hook.error) return 'error';
+    return 'skeleton';
+  }, [hook.isLoading, hook.data, hook.isOffline, hook.error, hook.isStale]);
+
+  const screenState = devState ?? hookState;
 
   const overall = attendanceData?.overall ?? { percentage: 0, absent: 0, total: 0 };
   const headerState = screenState === 'skeleton' ? 'skeleton' : 'loaded';
@@ -220,15 +252,7 @@ export default function AttendanceScreen() {
         {showCards && attendanceData != null && <CardsBody data={attendanceData} />}
         {screenState === 'empty' && <EmptyBody />}
         {screenState === 'error' && (
-          <ErrorBody onRetry={() => {
-            setScreenState('skeleton');
-            getAttendance()
-              .then((data) => {
-                setAttendanceData(data);
-                setScreenState(data.subjects.length === 0 ? 'empty' : 'loaded');
-              })
-              .catch(() => setScreenState('error'));
-          }} />
+          <ErrorBody onRetry={() => hook.refetch()} />
         )}
 
         <View style={{ height: 120 }} />
@@ -236,14 +260,14 @@ export default function AttendanceScreen() {
 
       <SessionExpiredModal
         visible={screenState === 'session'}
-        onContinueOffline={() => setScreenState('offline')}
+        onContinueOffline={() => setDevState('offline')}
       />
 
       <DevSwitcher
         states={ALL_STATES}
         labels={STATE_LABELS}
         current={screenState}
-        onChange={setScreenState}
+        onChange={(s) => setDevState(s)}
       />
     </View>
   );

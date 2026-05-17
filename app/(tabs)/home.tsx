@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,15 +17,29 @@ import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { CourseDetailSheet } from '@/components/schedule/CourseDetailSheet';
 import { useCourseDetailStore, ExtendedCourse } from '@/stores/courseDetailStore';
-import { getStudentMe, getSchedule, getNews, ScheduleEntry, NewsArticleSummary } from '@/services/api';
-
+import { useAuthStore } from '@/stores/authStore';
+import { getStudentMe, getSchedule, getNews, Schedule, NewsItem } from '@/services/api';
+import type { StudentProfileCache } from '@/services/api';
+import { useOfflineQuery } from '@/hooks/useOfflineQuery';
+import {
+  getStudentProfile,
+  getFullSemesterSchedule,
+  getCachedNews,
+  upsertProfile,
+  upsertSchedules,
+  upsertNews,
+} from '@/services/db';
+import {
+  mapProfileToCache,
+  mapScheduleToCache,
+  mapNewsToCache,
+} from '@/services/cacheMappers';
 
 type HomeState = 'loaded' | 'error' | 'empty' | 'skeleton' | 'offline';
 
-// ─── Agenda mock data ─────────────────────────────────────────────────────────
+// ─── Agenda card display props ────────────────────────────────────────────────
 
-interface MockAgendaItem {
-  // AgendaCard display props
+interface AgendaCardData {
   id: string;
   accentColor: string;
   time: string;
@@ -37,13 +51,12 @@ interface MockAgendaItem {
   statusColor?: string;
   statusBorder?: string;
   isOffline?: boolean;
-  // ExtendedCourse fields
   courseStatus: 'active' | 'past' | 'upcoming';
   code: string;
   coefficient: number;
 }
 
-function toExtendedCourse(item: MockAgendaItem): ExtendedCourse {
+function toExtendedCourse(item: AgendaCardData): ExtendedCourse {
   const parts = item.time.split(' - ');
   return {
     id: item.id,
@@ -58,89 +71,12 @@ function toExtendedCourse(item: MockAgendaItem): ExtendedCourse {
   };
 }
 
-const MOCK_AGENDA_LOADED: MockAgendaItem[] = [
-  {
-    id: 'home-1',
-    accentColor: colors.jade400,
-    time: '08:00 - 10:00',
-    course: 'Mathématiques Générales L2',
-    teacher: 'Pr. Abdi Hassan',
-    location: 'Amphi A1',
-    statusLabel: 'Présent',
-    statusBg: 'rgba(29,158,117,0.15)',
-    statusColor: colors.jade400,
-    courseStatus: 'active',
-    code: 'MAT-201',
-    coefficient: 4,
-  },
-  {
-    id: 'home-2',
-    accentColor: colors.exam,
-    time: '10:30 - 12:30',
-    course: 'Algorithmique et Structures',
-    teacher: 'Dr. Fadumo Ali',
-    location: 'Labo 3',
-    statusLabel: 'Examen',
-    statusBg: 'rgba(139,92,246,0.15)',
-    statusColor: colors.exam,
-    statusBorder: colors.exam,
-    courseStatus: 'upcoming',
-    code: 'INFO-301',
-    coefficient: 4,
-  },
-  {
-    id: 'home-3',
-    accentColor: colors.info,
-    time: '14:00 - 16:00',
-    course: 'Physique Quantique L2',
-    teacher: 'Pr. Mohamed Wais',
-    location: 'Salle 204',
-    courseStatus: 'upcoming',
-    code: 'PHY-202',
-    coefficient: 3,
-  },
-];
-
-const MOCK_AGENDA_OFFLINE: MockAgendaItem = {
-  id: 'home-offline-1',
-  accentColor: colors.jade400,
-  time: '08:00 - 10:00',
-  course: 'Mathématiques Générales L2',
-  teacher: 'Pr. Abdi Hassan',
-  location: 'Amphi A1',
-  statusLabel: 'Confirmé (hors-ligne)',
-  statusBg: colors.background,
-  statusColor: colors.textSecondary,
-  isOffline: true,
-  courseStatus: 'upcoming',
-  code: 'MAT-201',
-  coefficient: 4,
-};
-
-// ─── API data shape ───────────────────────────────────────────────────────────
-
-interface HomeData {
-  firstName: string;
-  gpa: number | null;
-  mention: string | null;
-  attendancePercentage: number | null;
-  creditsEarned: number;
-  creditsTotal: number;
-  todaySchedule: MockAgendaItem[];
-  newsArticle: NewsArticleSummary | null;
-  todayCount: number;
-  nextClassMinutes: number | null;
-}
-
-function scheduleEntryToCard(entry: ScheduleEntry): MockAgendaItem {
-  const now = new Date();
-  const nowMins = now.getHours() * 60 + now.getMinutes();
-  const [sh, sm] = entry.startTime.split(':').map(Number);
-  const [eh, em] = entry.endTime.split(':').map(Number);
+function scheduleToCard(s: Schedule, nowMins: number): AgendaCardData {
+  const [sh, sm] = s.startTime.split(':').map(Number);
+  const [eh, em] = s.endTime.split(':').map(Number);
   const startMins = sh * 60 + sm;
   const endMins = eh * 60 + em;
 
-  const isExam = entry.type === 'EXAM';
   const isActive = nowMins >= startMins && nowMins < endMins;
   const isPast = nowMins >= endMins;
   const courseStatus: 'active' | 'past' | 'upcoming' = isPast ? 'past' : isActive ? 'active' : 'upcoming';
@@ -151,14 +87,12 @@ function scheduleEntryToCard(entry: ScheduleEntry): MockAgendaItem {
   let statusColor: string | undefined;
   let statusBorder: string | undefined;
 
-  if (isExam) {
+  if (s.isExam) {
     accentColor = colors.exam;
     statusLabel = 'Examen';
     statusBg = 'rgba(139,92,246,0.15)';
     statusColor = colors.exam;
     statusBorder = colors.exam;
-  } else if (entry.type === 'TP') {
-    accentColor = colors.info;
   } else if (isActive) {
     statusLabel = 'En cours';
     statusBg = 'rgba(29,158,117,0.15)';
@@ -166,23 +100,28 @@ function scheduleEntryToCard(entry: ScheduleEntry): MockAgendaItem {
   }
 
   return {
-    id: entry.id,
+    id: s.id,
     accentColor,
-    time: `${entry.startTime} - ${entry.endTime}`,
-    course: entry.subject.nameFr,
-    teacher: entry.professorName,
-    location: entry.room,
+    time: `${s.startTime} - ${s.endTime}`,
+    course: s.subjectName,
+    teacher: s.lecturerName,
+    location: s.room,
     statusLabel,
     statusBg,
     statusColor,
     statusBorder,
     courseStatus,
-    code: entry.subject.code,
-    coefficient: entry.subject.coefficient,
+    code: s.subjectCode,
+    coefficient: s.coefficient,
   };
 }
 
+function newsItemToCard(item: NewsItem) {
+  return { title: item.title, category: item.category };
+}
+
 // ─── Skeleton pulse ───────────────────────────────────────────────────────────
+
 function SkeletonBox({ style }: { style: object }) {
   const opacity = useRef(new Animated.Value(0.4)).current;
 
@@ -191,7 +130,7 @@ function SkeletonBox({ style }: { style: object }) {
       Animated.sequence([
         Animated.timing(opacity, { toValue: 0.8, duration: 800, useNativeDriver: true }),
         Animated.timing(opacity, { toValue: 0.4, duration: 800, useNativeDriver: true }),
-      ])
+      ]),
     ).start();
   }, [opacity]);
 
@@ -199,6 +138,7 @@ function SkeletonBox({ style }: { style: object }) {
 }
 
 // ─── Agenda card ─────────────────────────────────────────────────────────────
+
 interface AgendaCardProps {
   accentColor: string;
   time: string;
@@ -261,12 +201,8 @@ function AgendaCard({
 }
 
 // ─── News card ────────────────────────────────────────────────────────────────
-interface NewsCardProps {
-  title: string;
-  category: string;
-}
 
-function NewsCard({ title, category }: NewsCardProps) {
+function NewsCard({ title, category }: { title: string; category: string }) {
   return (
     <View style={styles.newsCard}>
       <View style={styles.newsThumbnail} />
@@ -281,6 +217,7 @@ function NewsCard({ title, category }: NewsCardProps) {
 }
 
 // ─── Skeleton header ──────────────────────────────────────────────────────────
+
 function SkeletonHeader() {
   return (
     <View style={styles.headerSection}>
@@ -301,6 +238,7 @@ function SkeletonHeader() {
 }
 
 // ─── Skeleton body ────────────────────────────────────────────────────────────
+
 function SkeletonBody() {
   return (
     <View style={styles.bodySection}>
@@ -309,7 +247,7 @@ function SkeletonBody() {
         <SkeletonBox style={{ width: 44, height: 15, borderRadius: radius.rFull, backgroundColor: 'rgba(217,217,217,0.6)' }} />
       </View>
       {[0, 1, 2].map((i) => (
-        <View key={i} style={[styles.skelAgendaCard]}>
+        <View key={i} style={styles.skelAgendaCard}>
           <SkeletonBox style={styles.skelAccent} />
           <View style={styles.skelAgendaInner}>
             <SkeletonBox style={[styles.skelBar, { width: 100 }]} />
@@ -331,30 +269,21 @@ function SkeletonBody() {
 }
 
 // ─── Loaded header ────────────────────────────────────────────────────────────
+
 interface LoadedHeaderProps {
   isOffline: boolean;
   topInset: number;
   lastSyncTime?: string;
-  firstName?: string;
-  gpa?: number | null;
-  mention?: string | null;
-  attendancePercentage?: number | null;
-  creditsEarned?: number;
-  creditsTotal?: number;
-  todayCount?: number;
-  nextClassMinutes?: number | null;
+  profile: StudentProfileCache | null;
+  todayCount: number;
+  nextClassMinutes: number | null;
 }
 
 function LoadedHeader({
   isOffline,
   topInset,
   lastSyncTime,
-  firstName,
-  gpa,
-  mention,
-  attendancePercentage,
-  creditsEarned,
-  creditsTotal,
+  profile,
   todayCount,
   nextClassMinutes,
 }: LoadedHeaderProps) {
@@ -366,21 +295,17 @@ function LoadedHeader({
     .toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
     .toUpperCase();
 
-  const displayName = firstName ?? 'Ahmed';
-  const displayGpa = gpa !== undefined ? (gpa !== null ? gpa.toFixed(1) : '--') : '14.2';
-  const displayMention = mention ?? (gpa !== undefined ? '' : '↑ +0.8 vs S1');
-  const displayAttendance =
-    attendancePercentage !== undefined
-      ? attendancePercentage !== null ? `${attendancePercentage}%` : '--'
-      : '87%';
-  const displayCredits = creditsEarned !== undefined ? String(creditsEarned) : '18';
-  const displayCreditsTotal = creditsTotal !== undefined ? creditsTotal : 30;
+  const displayName = profile?.firstName ?? '—';
+  const displayGpa = profile?.gpa != null ? profile.gpa.toFixed(1) : '--';
+  const displayMention = profile?.mention ?? '';
+  const displayAttendance = profile?.attendancePercentage != null ? `${profile.attendancePercentage}%` : '--';
+  const displayCredits = String(profile?.creditsEarned ?? 0);
+  const displayCreditsTotal = profile?.creditsTotal ?? 0;
 
-  const tc = todayCount ?? 3;
   const subtitle =
-    nextClassMinutes !== undefined && nextClassMinutes !== null
-      ? `${tc} cours aujourd'hui – Prochain dans ${nextClassMinutes} min`
-      : `${tc} cours aujourd'hui`;
+    nextClassMinutes !== null
+      ? `${todayCount} cours aujourd'hui – Prochain dans ${nextClassMinutes} min`
+      : `${todayCount} cours aujourd'hui`;
 
   return (
     <View style={[styles.headerSection, { paddingTop: topInset + 16 }]}>
@@ -427,6 +352,7 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub: st
 }
 
 // ─── Simple header (error / empty / loading) ──────────────────────────────────
+
 function SimpleHeader({ topInset }: { topInset: number }) {
   const router = useRouter();
   return (
@@ -447,11 +373,8 @@ function SimpleHeader({ topInset }: { topInset: number }) {
 }
 
 // ─── Session expired modal ────────────────────────────────────────────────────
-interface SessionModalProps {
-  onClose: () => void;
-}
 
-function SessionExpiredModal({ onClose }: SessionModalProps) {
+function SessionExpiredModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   return (
     <View style={styles.modalOverlay}>
@@ -479,6 +402,7 @@ function SessionExpiredModal({ onClose }: SessionModalProps) {
 }
 
 // ─── DEV switcher ─────────────────────────────────────────────────────────────
+
 const ALL_STATES: HomeState[] = ['loaded', 'error', 'empty', 'skeleton', 'offline'];
 const STATE_LABELS: Record<HomeState, string> = {
   loaded:   'loaded',
@@ -489,84 +413,115 @@ const STATE_LABELS: Record<HomeState, string> = {
 };
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
+
 export default function HomeScreen() {
-  const [homeState, setHomeState] = useState<HomeState>('loaded');
+  const [devState, setDevState] = useState<HomeState | null>(null);
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [courseDetailVisible, setCourseDetailVisible] = useState(false);
-  const [apiData, setApiData] = useState<HomeData | null>(null);
-  const [isFetching, setIsFetching] = useState(false);
-  const [fetchFailed, setFetchFailed] = useState(false);
-  const [fetchKey, setFetchKey] = useState(0);
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation();
 
   const setSelectedCourse = useCourseDetailStore((s) => s.setSelectedCourse);
 
-  useEffect(() => {
-    if (homeState !== 'loaded') return;
-    let cancelled = false;
-    setIsFetching(true);
-    setFetchFailed(false);
-    setApiData(null);
+  const studentId = useAuthStore.getState().student?.id ?? 'me';
 
-    const todayDow = new Date().getDay();
-    const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+  // ─── Offline queries ────────────────────────────────────────────────────────
 
-    Promise.all([getStudentMe(), getSchedule(), getNews({ limit: 1 })])
-      .then(([me, scheduleRes, newsList]) => {
-        if (cancelled) return;
-        const todayEntries = scheduleRes.entries.filter((e: ScheduleEntry) => e.dayOfWeek === todayDow);
-        const todaySchedule = todayEntries.map(scheduleEntryToCard);
-        const nextEntry = todayEntries.find((e: ScheduleEntry) => {
-          const [h, m] = e.startTime.split(':').map(Number);
-          return h * 60 + m > nowMins;
-        });
-        const nextClassMinutes = nextEntry
-          ? (() => {
-              const [h, m] = nextEntry.startTime.split(':').map(Number);
-              return h * 60 + m - nowMins;
-            })()
-          : null;
-        setApiData({
-          firstName: me.firstName,
-          gpa: me.stats?.gpa ?? null,
-          mention: me.stats?.mention ?? null,
-          attendancePercentage: me.stats?.attendancePercentage ?? null,
-          creditsEarned: me.stats?.semesterCredits?.earned ?? 0,
-          creditsTotal: me.stats?.semesterCredits?.total ?? 0,
-          todaySchedule,
-          newsArticle: newsList.articles[0] ?? null,
-          todayCount: todayEntries.length,
-          nextClassMinutes,
-        });
-        setIsFetching(false);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setIsFetching(false);
-        setFetchFailed(true);
-      });
+  const profileHook = useOfflineQuery<StudentProfileCache>({
+    cacheKey: 'profile',
+    getCached: () => getStudentProfile(),
+    fetchFresh: async () => {
+      const me = await getStudentMe();
+      useAuthStore.getState().setStudent(me);
+      return mapProfileToCache(me);
+    },
+    updateCache: (data) => upsertProfile(data),
+  });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [homeState, fetchKey]);
+  const scheduleHook = useOfflineQuery<Schedule[]>({
+    cacheKey: 'schedule',
+    getCached: () => getFullSemesterSchedule(),
+    fetchFresh: async () => {
+      const res = await getSchedule();
+      return mapScheduleToCache(res.entries, studentId, res.semesterId);
+    },
+    updateCache: (data) => upsertSchedules(data),
+  });
 
-  const handleAgendaPress = (item: MockAgendaItem) => {
+  const newsHook = useOfflineQuery<NewsItem[]>({
+    cacheKey: 'news-home',
+    getCached: () => getCachedNews(5),
+    fetchFresh: async () => {
+      const res = await getNews({ limit: 5 });
+      return mapNewsToCache(res.articles);
+    },
+    updateCache: (data) => upsertNews(data),
+  });
+
+  // ─── Derive today's schedule ────────────────────────────────────────────────
+
+  const todayDow = new Date().getDay();
+  const nowMins = new Date().getHours() * 60 + new Date().getMinutes();
+
+  const todayCards = useMemo(() => {
+    const entries = scheduleHook.data ?? [];
+    return entries
+      .filter((s) => s.dayOfWeek === todayDow)
+      .sort((a, b) => a.startTime.localeCompare(b.startTime))
+      .map((s) => scheduleToCard(s, nowMins));
+  }, [scheduleHook.data, todayDow, nowMins]);
+
+  const nextClassMinutes = useMemo(() => {
+    const upcoming = todayCards.find((c) => c.courseStatus === 'upcoming');
+    if (!upcoming) return null;
+    const [h, m] = upcoming.time.split(' - ')[0].trim().split(':').map(Number);
+    return h * 60 + m - nowMins;
+  }, [todayCards, nowMins]);
+
+  const newsCard = useMemo(() => {
+    const items = newsHook.data ?? [];
+    const urgent = items.find((n) => n.isUrgent) ?? items[0];
+    return urgent ? newsItemToCard(urgent) : null;
+  }, [newsHook.data]);
+
+  // ─── Derive screen state from hooks ────────────────────────────────────────
+
+  const hookState: HomeState = useMemo(() => {
+    const anyLoading = profileHook.isLoading && !profileHook.data;
+    if (anyLoading && !scheduleHook.data) return 'skeleton';
+
+    const anyOffline = profileHook.isOffline || scheduleHook.isOffline;
+    const anyData = profileHook.data != null || scheduleHook.data != null;
+
+    if (anyData && anyOffline) return 'offline';
+    if (anyData) {
+      return todayCards.length === 0 && !profileHook.isStale ? 'empty' : 'loaded';
+    }
+    if (profileHook.error || scheduleHook.error) return 'error';
+    return 'skeleton';
+  }, [
+    profileHook.isLoading, profileHook.data, profileHook.isOffline,
+    profileHook.isStale, profileHook.error,
+    scheduleHook.data, scheduleHook.isOffline, scheduleHook.error,
+    todayCards.length,
+  ]);
+
+  const homeState = devState ?? hookState;
+
+  const isOffline = homeState === 'offline';
+  const showLoadedHeader = homeState === 'loaded' || isOffline;
+  const showSkeleton = homeState === 'skeleton';
+  const showError = homeState === 'error';
+
+  const handleAgendaPress = (item: AgendaCardData) => {
     setSelectedCourse(toExtendedCourse(item));
     setCourseDetailVisible(true);
   };
 
   const handleRetry = () => {
-    if (homeState === 'loaded') setFetchKey((k) => k + 1);
+    profileHook.refetch();
+    scheduleHook.refetch();
+    newsHook.refetch();
   };
-
-  const isRealLoaded = homeState === 'loaded' && !isFetching && !fetchFailed && apiData !== null;
-  const isLoaded = isRealLoaded;
-  const isOffline = homeState === 'offline';
-  const showSkeleton = homeState === 'skeleton' || (homeState === 'loaded' && isFetching);
-  const showError = homeState === 'error' || (homeState === 'loaded' && fetchFailed);
-  const showLoadedHeader = isLoaded || isOffline;
 
   return (
     <View style={styles.root}>
@@ -586,14 +541,9 @@ export default function HomeScreen() {
           <LoadedHeader
             isOffline={isOffline}
             topInset={insets.top}
-            firstName={apiData?.firstName}
-            gpa={apiData?.gpa}
-            mention={apiData?.mention}
-            attendancePercentage={apiData?.attendancePercentage}
-            creditsEarned={apiData?.creditsEarned}
-            creditsTotal={apiData?.creditsTotal}
-            todayCount={apiData?.todayCount}
-            nextClassMinutes={apiData?.nextClassMinutes}
+            profile={profileHook.data}
+            todayCount={todayCards.length}
+            nextClassMinutes={nextClassMinutes}
           />
         ) : (
           <SimpleHeader topInset={insets.top} />
@@ -602,7 +552,7 @@ export default function HomeScreen() {
         {/* Body */}
         {showSkeleton && <SkeletonBody />}
 
-        {(isLoaded || isOffline) && (
+        {(homeState === 'loaded' || isOffline) && (
           <View style={styles.bodySection}>
             {/* Agenda section */}
             <View style={styles.sectionHeadingRow}>
@@ -610,38 +560,27 @@ export default function HomeScreen() {
               <Text style={styles.sectionLink}>Voir tout</Text>
             </View>
 
-            {isLoaded ? (
-              <>
-                {(apiData?.todaySchedule ?? []).map((item) => (
-                  <Pressable key={item.id} onPress={() => handleAgendaPress(item)}>
-                    <AgendaCard
-                      accentColor={item.accentColor}
-                      time={item.time}
-                      course={item.course}
-                      teacher={item.teacher}
-                      location={item.location}
-                      statusLabel={item.statusLabel}
-                      statusBg={item.statusBg}
-                      statusColor={item.statusColor}
-                      statusBorder={item.statusBorder}
-                    />
-                  </Pressable>
-                ))}
-              </>
+            {todayCards.length > 0 ? (
+              todayCards.map((item) => (
+                <Pressable key={item.id} onPress={() => handleAgendaPress(item)}>
+                  <AgendaCard
+                    accentColor={item.accentColor}
+                    time={item.time}
+                    course={item.course}
+                    teacher={item.teacher}
+                    location={item.location}
+                    statusLabel={item.statusLabel}
+                    statusBg={item.statusBg}
+                    statusColor={item.statusColor}
+                    statusBorder={item.statusBorder}
+                    isOffline={isOffline}
+                  />
+                </Pressable>
+              ))
             ) : (
-              <Pressable onPress={() => handleAgendaPress(MOCK_AGENDA_OFFLINE)}>
-                <AgendaCard
-                  accentColor={MOCK_AGENDA_OFFLINE.accentColor}
-                  time={MOCK_AGENDA_OFFLINE.time}
-                  course={MOCK_AGENDA_OFFLINE.course}
-                  teacher={MOCK_AGENDA_OFFLINE.teacher}
-                  location={MOCK_AGENDA_OFFLINE.location}
-                  statusLabel={MOCK_AGENDA_OFFLINE.statusLabel}
-                  statusBg={MOCK_AGENDA_OFFLINE.statusBg}
-                  statusColor={MOCK_AGENDA_OFFLINE.statusColor}
-                  isOffline
-                />
-              </Pressable>
+              <View style={styles.emptyAgendaCard}>
+                <Text style={styles.emptyAgendaText}>Aucun cours aujourd'hui</Text>
+              </View>
             )}
 
             {/* News section */}
@@ -650,16 +589,9 @@ export default function HomeScreen() {
               <Text style={styles.sectionLink}>Voir tout</Text>
             </View>
 
-            {isLoaded ? (
-              <>
-                {apiData?.newsArticle != null && (
-                  <NewsCard
-                    title={apiData.newsArticle.titleFr}
-                    category={apiData.newsArticle.category}
-                  />
-                )}
-              </>
-            ) : (
+            {newsCard != null ? (
+              <NewsCard title={newsCard.title} category={newsCard.category} />
+            ) : isOffline ? (
               <View style={styles.newsOfflineCard}>
                 <View style={styles.newsOfflineIcon}>
                   <Ionicons name="globe-outline" size={18} color={colors.surface} />
@@ -668,7 +600,7 @@ export default function HomeScreen() {
                   Actualités et mises à jour indisponibles hors-ligne. Reconnectez-vous pour synchroniser.
                 </Text>
               </View>
-            )}
+            ) : null}
           </View>
         )}
 
@@ -684,9 +616,6 @@ export default function HomeScreen() {
             <Pressable style={styles.retryBtn} onPress={handleRetry}>
               <Text style={styles.retryBtnText}>Réessayer</Text>
             </Pressable>
-            <Text style={styles.syncLabel}>DERNIÈRE SYNCHRONISATION</Text>
-            <Text style={styles.syncValue}>{t('common.sync_value', { time: '14:30' })}</Text>
-            <Text style={styles.offlineLink}>Afficher les données hors-ligne →</Text>
           </View>
         )}
 
@@ -695,16 +624,10 @@ export default function HomeScreen() {
             <Text style={styles.palmEmoji}>🌴</Text>
             <Text style={styles.stateTitle}>Aucun cours aujourd'hui</Text>
             <Text style={styles.stateBody}>
-              Profitez de votre dimanche — pas de cours programmé. Bon repos !
+              Pas de cours programmé. Bon repos !
             </Text>
-            <View style={styles.nextCourseCard}>
-              {/* TODO: replace with real API data in Phase 2 */}
-              <Text style={styles.nextCourseTitle}>Prochain cours : lundi 08h00</Text>
-              <Text style={styles.nextCourseSub}>Mathématiques Générales L2</Text>
-            </View>
           </View>
         )}
-
 
         <View style={{ height: spacing.sp64 }} />
       </ScrollView>
@@ -722,7 +645,7 @@ export default function HomeScreen() {
         states={ALL_STATES}
         labels={STATE_LABELS}
         current={homeState}
-        onChange={setHomeState}
+        onChange={(s) => setDevState(s)}
         showModal={showSessionModal}
         onToggleModal={() => setShowSessionModal((v) => !v)}
         modalLabel="modal"
@@ -733,18 +656,10 @@ export default function HomeScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
+  root: { flex: 1, backgroundColor: colors.background },
+  scroll: { flex: 1 },
+  scrollContent: { flexGrow: 1 },
 
-  // ── Header
   headerSection: {
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.sp16,
@@ -752,508 +667,163 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
   },
   dateLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.textTertiary,
-    fontFamily: fonts.sans,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    fontSize: 11, fontWeight: '600', color: colors.textTertiary,
+    fontFamily: fonts.sans, letterSpacing: 0.5, textTransform: 'uppercase',
   },
-  greeting: {
-    marginTop: spacing.sp4,
-  },
-  greetingBase: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: colors.textPrimary,
-    fontFamily: fonts.sans,
-  },
-  greetingName: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: colors.jade400,
-    fontFamily: fonts.sans,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    fontFamily: fonts.sans,
-    marginTop: spacing.sp4,
-  },
-  subtitleOffline: {
-    fontSize: 13,
-    marginTop: spacing.sp4,
-  },
-  subtitleOfflineNormal: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    fontFamily: fonts.sans,
-  },
-  subtitleOfflineTime: {
-    fontSize: 13,
-    color: colors.warning,
-    fontFamily: fonts.sans,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginTop: spacing.sp12,
-  },
-  statRow: {
-    flexDirection: 'row',
-    gap: spacing.sp8,
-    marginTop: spacing.sp12,
-    marginBottom: spacing.sp16,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: colors.background,
-    borderRadius: radius.rLg,
-    padding: spacing.sp12,
-  },
-  statLabel: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: colors.textTertiary,
-    textTransform: 'uppercase',
-    fontFamily: fonts.sans,
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: colors.jade400,
-    fontFamily: fonts.sans,
-    marginTop: spacing.sp2,
-  },
-  statSub: {
-    fontSize: 11,
-    color: colors.textTertiary,
-    fontFamily: fonts.sans,
-    marginTop: spacing.sp2,
-  },
+  greeting: { marginTop: spacing.sp4 },
+  greetingBase: { fontSize: 28, fontWeight: '800', color: colors.textPrimary, fontFamily: fonts.sans },
+  greetingName: { fontSize: 28, fontWeight: '800', color: colors.jade400, fontFamily: fonts.sans },
+  subtitle: { fontSize: 13, color: colors.textSecondary, fontFamily: fonts.sans, marginTop: spacing.sp4 },
+  subtitleOffline: { fontSize: 13, marginTop: spacing.sp4 },
+  subtitleOfflineNormal: { fontSize: 13, color: colors.textSecondary, fontFamily: fonts.sans },
+  subtitleOfflineTime: { fontSize: 13, color: colors.warning, fontFamily: fonts.sans },
+  divider: { height: 1, backgroundColor: colors.border, marginTop: spacing.sp12 },
+  statRow: { flexDirection: 'row', gap: spacing.sp8, marginTop: spacing.sp12, marginBottom: spacing.sp16 },
+  statCard: { flex: 1, backgroundColor: colors.background, borderRadius: radius.rLg, padding: spacing.sp12 },
+  statLabel: { fontSize: 10, fontWeight: '600', color: colors.textTertiary, textTransform: 'uppercase', fontFamily: fonts.sans },
+  statValue: { fontSize: 24, fontWeight: '800', color: colors.jade400, fontFamily: fonts.sans, marginTop: spacing.sp2 },
+  statSub: { fontSize: 11, color: colors.textTertiary, fontFamily: fonts.sans, marginTop: spacing.sp2 },
 
-  // ── Shared header top row (date label / title + bell icon)
-  headerTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  bellBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  bellBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
 
-  // ── Simple header
-  simpleHeader: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.sp16,
-  },
+  simpleHeader: { backgroundColor: colors.surface, paddingHorizontal: spacing.sp16 },
   simpleHeaderTitle: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: colors.textPrimary,
-    fontFamily: fonts.sans,
-    paddingTop: spacing.sp16,
-    paddingBottom: spacing.sp16,
+    fontSize: 24, fontWeight: '800', color: colors.textPrimary,
+    fontFamily: fonts.sans, paddingTop: spacing.sp16, paddingBottom: spacing.sp16,
   },
 
-  // ── Body
-  bodySection: {
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.sp16,
-  },
+  bodySection: { backgroundColor: colors.background, paddingHorizontal: spacing.sp16 },
   sectionHeadingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: spacing.sp24,
-    marginBottom: spacing.sp12,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    marginTop: spacing.sp24, marginBottom: spacing.sp12,
   },
-  sectionHeading: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    fontFamily: fonts.sans,
-  },
-  sectionLink: {
-    fontSize: 13,
-    color: colors.jade400,
-    fontFamily: fonts.sans,
-  },
+  sectionHeading: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans },
+  sectionLink: { fontSize: 13, color: colors.jade400, fontFamily: fonts.sans },
 
-  // ── Agenda card
   agendaCard: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: radius.rLg,
-    marginBottom: 23,
-    minHeight: 91,
-    overflow: 'hidden',
+    flexDirection: 'row', backgroundColor: colors.surface,
+    borderRadius: radius.rLg, marginBottom: 23, minHeight: 91, overflow: 'hidden',
   },
-  agendaAccent: {
-    width: 9,
-    borderTopStartRadius: radius.rLg,
-    borderBottomStartRadius: radius.rLg,
-  },
+  agendaAccent: { width: 9, borderTopStartRadius: radius.rLg, borderBottomStartRadius: radius.rLg },
   agendaContent: {
-    flex: 1,
-    paddingStart: spacing.sp12,
-    paddingEnd: spacing.sp16,
-    paddingTop: 11,
-    paddingBottom: 11,
-    justifyContent: 'center',
+    flex: 1, paddingStart: spacing.sp12, paddingEnd: spacing.sp16,
+    paddingTop: 11, paddingBottom: 11, justifyContent: 'center',
   },
-  agendaTime: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontFamily: fonts.mono,
-  },
-  agendaCourse: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    fontFamily: fonts.sans,
-    marginTop: 1,
-  },
-  agendaTeacher: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontFamily: fonts.sans,
-  },
-  offlineWarningRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginTop: 2,
-  },
-  offlineWarningText: {
-    fontSize: 11,
-    color: colors.warning,
-    fontFamily: fonts.sans,
-  },
-  pillRow: {
-    flexDirection: 'row',
-    gap: spacing.sp8,
-    marginTop: spacing.sp8,
-    alignItems: 'center',
-  },
-  locationPill: {
-    backgroundColor: colors.background,
-    borderRadius: radius.rFull,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  locationPillText: {
-    fontSize: 11,
-    color: colors.textPrimary,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
-  },
-  statusPill: {
-    borderRadius: radius.rFull,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  statusPillText: {
-    fontSize: 11,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
-  },
+  agendaTime: { fontSize: 12, color: colors.textSecondary, fontFamily: fonts.mono },
+  agendaCourse: { fontSize: 14, fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans, marginTop: 1 },
+  agendaTeacher: { fontSize: 12, color: colors.textSecondary, fontFamily: fonts.sans },
+  offlineWarningRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  offlineWarningText: { fontSize: 11, color: colors.warning, fontFamily: fonts.sans },
+  pillRow: { flexDirection: 'row', gap: spacing.sp8, marginTop: spacing.sp8, alignItems: 'center' },
+  locationPill: { backgroundColor: colors.background, borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
+  locationPillText: { fontSize: 11, color: colors.textPrimary, fontWeight: '500', fontFamily: fonts.sans },
+  statusPill: { borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
+  statusPillText: { fontSize: 11, fontWeight: '500', fontFamily: fonts.sans },
 
-  // ── News card
+  emptyAgendaCard: {
+    backgroundColor: colors.surface, borderRadius: radius.rLg,
+    padding: spacing.sp16, alignItems: 'center', marginBottom: 23,
+  },
+  emptyAgendaText: { fontSize: 14, color: colors.textSecondary, fontFamily: fonts.sans },
+
   newsCard: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: radius.rLg,
-    marginBottom: 14,
-    minHeight: 64,
-    alignItems: 'center',
-    paddingHorizontal: spacing.sp12,
-    paddingVertical: 10,
-    gap: spacing.sp12,
+    flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.rLg,
+    marginBottom: 14, minHeight: 64, alignItems: 'center',
+    paddingHorizontal: spacing.sp12, paddingVertical: 10, gap: spacing.sp12,
   },
-  newsThumbnail: {
-    width: 38,
-    height: 37,
-    borderRadius: radius.rMd,
-    backgroundColor: colors.background,
-  },
-  newsText: {
-    flex: 1,
-    alignItems: 'flex-start',
-  },
-  newsTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    fontFamily: fonts.sans,
-  },
+  newsThumbnail: { width: 38, height: 37, borderRadius: radius.rMd, backgroundColor: colors.background },
+  newsText: { flex: 1, alignItems: 'flex-start' },
+  newsTitle: { fontSize: 13, fontWeight: '600', color: colors.textPrimary, fontFamily: fonts.sans },
   newsCategoryPill: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.background,
-    borderRadius: radius.rFull,
-    paddingHorizontal: spacing.sp8,
-    paddingVertical: 2,
-    marginTop: 4,
+    alignSelf: 'flex-start', backgroundColor: colors.background,
+    borderRadius: radius.rFull, paddingHorizontal: spacing.sp8, paddingVertical: 2, marginTop: 4,
   },
-  newsCategoryText: {
-    fontSize: 10,
-    color: colors.textSecondary,
-    fontFamily: fonts.sans,
-  },
+  newsCategoryText: { fontSize: 10, color: colors.textSecondary, fontFamily: fonts.sans },
 
-  // ── News offline card
   newsOfflineCard: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(245,158,11,0.08)',
-    borderWidth: 1,
-    borderColor: colors.warning,
-    borderRadius: radius.rLg,
-    padding: spacing.sp16,
-    gap: spacing.sp12,
-    alignItems: 'center',
+    flexDirection: 'row', backgroundColor: 'rgba(245,158,11,0.08)',
+    borderWidth: 1, borderColor: colors.warning, borderRadius: radius.rLg,
+    padding: spacing.sp16, gap: spacing.sp12, alignItems: 'center',
   },
   newsOfflineIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.jade400,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: colors.jade400, alignItems: 'center', justifyContent: 'center',
   },
-  newsOfflineText: {
-    flex: 1,
-    fontSize: 13,
-    color: colors.warning,
-    fontFamily: fonts.sans,
-  },
+  newsOfflineText: { flex: 1, fontSize: 13, color: colors.warning, fontFamily: fonts.sans },
 
-  // ── Empty / error center states
-  centerState: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: spacing.sp24,
-    paddingTop: 144,
-  },
+  centerState: { flex: 1, alignItems: 'center', paddingHorizontal: spacing.sp24, paddingTop: 144 },
   errorIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 216,
-    backgroundColor: 'rgba(245,180,180,1)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 72, height: 72, borderRadius: 216,
+    backgroundColor: 'rgba(245,180,180,1)', alignItems: 'center', justifyContent: 'center',
   },
   stateTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginTop: spacing.sp16,
-    fontFamily: fonts.sans,
+    fontSize: 16, fontWeight: '700', color: colors.textPrimary,
+    textAlign: 'center', marginTop: spacing.sp16, fontFamily: fonts.sans,
   },
   stateBody: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.sp8,
-    fontFamily: fonts.sans,
+    fontSize: 14, color: colors.textSecondary,
+    textAlign: 'center', marginTop: spacing.sp8, fontFamily: fonts.sans,
   },
   retryBtn: {
-    width: 168,
-    height: 56,
-    borderRadius: radius.rLg,
-    backgroundColor: colors.jade400,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.sp24,
+    width: 168, height: 56, borderRadius: radius.rLg,
+    backgroundColor: colors.jade400, alignItems: 'center', justifyContent: 'center', marginTop: spacing.sp24,
   },
-  retryBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.surface,
-    fontFamily: fonts.sans,
-  },
-  syncLabel: {
-    fontSize: 10,
-    color: colors.textTertiary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginTop: spacing.sp24,
-    textAlign: 'center',
-    fontFamily: fonts.sans,
-  },
-  syncValue: {
-    fontSize: 14,
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginTop: spacing.sp4,
-    fontFamily: fonts.sans,
-  },
-  offlineLink: {
-    fontSize: 14,
-    color: colors.jade400,
-    textAlign: 'center',
-    marginTop: spacing.sp16,
-    fontFamily: fonts.sans,
-  },
-  palmEmoji: {
-    fontSize: 80,
-    textAlign: 'center',
-  },
-  nextCourseCard: {
-    width: '100%',
-    borderRadius: radius.rLg,
-    backgroundColor: 'rgba(29,158,117,0.08)',
-    borderWidth: 1,
-    borderColor: colors.jade400,
-    padding: spacing.sp16,
-    marginTop: spacing.sp24,
-  },
-  nextCourseTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.jade400,
-    textAlign: 'center',
-    fontFamily: fonts.sans,
-  },
-  nextCourseSub: {
-    fontSize: 13,
-    color: colors.jade400,
-    textAlign: 'center',
-    marginTop: spacing.sp4,
-    fontFamily: fonts.sans,
-  },
+  retryBtnText: { fontSize: 15, fontWeight: '700', color: colors.surface, fontFamily: fonts.sans },
+  palmEmoji: { fontSize: 80, textAlign: 'center' },
 
-  // ── Skeleton pieces
-  skelBar180: {
-    width: 180,
-    height: 15,
-    borderRadius: radius.rFull,
-    backgroundColor: 'rgba(217,217,217,0.6)',
-  },
-  skelBar: {
-    height: 15,
-    borderRadius: radius.rFull,
-    backgroundColor: 'rgba(217,217,217,0.6)',
-  },
-  skelStatCard: {
-    flex: 1,
-    height: 72,
-    borderRadius: radius.rLg,
-    backgroundColor: 'rgba(217,217,217,0.6)',
-  },
+  skelBar180: { width: 180, height: 15, borderRadius: radius.rFull, backgroundColor: 'rgba(217,217,217,0.6)' },
+  skelBar: { height: 15, borderRadius: radius.rFull, backgroundColor: 'rgba(217,217,217,0.6)' },
+  skelStatCard: { flex: 1, height: 72, borderRadius: radius.rLg, backgroundColor: 'rgba(217,217,217,0.6)' },
   skelAgendaCard: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: radius.rLg,
-    marginBottom: 23,
-    height: 91,
-    overflow: 'hidden',
+    flexDirection: 'row', backgroundColor: colors.surface,
+    borderRadius: radius.rLg, marginBottom: 23, height: 91, overflow: 'hidden',
   },
   skelAccent: {
-    width: 9,
-    height: 91,
-    backgroundColor: 'rgba(217,217,217,0.6)',
-    borderTopStartRadius: radius.rLg,
-    borderBottomStartRadius: radius.rLg,
+    width: 9, height: 91, backgroundColor: 'rgba(217,217,217,0.6)',
+    borderTopStartRadius: radius.rLg, borderBottomStartRadius: radius.rLg,
   },
   skelAgendaInner: {
-    flex: 1,
-    paddingStart: spacing.sp12,
-    paddingEnd: spacing.sp16,
-    paddingTop: 11,
-    gap: 0,
-    justifyContent: 'center',
+    flex: 1, paddingStart: spacing.sp12, paddingEnd: spacing.sp16,
+    paddingTop: 11, gap: 0, justifyContent: 'center',
   },
   skelNewsCard: {
-    width: '100%',
-    height: 64,
-    borderRadius: radius.rLg,
-    backgroundColor: 'rgba(217,217,217,0.6)',
-    marginBottom: 14,
+    width: '100%', height: 64, borderRadius: radius.rLg,
+    backgroundColor: 'rgba(217,217,217,0.6)', marginBottom: 14,
   },
 
-  // ── Session expired modal
   modalOverlay: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    start: 0,
-    end: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
+    position: 'absolute', top: 0, bottom: 0, start: 0, end: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end',
   },
   modalSheet: {
-    backgroundColor: colors.surface,
-    borderTopStartRadius: radius.r2xl,
-    borderTopEndRadius: radius.r2xl,
-    padding: spacing.sp24,
-    paddingBottom: 40,
+    backgroundColor: colors.surface, borderTopStartRadius: radius.r2xl,
+    borderTopEndRadius: radius.r2xl, padding: spacing.sp24, paddingBottom: 40,
   },
   dragHandle: {
-    width: 49,
-    height: 9,
-    borderRadius: spacing.sp8,
-    backgroundColor: '#D9D9D9',
-    alignSelf: 'center',
-    marginBottom: spacing.sp24,
+    width: 49, height: 9, borderRadius: spacing.sp8,
+    backgroundColor: '#D9D9D9', alignSelf: 'center', marginBottom: spacing.sp24,
   },
   modalIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 216,
-    backgroundColor: 'rgba(224,211,254,1)',
-    alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 72, height: 72, borderRadius: 216, backgroundColor: 'rgba(224,211,254,1)',
+    alignSelf: 'center', alignItems: 'center', justifyContent: 'center',
   },
   modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginTop: spacing.sp16,
-    fontFamily: fonts.sans,
+    fontSize: 16, fontWeight: '700', color: colors.textPrimary,
+    textAlign: 'center', marginTop: spacing.sp16, fontFamily: fonts.sans,
   },
   modalBody: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginTop: spacing.sp8,
-    fontFamily: fonts.sans,
+    fontSize: 14, color: colors.textSecondary,
+    textAlign: 'center', marginTop: spacing.sp8, fontFamily: fonts.sans,
   },
   modalPrimaryBtn: {
-    width: '100%',
-    height: 56,
-    borderRadius: radius.rLg,
-    backgroundColor: colors.jade400,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.sp24,
+    width: '100%', height: 56, borderRadius: radius.rLg,
+    backgroundColor: colors.jade400, alignItems: 'center', justifyContent: 'center', marginTop: spacing.sp24,
   },
-  modalPrimaryBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.surface,
-    fontFamily: fonts.sans,
-  },
+  modalPrimaryBtnText: { fontSize: 15, fontWeight: '700', color: colors.surface, fontFamily: fonts.sans },
   modalOutlineBtn: {
-    width: '100%',
-    height: 56,
-    borderRadius: radius.rLg,
-    borderWidth: 1,
-    borderColor: colors.jade400,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: spacing.sp12,
+    width: '100%', height: 56, borderRadius: radius.rLg,
+    borderWidth: 1, borderColor: colors.jade400, alignItems: 'center', justifyContent: 'center', marginTop: spacing.sp12,
   },
-  modalOutlineBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.jade400,
-    fontFamily: fonts.sans,
-  },
-
+  modalOutlineBtnText: { fontSize: 15, fontWeight: '600', color: colors.jade400, fontFamily: fonts.sans },
 });

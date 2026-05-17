@@ -9,11 +9,23 @@ export type { StudentProfile } from '@/stores/authStore';
 // SQLite cache shape — flat representation stored in student_profile table
 export interface StudentProfileCache {
   studentId: string;
+  firstName: string;
+  lastName: string;
   name: string;
   programme: string;
+  programmeName: string;
   faculty: string;
+  facultyName: string;
+  level: string;
   year: number;
+  semester: number;
+  status: string;
   photoUrl: string | null;
+  gpa: number | null;
+  mention: string | null;
+  attendancePercentage: number | null;
+  creditsEarned: number;
+  creditsTotal: number;
   cachedAt: string;
 }
 
@@ -35,6 +47,7 @@ export interface Schedule {
   endTime: string;
   semester: string;
   isExam: boolean;
+  coefficient: number;
   cachedAt: string;
 }
 
@@ -42,6 +55,7 @@ export interface Grade {
   id: string;
   studentId: string;
   subjectCode: string;
+  subjectName: string;
   semester: string;
   ccScore: number | null;
   examScore: number | null;
@@ -55,8 +69,11 @@ export interface Attendance {
   id: string;
   studentId: string;
   subjectCode: string;
+  subjectName: string;
   sessionsTotal: number;
   sessionsPresent: number;
+  sessionsRemaining: number;
+  percentage: number;
   threshold: number;
   cachedAt: string;
 }
@@ -67,8 +84,20 @@ export interface NewsItem {
   body: string;
   category: string;
   publishedAt: string;
+  readTimeMinutes: number;
+  isUrgent: boolean;
   bookmarked: boolean;
   read: boolean;
+  cachedAt: string;
+}
+
+export interface CachedNotification {
+  id: string;
+  type: string;
+  titleFr: string;
+  bodyFr: string;
+  isRead: boolean;
+  createdAt: string;
   cachedAt: string;
 }
 

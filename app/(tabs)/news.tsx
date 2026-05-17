@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
-import { isAxiosError } from 'axios';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -21,39 +20,35 @@ import { HeroCard } from '@/components/news/HeroCard';
 import { ArticleCard, Article, ArticleCategory } from '@/components/news/ArticleCard';
 import { NewsSkeleton } from '@/components/news/NewsSkeleton';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
-import { getNews, NewsArticleSummary } from '@/services/api';
+import { getNews, NewsItem } from '@/services/api';
+import { useOfflineQuery } from '@/hooks/useOfflineQuery';
+import { getCachedNews, upsertNews } from '@/services/db';
+import { mapNewsToCache } from '@/services/cacheMappers';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type NewsState = 'skeleton' | 'loaded' | 'offline' | 'empty' | 'error' | 'session';
 
-// ─── Offline mock (DevSwitcher offline/session states only) ───────────────────
+// ─── Convert NewsItem → Article ───────────────────────────────────────────────
 
-const MOCK_OFFLINE_ARTICLES: Article[] = [
-  {
-    id: 'mock-1',
-    category: 'Evenement',
-    title: 'Cérémonie de remise des diplômes — Promotion 2025',
-    timestamp: 'Il y a 2j',
-    readTime: '3 min',
-  },
-  {
-    id: 'mock-2',
-    category: 'Scolarite',
-    title: 'Réinscriptions 2025-2026 : modalités et dates limites',
-    timestamp: 'Il y a 2j',
-    readTime: '3 min',
-  },
-  {
-    id: 'mock-3',
-    category: 'Sport',
-    title: 'Tournoi inter-facultés de football — inscriptions ouvertes',
-    timestamp: 'Il y a 2j',
-    readTime: '3 min',
-  },
-];
+function newsItemToArticle(item: NewsItem): Article {
+  return {
+    id: item.id,
+    category: item.category as ArticleCategory,
+    title: item.title,
+    timestamp: formatTimestamp(item.publishedAt),
+    readTime: `${item.readTimeMinutes} min`,
+  };
+}
 
-// ─── Filter → API category mapping ───────────────────────────────────────────
+function newsItemToHero(item: NewsItem) {
+  return {
+    id: item.id,
+    title: item.title,
+    timestamp: formatTimestamp(item.publishedAt),
+    readTime: `${item.readTimeMinutes} min`,
+  };
+}
 
 const FILTER_CATEGORY: Partial<Record<FilterKey, string>> = {
   events:    'Evenement',
@@ -62,8 +57,6 @@ const FILTER_CATEGORY: Partial<Record<FilterKey, string>> = {
   youth:     'youth',
   sponsors:  'sponsors',
 };
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatTimestamp(publishedAt: string): string {
   const now = new Date();
@@ -82,25 +75,6 @@ function formatTimestamp(publishedAt: string): string {
   return `Il y a ${diffDays}j`;
 }
 
-function toHeroProps(s: NewsArticleSummary) {
-  return {
-    id: s.id,
-    title: s.titleFr,
-    timestamp: formatTimestamp(s.publishedAt),
-    readTime: `${s.readTimeMinutes} min`,
-  };
-}
-
-function toCardProps(s: NewsArticleSummary): Article {
-  return {
-    id: s.id,
-    category: s.category as ArticleCategory,
-    title: s.titleFr,
-    timestamp: formatTimestamp(s.publishedAt),
-    readTime: `${s.readTimeMinutes} min`,
-  };
-}
-
 // ─── Saved articles warning (offline body) ────────────────────────────────────
 
 function SavedArticlesBanner() {
@@ -115,8 +89,8 @@ function SavedArticlesBanner() {
 // ─── Loaded body ──────────────────────────────────────────────────────────────
 
 interface LoadedBodyProps {
-  heroArticle: NewsArticleSummary;
-  listArticles: NewsArticleSummary[];
+  heroArticle: NewsItem;
+  listArticles: NewsItem[];
   onArticlePress: (id: string) => void;
 }
 
@@ -124,12 +98,12 @@ function LoadedBody({ heroArticle, listArticles, onArticlePress }: LoadedBodyPro
   return (
     <View style={styles.loadedBody}>
       <Pressable onPress={() => onArticlePress(heroArticle.id)}>
-        <HeroCard article={toHeroProps(heroArticle)} />
+        <HeroCard article={newsItemToHero(heroArticle)} />
       </Pressable>
       <View style={styles.loadedArticleList}>
         {listArticles.map((article) => (
           <Pressable key={article.id} onPress={() => onArticlePress(article.id)}>
-            <ArticleCard article={toCardProps(article)} />
+            <ArticleCard article={newsItemToArticle(article)} />
           </Pressable>
         ))}
       </View>
@@ -140,17 +114,18 @@ function LoadedBody({ heroArticle, listArticles, onArticlePress }: LoadedBodyPro
 // ─── Offline body ─────────────────────────────────────────────────────────────
 
 interface OfflineBodyProps {
+  articles: NewsItem[];
   onArticlePress: (id: string) => void;
 }
 
-function OfflineBody({ onArticlePress }: OfflineBodyProps) {
+function OfflineBody({ articles, onArticlePress }: OfflineBodyProps) {
   return (
     <View style={styles.offlineBody}>
       <SavedArticlesBanner />
       <View style={styles.offlineArticleList}>
-        {MOCK_OFFLINE_ARTICLES.map((article) => (
+        {articles.map((article) => (
           <Pressable key={article.id} onPress={() => onArticlePress(article.id)}>
-            <ArticleCard article={article} />
+            <ArticleCard article={newsItemToArticle(article)} />
           </Pressable>
         ))}
       </View>
@@ -235,43 +210,52 @@ const STATE_LABELS: Record<NewsState, string> = {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function NewsScreen() {
-  const [newsState, setNewsState] = useState<NewsState>('skeleton');
+  const [devState, setDevState] = useState<NewsState | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
-  const [heroApiArticle, setHeroApiArticle] = useState<NewsArticleSummary | null>(null);
-  const [listApiArticles, setListApiArticles] = useState<NewsArticleSummary[]>([]);
+  const [filterCategory, setFilterCategory] = useState<string | undefined>(undefined);
   const insets = useSafeAreaInsets();
   const router = useRouter();
 
-  const showFilterRow = newsState === 'loaded' || newsState === 'offline' || newsState === 'session';
+  // ─── Offline query ──────────────────────────────────────────────────────────
 
-  const fetchNews = useCallback(async (category?: string) => {
-    setNewsState('skeleton');
-    try {
-      const data = await getNews(category ? { category } : undefined);
-      const articles = data.articles ?? [];
-      const hero = articles.find((a) => a.isUrgent) ?? articles[0] ?? null;
-      const list = hero ? articles.filter((a) => a.id !== hero.id) : articles;
-      setHeroApiArticle(hero);
-      setListApiArticles(list);
-      setNewsState(articles.length === 0 ? 'empty' : 'loaded');
-    } catch (err: unknown) {
-      if (isAxiosError(err)) {
-        if (err.response?.status === 401) setNewsState('session');
-        else if (!err.response) setNewsState('offline');
-        else setNewsState('error');
-      } else {
-        setNewsState('error');
-      }
-    }
-  }, []);
+  const hook = useOfflineQuery<NewsItem[]>({
+    cacheKey: `news-${filterCategory ?? 'all'}`,
+    getCached: () => getCachedNews(20),
+    fetchFresh: async () => {
+      const data = await getNews(filterCategory ? { category: filterCategory } : undefined);
+      return mapNewsToCache(data.articles ?? []);
+    },
+    updateCache: (data) => upsertNews(data),
+  });
 
-  useEffect(() => {
-    fetchNews();
-  }, [fetchNews]);
+  // ─── Derive hero/list articles ──────────────────────────────────────────────
+
+  const { heroArticle, listArticles } = useMemo(() => {
+    const items = hook.data ?? [];
+    const hero = items.find((a) => a.isUrgent) ?? items[0] ?? null;
+    const list = hero ? items.filter((a) => a.id !== hero.id) : items;
+    return { heroArticle: hero, listArticles: list };
+  }, [hook.data]);
+
+  // ─── Derive screen state ────────────────────────────────────────────────────
+
+  const hookState: NewsState = useMemo(() => {
+    if (hook.isLoading && !hook.data) return 'skeleton';
+    if (hook.isOffline && hook.data) return 'offline';
+    if (hook.data) return hook.data.length === 0 && !hook.isStale ? 'empty' : 'loaded';
+    if (hook.error) return 'error';
+    return 'skeleton';
+  }, [hook.isLoading, hook.data, hook.isOffline, hook.error, hook.isStale]);
+
+  const newsState = devState ?? hookState;
+
+  const showFilterRow = newsState === 'loaded' || newsState === 'session';
 
   function handleFilterChange(filter: FilterKey) {
     setActiveFilter(filter);
-    fetchNews(filter === 'all' ? undefined : FILTER_CATEGORY[filter]);
+    const cat = filter === 'all' ? undefined : FILTER_CATEGORY[filter];
+    setFilterCategory(cat);
+    hook.refetch();
   }
 
   function handleArticlePress(id: string) {
@@ -287,7 +271,6 @@ export default function NewsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header — handles topInset internally */}
         <NewsHeader
           state={newsState === 'session' ? 'loaded' : newsState}
           topInset={insets.top}
@@ -295,30 +278,31 @@ export default function NewsScreen() {
 
         <OfflineBanner />
 
-        {/* Filter row — loaded, offline, and session states */}
         {showFilterRow && (
           <FilterRow activeFilter={activeFilter} onFilterChange={handleFilterChange} />
         )}
 
-        {/* Body content per state */}
         {newsState === 'skeleton' && <NewsSkeleton />}
 
-        {(newsState === 'loaded' || newsState === 'session') && heroApiArticle && (
+        {(newsState === 'loaded' || newsState === 'session') && heroArticle != null && (
           <LoadedBody
-            heroArticle={heroApiArticle}
-            listArticles={listApiArticles}
+            heroArticle={heroArticle}
+            listArticles={listArticles}
             onArticlePress={handleArticlePress}
           />
         )}
 
         {newsState === 'offline' && (
-          <OfflineBody onArticlePress={handleArticlePress} />
+          <OfflineBody
+            articles={hook.data ?? []}
+            onArticlePress={handleArticlePress}
+          />
         )}
 
         {newsState === 'empty' && <EmptyBody />}
 
         {newsState === 'error' && (
-          <ErrorBody onRetry={() => fetchNews(FILTER_CATEGORY[activeFilter])} />
+          <ErrorBody onRetry={() => hook.refetch()} />
         )}
 
         <View style={{ height: 120 }} />
@@ -326,14 +310,14 @@ export default function NewsScreen() {
 
       <SessionExpiredModal
         visible={newsState === 'session'}
-        onContinueOffline={() => setNewsState('offline')}
+        onContinueOffline={() => setDevState('offline')}
       />
 
       <DevSwitcher
         states={ALL_STATES}
         labels={STATE_LABELS}
         current={newsState}
-        onChange={setNewsState}
+        onChange={(s) => setDevState(s)}
       />
     </View>
   );

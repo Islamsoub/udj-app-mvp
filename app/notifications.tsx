@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { isAxiosError } from 'axios';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -25,8 +24,11 @@ import { NotificationSkeleton } from '@/components/notifications/NotificationSke
 import {
   getNotifications,
   markAllNotificationsRead,
-  ApiNotification,
+  CachedNotification,
 } from '@/services/api';
+import { useOfflineQuery } from '@/hooks/useOfflineQuery';
+import { getCachedNotifications, upsertNotifications } from '@/services/db';
+import { mapNotificationsToCache } from '@/services/cacheMappers';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -59,7 +61,7 @@ function formatTimestamp(date: Date, now: Date): string {
   });
 }
 
-function groupNotificationsByDate(notifications: ApiNotification[]): Section[] {
+function groupNotificationsByDate(notifications: CachedNotification[]): Section[] {
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterdayStart = new Date(todayStart.getTime() - 86400000);
@@ -251,43 +253,51 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
 export default function NotificationsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [screenState, setScreenState] = useState<NotificationsState>('skeleton');
-  const [sections, setSections] = useState<Section[]>([]);
+  const [devState, setDevState] = useState<NotificationsState | null>(null);
 
-  const fetchData = useCallback(async (cancelled: { value: boolean } = { value: false }) => {
-    setScreenState('skeleton');
-    try {
+  // ─── Offline query ──────────────────────────────────────────────────────────
+
+  const hook = useOfflineQuery<CachedNotification[]>({
+    cacheKey: 'notifications',
+    getCached: async () => {
+      const cached = await getCachedNotifications();
+      return cached.length > 0 ? cached : null;
+    },
+    fetchFresh: async () => {
       const res = await getNotifications();
-      if (cancelled.value) return;
-      const grouped = groupNotificationsByDate(res.notifications);
-      setSections(grouped);
-      setScreenState(grouped.length === 0 ? 'empty' : 'loaded');
-    } catch (err) {
-      if (cancelled.value) return;
-      if (isAxiosError(err)) {
-        if (err.response?.status === 401) setScreenState('session');
-        else if (!err.response) setScreenState('offline');
-        else setScreenState('error');
-      } else {
-        setScreenState('error');
-      }
-    }
-  }, []);
+      return mapNotificationsToCache(res.notifications);
+    },
+    updateCache: (data) => upsertNotifications(data),
+  });
 
-  useEffect(() => {
-    const guard = { value: false };
-    fetchData(guard);
-    return () => { guard.value = true; };
-  }, [fetchData]);
+  // ─── Derive grouped sections ────────────────────────────────────────────────
 
-  const handleMarkAll = async () => {
+  const sections = useMemo(
+    () => groupNotificationsByDate(hook.data ?? []),
+    [hook.data],
+  );
+
+  // ─── Derive screen state ────────────────────────────────────────────────────
+
+  const hookState: NotificationsState = useMemo(() => {
+    if (hook.isLoading && !hook.data) return 'skeleton';
+    if (hook.isOffline && hook.data) return 'offline';
+    if (hook.data) return sections.length === 0 && !hook.isStale ? 'empty' : 'loaded';
+    if (hook.error) return 'error';
+    return 'skeleton';
+  }, [hook.isLoading, hook.data, hook.isOffline, hook.error, hook.isStale, sections.length]);
+
+  const screenState = devState ?? hookState;
+
+  const handleMarkAll = useCallback(async () => {
+    if (hook.isOffline) return;
     try {
       await markAllNotificationsRead();
-      fetchData();
+      hook.refetch();
     } catch {
       // ignore — UI stays as-is
     }
-  };
+  }, [hook]);
 
   const showContent =
     screenState === 'loaded' ||
@@ -312,20 +322,20 @@ export default function NotificationsScreen() {
         {showContent && <LoadedContent sections={sections} />}
         {screenState === 'empty' && <EmptyBody />}
         {screenState === 'error' && (
-          <ErrorBody onRetry={() => fetchData()} />
+          <ErrorBody onRetry={() => hook.refetch()} />
         )}
       </View>
 
       <SessionExpiredModal
         visible={screenState === 'session'}
-        onContinueOffline={() => setScreenState('offline')}
+        onContinueOffline={() => setDevState('offline')}
       />
 
       <DevSwitcher
         states={ALL_STATES}
         labels={STATE_LABELS}
         current={screenState}
-        onChange={setScreenState}
+        onChange={(s) => setDevState(s)}
       />
     </View>
   );

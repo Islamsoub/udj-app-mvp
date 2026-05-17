@@ -54,7 +54,8 @@
       "PowerShell(Get-NetTCPConnection -LocalPort 3000 -ErrorAction SilentlyContinue)",
       "Bash(echo \"PID=$!\")",
       "Bash(python3 -m json.tool)",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(echo \"Exit: $?\")"
     ]
   }
 }

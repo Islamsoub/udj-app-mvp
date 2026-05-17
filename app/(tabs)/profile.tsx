@@ -25,8 +25,11 @@ import { InfoRow } from '@/components/profile/InfoRow';
 import { ProfileSkeleton } from '@/components/profile/ProfileSkeleton';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { useAuthStore } from '@/stores/authStore';
-import type { StudentProfile } from '@/stores/authStore';
 import { getStudentMe, getQrToken } from '@/services/api';
+import type { StudentProfileCache } from '@/services/api';
+import { useOfflineQuery } from '@/hooks/useOfflineQuery';
+import { getStudentProfile, upsertProfile } from '@/services/db';
+import { mapProfileToCache } from '@/services/cacheMappers';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -34,42 +37,40 @@ type ProfileState = ProfileHeaderState;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function toHeaderStudent(s: StudentProfile): ProfileHeaderStudent {
+function cacheToHeaderStudent(c: StudentProfileCache): ProfileHeaderStudent {
   return {
-    name: `${s.firstName} ${s.lastName}`,
-    id: s.studentIdDisplay,
-    filiere: s.programme.nameFr,
-    gpa: s.stats?.gpa ?? 0,
-    credits: s.stats?.semesterCredits?.earned ?? 0,
-    presence: s.stats?.attendancePercentage ?? 0,
+    name: c.name,
+    id: c.studentId,
+    filiere: c.programmeName,
+    gpa: c.gpa ?? 0,
+    credits: c.creditsEarned,
+    presence: c.attendancePercentage ?? 0,
   };
 }
 
-function deriveAcademicYear(): string {
-  const now = new Date();
-  // Academic year starts in October: before August = previous year started
-  const startYear = now.getMonth() < 7 ? now.getFullYear() - 1 : now.getFullYear();
+function deriveAcademicYear(year?: number): string {
+  const startYear = year ?? (new Date().getMonth() < 7 ? new Date().getFullYear() - 1 : new Date().getFullYear());
   return `${startYear}-${startYear + 1}`;
 }
 
 // ─── Loaded / Offline body ────────────────────────────────────────────────────
 
 interface ProfileBodyProps {
-  student: StudentProfile | null;
+  student: StudentProfileCache | null;
   onPresencePress: () => void;
 }
 
 function ProfileBody({ student, onPresencePress }: ProfileBodyProps) {
   const { t } = useTranslation();
 
-  const name = student ? `${student.firstName} ${student.lastName}` : '—';
-  const id = student?.studentIdDisplay ?? '—';
-  const programme = student?.programme.code ?? '—';
-  const annee = deriveAcademicYear();
+  const name = student?.name ?? '—';
+  const id = student?.studentId ?? '—';
+  const programme = student?.programme ?? '—';
+  const annee = deriveAcademicYear(student?.year);
   const statut = student?.status ?? 'ACTIF';
-  const filiere = student?.programme.nameFr ?? '—';
-  const niveau = student?.programme.level ?? '—';
-  const presence = student?.stats?.attendancePercentage ?? 0;
+  const filiere = student?.programmeName ?? '—';
+  const niveau = student?.level ?? '—';
+  const presence = student?.attendancePercentage ?? 0;
 
   return (
     <View style={styles.body}>
@@ -201,65 +202,59 @@ const STATE_LABELS: Record<ProfileState, string> = {
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const [profileState, setProfileState] = useState<ProfileState>('skeleton');
+  const [devState, setDevState] = useState<ProfileState | null>(null);
   const insets = useSafeAreaInsets();
 
-  const [apiStudent, setApiStudent] = useState<StudentProfile | null>(
-    useAuthStore.getState().student,
-  );
   const [, setQrToken] = useState<string | null>(null);
   const qrIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  // ─── Offline query ──────────────────────────────────────────────────────────
+
+  const hook = useOfflineQuery<StudentProfileCache>({
+    cacheKey: 'profile',
+    getCached: () => getStudentProfile(),
+    fetchFresh: async () => {
+      const me = await getStudentMe();
+      useAuthStore.getState().setStudent(me);
+      return mapProfileToCache(me);
+    },
+    updateCache: (data) => upsertProfile(data),
+  });
+
+  // ─── QR token refresh (independent of profile hook) ────────────────────────
+
   useEffect(() => {
     let cancelled = false;
-
-    // Fetch fresh profile data
-    getStudentMe()
-      .then((data) => {
-        if (cancelled) return;
-        useAuthStore.getState().setStudent(data);
-        setApiStudent(data);
-        setProfileState('loaded');
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        if (isAxiosError(err)) {
-          if (err.response?.status === 401) setProfileState('session');
-          else if (!err.response) setProfileState('offline');
-          else setProfileState('error');
-        } else {
-          setProfileState('error');
-        }
-      });
-
-    // Fetch QR token immediately + every 55 seconds
     const fetchQr = () => {
       getQrToken()
-        .then((res) => {
-          if (!cancelled) setQrToken(res.token);
-        })
+        .then((res) => { if (!cancelled) setQrToken(res.token); })
         .catch(() => {});
     };
+    // Only try to refresh QR when online
     fetchQr();
     qrIntervalRef.current = setInterval(fetchQr, 55000);
-
     return () => {
       cancelled = true;
       if (qrIntervalRef.current) clearInterval(qrIntervalRef.current);
     };
   }, []);
 
+  // ─── Derive screen state ────────────────────────────────────────────────────
+
+  const hookState: ProfileState = (() => {
+    if (hook.isLoading && !hook.data) return 'skeleton';
+    if (hook.isOffline && hook.data) return 'offline';
+    if (hook.data) return 'loaded';
+    if (hook.error) return 'error';
+    return 'skeleton';
+  })();
+
+  const profileState = devState ?? hookState;
+
   const headerStudent: ProfileHeaderStudent =
-    apiStudent != null
-      ? toHeaderStudent(apiStudent)
-      : {
-          name: '—',
-          id: '—',
-          filiere: '—',
-          gpa: 0,
-          credits: 0,
-          presence: 0,
-        };
+    hook.data != null
+      ? cacheToHeaderStudent(hook.data)
+      : { name: '—', id: '—', filiere: '—', gpa: 0, credits: 0, presence: 0 };
 
   const showBody =
     profileState === 'loaded' ||
@@ -287,12 +282,12 @@ export default function ProfileScreen() {
         {profileState === 'skeleton' && <ProfileSkeleton />}
         {showBody && (
           <ProfileBody
-            student={apiStudent}
+            student={hook.data}
             onPresencePress={() => router.push('/attendance')}
           />
         )}
         {profileState === 'error' && (
-          <ErrorBody onRetry={() => setProfileState('skeleton')} />
+          <ErrorBody onRetry={() => hook.refetch()} />
         )}
         {profileState === 'incomplete' && <IncompleteBody />}
 
@@ -301,14 +296,14 @@ export default function ProfileScreen() {
 
       <SessionExpiredModal
         visible={profileState === 'session'}
-        onContinueOffline={() => setProfileState('offline')}
+        onContinueOffline={() => setDevState('offline')}
       />
 
       <DevSwitcher
         states={ALL_STATES}
         labels={STATE_LABELS}
         current={profileState}
-        onChange={setProfileState}
+        onChange={(s) => setDevState(s)}
       />
     </View>
   );
