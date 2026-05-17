@@ -14,8 +14,8 @@ const router = Router();
 router.use(authRateLimiter);
 
 const loginSchema = z.object({
-  studentId: z.string().min(1),
-  password: z.string().min(1),
+  studentId: z.string().min(1).max(20).trim(),
+  password: z.string().min(1).max(100),
 });
 
 const refreshSchema = z.object({

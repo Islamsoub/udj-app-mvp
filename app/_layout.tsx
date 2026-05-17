@@ -3,11 +3,17 @@ import React, { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
+import * as Notifications from 'expo-notifications';
 import { runMigrations } from '@/services/db';
 import { useAuthStore } from '@/stores/authStore';
+import {
+  registerForPushNotifications,
+  setupNotificationListeners,
+  isQuietHours,
+} from '@/services/pushNotifications';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -20,10 +26,23 @@ const queryClient = new QueryClient({
   },
 });
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 export default function RootLayout() {
   const [migrationsReady, setMigrationsReady] = useState(false);
   const loadAuthFromStorage = useAuthStore((s) => s.loadAuthFromStorage);
   const authLoaded = useAuthStore((s) => s.loaded);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const student = useAuthStore((s) => s.student);
+  const router = useRouter();
 
   // Font files go here once assets/fonts/ is populated — empty map loads instantly
   const [fontsLoaded] = useFonts({
@@ -50,6 +69,40 @@ export default function RootLayout() {
     }
     prepare();
   }, [loadAuthFromStorage]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    registerForPushNotifications();
+
+    const cleanup = setupNotificationListeners(
+      (notification) => {
+        const prefs = student?.preferences;
+        if (isQuietHours(prefs?.quietHoursStart ?? null, prefs?.quietHoursEnd ?? null)) {
+          Notifications.dismissNotificationAsync(notification.request.identifier);
+        }
+      },
+      (response) => {
+        const data = response.notification.request.content.data as { type?: string };
+        switch (data?.type) {
+          case 'GRADES':
+            router.push('/(tabs)/grades');
+            break;
+          case 'SCHEDULE':
+            router.push('/(tabs)/schedule');
+            break;
+          case 'ATTENDANCE':
+            router.push('/attendance');
+            break;
+          default:
+            router.push('/notifications');
+            break;
+        }
+      }
+    );
+
+    return cleanup;
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (fontsLoaded && migrationsReady && authLoaded) {

@@ -205,7 +205,7 @@ function LoadedContent({ sections }: { sections: Section[] }) {
             <NotificationItem
               key={item.id}
               item={item}
-              onPress={() => console.log('[NOTIFICATIONS] pressed', item.id)}
+              onPress={() => console.log('[NOTIFICATIONS] pressed')}
             />
           ))}
         </View>

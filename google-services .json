@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "568661633778",
+    "project_id": "unipocket-bb3ec",
+    "storage_bucket": "unipocket-bb3ec.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:568661633778:android:7d44d9a8e1068bf0fcfe6b",
+        "android_client_info": {
+          "package_name": "dj.univ.udj"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdabiqhqDrgnS4rW1PIEPBiUFZFEbb8KI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

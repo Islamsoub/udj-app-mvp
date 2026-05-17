@@ -450,12 +450,14 @@ router.patch(
 
 // ── PATCH /student/preferences ────────────────────────────────────────────────
 
+const HH_MM = /^\d{2}:\d{2}$/;
+
 const prefsSchema = z.object({
   notifGrades: z.boolean().optional(),
   notifCourses: z.boolean().optional(),
   notifAttendance: z.boolean().optional(),
-  quietHoursStart: z.string().nullable().optional(),
-  quietHoursEnd: z.string().nullable().optional(),
+  quietHoursStart: z.string().regex(HH_MM).nullable().optional(),
+  quietHoursEnd: z.string().regex(HH_MM).nullable().optional(),
 });
 
 router.patch('/preferences', async (req: Request, res: Response, next: NextFunction) => {
@@ -480,6 +482,24 @@ router.patch('/preferences', async (req: Request, res: Response, next: NextFunct
     });
 
     res.status(200).json(updated);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── POST /student/push-token ──────────────────────────────────────────────────
+
+const pushTokenSchema = z.object({ token: z.string().min(1) });
+
+router.post('/push-token', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const parsed = pushTokenSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Invalid token' });
+      return;
+    }
+    console.info('push-token registered');
+    res.status(200).json({ success: true });
   } catch (err) {
     next(err);
   }

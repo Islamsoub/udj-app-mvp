@@ -184,7 +184,7 @@ function LoadedContent() {
         <PDFRow
           key={item.id}
           item={item}
-          onDownload={() => console.log('[INFO_CENTER] download', item.id)}
+          onDownload={() => console.log('[INFO_CENTER] download')}
         />
       ))}
 
