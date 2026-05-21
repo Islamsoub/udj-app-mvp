@@ -227,3 +227,22 @@ Languages: French (LTR, default) + Arabic (RTL).
 - No PII in logs — strip student ID, name, grades from all error reports
 - QR: HMAC-SHA256 signed, 60s expiry, signing key never leaves server
 - Auth lockout: 3 failed attempts, 5-minute countdown, auto-unlock
+
+## Keyboard Handling Rules (learned from beta testing)
+
+1. Every action button in a bottom sheet with a TextInput must
+   call Keyboard.dismiss() as the first line of its onPress handler.
+
+2. Never use paddingBottom: keyboardHeight in bottom sheets —
+   it creates huge empty gaps. Instead use a small fixed spacer
+   (40-80px) at the bottom of the ScrollView content +
+   scrollToEnd triggered by a keyboardDidShow listener.
+
+3. onFocus alone is unreliable for repeat TextInput interactions.
+   Always use Keyboard.addListener('keyboardDidShow') for scroll
+   behavior — it fires every time, not just first focus.
+
+4. Every ScrollView that contains a TextInput + action button
+   must have keyboardShouldPersistTaps="handled". Without this,
+   tapping the button dismisses the keyboard instead of firing
+   the button's onPress.

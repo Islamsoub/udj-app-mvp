@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Modal,
   View,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   TextInput,
   StyleSheet,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +26,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
   const [targetGrade, setTargetGrade] = useState('');
   const [result, setResult] = useState<number | null>(null);
   const [calculated, setCalculated] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
 
   const subject = subjects.length > 0 ? subjects[selectedIndex % subjects.length] : null;
 
@@ -67,6 +69,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
           <View style={styles.handle} />
 
           <ScrollView
+            ref={scrollRef}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
@@ -115,6 +118,9 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
                     setCalculated(false);
                     setResult(null);
                   }}
+                  onFocus={() => {
+                    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 400);
+                  }}
                   placeholder={t('calculator.target_placeholder')}
                   placeholderTextColor={colors.textTertiary}
                   keyboardType="numeric"
@@ -128,7 +134,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
                   styles.calcBtn,
                   pressed && styles.calcBtnPressed,
                 ]}
-                onPress={calculate}
+                onPress={() => { Keyboard.dismiss(); calculate(); }}
               >
                 <Text style={styles.calcBtnText}>{t('calculator.calculate')}</Text>
               </Pressable>
@@ -158,7 +164,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
                 </View>
               )}
 
-              <View style={{ height: 28 }} />
+              <View style={{ height: 80 }} />
             </View>
           </ScrollView>
         </View>

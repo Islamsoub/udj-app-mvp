@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Modal,
   View,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   TextInput,
   StyleSheet,
+  Keyboard,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
@@ -42,6 +43,14 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
   const selectedCourse  = useCourseDetailStore((s) => s.selectedCourse);
   const personalNote    = useCourseDetailStore((s) => s.personalNote);
   const setPersonalNote = useCourseDetailStore((s) => s.setPersonalNote);
+  const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const sub = Keyboard.addListener('keyboardDidShow', () => {
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+    });
+    return () => sub.remove();
+  }, []);
 
   const course   = selectedCourse;
   const timeStr  = course ? `${course.start} – ${course.end}` : '';
@@ -64,6 +73,7 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
           <View style={styles.handle} />
 
           <ScrollView
+            ref={scrollRef}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
@@ -134,6 +144,8 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
             >
               <Text style={styles.saveBtnText}>{t('course.save')}</Text>
             </Pressable>
+
+            <View style={{ height: 40 }} />
           </ScrollView>
         </View>
       </View>
