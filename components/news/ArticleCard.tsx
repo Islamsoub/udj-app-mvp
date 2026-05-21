@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { getCategoryColor } from '@/constants/colorMap';
 
 export type ArticleCategory = 'Evenement' | 'Scolarite' | 'Sport';
 
@@ -13,8 +14,9 @@ export interface Article {
   isHero?: boolean;
 }
 
-function categoryTextColor(category: ArticleCategory): string {
-  return category === 'Evenement' ? colors.exam : colors.jade600;
+function capitalizeFirst(s: string): string {
+  if (!s) return s;
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 }
 
 interface ArticleCardProps {
@@ -22,14 +24,15 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({ article }: ArticleCardProps) {
+  const catColor = getCategoryColor(article.category);
   return (
     <View style={styles.card}>
       <View style={styles.thumbnail} />
       <View style={styles.content}>
         <View style={styles.topRow}>
-          <View style={styles.categoryPill}>
-            <Text style={[styles.categoryText, { color: categoryTextColor(article.category) }]}>
-              {article.category}
+          <View style={[styles.categoryPill, { backgroundColor: catColor.bg }]}>
+            <Text style={[styles.categoryText, { color: catColor.text }]}>
+              {capitalizeFirst(article.category)}
             </Text>
           </View>
           <Text style={styles.timestamp}>{article.timestamp}</Text>
@@ -80,7 +83,6 @@ const styles = StyleSheet.create({
   categoryPill: {
     height: 19,
     borderRadius: 10,
-    backgroundColor: colors.border,
     paddingHorizontal: spacing.sp12,
     alignItems: 'center',
     justifyContent: 'center',

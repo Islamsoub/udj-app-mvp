@@ -58,9 +58,10 @@ function deriveAcademicYear(year?: number): string {
 interface ProfileBodyProps {
   student: StudentProfileCache | null;
   onPresencePress: () => void;
+  onDocumentsPress: () => void;
 }
 
-function ProfileBody({ student, onPresencePress }: ProfileBodyProps) {
+function ProfileBody({ student, onPresencePress, onDocumentsPress }: ProfileBodyProps) {
   const { t } = useTranslation();
 
   const name = student?.name ?? '—';
@@ -101,6 +102,7 @@ function ProfileBody({ student, onPresencePress }: ProfileBodyProps) {
       <InfoRow
         label={t('profile.row.documents')}
         value={t('profile.row.documents_value')}
+        onPress={onDocumentsPress}
       />
 
       <InfoRow label={t('profile.row.logout')} isLogout />
@@ -284,6 +286,7 @@ export default function ProfileScreen() {
           <ProfileBody
             student={hook.data}
             onPresencePress={() => router.push('/attendance')}
+            onDocumentsPress={() => router.push('/info-center')}
           />
         )}
         {profileState === 'error' && (

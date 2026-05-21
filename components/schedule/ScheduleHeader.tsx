@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Alert, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import MenuSchIcon from '@/assets/icons/menu_sch_icon.svg';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
@@ -14,6 +15,7 @@ interface ScheduleHeaderProps {
 
 export function ScheduleHeader({ topInset, selectedDayIndex, onDaySelect }: ScheduleHeaderProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const DAYS_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
   const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
   const today = new Date();
@@ -25,12 +27,20 @@ export function ScheduleHeader({ topInset, selectedDayIndex, onDaySelect }: Sche
       <View style={[styles.titleRow, { paddingTop: topInset + 14 }]}>
         <Text style={styles.title}>{t('schedule.title')}</Text>
         <View style={styles.actions}>
-          <View style={styles.iconCircle}>
+          <Pressable
+            style={styles.iconCircle}
+            onPress={() => Alert.alert('', 'Recherche bientôt disponible')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <Ionicons name="search-outline" size={20} color={colors.textSecondary} />
-          </View>
-          <View style={styles.iconCircle}>
+          </Pressable>
+          <Pressable
+            style={styles.iconCircle}
+            onPress={() => router.push('/settings')}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
             <MenuSchIcon width={20} height={20} />
-          </View>
+          </Pressable>
         </View>
       </View>
 

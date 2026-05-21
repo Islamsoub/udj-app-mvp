@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, spacing } from '@/constants/theme';
+import { colors, fonts, spacing, radius } from '@/constants/theme';
+import { getCategoryColor } from '@/constants/colorMap';
 
 export type NotificationType = 'grades' | 'schedule' | 'attendance' | 'general';
 
@@ -22,6 +23,20 @@ type Props = {
 // Light lavender — not in theme palette; notification-specific inline constant
 const NOTIF_GENERAL_BG = '#E0E7FF';
 
+const NOTIF_TYPE_LABEL: Record<NotificationType, string> = {
+  grades:     'Notes',
+  schedule:   'Agenda',
+  attendance: 'Présence',
+  general:    'Général',
+};
+
+const NOTIF_TYPE_CATEGORY_KEY: Record<NotificationType, string> = {
+  grades:     'GRADES',
+  schedule:   'SCHEDULE',
+  attendance: 'ATTENDANCE',
+  general:    'GENERAL',
+};
+
 type IconConfig = {
   bg: string;
   icon: React.ComponentProps<typeof Ionicons>['name'];
@@ -37,6 +52,8 @@ const ICON_CONFIG: Record<NotificationType, IconConfig> = {
 
 export function NotificationItem({ item, onPress }: Props) {
   const { bg, icon, iconColor } = ICON_CONFIG[item.type];
+  const catColor = getCategoryColor(NOTIF_TYPE_CATEGORY_KEY[item.type]);
+  const typeLabel = NOTIF_TYPE_LABEL[item.type];
 
   return (
     <Pressable
@@ -51,7 +68,12 @@ export function NotificationItem({ item, onPress }: Props) {
       <View style={styles.textCol}>
         <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
         <Text style={styles.body} numberOfLines={2}>{item.body}</Text>
-        <Text style={styles.timestamp}>{item.timestamp}</Text>
+        <View style={styles.bottomRow}>
+          <Text style={styles.timestamp}>{item.timestamp}</Text>
+          <View style={[styles.typePill, { backgroundColor: catColor.bg }]}>
+            <Text style={[styles.typePillText, { color: catColor.text }]}>{typeLabel}</Text>
+          </View>
+        </View>
       </View>
 
       {item.isUnread && <View style={styles.dot} />}
@@ -95,12 +117,27 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 19,
   },
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
   timestamp: {
     fontSize: 12,
     fontWeight: '400',
     fontFamily: fonts.mono,
     color: colors.textTertiary,
-    marginTop: 2,
+  },
+  typePill: {
+    borderRadius: radius.rFull,
+    paddingHorizontal: spacing.sp8,
+    paddingVertical: 2,
+  },
+  typePillText: {
+    fontSize: 10,
+    fontWeight: '600',
+    fontFamily: fonts.sans,
   },
   dot: {
     width: 10,

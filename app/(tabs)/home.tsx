@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, spacing, radius } from '@/constants/theme';
+import { getSubjectColor } from '@/constants/colorMap';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { CourseDetailSheet } from '@/components/schedule/CourseDetailSheet';
@@ -81,7 +82,7 @@ function scheduleToCard(s: Schedule, nowMins: number): AgendaCardData {
   const isPast = nowMins >= endMins;
   const courseStatus: 'active' | 'past' | 'upcoming' = isPast ? 'past' : isActive ? 'active' : 'upcoming';
 
-  let accentColor: string = colors.jade400;
+  let accentColor: string = getSubjectColor(s.subjectName).accent;
   let statusLabel: string | undefined;
   let statusBg: string | undefined;
   let statusColor: string | undefined;
@@ -333,21 +334,21 @@ function LoadedHeader({
       )}
       <View style={styles.divider} />
       <View style={styles.statRow}>
-        <StatCard label="GPA" value={displayGpa} sub={displayMention} />
-        <StatCard label="PRÉSENCE" value={displayAttendance} sub="Limite: 75%" />
-        <StatCard label="CRÉDITS" value={displayCredits} sub={`/ ${displayCreditsTotal} ce sem.`} />
+        <StatCard label="GPA" value={displayGpa} sub={displayMention} onPress={() => router.push('/(tabs)/grades')} />
+        <StatCard label="PRÉSENCE" value={displayAttendance} sub="Limite: 75%" onPress={() => router.push('/attendance')} />
+        <StatCard label="CRÉDITS" value={displayCredits} sub={`/ ${displayCreditsTotal} ce sem.`} onPress={() => router.push('/(tabs)/grades')} />
       </View>
     </View>
   );
 }
 
-function StatCard({ label, value, sub }: { label: string; value: string; sub: string }) {
+function StatCard({ label, value, sub, onPress }: { label: string; value: string; sub: string; onPress?: () => void }) {
   return (
-    <View style={styles.statCard}>
+    <Pressable style={styles.statCard} onPress={onPress} hitSlop={4}>
       <Text style={styles.statLabel}>{label}</Text>
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statSub}>{sub}</Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -419,6 +420,7 @@ export default function HomeScreen() {
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [courseDetailVisible, setCourseDetailVisible] = useState(false);
   const insets = useSafeAreaInsets();
+  const router = useRouter();
 
   const setSelectedCourse = useCourseDetailStore((s) => s.setSelectedCourse);
 
@@ -557,7 +559,9 @@ export default function HomeScreen() {
             {/* Agenda section */}
             <View style={styles.sectionHeadingRow}>
               <Text style={styles.sectionHeading}>Agenda du jour</Text>
-              <Text style={styles.sectionLink}>Voir tout</Text>
+              <Pressable onPress={() => router.push('/(tabs)/schedule')} hitSlop={8}>
+                <Text style={styles.sectionLink}>Voir tout</Text>
+              </Pressable>
             </View>
 
             {todayCards.length > 0 ? (

@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { getMentionColor, getMentionTextColor } from '@/constants/colorMap';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import { SemesterTabs } from './SemesterTabs';
 import { getMention } from '@/utils/gradesMention';
@@ -127,8 +128,8 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
         <Pressable style={styles.gpaRow} onPress={onGpaPress} hitSlop={8}>
           <Text style={styles.gpaNumber}>{gpaText}</Text>
           {mention !== null && (
-            <View style={styles.mentionBadge}>
-              <Text style={styles.mentionText}>{mention}</Text>
+            <View style={[styles.mentionBadge, { backgroundColor: getMentionColor(mention) }]}>
+              <Text style={[styles.mentionText, { color: getMentionTextColor(mention) }]}>{mention}</Text>
             </View>
           )}
         </Pressable>

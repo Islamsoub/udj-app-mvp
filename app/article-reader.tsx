@@ -13,6 +13,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { getCategoryColor } from '@/constants/colorMap';
 import { ArticleReaderHeader } from '@/components/news/ArticleReaderHeader';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -67,14 +68,6 @@ function mapArticleDetail(detail: NewsArticleDetail): ArticleData {
   };
 }
 
-// ─── Category label map ───────────────────────────────────────────────────────
-
-const CATEGORY_LABEL: Record<string, string> = {
-  Scolarite: 'OFFICIEL',
-  Evenement: 'ÉVÉNEMENT',
-  Sport: 'SPORT',
-};
-
 // ─── Article offline banner ───────────────────────────────────────────────────
 
 function ArticleOfflineBanner() {
@@ -105,9 +98,14 @@ interface LoadedBodyProps {
   bottomInset: number;
 }
 
+function capitalizeFirst(s: string): string {
+  if (!s) return s;
+  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+}
+
 function LoadedBody({ article, bottomInset }: LoadedBodyProps) {
   const paragraphs = article.body.split('\n\n');
-  const categoryLabel = CATEGORY_LABEL[article.category] ?? article.category.toUpperCase();
+  const catColor = getCategoryColor(article.category);
 
   return (
     <ScrollView
@@ -118,8 +116,10 @@ function LoadedBody({ article, bottomInset }: LoadedBodyProps) {
       <ArticleHero />
 
       <View style={styles.bodyContent}>
-        <View style={styles.categoryPill}>
-          <Text style={styles.categoryText}>{categoryLabel}</Text>
+        <View style={[styles.categoryPill, { backgroundColor: catColor.bg }]}>
+          <Text style={[styles.categoryText, { color: catColor.text }]}>
+            {capitalizeFirst(article.category)}
+          </Text>
         </View>
 
         <Text style={styles.date}>{article.fullDate}</Text>
@@ -401,7 +401,6 @@ const styles = StyleSheet.create({
   categoryPill: {
     height: 28,
     borderRadius: radius.rFull,
-    backgroundColor: 'rgba(29,158,117,0.15)',
     paddingHorizontal: 12,
     alignSelf: 'flex-start',
     alignItems: 'center',
@@ -412,8 +411,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     fontFamily: fonts.sans,
-    color: colors.jade600,
-    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   date: {

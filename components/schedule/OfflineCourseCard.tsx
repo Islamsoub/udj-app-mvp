@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, I18nManager } from 'react-native';
 import { colors, radius } from '@/constants/theme';
-import { subjectColor } from '@/utils/subjectColor';
+import { getSubjectColor } from '@/constants/colorMap';
 import { Course } from './CourseCard';
 
 interface OfflineCourseCardProps {
@@ -10,7 +10,7 @@ interface OfflineCourseCardProps {
 
 export function OfflineCourseCard({ course }: OfflineCourseCardProps) {
   const isRTL  = I18nManager.isRTL;
-  const accent = subjectColor(course.subject);
+  const accent = getSubjectColor(course.subject).accent;
 
   const accentBar = (
     <View

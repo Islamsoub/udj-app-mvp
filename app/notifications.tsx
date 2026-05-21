@@ -192,6 +192,15 @@ function SectionHeader({ labelKey }: { labelKey: string }) {
 // ─── Loaded content ───────────────────────────────────────────────────────────
 
 function LoadedContent({ sections }: { sections: Section[] }) {
+  const router = useRouter();
+
+  const handleNotifPress = (type: NotificationType) => {
+    if (type === 'grades') router.push('/(tabs)/grades');
+    else if (type === 'schedule') router.push('/(tabs)/schedule');
+    else if (type === 'attendance') router.push('/attendance');
+    // 'general' — mark as read only, no navigation
+  };
+
   return (
     <ScrollView
       style={styles.scroll}
@@ -205,7 +214,7 @@ function LoadedContent({ sections }: { sections: Section[] }) {
             <NotificationItem
               key={item.id}
               item={item}
-              onPress={() => console.log('[NOTIFICATIONS] pressed')}
+              onPress={() => handleNotifPress(item.type)}
             />
           ))}
         </View>

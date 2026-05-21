@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, I18nManager } from 'react-native';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { StatusPill, CourseStatus } from './StatusPill';
-import { subjectColor } from '@/utils/subjectColor';
+import { getSubjectColor } from '@/constants/colorMap';
 
 export interface Course {
   id: string;
@@ -22,7 +22,7 @@ interface CourseCardProps {
 export function getAccentColor(course: Course): string {
   if (course.status === 'past') return colors.greyMuted;
   if (course.status === 'active') return colors.jade400;
-  return subjectColor(course.subject);
+  return getSubjectColor(course.subject).accent;
 }
 
 export function CourseCard({ course }: CourseCardProps) {
