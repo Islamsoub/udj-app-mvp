@@ -110,7 +110,7 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, migrationsReady, authLoaded]);
 
-  if (!fontsLoaded || !migrationsReady) {
+  if (!fontsLoaded || !migrationsReady || !authLoaded) {
     return null;
   }
 

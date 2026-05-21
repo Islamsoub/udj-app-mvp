@@ -27,6 +27,10 @@
     "forgotPassword": "Mot de passe oublié ?",
     "attemptsLeft": "{{count}} tentative(s) restante(s)",
     "lockedOut": "Compte verrouillé. Réessayez dans {{time}}",
+    "lockedTitle": "Compte temporairement bloqué",
+    "lockedSubtitle": "3 tentatives échouées. Réessayez dans :",
+    "lockedMinutesLeft": "minutes restantes",
+    "helpContact": "Besoin d'aide ? Contactez la scolarité",
     "networkError": "Vérifiez votre connexion et réessayez.",
     "biometricPrompt": "Connexion biométrique"
   },

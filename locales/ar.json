@@ -24,6 +24,10 @@
     "forgotPassword": "نسيت كلمة المرور؟",
     "attemptsLeft": "{{count}} محاولة(محاولات) متبقية",
     "lockedOut": "الحساب مقفل. حاول مجدداً خلال {{time}}",
+    "lockedTitle": "الحساب محجوب مؤقتاً",
+    "lockedSubtitle": "3 محاولات فاشلة. حاول مجدداً خلال:",
+    "lockedMinutesLeft": "دقائق متبقية",
+    "helpContact": "تحتاج مساعدة؟ تواصل مع قسم الشؤون الطلابية",
     "networkError": "تحقق من اتصالك وحاول مجدداً.",
     "biometricPrompt": "تسجيل الدخول البيومتري"
   },

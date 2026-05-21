@@ -111,7 +111,7 @@ export default function LoginScreen() {
   const formatCountdown = (secs: number): string => {
     const m = Math.floor(secs / 60);
     const s = secs % 60;
-    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    return `${m}:${String(s).padStart(2, '0')}`;
   };
 
   const loginHandler = async (): Promise<void> => {
@@ -242,12 +242,10 @@ export default function LoginScreen() {
               {isLocked && (
                 <View style={styles.lockoutCard}>
                   <Ionicons name="warning-outline" size={28} color={colors.warning} />
-                  <Text style={styles.lockoutTitle}>Compte temporairement bloqué</Text>
-                  <Text style={styles.lockoutSubtitle}>
-                    3 tentatives échouées. Réessayez dans :
-                  </Text>
+                  <Text style={styles.lockoutTitle}>{t('auth.lockedTitle')}</Text>
+                  <Text style={styles.lockoutSubtitle}>{t('auth.lockedSubtitle')}</Text>
                   <Text style={styles.lockoutTimer}>{formatCountdown(countdown)}</Text>
-                  <Text style={styles.lockoutMinutes}>minutes restantes</Text>
+                  <Text style={styles.lockoutMinutes}>{t('auth.lockedMinutesLeft')}</Text>
                 </View>
               )}
 
@@ -377,7 +375,7 @@ export default function LoginScreen() {
                   <ActivityIndicator color={colors.surface} />
                 ) : (
                   <Text style={[styles.loginButtonText, buttonTextGrey && styles.loginButtonTextGrey]}>
-                    {isError ? 'Réessayer' : 'Se connecter'}
+                    {isError ? t('common.retry') : t('auth.login')}
                   </Text>
                 )}
               </Pressable>
@@ -406,7 +404,7 @@ export default function LoginScreen() {
               {/* ── LOCKED-OUT: help link ── */}
               {isLocked && (
                 <Pressable hitSlop={8} style={styles.helpLink}>
-                  <Text style={styles.helpLinkText}>Besoin d'aide ? Contactez la scolarité</Text>
+                  <Text style={styles.helpLinkText}>{t('auth.helpContact')}</Text>
                 </Pressable>
               )}
 
