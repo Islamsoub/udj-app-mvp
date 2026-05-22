@@ -301,12 +301,17 @@ export const getGradesAllSemesters = () =>
 // ── Attendance ───────────────────────────────────────────────────────────────
 
 export interface AttendanceSubject {
-  subjectCode: string;
-  nameFr: string;
-  percentage: number;
-  present: number;
+  subject: {
+    id: string;
+    nameFr: string;
+    nameAr: string;
+    code: string;
+  };
   total: number;
-  remaining: number;
+  present: number;
+  absent: number;
+  justified: number;
+  percentage: number;
 }
 
 export interface AttendanceApiResponse {

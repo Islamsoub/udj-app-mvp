@@ -115,13 +115,13 @@ export function mapAttendanceToCache(
   studentId: string,
 ): Attendance[] {
   return subjects.map((s) => ({
-    id: `${studentId}-${s.subjectCode}`,
+    id: `${studentId}-${s.subject.code}`,
     studentId,
-    subjectCode: s.subjectCode,
-    subjectName: s.nameFr,
+    subjectCode: s.subject.code,
+    subjectName: s.subject.nameFr,
     sessionsTotal: s.total,
     sessionsPresent: s.present,
-    sessionsRemaining: s.remaining,
+    sessionsRemaining: 0,
     percentage: s.percentage,
     threshold: 0.75,
     cachedAt: NOW(),

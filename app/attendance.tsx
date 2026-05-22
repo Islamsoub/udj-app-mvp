@@ -36,10 +36,10 @@ import { useAuthStore } from '@/stores/authStore';
 
 function computeProjection(
   subject: AttendanceSubject,
+  remaining: number,
   t: TFunction,
 ): string {
   const threshold = 0.75;
-  const remaining = subject.remaining ?? 0;
   const totalWithRemaining = subject.total + remaining;
   const minRequired = Math.ceil(totalWithRemaining * threshold);
   const canMiss = remaining - Math.max(0, minRequired - subject.present);
@@ -91,9 +91,10 @@ function AttendanceOfflineBanner() {
 
 interface CardsBodyProps {
   data: AttendanceApiResponse;
+  remainingByCode: Record<string, number>;
 }
 
-function CardsBody({ data }: CardsBodyProps) {
+function CardsBody({ data, remainingByCode }: CardsBodyProps) {
   const { t } = useTranslation();
 
   return (
@@ -102,12 +103,12 @@ function CardsBody({ data }: CardsBodyProps) {
 
       {data.subjects.map((subject) => (
         <AttendanceCard
-          key={subject.subjectCode}
-          name={subject.nameFr}
+          key={subject.subject.code}
+          name={subject.subject.nameFr}
           percentage={subject.percentage}
           attended={subject.present}
           total={subject.total}
-          projection={computeProjection(subject, t)}
+          projection={computeProjection(subject, remainingByCode[subject.subject.code] ?? 0, t)}
         />
       ))}
 
@@ -198,14 +199,27 @@ export default function AttendanceScreen() {
         total: totalSessions,
       },
       subjects: items.map((a): AttendanceSubject => ({
-        subjectCode: a.subjectCode,
-        nameFr: a.subjectName,
-        percentage: a.percentage,
-        present: a.sessionsPresent,
+        subject: {
+          id: a.id,
+          nameFr: a.subjectName,
+          nameAr: a.subjectName,
+          code: a.subjectCode,
+        },
         total: a.sessionsTotal,
-        remaining: a.sessionsRemaining,
+        present: a.sessionsPresent,
+        absent: a.sessionsTotal - a.sessionsPresent,
+        justified: 0,
+        percentage: a.percentage,
       })),
     };
+  }, [hook.data]);
+
+  const remainingByCode = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const a of hook.data ?? []) {
+      out[a.subjectCode] = a.sessionsRemaining;
+    }
+    return out;
   }, [hook.data]);
 
   // ─── Derive screen state ────────────────────────────────────────────────────
@@ -249,7 +263,9 @@ export default function AttendanceScreen() {
         {screenState === 'offline' && <AttendanceOfflineBanner />}
 
         {screenState === 'skeleton' && <AttendanceSkeleton />}
-        {showCards && attendanceData != null && <CardsBody data={attendanceData} />}
+        {showCards && attendanceData != null && (
+          <CardsBody data={attendanceData} remainingByCode={remainingByCode} />
+        )}
         {screenState === 'empty' && <EmptyBody />}
         {screenState === 'error' && (
           <ErrorBody onRetry={() => hook.refetch()} />
