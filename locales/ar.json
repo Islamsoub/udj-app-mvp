@@ -387,7 +387,8 @@
     "current_label": "المعدل الحالي",
     "trend_up": "↑ +{{diff}} مقارنة بالفصل السابق",
     "trend_down": "↓ −{{diff}} مقارنة بالفصل السابق",
-    "admission": "القبول"
+    "admission": "القبول",
+    "disclaimer": "السجل الكامل متاح بعد عدة فصول"
   },
   "attendance": {
     "title": "الحضور",

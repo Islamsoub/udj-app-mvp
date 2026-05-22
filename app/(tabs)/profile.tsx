@@ -293,6 +293,13 @@ export default function ProfileScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
 
+      <ProfileHeader
+        state={profileState}
+        topInset={insets.top}
+        student={headerStudent}
+        onDotsPress={() => router.push('/settings')}
+      />
+
       <OfflineBanner />
 
       <ScrollView
@@ -300,13 +307,6 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <ProfileHeader
-          state={profileState}
-          topInset={insets.top}
-          student={headerStudent}
-          onDotsPress={() => router.push('/settings')}
-        />
-
         {profileState === 'skeleton' && <ProfileSkeleton />}
         {showBody && (
           <ProfileBody

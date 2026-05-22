@@ -522,6 +522,19 @@ export default function HomeScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
 
+      {/* Header — pinned, outside ScrollView */}
+      {showSkeleton ? (
+        <View style={{ paddingTop: insets.top }}><SkeletonHeader /></View>
+      ) : showLoadedHeader ? (
+        <LoadedHeader
+          isOffline={isOffline}
+          topInset={insets.top}
+          profile={profileHook.data}
+        />
+      ) : (
+        <SimpleHeader topInset={insets.top} />
+      )}
+
       <OfflineBanner />
 
       <ScrollView
@@ -529,19 +542,6 @@ export default function HomeScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        {showSkeleton ? (
-          <View style={{ paddingTop: insets.top }}><SkeletonHeader /></View>
-        ) : showLoadedHeader ? (
-          <LoadedHeader
-            isOffline={isOffline}
-            topInset={insets.top}
-            profile={profileHook.data}
-          />
-        ) : (
-          <SimpleHeader topInset={insets.top} />
-        )}
-
         {/* Body */}
         {showSkeleton && <SkeletonBody />}
 

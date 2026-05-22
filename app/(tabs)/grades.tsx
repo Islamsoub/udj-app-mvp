@@ -18,7 +18,7 @@ import { GradesHeader } from '@/components/grades/GradesHeader';
 import { SubjectCard, Subject } from '@/components/grades/SubjectCard';
 import { GradesSkeleton } from '@/components/grades/GradesSkeleton';
 import { GradeCalculatorSheet } from '@/components/grades/GradeCalculatorSheet';
-import { GPAHistorySheet } from '@/components/grades/GPAHistorySheet';
+import { GPAHistorySheet, GPADataPoint } from '@/components/grades/GPAHistorySheet';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getAllCachedGrades, getGradesForSemester, upsertGrades } from '@/services/db';
@@ -187,13 +187,25 @@ export default function GradesScreen() {
     [hook.data],
   );
 
-  const gpaChartData = useMemo(
-    () =>
-      allSemesterData
-        .filter((s) => s.gpa !== null)
-        .map((s) => ({ label: s.label, value: s.gpa as number })),
-    [allSemesterData],
-  );
+  const gpaChartData = useMemo<GPADataPoint[]>(() => {
+    let real: GPADataPoint[] = allSemesterData
+      .filter((s) => s.gpa !== null)
+      .map((s) => ({ label: s.label, value: s.gpa as number }));
+
+    if (real.length === 0 && gradesData?.gpa != null) {
+      real = [{ label: gradesData.semester.label, value: gradesData.gpa }];
+    }
+
+    if (real.length !== 1) return real;
+
+    const currentGpa = real[0].value;
+    const clamp = (v: number) => Math.max(0, Math.min(20, v));
+    return [
+      { label: '—', value: clamp(currentGpa - 0.8), isEstimate: true },
+      { label: '—', value: clamp(currentGpa - 0.3), isEstimate: true },
+      real[0],
+    ];
+  }, [allSemesterData, gradesData]);
 
   // ─── Semester tab switch ────────────────────────────────────────────────────
 
@@ -236,6 +248,17 @@ export default function GradesScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="light-content" />
 
+      <GradesHeader
+        state={gradesState === 'session' ? 'loaded' : gradesState}
+        topInset={insets.top}
+        gpa={headerGpa}
+        activeSemester={activeSemester}
+        onSemesterChange={handleSemesterChange}
+        credits={headerCredits}
+        onCalculatorPress={() => setCalculatorVisible(true)}
+        onGpaPress={() => setGpaHistoryVisible(true)}
+      />
+
       <OfflineBanner />
 
       <ScrollView
@@ -243,17 +266,6 @@ export default function GradesScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <GradesHeader
-          state={gradesState === 'session' ? 'loaded' : gradesState}
-          topInset={insets.top}
-          gpa={headerGpa}
-          activeSemester={activeSemester}
-          onSemesterChange={handleSemesterChange}
-          credits={headerCredits}
-          onCalculatorPress={() => setCalculatorVisible(true)}
-          onGpaPress={() => setGpaHistoryVisible(true)}
-        />
-
         {gradesState === 'skeleton' && <GradesSkeleton />}
 
         {(gradesState === 'loaded' || gradesState === 'session' || gradesState === 'offline') && (

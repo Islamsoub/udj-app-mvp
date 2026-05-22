@@ -294,19 +294,19 @@ export default function NewsScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
 
+      <NewsHeader
+        state={newsState === 'session' ? 'loaded' : newsState}
+        topInset={insets.top}
+        onMarkAllRead={handleMarkAllRead}
+      />
+
+      <OfflineBanner />
+
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <NewsHeader
-          state={newsState === 'session' ? 'loaded' : newsState}
-          topInset={insets.top}
-          onMarkAllRead={handleMarkAllRead}
-        />
-
-        <OfflineBanner />
-
         {showFilterRow && (
           <FilterRow activeFilter={activeFilter} onFilterChange={handleFilterChange} />
         )}

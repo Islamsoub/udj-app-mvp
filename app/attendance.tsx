@@ -246,22 +246,22 @@ export default function AttendanceScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="light-content" />
 
+      <AttendanceHeader
+        topInset={insets.top}
+        onBack={() => router.back()}
+        percentage={overall.percentage}
+        absences={overall.absent}
+        totalSessions={overall.total}
+        state={headerState}
+      />
+
+      {screenState === 'offline' && <AttendanceOfflineBanner />}
+
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <AttendanceHeader
-          topInset={insets.top}
-          onBack={() => router.back()}
-          percentage={overall.percentage}
-          absences={overall.absent}
-          totalSessions={overall.total}
-          state={headerState}
-        />
-
-        {screenState === 'offline' && <AttendanceOfflineBanner />}
-
         {screenState === 'skeleton' && <AttendanceSkeleton />}
         {showCards && attendanceData != null && (
           <CardsBody data={attendanceData} remainingByCode={remainingByCode} />

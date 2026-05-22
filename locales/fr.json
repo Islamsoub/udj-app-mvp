@@ -390,7 +390,8 @@
     "current_label": "MOYENNE ACTUELLE",
     "trend_up": "↑ +{{diff}} vs semestre précédent",
     "trend_down": "↓ −{{diff}} vs semestre précédent",
-    "admission": "admission"
+    "admission": "admission",
+    "disclaimer": "Historique complet disponible après plusieurs semestres"
   },
   "attendance": {
     "title": "PRÉSENCE",

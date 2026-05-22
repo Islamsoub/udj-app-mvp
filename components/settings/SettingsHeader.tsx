@@ -28,7 +28,7 @@ export function SettingsHeader({ topInset, onBack, title }: SettingsHeaderProps)
 
 const styles = StyleSheet.create({
   container: {
-    height: CONTENT_H,
+    minHeight: CONTENT_H,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,

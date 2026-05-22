@@ -421,6 +421,16 @@ export default function ScheduleScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
 
+      {schedState === 'skeleton' ? (
+        <SkeletonScheduleHeader topInset={insets.top} />
+      ) : (
+        <ScheduleHeader
+          topInset={insets.top}
+          selectedDayIndex={selectedDay}
+          onDaySelect={setSelectedDay}
+        />
+      )}
+
       <OfflineBanner />
 
       <ScrollView
@@ -428,16 +438,6 @@ export default function ScheduleScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {schedState === 'skeleton' ? (
-          <SkeletonScheduleHeader topInset={insets.top} />
-        ) : (
-          <ScheduleHeader
-            topInset={insets.top}
-            selectedDayIndex={selectedDay}
-            onDaySelect={setSelectedDay}
-          />
-        )}
-
         {schedState === 'skeleton' && <SkeletonScheduleBody />}
 
         {(schedState === 'loaded' || schedState === 'session') && (

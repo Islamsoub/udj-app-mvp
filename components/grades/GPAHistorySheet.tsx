@@ -14,6 +14,7 @@ import { colors, fonts, radius, spacing } from '@/constants/theme';
 export interface GPADataPoint {
   label: string;
   value: number;
+  isEstimate?: boolean;
 }
 
 interface Props {
@@ -47,6 +48,7 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
   // Build chart geometry from dynamic data
   const data = gpaData.length > 0 ? gpaData : [];
   const hasLine = data.length >= 2;
+  const hasEstimates = data.some((d) => d.isEstimate === true);
 
   function toX(index: number) {
     if (data.length <= 1) return PAD_L + INNER_W / 2;
@@ -143,6 +145,7 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
                     strokeWidth={2}
                     strokeLinejoin="round"
                     strokeLinecap="round"
+                    strokeDasharray={hasEstimates ? '5,4' : undefined}
                   />
                 )}
 
@@ -151,9 +154,22 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
                   const cx = toX(i);
                   const cy = toY(d.value);
                   const isCurrent = i === data.length - 1;
+                  if (d.isEstimate) {
+                    return (
+                      <Circle
+                        key={`${d.label}-${i}`}
+                        cx={cx}
+                        cy={cy}
+                        r={5}
+                        fill={colors.surface}
+                        stroke={colors.jade200}
+                        strokeWidth={2}
+                      />
+                    );
+                  }
                   return (
                     <Circle
-                      key={d.label}
+                      key={`${d.label}-${i}`}
                       cx={cx}
                       cy={cy}
                       r={isCurrent ? 7 : 5}
@@ -213,8 +229,12 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
             <View style={styles.xAxis}>
               {data.map((d, i) => (
                 <Text
-                  key={d.label}
-                  style={[styles.xLabel, i === data.length - 1 && styles.xLabelActive]}
+                  key={`${d.label}-${i}`}
+                  style={[
+                    styles.xLabel,
+                    i === data.length - 1 && styles.xLabelActive,
+                    d.isEstimate === true && styles.xLabelEstimate,
+                  ]}
                 >
                   {d.label}
                 </Text>
@@ -232,13 +252,17 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
                     <Text style={styles.gpaSuffix}>/20</Text>
                   </View>
                   {/* Trend */}
-                  {data.length > 1 && (
+                  {data.length > 1 && !hasEstimates && (
                     <Text style={[styles.trendText, { color: trendColor }]}>
                       {t(trendKey, { diff: diffStr })}
                     </Text>
                   )}
                 </View>
               </View>
+            )}
+
+            {hasEstimates && (
+              <Text style={styles.disclaimer}>{t('gpa_history.disclaimer')}</Text>
             )}
 
             <View style={{ height: 28 }} />
@@ -325,6 +349,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textPrimary,
   },
+  xLabelEstimate: {
+    color: colors.textTertiary,
+  },
 
   // ── Tooltip
   tooltip: {
@@ -380,5 +407,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '400',
     fontFamily: fonts.sans,
+  },
+  disclaimer: {
+    fontSize: 12,
+    fontWeight: '400',
+    fontFamily: fonts.sans,
+    color: colors.textTertiary,
+    paddingHorizontal: spacing.sp20,
+    marginTop: spacing.sp12,
   },
 });

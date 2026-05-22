@@ -100,6 +100,8 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
     color: colors.textPrimary,
     lineHeight: 20,
+    marginTop: spacing.sp4,
+    marginBottom: spacing.sp4,
   },
   metaRow: {
     flexDirection: 'row',
