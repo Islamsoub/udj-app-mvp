@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, spacing } from '@/constants/theme';
+import { fonts, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -14,6 +15,8 @@ interface InfoRowProps {
 }
 
 export function InfoRow({ label, value, onPress, isLogout = false, icon }: InfoRowProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const labelColor = isLogout ? colors.danger : colors.textPrimary;
   const chevronColor = isLogout ? colors.danger : colors.greyMedium;
   const iconColor = isLogout ? colors.danger : colors.greyMedium;
@@ -61,7 +64,7 @@ export function InfoRow({ label, value, onPress, isLogout = false, icon }: InfoR
   return <View style={styles.row}>{content}</View>;
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   row: {
     minHeight: 54,
     backgroundColor: colors.surface,

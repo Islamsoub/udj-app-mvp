@@ -1,9 +1,13 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
-import { colors, spacing } from '@/constants/theme';
+import { spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 function CardSkeleton() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   return (
     <View style={styles.card}>
       {/* Top row: name shimmer + percentage shimmer */}
@@ -23,6 +27,9 @@ function CardSkeleton() {
 }
 
 export function AttendanceSkeleton() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
   return (
     <View style={styles.container}>
       {/* Section header shimmer */}
@@ -43,7 +50,7 @@ export function AttendanceSkeleton() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     paddingTop: spacing.sp4,
   },

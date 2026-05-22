@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, spacing } from '@/constants/theme';
+import { fonts, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 interface SettingsHeaderProps {
   topInset: number;
@@ -14,6 +15,8 @@ const CONTENT_H = 69;
 
 export function SettingsHeader({ topInset, onBack, title }: SettingsHeaderProps) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const displayTitle = title ?? t('settings.title');
 
   return (
@@ -26,7 +29,7 @@ export function SettingsHeader({ topInset, onBack, title }: SettingsHeaderProps)
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     minHeight: CONTENT_H,
     backgroundColor: colors.surface,

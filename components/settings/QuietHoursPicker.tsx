@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import ScrollPicker from 'react-native-wheel-scrollview-picker';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, spacing, radius } from '@/constants/theme';
+import { fonts, spacing, radius, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { SettingsSheet } from './SettingsSheet';
 
 interface QuietHoursPickerProps {
@@ -25,6 +26,8 @@ export function QuietHoursPicker({
   onSave,
 }: QuietHoursPickerProps) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [selectedStart, setSelectedStart] = useState(startHour);
   const [selectedEnd, setSelectedEnd] = useState(endHour);
 
@@ -119,7 +122,7 @@ export function QuietHoursPicker({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   labelsRow: {
     flexDirection: 'row',
     paddingHorizontal: spacing.sp20,

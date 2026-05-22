@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, StatusBar } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, spacing } from '@/constants/theme';
+import { fonts, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -12,9 +13,10 @@ interface DetailRowProps {
   value: string;
   mono?: boolean;
   isLast?: boolean;
+  rowStyles: ReturnType<typeof makeRowStyles>;
 }
 
-function DetailRow({ label, value, mono = false, isLast = false }: DetailRowProps) {
+function DetailRow({ label, value, mono = false, isLast = false, rowStyles }: DetailRowProps) {
   return (
     <View style={[rowStyles.row, !isLast && rowStyles.rowBorder]}>
       <Text style={rowStyles.label} numberOfLines={1}>
@@ -30,7 +32,7 @@ function DetailRow({ label, value, mono = false, isLast = false }: DetailRowProp
   );
 }
 
-const rowStyles = StyleSheet.create({
+const makeRowStyles = (colors: Palette) => StyleSheet.create({
   row: {
     minHeight: 54,
     backgroundColor: colors.surface,
@@ -69,6 +71,9 @@ export default function ProgrammeDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const rowStyles = useMemo(() => makeRowStyles(colors), [colors]);
   const params = useLocalSearchParams<{ id?: string }>();
   const student = useAuthStore((s) => s.student);
 
@@ -107,15 +112,16 @@ export default function ProgrammeDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.section}>
-          <DetailRow label={t('programme_detail.row_name')} value={name} />
-          <DetailRow label={t('programme_detail.row_code')} value={code} mono />
-          <DetailRow label={t('programme_detail.row_level')} value={level} />
-          <DetailRow label={t('programme_detail.row_duration')} value={duration} />
-          <DetailRow label={t('programme_detail.row_total_credits')} value={totalCredits} mono />
+          <DetailRow label={t('programme_detail.row_name')} value={name} rowStyles={rowStyles} />
+          <DetailRow label={t('programme_detail.row_code')} value={code} mono rowStyles={rowStyles} />
+          <DetailRow label={t('programme_detail.row_level')} value={level} rowStyles={rowStyles} />
+          <DetailRow label={t('programme_detail.row_duration')} value={duration} rowStyles={rowStyles} />
+          <DetailRow label={t('programme_detail.row_total_credits')} value={totalCredits} mono rowStyles={rowStyles} />
           <DetailRow
             label={t('programme_detail.row_faculty')}
             value={facultyName}
             isLast
+            rowStyles={rowStyles}
           />
         </View>
 
@@ -125,7 +131,7 @@ export default function ProgrammeDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,

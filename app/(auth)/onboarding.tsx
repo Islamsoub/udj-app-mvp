@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -6,7 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettingsStore } from '@/stores/settingsStore';
 import i18n from '@/i18n';
-import { colors, spacing, radius } from '@/constants/theme';
+import { spacing, radius, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 type Lang = 'fr' | 'ar';
 
@@ -33,6 +34,8 @@ const ILLUSTRATIONS = [
 export default function OnboardingScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { language, setLanguage } = useSettingsStore();
 
   const [currentStep, setCurrentStep] = useState(0);
@@ -124,7 +127,7 @@ export default function OnboardingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,

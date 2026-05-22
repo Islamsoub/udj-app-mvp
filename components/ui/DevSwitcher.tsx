@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 interface DevSwitcherProps<T extends string> {
   states: T[];
@@ -21,6 +22,8 @@ export function DevSwitcher<T extends string>({
   onToggleModal,
   modalLabel = 'modal',
 }: DevSwitcherProps<T>) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   if (!__DEV__) return null;
   return (
     <View style={styles.switcher}>
@@ -55,7 +58,7 @@ export function DevSwitcher<T extends string>({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   switcher: {
     position: 'absolute',
     bottom: 75,

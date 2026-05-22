@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
-import { colors, radius, spacing } from '@/constants/theme';
+import { radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
-function SkeletonFilterRow() {
+function SkeletonFilterRow({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.filterRow}>
       <SkeletonBox width={94} height={41} borderRadius={22} />
@@ -13,7 +14,7 @@ function SkeletonFilterRow() {
   );
 }
 
-function SkeletonHeroCard() {
+function SkeletonHeroCard({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   return (
     <SkeletonBox
       width={329}
@@ -24,7 +25,7 @@ function SkeletonHeroCard() {
   );
 }
 
-function SkeletonArticleCard() {
+function SkeletonArticleCard({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.articleCard}>
       <View style={styles.articleThumb}>
@@ -44,19 +45,21 @@ function SkeletonArticleCard() {
 }
 
 export function NewsSkeleton() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View>
-      <SkeletonFilterRow />
-      <SkeletonHeroCard />
+      <SkeletonFilterRow styles={styles} />
+      <SkeletonHeroCard styles={styles} />
       <View style={styles.articleList}>
-        <SkeletonArticleCard />
-        <SkeletonArticleCard />
+        <SkeletonArticleCard styles={styles} />
+        <SkeletonArticleCard styles={styles} />
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   filterRow: {
     height: 72,
     backgroundColor: colors.surface,

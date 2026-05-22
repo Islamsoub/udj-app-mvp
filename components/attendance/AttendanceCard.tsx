@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, spacing } from '@/constants/theme';
+import { fonts, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 interface AttendanceCardProps {
   name: string;
@@ -16,7 +17,7 @@ interface ThresholdColors {
   fill: string;
 }
 
-function getThresholdColors(percentage: number): ThresholdColors {
+function getThresholdColors(percentage: number, colors: Palette): ThresholdColors {
   if (percentage >= 85) {
     return { text: colors.jade600, fill: colors.jade400 };
   } else if (percentage >= 75) {
@@ -28,7 +29,9 @@ function getThresholdColors(percentage: number): ThresholdColors {
 
 export function AttendanceCard({ name, percentage, attended, total, projection }: AttendanceCardProps) {
   const { t } = useTranslation();
-  const tc = getThresholdColors(percentage);
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const tc = getThresholdColors(percentage, colors);
 
   return (
     <View style={styles.card}>
@@ -54,7 +57,7 @@ export function AttendanceCard({ name, percentage, attended, total, projection }
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   card: {
     marginHorizontal: spacing.sp16,
     marginBottom: spacing.sp12,

@@ -1,6 +1,7 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useMemo } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 interface SettingsSheetProps {
   visible: boolean;
@@ -19,6 +20,8 @@ export function SettingsSheet({
   height,
   children,
 }: SettingsSheetProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Modal
       visible={visible}
@@ -39,7 +42,7 @@ export function SettingsSheet({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',

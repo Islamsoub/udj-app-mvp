@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,8 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { colors, fonts, spacing, radius } from '@/constants/theme';
+import { fonts, spacing, radius, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { login } from '@/services/auth';
@@ -65,6 +66,8 @@ const SKELETON_BG = 'rgba(217,217,217,0.6)';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [loginState, setLoginState] = useState<LoginState>('default');
   const [studentId, setStudentId] = useState('');
   const [password, setPassword] = useState('');
@@ -443,7 +446,7 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.surface,

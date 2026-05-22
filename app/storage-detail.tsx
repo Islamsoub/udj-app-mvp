@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,8 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, spacing, radius } from '@/constants/theme';
+import { fonts, spacing, radius, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
@@ -32,7 +33,7 @@ interface ModuleData {
   mb: number;
 }
 
-const MODULES: ModuleData[] = [
+const buildModules = (colors: Palette): ModuleData[] => [
   {
     key: 'schedule',
     icon: 'calendar-outline',
@@ -84,6 +85,8 @@ function StorageRow({
   clearLabel,
   onClear,
 }: StorageRowProps) {
+  const { colors } = useColors();
+  const rowStyles = useMemo(() => makeRowStyles(colors), [colors]);
   return (
     <View style={rowStyles.row}>
       <View style={[rowStyles.iconCircle, { backgroundColor: iconBg }]}>
@@ -100,7 +103,7 @@ function StorageRow({
   );
 }
 
-const rowStyles = StyleSheet.create({
+const makeRowStyles = (colors: Palette) => StyleSheet.create({
   row: {
     height: 54,
     backgroundColor: colors.surface,
@@ -157,6 +160,9 @@ export default function StorageDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const MODULES = useMemo(() => buildModules(colors), [colors]);
 
   return (
     <View style={styles.root}>
@@ -214,7 +220,7 @@ export default function StorageDetailScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,

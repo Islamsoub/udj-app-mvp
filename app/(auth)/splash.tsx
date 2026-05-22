@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Animated,
   Linking,
@@ -11,7 +11,8 @@ import {
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import type { ComponentProps } from 'react';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 
@@ -73,6 +74,8 @@ function isTokenValid(token: string): boolean {
 
 export default function SplashScreen() {
   const router = useRouter();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [splashState, setSplashState] = useState<SplashState>('loading');
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -264,7 +267,7 @@ export default function SplashScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.jade900,

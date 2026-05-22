@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, radius } from '@/constants/theme';
+import { fonts } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 export type CourseStatus = 'past' | 'active' | 'upcoming';
 
@@ -11,6 +12,7 @@ interface StatusPillProps {
 
 export function StatusPill({ status }: StatusPillProps) {
   const { t } = useTranslation();
+  const { colors } = useColors();
 
   const variants: Record<CourseStatus, { bg: string; color: string; key: string }> = {
     past:     { bg: colors.border,     color: colors.textSecondary, key: 'schedule.status.done' },

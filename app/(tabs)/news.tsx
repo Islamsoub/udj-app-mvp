@@ -12,7 +12,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { NewsHeader } from '@/components/news/NewsHeader';
@@ -81,6 +82,8 @@ function formatTimestamp(publishedAt: string): string {
 // ─── Saved articles warning (offline body) ────────────────────────────────────
 
 function SavedArticlesBanner() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   return (
     <View style={styles.savedBanner}>
@@ -99,6 +102,8 @@ interface LoadedBodyProps {
 }
 
 function LoadedBody({ heroArticle, listArticles, onArticlePress, localReadIds }: LoadedBodyProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.loadedBody}>
       <HeroCard article={newsItemToHero(heroArticle)} onPress={() => onArticlePress(heroArticle.id)} />
@@ -120,6 +125,8 @@ interface OfflineBodyProps {
 }
 
 function OfflineBody({ articles, onArticlePress, localReadIds }: OfflineBodyProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.offlineBody}>
       <SavedArticlesBanner />
@@ -135,6 +142,8 @@ function OfflineBody({ articles, onArticlePress, localReadIds }: OfflineBodyProp
 // ─── Empty body ───────────────────────────────────────────────────────────────
 
 function EmptyBody({ isSaved }: { isSaved?: boolean }) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
 
   return (
@@ -174,6 +183,8 @@ interface ErrorBodyProps {
 }
 
 function ErrorBody({ onRetry }: ErrorBodyProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
 
   return (
@@ -215,6 +226,8 @@ const STATE_LABELS: Record<NewsState, string> = {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function NewsScreen() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [devState, setDevState] = useState<NewsState | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
   const [filterCategory, setFilterCategory] = useState<string | undefined>(undefined);
@@ -356,7 +369,7 @@ export default function NewsScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,

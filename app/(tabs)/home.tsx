@@ -12,7 +12,8 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, spacing, radius } from '@/constants/theme';
+import { fonts, spacing, radius, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { getSubjectColor } from '@/constants/colorMap';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -73,7 +74,7 @@ function toExtendedCourse(item: AgendaCardData): ExtendedCourse {
   };
 }
 
-function scheduleToCard(s: Schedule, nowMins: number): AgendaCardData {
+function scheduleToCard(s: Schedule, nowMins: number, colors: Palette): AgendaCardData {
   const [sh, sm] = s.startTime.split(':').map(Number);
   const [eh, em] = s.endTime.split(':').map(Number);
   const startMins = sh * 60 + sm;
@@ -168,6 +169,8 @@ function AgendaCard({
   isOffline,
   onPress,
 }: AgendaCardProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Pressable
       onPress={onPress}
@@ -210,6 +213,8 @@ function AgendaCard({
 // ─── News card ────────────────────────────────────────────────────────────────
 
 function NewsCard({ title, category }: { title: string; category: string }) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.newsCard}>
       <View style={styles.newsThumbnail} />
@@ -226,6 +231,8 @@ function NewsCard({ title, category }: { title: string; category: string }) {
 // ─── Skeleton header ──────────────────────────────────────────────────────────
 
 function SkeletonHeader() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.headerSection}>
       <View style={styles.headerTopRow}>
@@ -247,6 +254,8 @@ function SkeletonHeader() {
 // ─── Skeleton body ────────────────────────────────────────────────────────────
 
 function SkeletonBody() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.bodySection}>
       <View style={styles.sectionHeadingRow}>
@@ -292,6 +301,8 @@ function LoadedHeader({
 }: LoadedHeaderProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const today = new Date();
   const dateStr = today
@@ -342,6 +353,8 @@ function LoadedHeader({
 }
 
 function StatCard({ label, value, sub, onPress }: { label: string; value: string; sub: string; onPress?: () => void }) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Pressable style={({ pressed }) => [styles.statCard, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 8 }]} onPress={onPress} hitSlop={4}>
       <Text style={styles.statLabel}>{label}</Text>
@@ -355,6 +368,8 @@ function StatCard({ label, value, sub, onPress }: { label: string; value: string
 
 function SimpleHeader({ topInset }: { topInset: number }) {
   const router = useRouter();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={[styles.simpleHeader, { paddingTop: topInset + 0 }]}>
       <View style={styles.headerTopRow}>
@@ -376,6 +391,8 @@ function SimpleHeader({ topInset }: { topInset: number }) {
 
 function SessionExpiredModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.modalOverlay}>
       <View style={styles.modalSheet}>
@@ -421,6 +438,8 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const setSelectedCourse = useCourseDetailStore((s) => s.setSelectedCourse);
 
@@ -469,8 +488,8 @@ export default function HomeScreen() {
     return entries
       .filter((s) => s.dayOfWeek === todayDow)
       .sort((a, b) => a.startTime.localeCompare(b.startTime))
-      .map((s) => scheduleToCard(s, nowMins));
-  }, [scheduleHook.data, todayDow, nowMins]);
+      .map((s) => scheduleToCard(s, nowMins, colors));
+  }, [scheduleHook.data, todayDow, nowMins, colors]);
 
   const newsCard = useMemo(() => {
     const items = newsHook.data ?? [];
@@ -652,7 +671,7 @@ export default function HomeScreen() {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   scroll: { flex: 1 },
   scrollContent: { flexGrow: 1 },

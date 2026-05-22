@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 // Skeleton QR card background — newsOfflineBg at 73% opacity per Figma PROFIL5
 const SKELETON_CARD_BG = 'rgba(246,234,224,0.73)';
 
-function SkeletonInfoRow() {
+function SkeletonInfoRow({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.skeletonRow}>
       <SkeletonBox width={78} height={15} borderRadius={18} />
@@ -16,7 +17,7 @@ function SkeletonInfoRow() {
   );
 }
 
-function SkeletonDocumentsRow() {
+function SkeletonDocumentsRow({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   const { t } = useTranslation();
   return (
     <View style={styles.skeletonRow}>
@@ -26,7 +27,7 @@ function SkeletonDocumentsRow() {
   );
 }
 
-function SkeletonSectionHeader({ width }: { width: number }) {
+function SkeletonSectionHeader({ width, styles }: { width: number; styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.sectionHeaderShimmer}>
       <SkeletonBox width={width} height={15} borderRadius={18} />
@@ -35,6 +36,8 @@ function SkeletonSectionHeader({ width }: { width: number }) {
 }
 
 export function ProfileSkeleton() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View>
       {/* Card skeleton */}
@@ -63,22 +66,22 @@ export function ProfileSkeleton() {
       </View>
 
       {/* INFORMATIONS ACADEMIQUES header shimmer */}
-      <SkeletonSectionHeader width={220} />
+      <SkeletonSectionHeader width={220} styles={styles} />
 
       {/* Academic rows: Filiere + Niveau */}
-      <SkeletonInfoRow />
-      <SkeletonInfoRow />
+      <SkeletonInfoRow styles={styles} />
+      <SkeletonInfoRow styles={styles} />
 
       {/* PARAMETRES header shimmer */}
-      <SkeletonSectionHeader width={123} />
+      <SkeletonSectionHeader width={123} styles={styles} />
 
       {/* Settings rows: Langue + Annee + Notifications */}
-      <SkeletonInfoRow />
-      <SkeletonInfoRow />
-      <SkeletonInfoRow />
+      <SkeletonInfoRow styles={styles} />
+      <SkeletonInfoRow styles={styles} />
+      <SkeletonInfoRow styles={styles} />
 
       {/* Documents row — shows actual value text per Figma PROFIL5 */}
-      <SkeletonDocumentsRow />
+      <SkeletonDocumentsRow styles={styles} />
 
       {/* Logout row shimmer */}
       <View style={[styles.skeletonRow, { marginTop: spacing.sp16 }]}>
@@ -88,7 +91,7 @@ export function ProfileSkeleton() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   cardSkeleton: {
     marginHorizontal: spacing.sp16,
     marginTop: 18,

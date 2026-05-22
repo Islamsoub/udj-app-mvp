@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,8 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { ContactRow, ContactData } from '@/components/info-center/ContactRow';
@@ -72,6 +73,8 @@ const STATE_LABELS: Record<InfoCenterState, string> = {
 // ─── Header ────────────────────────────────────────────────────────────────────
 
 function Header({ topInset, onBack }: { topInset: number; onBack: () => void }) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   return (
     <View style={[styles.headerContainer, { paddingTop: topInset }]}>
@@ -94,6 +97,8 @@ function Header({ topInset, onBack }: { topInset: number; onBack: () => void }) 
 // ─── Offline banner ────────────────────────────────────────────────────────────
 
 function InfoCenterOfflineBanner() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   return (
     <View style={styles.offlineBanner}>
@@ -108,6 +113,8 @@ function InfoCenterOfflineBanner() {
 // ─── Section header ────────────────────────────────────────────────────────────
 
 function SectionHeader({ labelKey }: { labelKey: string }) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   return (
     <View style={styles.sectionBand}>
@@ -119,6 +126,8 @@ function SectionHeader({ labelKey }: { labelKey: string }) {
 // ─── Search bar ────────────────────────────────────────────────────────────────
 
 function SearchBar() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
   return (
@@ -138,6 +147,8 @@ function SearchBar() {
 // ─── Loaded content ────────────────────────────────────────────────────────────
 
 function LoadedContent() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [expandedId, setExpandedId] = useState<string>('f1');
 
   function handleContactPress(item: ContactData) {
@@ -196,6 +207,8 @@ function LoadedContent() {
 // ─── Error body ────────────────────────────────────────────────────────────────
 
 function ErrorBody({ onRetry }: { onRetry: () => void }) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   return (
     <View style={styles.centerBody}>
@@ -214,6 +227,8 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
 // ─── Main screen ───────────────────────────────────────────────────────────────
 
 export default function InfoCenterScreen() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [screenState, setScreenState] = useState<InfoCenterState>('loaded');
@@ -256,7 +271,7 @@ export default function InfoCenterScreen() {
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,

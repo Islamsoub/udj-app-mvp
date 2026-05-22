@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, StyleProp, ViewStyle, DimensionValue } from 'react-native';
-import { colors } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 interface SkeletonBoxProps {
   width: DimensionValue;
@@ -10,6 +10,7 @@ interface SkeletonBoxProps {
 }
 
 export function SkeletonBox({ width, height, borderRadius = 4, style }: SkeletonBoxProps) {
+  const { colors } = useColors();
   const shimmer = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {

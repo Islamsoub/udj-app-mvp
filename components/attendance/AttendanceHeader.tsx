@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 
 export type AttendanceState = 'skeleton' | 'loaded' | 'empty' | 'error' | 'offline' | 'session';
@@ -22,7 +23,7 @@ interface BadgeConfig {
   textColor: string;
 }
 
-function getBadgeConfig(percentage: number): BadgeConfig {
+function getBadgeConfig(percentage: number, colors: Palette): BadgeConfig {
   if (percentage >= 85) {
     return {
       labelKey: 'attendance.badge_regular',
@@ -53,7 +54,9 @@ export function AttendanceHeader({
   state,
 }: AttendanceHeaderProps) {
   const { t } = useTranslation();
-  const badge = getBadgeConfig(percentage);
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const badge = getBadgeConfig(percentage, colors);
 
   return (
     <View style={[styles.container, { paddingTop: topInset }]}>
@@ -103,7 +106,7 @@ export function AttendanceHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     backgroundColor: colors.jade400,
     flexDirection: 'column',

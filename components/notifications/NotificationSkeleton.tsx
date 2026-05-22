@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
-import { colors, spacing } from '@/constants/theme';
+import { spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
-function RowSkeleton() {
+function RowSkeleton({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.row}>
       <SkeletonBox width={48} height={48} borderRadius={24} />
@@ -16,29 +17,31 @@ function RowSkeleton() {
   );
 }
 
-function SectionSkeleton() {
+function SectionSkeleton({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   return (
     <View>
       <View style={styles.sectionHeader}>
         <SkeletonBox width={100} height={12} borderRadius={4} />
       </View>
-      <RowSkeleton />
-      <RowSkeleton />
+      <RowSkeleton styles={styles} />
+      <RowSkeleton styles={styles} />
     </View>
   );
 }
 
 export function NotificationSkeleton() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View>
-      <SectionSkeleton />
-      <SectionSkeleton />
-      <SectionSkeleton />
+      <SectionSkeleton styles={styles} />
+      <SectionSkeleton styles={styles} />
+      <SectionSkeleton styles={styles} />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   sectionHeader: {
     backgroundColor: colors.background,
     paddingVertical: spacing.sp12,

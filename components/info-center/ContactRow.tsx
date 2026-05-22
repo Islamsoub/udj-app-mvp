@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, View, Text, StyleSheet, I18nManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, spacing } from '@/constants/theme';
+import { fonts, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 export type ContactType = 'phone' | 'location' | 'email';
 
@@ -24,6 +25,8 @@ const ICON_NAME: Record<ContactType, React.ComponentProps<typeof Ionicons>['name
 };
 
 export function ContactRow({ item, onPress }: Props) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const chevron = I18nManager.isRTL ? 'chevron-back' : 'chevron-forward';
 
   return (
@@ -44,7 +47,7 @@ export function ContactRow({ item, onPress }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',

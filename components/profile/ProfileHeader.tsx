@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet, ViewStyle } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 
 export type ProfileHeaderState =
@@ -41,9 +42,13 @@ const AVATAR_Y_LOADED = 121;
 function HeaderStrip({
   t,
   onDotsPress,
+  styles,
+  colors,
 }: {
   t: ReturnType<typeof useTranslation>['t'];
   onDotsPress?: () => void;
+  styles: ReturnType<typeof makeStyles>;
+  colors: Palette;
 }) {
   return (
     <View style={styles.headerStrip}>
@@ -60,9 +65,11 @@ function HeaderStrip({
 function OfflineBannerStrip({
   topInset,
   t,
+  styles,
 }: {
   topInset: number;
   t: ReturnType<typeof useTranslation>['t'];
+  styles: ReturnType<typeof makeStyles>;
 }) {
   return (
     <View
@@ -86,10 +93,12 @@ function StatTiles({
   student,
   isSkeleton,
   t,
+  styles,
 }: {
   student: ProfileHeaderStudent;
   isSkeleton: boolean;
   t: ReturnType<typeof useTranslation>['t'];
+  styles: ReturnType<typeof makeStyles>;
 }) {
   return (
     <View style={styles.tilesRow}>
@@ -133,10 +142,12 @@ function ProfileInfoBlock({
   student,
   isSkeleton,
   style,
+  styles,
 }: {
   student: ProfileHeaderStudent;
   isSkeleton: boolean;
   style?: ViewStyle;
+  styles: ReturnType<typeof makeStyles>;
 }) {
   return (
     <View style={[styles.infoBlock, style]}>
@@ -170,12 +181,14 @@ function ProfileInfoBlock({
 
 export function ProfileHeader({ state, topInset, student, onDotsPress }: ProfileHeaderProps) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   // ── Offline: banner above white area, no header strip ──────────────────────
   if (state === 'offline') {
     return (
       <>
-        <OfflineBannerStrip topInset={topInset} t={t} />
+        <OfflineBannerStrip topInset={topInset} t={t} styles={styles} />
         <View style={[styles.whiteArea, styles.whiteAreaBorder, { paddingBottom: spacing.sp16 }]}>
           {student && (
             <>
@@ -183,8 +196,9 @@ export function ProfileHeader({ state, topInset, student, onDotsPress }: Profile
                 student={student}
                 isSkeleton={false}
                 style={{ marginTop: spacing.sp32 }}
+                styles={styles}
               />
-              <StatTiles student={student} isSkeleton={false} t={t} />
+              <StatTiles student={student} isSkeleton={false} t={t} styles={styles} />
             </>
           )}
         </View>
@@ -196,7 +210,7 @@ export function ProfileHeader({ state, topInset, student, onDotsPress }: Profile
   if (state === 'error' || state === 'incomplete') {
     return (
       <View style={[styles.whiteArea, { height: HEADER_STRIP_H + topInset, paddingTop: topInset }]}>
-        <HeaderStrip t={t} onDotsPress={onDotsPress} />
+        <HeaderStrip t={t} onDotsPress={onDotsPress} styles={styles} colors={colors} />
       </View>
     );
   }
@@ -212,15 +226,16 @@ export function ProfileHeader({ state, topInset, student, onDotsPress }: Profile
         { paddingTop: topInset, paddingBottom: spacing.sp16 },
       ]}
     >
-      <HeaderStrip t={t} onDotsPress={onDotsPress} />
+      <HeaderStrip t={t} onDotsPress={onDotsPress} styles={styles} colors={colors} />
       {student && (
         <>
           <ProfileInfoBlock
             student={student}
             isSkeleton={isSkeleton}
             style={{ marginTop: AVATAR_Y_LOADED - HEADER_STRIP_H }}
+            styles={styles}
           />
-          <StatTiles student={student} isSkeleton={isSkeleton} t={t} />
+          <StatTiles student={student} isSkeleton={isSkeleton} t={t} styles={styles} />
         </>
       )}
     </View>
@@ -229,7 +244,7 @@ export function ProfileHeader({ state, topInset, student, onDotsPress }: Profile
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   // White area container
   whiteArea: {
     backgroundColor: colors.surface,

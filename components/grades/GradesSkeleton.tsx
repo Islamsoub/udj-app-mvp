@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
-import { colors, radius, spacing } from '@/constants/theme';
+import { radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
-function SkeletonCard() {
+function SkeletonCard({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.card}>
       {/* Title row */}
@@ -34,16 +35,18 @@ function SkeletonCard() {
 }
 
 export function GradesSkeleton() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.body}>
-      <SkeletonCard />
-      <SkeletonCard />
-      <SkeletonCard />
+      <SkeletonCard styles={styles} />
+      <SkeletonCard styles={styles} />
+      <SkeletonCard styles={styles} />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   body: {
     paddingTop: spacing.sp16,
     gap: 24,

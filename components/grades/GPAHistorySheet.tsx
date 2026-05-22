@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Modal,
   View,
@@ -9,7 +9,8 @@ import {
 } from 'react-native';
 import Svg, { Polyline, Polygon, Circle, Line } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 export interface GPADataPoint {
   label: string;
@@ -44,6 +45,8 @@ function toY(val: number) {
 
 export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   // Build chart geometry from dynamic data
   const data = gpaData.length > 0 ? gpaData : [];
@@ -273,7 +276,7 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',

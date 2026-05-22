@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { getCategoryColor } from '@/constants/colorMap';
 import { toggleNewsBookmark } from '@/services/db';
 
@@ -29,6 +30,8 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({ article, onPress }: ArticleCardProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [isBookmarked, setIsBookmarked] = useState(article.bookmarked ?? false);
   const catColor = getCategoryColor(article.category);
 
@@ -76,7 +79,7 @@ export function ArticleCard({ article, onPress }: ArticleCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   card: {
     height: 122,
     borderRadius: 14,

@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, Easing } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import Svg, { Circle } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 const CARD_TEXT_DIM = 'rgba(255,255,255,0.7)';
 const CARD_PILL_BG = 'rgba(255,255,255,0.15)';
@@ -28,6 +29,8 @@ interface StudentCardProps {
 
 export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [expanded, setExpanded] = useState(false);
   const heightAnim = useRef(new Animated.Value(COLLAPSED_HEIGHT)).current;
   const [secondsLeft, setSecondsLeft] = useState(CYCLE_SECONDS);
@@ -130,7 +133,7 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   cardWrap: {
     marginHorizontal: spacing.sp16,
     borderRadius: 18,

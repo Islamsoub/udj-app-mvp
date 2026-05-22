@@ -1,4 +1,4 @@
-import { colors } from './theme';
+import type { Palette } from './theme';
 
 type SubjectColorPair = { bg: string; accent: string };
 
@@ -19,7 +19,7 @@ export function getSubjectColor(subjectName: string): SubjectColorPair {
   return SUBJECT_PALETTE[hash % 8];
 }
 
-export function getMentionColor(mention: string): string {
+export function getMentionColor(mention: string, colors: Palette): string {
   switch (mention) {
     case 'Très Bien':   return '#D1FAE5';
     case 'Bien':        return '#DBEAFE';
@@ -30,7 +30,7 @@ export function getMentionColor(mention: string): string {
   }
 }
 
-export function getMentionTextColor(mention: string): string {
+export function getMentionTextColor(mention: string, colors: Palette): string {
   switch (mention) {
     case 'Très Bien':   return '#059669';
     case 'Bien':        return '#2563EB';

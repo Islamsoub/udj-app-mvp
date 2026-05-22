@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, Switch, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, spacing } from '@/constants/theme';
+import { fonts, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 interface SettingsRowProps {
   label: string;
@@ -26,6 +27,8 @@ export function SettingsRow({
   disabled = false,
   showChevron = true,
 }: SettingsRowProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const labelColor = isDestructive ? colors.danger : colors.textPrimary;
 
   if (isToggle) {
@@ -64,7 +67,7 @@ export function SettingsRow({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   row: {
     height: 54,
     backgroundColor: colors.surface,

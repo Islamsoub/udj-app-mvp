@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, I18nManager } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, spacing } from '@/constants/theme';
+import { fonts, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { CourseCard, Course, getAccentColor } from './CourseCard';
 
 export type PauseEntry = { type: 'pause'; time: string; durationHours: number };
@@ -20,9 +21,11 @@ interface TimelineRowProps {
 export function TimelineRow({ entry, isLast, onPress }: TimelineRowProps) {
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const timeLabel = isPause(entry) ? entry.time : (entry.gutter ?? entry.start);
-  const dotColor = isPause(entry) ? colors.connectorLine : getAccentColor(entry);
+  const dotColor = isPause(entry) ? colors.connectorLine : getAccentColor(entry, colors);
 
   const gutter = (
     <View style={styles.gutter}>
@@ -63,7 +66,7 @@ export function TimelineRow({ entry, isLast, onPress }: TimelineRowProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     marginBottom: spacing.sp16,

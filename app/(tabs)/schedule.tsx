@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
@@ -110,6 +111,8 @@ function buildTimelineEntries(
 // ─── Skeleton: header ─────────────────────────────────────────────────────────
 
 function SkeletonScheduleHeader({ topInset }: { topInset: number }) {
+  const { colors } = useColors();
+  const skelStyles = useMemo(() => makeSkelStyles(colors), [colors]);
   return (
     <View style={[skelStyles.header, { paddingTop: topInset + spacing.sp16 }]}>
       {/* Title row */}
@@ -145,7 +148,7 @@ function SkeletonScheduleHeader({ topInset }: { topInset: number }) {
   );
 }
 
-const skelStyles = StyleSheet.create({
+const makeSkelStyles = (colors: Palette) => StyleSheet.create({
   header: {
     backgroundColor: colors.surface,
     paddingBottom: spacing.sp16,
@@ -189,6 +192,8 @@ const skelStyles = StyleSheet.create({
 // ─── Skeleton: body ───────────────────────────────────────────────────────────
 
 function SkeletonScheduleBody() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.timelineBody}>
       {[0, 1, 2, 3].map((i) => (
@@ -232,6 +237,8 @@ interface EmptyStateProps {
 
 function EmptyStateBody({ onExport, onNextWeek }: EmptyStateProps) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <View style={[styles.centerBody, { paddingTop: 40 }]}>
@@ -268,6 +275,8 @@ interface ErrorStateProps {
 
 function ErrorStateBody({ onRetry, onViewCache }: ErrorStateProps) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <View style={[styles.centerBody, { paddingTop: 40 }]}>
@@ -300,6 +309,8 @@ interface LoadedTimelineProps {
 }
 
 function LoadedTimeline({ entries, onCoursePress }: LoadedTimelineProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.timelineBody}>
       {entries.map((entry, i) => {
@@ -320,6 +331,8 @@ function LoadedTimeline({ entries, onCoursePress }: LoadedTimelineProps) {
 // ─── Offline body ──────────────────────────────────────────────────────────────
 
 function OfflineBody({ courses }: { courses: Course[] }) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.offlineBody}>
       <CacheBanner />
@@ -355,6 +368,8 @@ export default function ScheduleScreen() {
   const [selectedDay, setSelectedDay] = useState(() => new Date().getDay());
   const [courseDetailVisible, setCourseDetailVisible] = useState(false);
   const insets = useSafeAreaInsets();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const setSelectedCourse = useCourseDetailStore((s) => s.setSelectedCourse);
   const studentId = useAuthStore.getState().student?.id ?? 'me';
@@ -485,7 +500,7 @@ export default function ScheduleScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,

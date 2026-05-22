@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 const FR_ABBREVS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 const AR_ABBREVS = ['أحد', 'اثن', 'ثلا', 'أرب', 'خمي', 'جمع', 'سبت'];
@@ -28,6 +29,8 @@ export function DayStrip({ selectedIndex, onSelect }: DayStripProps) {
   const isAr = i18n.language === 'ar';
   const abbrevs = isAr ? AR_ABBREVS : FR_ABBREVS;
   const weekDates = getWeekDates();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <View style={styles.strip}>
@@ -69,7 +72,7 @@ export function DayStrip({ selectedIndex, onSelect }: DayStripProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   strip: {
     flexDirection: 'row',
     paddingHorizontal: spacing.sp16,

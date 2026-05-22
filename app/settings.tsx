@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, spacing, radius } from '@/constants/theme';
+import { fonts, spacing, radius, type Palette } from '@/constants/theme';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -50,6 +50,8 @@ const STATE_LABELS: Record<SettingsState, string> = {
 function SettingsBody({ isOffline }: { isOffline: boolean }) {
   const { t } = useTranslation();
   const router = useRouter();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const student = useAuthStore((s) => s.student);
   const prefs = student?.preferences;
   const themeMode = useThemeStore((s) => s.mode);
@@ -224,6 +226,8 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
 
 function ErrorBody({ onRetry }: { onRetry: () => void }) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <View style={styles.centeredBody}>
@@ -240,7 +244,8 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
 export default function SettingsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { isDark } = useColors();
+  const { colors, isDark } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [settingsState, setSettingsState] = useState<SettingsState>('loaded');
 
   const showBody =
@@ -300,7 +305,7 @@ export default function SettingsScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,

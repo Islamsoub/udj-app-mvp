@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, Alert, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import MenuSchIcon from '@/assets/icons/menu_sch_icon.svg';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { DayStrip } from './DayStrip';
 
 interface ScheduleHeaderProps {
@@ -16,6 +17,8 @@ interface ScheduleHeaderProps {
 export function ScheduleHeader({ topInset, selectedDayIndex, onDaySelect }: ScheduleHeaderProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const DAYS_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
   const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
   const today = new Date();
@@ -56,7 +59,7 @@ export function ScheduleHeader({ topInset, selectedDayIndex, onDaySelect }: Sche
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   header: {
     backgroundColor: colors.surface,
   },

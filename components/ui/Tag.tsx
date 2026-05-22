@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
-import { colors, spacing, radius } from '@/constants/theme';
+import { spacing, radius } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 interface TagProps {
   label: string;
@@ -9,10 +10,13 @@ interface TagProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export function Tag({ label, color = colors.jade400, background = colors.jade50, style }: TagProps) {
+export function Tag({ label, color, background, style }: TagProps) {
+  const { colors } = useColors();
+  const resolvedColor = color ?? colors.jade400;
+  const resolvedBackground = background ?? colors.jade50;
   return (
-    <View style={[styles.tag, { backgroundColor: background }, style]}>
-      <Text style={[styles.label, { color }]}>{label}</Text>
+    <View style={[styles.tag, { backgroundColor: resolvedBackground }, style]}>
+      <Text style={[styles.label, { color: resolvedColor }]}>{label}</Text>
     </View>
   );
 }

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing } from '@/constants/theme';
+import { spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 interface ArticleReaderHeaderProps {
   topInset: number;
@@ -9,6 +10,8 @@ interface ArticleReaderHeaderProps {
 }
 
 export function ArticleReaderHeader({ topInset, onBack }: ArticleReaderHeaderProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={[styles.wrapper, { paddingTop: topInset }]}>
       <View style={styles.row}>
@@ -20,7 +23,7 @@ export function ArticleReaderHeader({ topInset, onBack }: ArticleReaderHeaderPro
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   wrapper: {
     backgroundColor: colors.surface,
     borderBottomWidth: 1,

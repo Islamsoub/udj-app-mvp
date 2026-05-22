@@ -11,7 +11,8 @@ import {
 import { isAxiosError } from 'axios';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { GradesHeader } from '@/components/grades/GradesHeader';
@@ -42,9 +43,10 @@ type GradesState = 'skeleton' | 'loaded' | 'offline' | 'empty' | 'error' | 'sess
 interface EmptyStateProps {
   onRetry: () => void;
   onContact: () => void;
+  styles: ReturnType<typeof makeStyles>;
 }
 
-function EmptyStateBody({ onRetry, onContact }: EmptyStateProps) {
+function EmptyStateBody({ onRetry, onContact, styles }: EmptyStateProps) {
   const { t } = useTranslation();
 
   return (
@@ -70,9 +72,10 @@ function EmptyStateBody({ onRetry, onContact }: EmptyStateProps) {
 
 interface ErrorStateProps {
   onRetry: () => void;
+  styles: ReturnType<typeof makeStyles>;
 }
 
-function ErrorStateBody({ onRetry }: ErrorStateProps) {
+function ErrorStateBody({ onRetry, styles }: ErrorStateProps) {
   const { t } = useTranslation();
 
   return (
@@ -102,7 +105,7 @@ function ErrorStateBody({ onRetry }: ErrorStateProps) {
 
 // ─── Loaded / Offline cards body ──────────────────────────────────────────────
 
-function CardsBody({ subjects }: { subjects: Subject[] }) {
+function CardsBody({ subjects, styles }: { subjects: Subject[]; styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.cardsBody}>
       {subjects.map((subject) => (
@@ -127,6 +130,8 @@ const STATE_LABELS: Record<GradesState, string> = {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function GradesScreen() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [devState, setDevState] = useState<GradesState | null>(null);
   const [activeSemester, setActiveSemester] = useState<1 | 2>(2);
   const [calculatorVisible, setCalculatorVisible] = useState(false);
@@ -269,18 +274,19 @@ export default function GradesScreen() {
         {gradesState === 'skeleton' && <GradesSkeleton />}
 
         {(gradesState === 'loaded' || gradesState === 'session' || gradesState === 'offline') && (
-          <CardsBody subjects={subjects} />
+          <CardsBody subjects={subjects} styles={styles} />
         )}
 
         {gradesState === 'empty' && (
           <EmptyStateBody
             onRetry={() => hook.refetch()}
             onContact={() => console.log('[GRADES] contact triggered')}
+            styles={styles}
           />
         )}
 
         {gradesState === 'error' && (
-          <ErrorStateBody onRetry={() => hook.refetch()} />
+          <ErrorStateBody onRetry={() => hook.refetch()} styles={styles} />
         )}
 
         <View style={{ height: 120 }} />
@@ -315,7 +321,7 @@ export default function GradesScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,

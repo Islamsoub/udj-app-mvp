@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { getCategoryColor } from '@/constants/colorMap';
 import { ArticleReaderHeader } from '@/components/news/ArticleReaderHeader';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
@@ -74,6 +75,8 @@ function mapArticleDetail(detail: NewsArticleDetail): ArticleData {
 // ─── Article offline banner ───────────────────────────────────────────────────
 
 function ArticleOfflineBanner() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   return (
     <View style={styles.offlineBanner}>
@@ -85,6 +88,8 @@ function ArticleOfflineBanner() {
 // ─── Hero section ─────────────────────────────────────────────────────────────
 
 function ArticleHero() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.hero}>
       <View style={styles.heroLabelPill}>
@@ -107,6 +112,8 @@ function capitalizeFirst(s: string): string {
 }
 
 function LoadedBody({ article, bottomInset }: LoadedBodyProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const paragraphs = article.body.split('\n\n');
   const catColor = getCategoryColor(article.category);
 
@@ -142,6 +149,8 @@ function LoadedBody({ article, bottomInset }: LoadedBodyProps) {
 // ─── Skeleton body ────────────────────────────────────────────────────────────
 
 function SkeletonBody() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <ScrollView
       style={styles.scroll}
@@ -211,6 +220,8 @@ interface ErrorBodyProps {
 }
 
 function ErrorBody({ onRetry }: ErrorBodyProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   return (
     <View style={styles.errorBody}>
@@ -236,6 +247,8 @@ interface BottomBarProps {
 }
 
 function BottomBar({ bottomInset, isBookmarked, onBookmark, onShare }: BottomBarProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   return (
     <View style={[styles.bottomBar, { paddingBottom: bottomInset }]}>
@@ -267,6 +280,8 @@ const STATE_LABELS: Record<ArticleReaderState, string> = {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function ArticleReaderScreen() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [readerState, setReaderState] = useState<ArticleReaderState>('skeleton');
   const [articleData, setArticleData] = useState<ArticleData | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -370,7 +385,7 @@ export default function ArticleReaderScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,

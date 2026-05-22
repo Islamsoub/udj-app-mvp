@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, spacing, radius } from '@/constants/theme';
+import { fonts, spacing, radius, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { SettingsSheet } from './SettingsSheet';
 
 interface LogoutConfirmProps {
@@ -16,6 +17,8 @@ export function LogoutConfirm({
   onConfirm,
 }: LogoutConfirmProps) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <SettingsSheet
@@ -42,7 +45,7 @@ export function LogoutConfirm({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   body: {
     fontSize: 13,
     fontWeight: '400',

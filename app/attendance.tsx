@@ -12,7 +12,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import {
@@ -80,6 +81,8 @@ const STATE_LABELS: Record<AttendanceState, string> = {
 
 function AttendanceOfflineBanner() {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.offlineBanner}>
       <Text style={styles.offlineBannerText}>{t('attendance.offline.banner')}</Text>
@@ -96,6 +99,8 @@ interface CardsBodyProps {
 
 function CardsBody({ data, remainingByCode }: CardsBodyProps) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <View style={styles.cardsBody}>
@@ -129,6 +134,8 @@ function CardsBody({ data, remainingByCode }: CardsBodyProps) {
 
 function EmptyBody() {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <View style={styles.centerBody}>
@@ -145,6 +152,8 @@ function EmptyBody() {
 
 function ErrorBody({ onRetry }: { onRetry: () => void }) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <View style={styles.centerBody}>
@@ -166,6 +175,8 @@ export default function AttendanceScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [devState, setDevState] = useState<AttendanceState | null>(null);
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const studentId = useAuthStore.getState().student?.id ?? 'me';
 
@@ -291,7 +302,7 @@ export default function AttendanceScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,

@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
-import { colors, spacing } from '@/constants/theme';
+import { spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 function SkeletonSectionHeader({ width }: { width: number }) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.sectionHeaderShimmer}>
       <SkeletonBox width={width} height={15} borderRadius={18} />
@@ -12,6 +15,8 @@ function SkeletonSectionHeader({ width }: { width: number }) {
 }
 
 function SkeletonValueRow() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.skeletonRow}>
       <SkeletonBox width={100} height={15} borderRadius={18} />
@@ -21,6 +26,8 @@ function SkeletonValueRow() {
 }
 
 function SkeletonToggleRow() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.skeletonRow}>
       <SkeletonBox width={130} height={15} borderRadius={18} />
@@ -30,6 +37,8 @@ function SkeletonToggleRow() {
 }
 
 export function SettingsSkeleton() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View>
       {/* PRÉFÉRENCES */}
@@ -61,7 +70,7 @@ export function SettingsSkeleton() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   sectionHeaderShimmer: {
     paddingHorizontal: spacing.sp16,
     paddingTop: spacing.sp24,

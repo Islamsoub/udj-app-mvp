@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, spacing, radius } from '@/constants/theme';
+import { fonts, spacing, radius, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { getCategoryColor } from '@/constants/colorMap';
 
 export type NotificationType = 'grades' | 'schedule' | 'attendance' | 'news' | 'general';
@@ -46,16 +47,21 @@ type IconConfig = {
   iconColor: string;
 };
 
-const ICON_CONFIG: Record<NotificationType, IconConfig> = {
-  grades:     { bg: colors.jade400,      icon: 'document-text', iconColor: colors.surface },
-  schedule:   { bg: colors.info,         icon: 'calendar',      iconColor: colors.surface },
-  attendance: { bg: colors.danger,       icon: 'warning',       iconColor: colors.surface },
-  news:       { bg: colors.info,         icon: 'newspaper',     iconColor: colors.surface },
-  general:    { bg: NOTIF_GENERAL_BG,    icon: 'notifications', iconColor: colors.jade400 },
-};
+function makeIconConfig(colors: Palette): Record<NotificationType, IconConfig> {
+  return {
+    grades:     { bg: colors.jade400,      icon: 'document-text', iconColor: colors.surface },
+    schedule:   { bg: colors.info,         icon: 'calendar',      iconColor: colors.surface },
+    attendance: { bg: colors.danger,       icon: 'warning',       iconColor: colors.surface },
+    news:       { bg: colors.info,         icon: 'newspaper',     iconColor: colors.surface },
+    general:    { bg: NOTIF_GENERAL_BG,    icon: 'notifications', iconColor: colors.jade400 },
+  };
+}
 
 export function NotificationItem({ item, onPress }: Props) {
-  const { bg, icon, iconColor } = ICON_CONFIG[item.type];
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const iconConfig = useMemo(() => makeIconConfig(colors), [colors]);
+  const { bg, icon, iconColor } = iconConfig[item.type];
   const catColor = getCategoryColor(NOTIF_TYPE_CATEGORY_KEY[item.type]);
   const typeLabel = NOTIF_TYPE_LABEL[item.type];
 
@@ -87,7 +93,7 @@ export function NotificationItem({ item, onPress }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',

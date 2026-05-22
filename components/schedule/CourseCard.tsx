@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet, I18nManager } from 'react-native';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { StatusPill, CourseStatus } from './StatusPill';
 import { getSubjectColor } from '@/constants/colorMap';
 
@@ -20,7 +21,7 @@ interface CourseCardProps {
   onPress?: () => void;
 }
 
-export function getAccentColor(course: Course): string {
+export function getAccentColor(course: Course, colors: Palette): string {
   if (course.status === 'past') return colors.greyMuted;
   if (course.status === 'active') return colors.jade400;
   return getSubjectColor(course.subject).accent;
@@ -28,7 +29,9 @@ export function getAccentColor(course: Course): string {
 
 export function CourseCard({ course, onPress }: CourseCardProps) {
   const isRTL   = I18nManager.isRTL;
-  const accent  = getAccentColor(course);
+  const { colors } = useColors();
+  const accent  = getAccentColor(course, colors);
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const accentBar = (
     <View
@@ -63,7 +66,7 @@ export function CourseCard({ course, onPress }: CourseCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   card: {
     flexDirection: 'row',
     backgroundColor: colors.surface,

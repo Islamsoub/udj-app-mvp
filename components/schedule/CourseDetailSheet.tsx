@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import {
   Modal,
   View,
@@ -10,7 +10,8 @@ import {
   Keyboard,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { useCourseDetailStore } from '@/stores/courseDetailStore';
 import type { CourseStatus } from './StatusPill';
 
@@ -19,7 +20,7 @@ interface Props {
   onClose: () => void;
 }
 
-function pillVariant(status: CourseStatus): { bg: string; text: string } {
+function pillVariant(status: CourseStatus, colors: Palette): { bg: string; text: string } {
   switch (status) {
     case 'active':
       return { bg: 'rgba(139,92,246,0.15)', text: colors.exam };
@@ -40,6 +41,8 @@ function statusI18nKey(status: CourseStatus): string {
 
 export function CourseDetailSheet({ visible, onClose }: Props) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const selectedCourse  = useCourseDetailStore((s) => s.selectedCourse);
   const personalNote    = useCourseDetailStore((s) => s.personalNote);
   const setPersonalNote = useCourseDetailStore((s) => s.setPersonalNote);
@@ -54,7 +57,7 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
 
   const course   = selectedCourse;
   const timeStr  = course ? `${course.start} – ${course.end}` : '';
-  const pill     = course ? pillVariant(course.status) : null;
+  const pill     = course ? pillVariant(course.status, colors) : null;
   const coefStr  = course ? String(course.coefficient) : '';
 
   return (
@@ -153,7 +156,7 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',

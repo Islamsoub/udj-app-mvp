@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,8 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, spacing } from '@/constants/theme';
+import { fonts, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -21,6 +22,7 @@ interface InfoRowProps {
   mono?: boolean;
   valueColor?: string;
   isLast?: boolean;
+  infoStyles: ReturnType<typeof makeInfoStyles>;
 }
 
 function InfoRow({
@@ -29,6 +31,7 @@ function InfoRow({
   mono = false,
   valueColor,
   isLast = false,
+  infoStyles,
 }: InfoRowProps) {
   return (
     <View style={[infoStyles.row, !isLast && infoStyles.rowBorder]}>
@@ -49,7 +52,7 @@ function InfoRow({
   );
 }
 
-const infoStyles = StyleSheet.create({
+const makeInfoStyles = (colors: Palette) => StyleSheet.create({
   row: {
     height: 54,
     backgroundColor: colors.surface,
@@ -87,6 +90,9 @@ export default function AccountInfoScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const infoStyles = useMemo(() => makeInfoStyles(colors), [colors]);
   const student = useAuthStore((s) => s.student);
 
   const fullName = student ? `${student.firstName} ${student.lastName}` : '—';
@@ -126,16 +132,19 @@ export default function AccountInfoScreen() {
         <InfoRow
           label={t('settings.account.row_name')}
           value={fullName}
+          infoStyles={infoStyles}
         />
         <InfoRow
           label={t('settings.account.row_student_id')}
           value={studentId}
           mono
+          infoStyles={infoStyles}
         />
         <InfoRow
           label={t('settings.account.row_email')}
           value={email}
           isLast
+          infoStyles={infoStyles}
         />
 
         {/* ── Academic info ── */}
@@ -143,21 +152,25 @@ export default function AccountInfoScreen() {
         <InfoRow
           label={t('settings.account.row_filiere')}
           value={filiere}
+          infoStyles={infoStyles}
         />
         <InfoRow
           label={t('settings.account.row_niveau')}
           value={niveau}
+          infoStyles={infoStyles}
         />
         <InfoRow
           label={t('settings.account.row_academic_year')}
           value={academicYear}
           mono
+          infoStyles={infoStyles}
         />
         <InfoRow
           label={t('settings.account.row_status')}
           value={status}
           valueColor={colors.jade600}
           isLast
+          infoStyles={infoStyles}
         />
 
         {/* ── Security ── */}
@@ -166,11 +179,13 @@ export default function AccountInfoScreen() {
           label={t('settings.account.row_last_login')}
           value={t('settings.account.value_last_login')}
           mono
+          infoStyles={infoStyles}
         />
         <InfoRow
           label={t('settings.account.row_device')}
           value={t('settings.account.value_device')}
           isLast
+          infoStyles={infoStyles}
         />
 
         <View style={{ height: spacing.sp32 }} />
@@ -181,7 +196,7 @@ export default function AccountInfoScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,

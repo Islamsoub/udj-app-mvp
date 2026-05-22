@@ -11,7 +11,8 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import {
@@ -132,6 +133,8 @@ type HeaderProps = {
 };
 
 function Header({ topInset, onBack }: HeaderProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
 
   return (
@@ -156,6 +159,8 @@ function Header({ topInset, onBack }: HeaderProps) {
 // ─── Offline banner ───────────────────────────────────────────────────────────
 
 function NotificationsOfflineBanner() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   return (
     <View style={styles.offlineBanner}>
@@ -170,6 +175,8 @@ function NotificationsOfflineBanner() {
 // ─── Section header ───────────────────────────────────────────────────────────
 
 function SectionHeader({ labelKey, onMarkAll }: { labelKey: string; onMarkAll?: () => void }) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   return (
     <View style={styles.sectionBand}>
@@ -196,6 +203,8 @@ type LoadedContentProps = {
 };
 
 function LoadedContent({ sections, onMarkAll, onItemPress }: LoadedContentProps) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
 
   return (
@@ -227,6 +236,8 @@ function LoadedContent({ sections, onMarkAll, onItemPress }: LoadedContentProps)
 // ─── Empty body ───────────────────────────────────────────────────────────────
 
 function EmptyBody() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   return (
     <View style={styles.centerBody}>
@@ -242,6 +253,8 @@ function EmptyBody() {
 // ─── Error body ───────────────────────────────────────────────────────────────
 
 function ErrorBody({ onRetry }: { onRetry: () => void }) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   return (
     <View style={styles.centerBody}>
@@ -260,6 +273,8 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function NotificationsScreen() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [devState, setDevState] = useState<NotificationsState | null>(null);
@@ -385,7 +400,7 @@ export default function NotificationsScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,

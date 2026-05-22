@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   Modal,
   View,
@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import type { Subject } from './SubjectCard';
 
 interface Props {
@@ -22,6 +23,8 @@ interface Props {
 
 export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [targetGrade, setTargetGrade] = useState('');
   const [result, setResult] = useState<number | null>(null);
@@ -173,7 +176,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',

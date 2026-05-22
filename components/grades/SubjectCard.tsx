@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { getSubjectStatus, getProgressFill } from '@/utils/gradesStatus';
 
 export interface Subject {
@@ -19,6 +20,8 @@ interface SubjectCardProps {
 
 export function SubjectCard({ subject }: SubjectCardProps) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const status = getSubjectStatus(subject.finale);
   const isAtRisk = status === 'at-risk';
   const fillWidth = getProgressFill(subject.finale);
@@ -81,7 +84,7 @@ export function SubjectCard({ subject }: SubjectCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   card: {
     marginHorizontal: 15,
     borderRadius: 14,

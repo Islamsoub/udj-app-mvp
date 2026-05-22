@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,8 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import {
@@ -69,6 +70,7 @@ interface ProfileBodyProps {
   onProgrammePress: () => void;
   onEmailPress: () => void;
   onLogoutPress: () => void;
+  styles: ReturnType<typeof makeStyles>;
 }
 
 function ProfileBody({
@@ -79,6 +81,7 @@ function ProfileBody({
   onProgrammePress,
   onEmailPress,
   onLogoutPress,
+  styles,
 }: ProfileBodyProps) {
   const { t, i18n } = useTranslation();
   const isAr = i18n.language === 'ar';
@@ -158,7 +161,7 @@ function ProfileBody({
 
 // ─── Error body ───────────────────────────────────────────────────────────────
 
-function ErrorBody({ onRetry }: { onRetry: () => void }) {
+function ErrorBody({ onRetry, styles }: { onRetry: () => void; styles: ReturnType<typeof makeStyles> }) {
   const { t } = useTranslation();
 
   return (
@@ -188,7 +191,7 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
 
 // ─── Incomplete body ──────────────────────────────────────────────────────────
 
-function IncompleteBody() {
+function IncompleteBody({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   const { t } = useTranslation();
 
   return (
@@ -251,6 +254,8 @@ const STATE_LABELS: Record<ProfileState, string> = {
 export default function ProfileScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [devState, setDevState] = useState<ProfileState | null>(null);
   const insets = useSafeAreaInsets();
 
@@ -373,12 +378,13 @@ export default function ProfileScreen() {
               if (email) Linking.openURL(`mailto:${email}`);
             }}
             onLogoutPress={handleLogout}
+            styles={styles}
           />
         )}
         {profileState === 'error' && (
-          <ErrorBody onRetry={() => hook.refetch()} />
+          <ErrorBody onRetry={() => hook.refetch()} styles={styles} />
         )}
-        {profileState === 'incomplete' && <IncompleteBody />}
+        {profileState === 'incomplete' && <IncompleteBody styles={styles} />}
 
         <View style={{ height: 120 }} />
       </ScrollView>
@@ -400,7 +406,7 @@ export default function ProfileScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,

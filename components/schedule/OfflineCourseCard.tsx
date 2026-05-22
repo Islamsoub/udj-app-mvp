@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, I18nManager } from 'react-native';
-import { colors, radius } from '@/constants/theme';
+import { radius, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { getSubjectColor } from '@/constants/colorMap';
 import { Course } from './CourseCard';
 
@@ -11,6 +12,8 @@ interface OfflineCourseCardProps {
 export function OfflineCourseCard({ course }: OfflineCourseCardProps) {
   const isRTL  = I18nManager.isRTL;
   const accent = getSubjectColor(course.subject).accent;
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const accentBar = (
     <View
@@ -37,7 +40,7 @@ export function OfflineCourseCard({ course }: OfflineCourseCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   card: {
     flexDirection: 'row',
     backgroundColor: colors.surface,

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { colors, fonts, radius, spacing } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 import { getMentionColor, getMentionTextColor } from '@/constants/colorMap';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import { SemesterTabs } from './SemesterTabs';
@@ -32,6 +33,8 @@ const SPEC_HEIGHT: Record<GradesHeaderState, number> = {
 
 export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterChange, credits, onCalculatorPress, onGpaPress }: GradesHeaderProps) {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   // ── Skeleton state ──────────────────────────────────────────────────────────
   if (state === 'skeleton') {
@@ -128,8 +131,8 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
         <Pressable style={({ pressed }) => [styles.gpaRow, pressed && { backgroundColor: colors.surface + '26', borderRadius: 8 }]} onPress={onGpaPress} hitSlop={8}>
           <Text style={styles.gpaNumber}>{gpaText}</Text>
           {mention !== null && (
-            <View style={[styles.mentionBadge, { backgroundColor: getMentionColor(mention) }]}>
-              <Text style={[styles.mentionText, { color: getMentionTextColor(mention) }]}>{mention}</Text>
+            <View style={[styles.mentionBadge, { backgroundColor: getMentionColor(mention, colors) }]}>
+              <Text style={[styles.mentionText, { color: getMentionTextColor(mention, colors) }]}>{mention}</Text>
             </View>
           )}
         </Pressable>
@@ -164,7 +167,7 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   greenBlock: {
     backgroundColor: colors.jade400,
     flexDirection: 'column',

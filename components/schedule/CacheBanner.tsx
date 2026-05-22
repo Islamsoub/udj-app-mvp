@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, radius } from '@/constants/theme';
+import { fonts, radius, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 export function CacheBanner() {
   const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
     <View style={styles.banner}>
@@ -19,7 +22,7 @@ export function CacheBanner() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   banner: {
     height: 27,
     borderWidth: 1,

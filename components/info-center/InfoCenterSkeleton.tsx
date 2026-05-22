@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
-import { colors, spacing } from '@/constants/theme';
+import { spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 export function InfoCenterSkeleton() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View>
       {/* Search bar */}
@@ -12,25 +15,25 @@ export function InfoCenterSkeleton() {
       </View>
 
       {/* Contacts section header */}
-      <SectionHeader width={140} />
+      <SectionHeader width={140} styles={styles} />
 
       {/* 4 contact row skeletons */}
       {Array.from({ length: 4 }).map((_, i) => (
-        <ContactSkeleton key={i} />
+        <ContactSkeleton key={i} styles={styles} />
       ))}
 
       {/* FAQ section header */}
-      <SectionHeader width={160} />
+      <SectionHeader width={160} styles={styles} />
 
       {/* 3 FAQ row skeletons */}
       {Array.from({ length: 3 }).map((_, i) => (
-        <FAQSkeleton key={i} />
+        <FAQSkeleton key={i} styles={styles} />
       ))}
     </View>
   );
 }
 
-function SectionHeader({ width }: { width: number }) {
+function SectionHeader({ width, styles }: { width: number; styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.sectionHeader}>
       <SkeletonBox width={width} height={12} borderRadius={4} />
@@ -38,7 +41,7 @@ function SectionHeader({ width }: { width: number }) {
   );
 }
 
-function ContactSkeleton() {
+function ContactSkeleton({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.contactRow}>
       <SkeletonBox width={22} height={22} borderRadius={11} />
@@ -50,7 +53,7 @@ function ContactSkeleton() {
   );
 }
 
-function FAQSkeleton() {
+function FAQSkeleton({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.faqRow}>
       <SkeletonBox width="70%" height={14} borderRadius={4} />
@@ -59,7 +62,7 @@ function FAQSkeleton() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   searchBar: {
     marginHorizontal: spacing.sp16,
     marginTop: spacing.sp12,

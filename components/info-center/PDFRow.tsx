@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, fonts, spacing } from '@/constants/theme';
+import { fonts, spacing, type Palette } from '@/constants/theme';
+import { useColors } from '@/hooks/useColors';
 
 export type PDFData = {
   id: string;
@@ -18,6 +19,8 @@ type Props = {
 const PDF_BADGE_BG = '#FEE2E2';
 
 export function PDFRow({ item, onDownload }: Props) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Pressable
       android_ripple={{ color: colors.jade50 }}
@@ -40,7 +43,7 @@ export function PDFRow({ item, onDownload }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (colors: Palette) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
