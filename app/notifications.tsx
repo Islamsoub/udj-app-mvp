@@ -14,7 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
-import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import {
   NotificationItem,
   NotificationItemData,
@@ -42,10 +41,13 @@ type Section = {
 // ─── Date grouping helpers ────────────────────────────────────────────────────
 
 function mapNotifType(type: string): NotificationType {
-  if (type === 'grades') return 'grades';
-  if (type === 'schedule') return 'schedule';
-  if (type === 'attendance') return 'attendance';
-  return 'general';
+  switch (type.toLowerCase()) {
+    case 'grades':     return 'grades';
+    case 'schedule':   return 'schedule';
+    case 'attendance': return 'attendance';
+    case 'news':       return 'news';
+    default:           return 'general';
+  }
 }
 
 function formatTimestamp(date: Date, now: Date): string {
@@ -82,6 +84,7 @@ function groupNotificationsByDate(notifications: CachedNotification[]): Section[
       body: n.bodyFr,
       timestamp: formatTimestamp(date, now),
       isUnread: !n.isRead,
+      referenceId: (n as CachedNotification & { referenceId?: string }).referenceId,
     };
 
     if (dayStart.getTime() === todayStart.getTime()) {
@@ -125,12 +128,10 @@ const SECTION_LABEL_KEYS: Record<string, string> = {
 
 type HeaderProps = {
   topInset: number;
-  isSkeleton: boolean;
   onBack: () => void;
-  onMarkAll: () => void;
 };
 
-function Header({ topInset, isSkeleton, onBack, onMarkAll }: HeaderProps) {
+function Header({ topInset, onBack }: HeaderProps) {
   const { t } = useTranslation();
 
   return (
@@ -138,7 +139,7 @@ function Header({ topInset, isSkeleton, onBack, onMarkAll }: HeaderProps) {
       <View style={styles.headerRow}>
         <Pressable
           onPress={onBack}
-          style={styles.backBtn}
+          style={({ pressed }) => [styles.backBtn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
@@ -147,18 +148,6 @@ function Header({ topInset, isSkeleton, onBack, onMarkAll }: HeaderProps) {
         <Text style={styles.headerTitle} numberOfLines={1}>
           {t('notifications.title')}
         </Text>
-
-        {isSkeleton ? (
-          <SkeletonBox width={110} height={14} borderRadius={4} />
-        ) : (
-          <Pressable
-            onPress={onMarkAll}
-            style={styles.markAllBtn}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Text style={styles.markAllText}>{t('notifications.markAllRead')}</Text>
-          </Pressable>
-        )}
       </View>
     </View>
   );
@@ -180,26 +169,34 @@ function NotificationsOfflineBanner() {
 
 // ─── Section header ───────────────────────────────────────────────────────────
 
-function SectionHeader({ labelKey }: { labelKey: string }) {
+function SectionHeader({ labelKey, onMarkAll }: { labelKey: string; onMarkAll?: () => void }) {
   const { t } = useTranslation();
   return (
     <View style={styles.sectionBand}>
       <Text style={styles.sectionLabel}>{t(labelKey)}</Text>
+      {onMarkAll != null && (
+        <Pressable
+          onPress={onMarkAll}
+          style={({ pressed }) => [styles.markAllBtn, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }]}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <Text style={styles.markAllText}>{t('notifications.markAllRead')}</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
 
 // ─── Loaded content ───────────────────────────────────────────────────────────
 
-function LoadedContent({ sections }: { sections: Section[] }) {
-  const router = useRouter();
+type LoadedContentProps = {
+  sections: Section[];
+  onMarkAll: () => void;
+  onItemPress: (item: NotificationItemData) => void;
+};
 
-  const handleNotifPress = (type: NotificationType) => {
-    if (type === 'grades') router.push('/(tabs)/grades');
-    else if (type === 'schedule') router.push('/(tabs)/schedule');
-    else if (type === 'attendance') router.push('/attendance');
-    // 'general' — mark as read only, no navigation
-  };
+function LoadedContent({ sections, onMarkAll, onItemPress }: LoadedContentProps) {
+  const { t } = useTranslation();
 
   return (
     <ScrollView
@@ -207,14 +204,17 @@ function LoadedContent({ sections }: { sections: Section[] }) {
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
     >
-      {sections.map((section) => (
+      {sections.map((section, index) => (
         <View key={section.key}>
-          <SectionHeader labelKey={SECTION_LABEL_KEYS[section.key]} />
+          <SectionHeader
+            labelKey={SECTION_LABEL_KEYS[section.key]}
+            onMarkAll={index === 0 ? onMarkAll : undefined}
+          />
           {section.items.map((item) => (
             <NotificationItem
               key={item.id}
               item={item}
-              onPress={() => handleNotifPress(item.type)}
+              onPress={() => onItemPress(item)}
             />
           ))}
         </View>
@@ -250,7 +250,7 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
       </View>
       <Text style={styles.stateTitle}>{t('notifications.errorTitle')}</Text>
       <Text style={styles.stateBody}>{t('notifications.errorBody')}</Text>
-      <Pressable style={styles.retryBtn} onPress={onRetry}>
+      <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('notifications.retry')}</Text>
       </Pressable>
     </View>
@@ -263,6 +263,7 @@ export default function NotificationsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [devState, setDevState] = useState<NotificationsState | null>(null);
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
 
   // ─── Offline query ──────────────────────────────────────────────────────────
 
@@ -274,17 +275,23 @@ export default function NotificationsScreen() {
     },
     fetchFresh: async () => {
       const res = await getNotifications();
+      if (__DEV__) {
+        // eslint-disable-next-line no-console
+        console.log('[Notifications] raw API sample (first 3):', JSON.stringify(res.notifications?.slice(0, 3)));
+      }
       return mapNotificationsToCache(res.notifications);
     },
     updateCache: (data) => upsertNotifications(data),
   });
 
-  // ─── Derive grouped sections ────────────────────────────────────────────────
+  // ─── Derive grouped sections (with optimistic read overlay) ─────────────────
 
-  const sections = useMemo(
-    () => groupNotificationsByDate(hook.data ?? []),
-    [hook.data],
-  );
+  const sections = useMemo(() => {
+    const data = (hook.data ?? []).map((n) =>
+      readIds.has(n.id) ? { ...n, isRead: true } : n,
+    );
+    return groupNotificationsByDate(data);
+  }, [hook.data, readIds]);
 
   // ─── Derive screen state ────────────────────────────────────────────────────
 
@@ -298,10 +305,38 @@ export default function NotificationsScreen() {
 
   const screenState = devState ?? hookState;
 
+  const handleItemPress = useCallback((item: NotificationItemData) => {
+    if (item.isUnread) {
+      setReadIds((prev) => new Set(prev).add(item.id));
+    }
+    switch (item.type) {
+      case 'grades':
+        router.push('/(tabs)/grades');
+        break;
+      case 'schedule':
+        router.push('/(tabs)/schedule');
+        break;
+      case 'attendance':
+        router.push('/attendance');
+        break;
+      case 'news':
+        if (item.referenceId) {
+          router.push({ pathname: '/article-reader', params: { id: item.referenceId } });
+        } else {
+          router.push('/(tabs)/news');
+        }
+        break;
+      case 'general':
+      default:
+        break;
+    }
+  }, [router]);
+
   const handleMarkAll = useCallback(async () => {
     if (hook.isOffline) return;
     try {
       await markAllNotificationsRead();
+      setReadIds(new Set());
       hook.refetch();
     } catch {
       // ignore — UI stays as-is
@@ -319,16 +354,14 @@ export default function NotificationsScreen() {
 
       <Header
         topInset={insets.top}
-        isSkeleton={screenState === 'skeleton'}
         onBack={() => router.back()}
-        onMarkAll={handleMarkAll}
       />
 
       <View style={styles.content}>
         {screenState === 'offline' && <NotificationsOfflineBanner />}
 
         {screenState === 'skeleton' && <NotificationSkeleton />}
-        {showContent && <LoadedContent sections={sections} />}
+        {showContent && <LoadedContent sections={sections} onMarkAll={handleMarkAll} onItemPress={handleItemPress} />}
         {screenState === 'empty' && <EmptyBody />}
         {screenState === 'error' && (
           <ErrorBody onRetry={() => hook.refetch()} />
@@ -425,8 +458,11 @@ const styles = StyleSheet.create({
 
   // ── Section band
   sectionBand: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: colors.background,
-    paddingVertical: spacing.sp12,
+    paddingVertical: spacing.sp8,
     paddingHorizontal: spacing.sp16,
   },
   sectionLabel: {

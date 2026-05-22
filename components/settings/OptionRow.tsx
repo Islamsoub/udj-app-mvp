@@ -22,7 +22,7 @@ export function OptionRow({
 }: OptionRowProps) {
   return (
     <Pressable
-      style={[styles.row, !isLast && styles.rowBorder]}
+      style={({ pressed }) => [styles.row, !isLast && styles.rowBorder, pressed && { backgroundColor: colors.textPrimary + '0F' }]}
       onPress={onPress}
       hitSlop={4}
     >

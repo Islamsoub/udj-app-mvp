@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, I18nManager } from 'react-native';
+import { View, Text, Pressable, StyleSheet, I18nManager } from 'react-native';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { StatusPill, CourseStatus } from './StatusPill';
 import { getSubjectColor } from '@/constants/colorMap';
@@ -17,6 +17,7 @@ export interface Course {
 
 interface CourseCardProps {
   course: Course;
+  onPress?: () => void;
 }
 
 export function getAccentColor(course: Course): string {
@@ -25,7 +26,7 @@ export function getAccentColor(course: Course): string {
   return getSubjectColor(course.subject).accent;
 }
 
-export function CourseCard({ course }: CourseCardProps) {
+export function CourseCard({ course, onPress }: CourseCardProps) {
   const isRTL   = I18nManager.isRTL;
   const accent  = getAccentColor(course);
 
@@ -42,7 +43,10 @@ export function CourseCard({ course }: CourseCardProps) {
   );
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, pressed && { backgroundColor: colors.textPrimary + '0F' }]}
+    >
       {!isRTL && accentBar}
       <View style={styles.content}>
         <Text style={styles.subject} numberOfLines={1}>{course.subject}</Text>
@@ -55,7 +59,7 @@ export function CourseCard({ course }: CourseCardProps) {
         </View>
       </View>
       {isRTL && accentBar}
-    </View>
+    </Pressable>
   );
 }
 

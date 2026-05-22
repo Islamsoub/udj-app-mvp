@@ -114,7 +114,7 @@ function CardsBody({ data }: CardsBodyProps) {
       <Text style={styles.sectionHeader}>{t('attendance.section_justification')}</Text>
 
       <Pressable
-        style={styles.uploadCard}
+        style={({ pressed }) => [styles.uploadCard, pressed && { backgroundColor: colors.jade400 + '26' }]}
         onPress={() => console.log('[ATTENDANCE] upload justificatif')}
       >
         <Ionicons name="camera-outline" size={22} color={colors.jade600} />
@@ -152,7 +152,7 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
       </View>
       <Text style={styles.stateTitle}>{t('attendance.error.title')}</Text>
       <Text style={styles.stateBody}>{t('attendance.error.body')}</Text>
-      <Pressable style={styles.retryBtn} onPress={onRetry}>
+      <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('attendance.error.retry')}</Text>
       </Pressable>
     </View>

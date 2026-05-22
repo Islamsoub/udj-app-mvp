@@ -310,9 +310,7 @@ function LoadedTimeline({ entries, onCoursePress }: LoadedTimelineProps) {
           );
         }
         return (
-          <Pressable key={entry.id} onPress={() => onCoursePress(entry)}>
-            <TimelineRow entry={entry} isLast={isLast} />
-          </Pressable>
+          <TimelineRow key={entry.id} entry={entry} isLast={isLast} onPress={() => onCoursePress(entry)} />
         );
       })}
     </View>

@@ -344,6 +344,7 @@
       "notification": "Vous serez notifié dès la publication d'un nouvel article.",
       "see_all": "Voir toutes les catégories pour plus d'articles"
     },
+    "mark_all_read_error": "Erreur lors de la mise à jour",
     "error": {
       "title": "Actualités indisponibles",
       "body": "Impossible de récupérer les actualités. Vérifiez votre connexion et réessayez.",

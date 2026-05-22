@@ -14,9 +14,10 @@ function isPause(entry: DayEntry): entry is PauseEntry {
 interface TimelineRowProps {
   entry: DayEntry;
   isLast: boolean;
+  onPress?: () => void;
 }
 
-export function TimelineRow({ entry, isLast }: TimelineRowProps) {
+export function TimelineRow({ entry, isLast, onPress }: TimelineRowProps) {
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
 
@@ -49,7 +50,7 @@ export function TimelineRow({ entry, isLast }: TimelineRowProps) {
     </View>
   ) : (
     <View style={styles.cardContent}>
-      <CourseCard course={entry} />
+      <CourseCard course={entry} onPress={onPress} />
     </View>
   );
 

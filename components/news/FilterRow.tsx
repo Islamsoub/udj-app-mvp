@@ -36,7 +36,7 @@ export function FilterRow({ activeFilter, onFilterChange }: FilterRowProps) {
           return (
             <Pressable
               key={f}
-              style={[styles.pill, isActive && styles.pillActive]}
+              style={({ pressed }) => [styles.pill, isActive && styles.pillActive, pressed && { backgroundColor: colors.jade400 + '26' }]}
               onPress={() => onFilterChange(f)}
               hitSlop={8}
             >

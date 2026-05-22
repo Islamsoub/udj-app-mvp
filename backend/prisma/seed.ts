@@ -357,7 +357,6 @@ async function main() {
         titleAr: 'درجاتك في الرياضيات العامة س٢ متاحة',
         bodyFr: 'Consultez votre relevé pour le détail des évaluations du semestre.',
         bodyAr: 'اطلع على كشفك لمعرفة تفاصيل تقييمات السداسي.',
-        isRead: false,
         createdAt: minsAgo(12),
       },
       {
@@ -367,7 +366,6 @@ async function main() {
         titleAr: 'محاضرة بعد ١٥ دقيقة — مدرج A1',
         bodyFr: 'Algorithmique avancée avec Pr. Hassan Robleh.',
         bodyAr: 'الخوارزميات المتقدمة مع أ.د. حسن روبله.',
-        isRead: false,
         createdAt: hoursAgo(1),
       },
       {
@@ -377,7 +375,6 @@ async function main() {
         titleAr: 'الحضور في الفيزياء الكمية ٧٢٪ — تحت العتبة',
         bodyFr: "Vous risquez d'être déclaré non-assidu. Justifiez vos absences.",
         bodyAr: 'قد تُعتبر غير مواظب. قم بتبرير غياباتك.',
-        isRead: false,
         createdAt: yesterdayAt(14, 32),
       },
       {
@@ -387,7 +384,6 @@ async function main() {
         titleAr: '٣ إشعارات جديدة',
         bodyFr: "Mises à jour d'emploi du temps et nouvelles publications.",
         bodyAr: 'تحديثات الجدول والمنشورات الجديدة.',
-        isRead: true,
         createdAt: yesterdayAt(9, 15),
       },
       {
@@ -397,7 +393,6 @@ async function main() {
         titleAr: 'تأجيل الامتحان النهائي إلى ١٨ جوان',
         bodyFr: 'Statistiques L2 — nouvelle salle : Amphi C103.',
         bodyAr: 'الإحصاء س٢ — قاعة جديدة : مدرج C103.',
-        isRead: true,
         createdAt: daysAgo(5),
       },
     ],

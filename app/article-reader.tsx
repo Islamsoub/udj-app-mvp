@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   StatusBar,
+  Share,
 } from 'react-native';
 import { isAxiosError } from 'axios';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,6 +32,7 @@ interface ArticleData {
   fullDate: string;
   author: string;
   body: string;
+  url?: string;
 }
 
 // ─── Mock data (fallback for dev / DevSwitcher) ───────────────────────────────
@@ -216,7 +218,7 @@ function ErrorBody({ onRetry }: ErrorBodyProps) {
       </View>
       <Text style={styles.errorTitle}>{t('article.error.title')}</Text>
       <Text style={styles.errorBodyText}>{t('article.error.body')}</Text>
-      <Pressable style={styles.retryBtn} onPress={onRetry}>
+      <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('article.error.retry')}</Text>
       </Pressable>
     </View>
@@ -235,10 +237,10 @@ function BottomBar({ bottomInset, onBookmark, onShare }: BottomBarProps) {
   const { t } = useTranslation();
   return (
     <View style={[styles.bottomBar, { paddingBottom: bottomInset }]}>
-      <Pressable style={styles.bookmarkBtn} onPress={onBookmark} hitSlop={8}>
+      <Pressable style={({ pressed }) => [styles.bookmarkBtn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]} onPress={onBookmark} hitSlop={8}>
         <Ionicons name="bookmark-outline" size={24} color={colors.textPrimary} />
       </Pressable>
-      <Pressable style={styles.shareBtn} onPress={onShare}>
+      <Pressable style={({ pressed }) => [styles.shareBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onShare}>
         <Ionicons name="share-social-outline" size={18} color={colors.surface} />
         <Text style={styles.shareBtnText}>{t('article.share')}</Text>
       </Pressable>
@@ -291,8 +293,15 @@ export default function ArticleReaderScreen() {
     router.back();
   }
 
-  function handleShare() {
-    // Phase 2: native share sheet
+  async function handleShare() {
+    try {
+      const message = article.url
+        ? `${article.title}\n${article.url}`
+        : article.title;
+      await Share.share({ message });
+    } catch (err) {
+      console.log('Share error:', err);
+    }
   }
 
   function handleBookmark() {

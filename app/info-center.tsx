@@ -78,7 +78,7 @@ function Header({ topInset, onBack }: { topInset: number; onBack: () => void }) 
       <View style={styles.headerRow}>
         <Pressable
           onPress={onBack}
-          style={styles.backBtn}
+          style={({ pressed }) => [styles.backBtn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
@@ -204,7 +204,7 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
       </View>
       <Text style={styles.stateTitle}>{t('infoCenter.errorTitle')}</Text>
       <Text style={styles.stateBody}>{t('infoCenter.errorBody')}</Text>
-      <Pressable style={styles.retryBtn} onPress={onRetry}>
+      <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('infoCenter.retry')}</Text>
       </Pressable>
     </View>

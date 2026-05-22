@@ -25,11 +25,11 @@ export function LogoutConfirm({
     >
       <Text style={styles.body}>{t('settings.confirm.logout_body')}</Text>
       <View style={styles.buttons}>
-        <Pressable style={[styles.btn, styles.btnOutline]} onPress={onClose}>
+        <Pressable style={({ pressed }) => [styles.btn, styles.btnOutline, pressed && { backgroundColor: colors.jade400 + '26' }]} onPress={onClose}>
           <Text style={styles.btnOutlineText}>{t('settings.confirm.cancel')}</Text>
         </Pressable>
         <Pressable
-          style={[styles.btn, styles.btnDestructive]}
+          style={({ pressed }) => [styles.btn, styles.btnDestructive, pressed && { backgroundColor: colors.danger + '26' }]}
           onPress={() => {
             onConfirm();
             onClose();

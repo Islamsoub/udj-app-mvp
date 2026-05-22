@@ -7,6 +7,7 @@ import {
   StyleSheet,
   StatusBar,
   Image,
+  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -20,7 +21,7 @@ import { HeroCard } from '@/components/news/HeroCard';
 import { ArticleCard, Article, ArticleCategory } from '@/components/news/ArticleCard';
 import { NewsSkeleton } from '@/components/news/NewsSkeleton';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
-import { getNews, NewsItem } from '@/services/api';
+import { getNews, markAllNotificationsRead, NewsItem } from '@/services/api';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getCachedNews, upsertNews } from '@/services/db';
 import { mapNewsToCache } from '@/services/cacheMappers';
@@ -31,13 +32,14 @@ type NewsState = 'skeleton' | 'loaded' | 'offline' | 'empty' | 'error' | 'sessio
 
 // ─── Convert NewsItem → Article ───────────────────────────────────────────────
 
-function newsItemToArticle(item: NewsItem): Article {
+function newsItemToArticle(item: NewsItem, localReadIds: Set<string>): Article {
   return {
     id: item.id,
     category: item.category as ArticleCategory,
     title: item.title,
     timestamp: formatTimestamp(item.publishedAt),
     readTime: `${item.readTimeMinutes} min`,
+    isRead: item.read || localReadIds.has(item.id),
   };
 }
 
@@ -92,19 +94,16 @@ interface LoadedBodyProps {
   heroArticle: NewsItem;
   listArticles: NewsItem[];
   onArticlePress: (id: string) => void;
+  localReadIds: Set<string>;
 }
 
-function LoadedBody({ heroArticle, listArticles, onArticlePress }: LoadedBodyProps) {
+function LoadedBody({ heroArticle, listArticles, onArticlePress, localReadIds }: LoadedBodyProps) {
   return (
     <View style={styles.loadedBody}>
-      <Pressable onPress={() => onArticlePress(heroArticle.id)}>
-        <HeroCard article={newsItemToHero(heroArticle)} />
-      </Pressable>
+      <HeroCard article={newsItemToHero(heroArticle)} onPress={() => onArticlePress(heroArticle.id)} />
       <View style={styles.loadedArticleList}>
         {listArticles.map((article) => (
-          <Pressable key={article.id} onPress={() => onArticlePress(article.id)}>
-            <ArticleCard article={newsItemToArticle(article)} />
-          </Pressable>
+          <ArticleCard key={article.id} article={newsItemToArticle(article, localReadIds)} onPress={() => onArticlePress(article.id)} />
         ))}
       </View>
     </View>
@@ -116,17 +115,16 @@ function LoadedBody({ heroArticle, listArticles, onArticlePress }: LoadedBodyPro
 interface OfflineBodyProps {
   articles: NewsItem[];
   onArticlePress: (id: string) => void;
+  localReadIds: Set<string>;
 }
 
-function OfflineBody({ articles, onArticlePress }: OfflineBodyProps) {
+function OfflineBody({ articles, onArticlePress, localReadIds }: OfflineBodyProps) {
   return (
     <View style={styles.offlineBody}>
       <SavedArticlesBanner />
       <View style={styles.offlineArticleList}>
         {articles.map((article) => (
-          <Pressable key={article.id} onPress={() => onArticlePress(article.id)}>
-            <ArticleCard article={newsItemToArticle(article)} />
-          </Pressable>
+          <ArticleCard key={article.id} article={newsItemToArticle(article, localReadIds)} onPress={() => onArticlePress(article.id)} />
         ))}
       </View>
     </View>
@@ -155,7 +153,7 @@ function EmptyBody() {
         <Text style={styles.notifBannerText}>{t('news.empty.notification')}</Text>
       </View>
 
-      <Pressable hitSlop={8}>
+      <Pressable hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }}>
         <Text style={styles.seeAllLink}>{t('news.empty.see_all')}</Text>
       </Pressable>
     </View>
@@ -184,11 +182,11 @@ function ErrorBody({ onRetry }: ErrorBodyProps) {
       <Text style={styles.stateTitle}>{t('news.error.title')}</Text>
       <Text style={styles.stateBody}>{t('news.error.body')}</Text>
 
-      <Pressable style={styles.retryBtn} onPress={onRetry}>
+      <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('news.error.retry')}</Text>
       </Pressable>
 
-      <Pressable hitSlop={8} style={{ marginTop: spacing.sp16 }}>
+      <Pressable hitSlop={8} style={({ pressed }) => [{ marginTop: spacing.sp16 }, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }]}>
         <Text style={styles.savedArticlesLink}>{t('news.error.saved_articles')}</Text>
       </Pressable>
     </View>
@@ -213,8 +211,10 @@ export default function NewsScreen() {
   const [devState, setDevState] = useState<NewsState | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
   const [filterCategory, setFilterCategory] = useState<string | undefined>(undefined);
+  const [localReadIds, setLocalReadIds] = useState<Set<string>>(new Set());
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
 
   // ─── Offline query ──────────────────────────────────────────────────────────
 
@@ -249,13 +249,25 @@ export default function NewsScreen() {
 
   const newsState = devState ?? hookState;
 
-  const showFilterRow = newsState === 'loaded' || newsState === 'session';
+  // Show filters in all states except skeleton so the active chip stays visible during
+  // error/offline states and the user knows which filter will be used on retry.
+  const showFilterRow = newsState !== 'skeleton';
 
   function handleFilterChange(filter: FilterKey) {
     setActiveFilter(filter);
     const cat = filter === 'all' ? undefined : FILTER_CATEGORY[filter];
     setFilterCategory(cat);
     hook.refetch();
+  }
+
+  async function handleMarkAllRead() {
+    try {
+      await markAllNotificationsRead();
+      const allIds = new Set([...(hook.data ?? []).map((a) => a.id)]);
+      setLocalReadIds(allIds);
+    } catch {
+      Alert.alert(t('news.mark_all_read_error'));
+    }
   }
 
   function handleArticlePress(id: string) {
@@ -274,6 +286,7 @@ export default function NewsScreen() {
         <NewsHeader
           state={newsState === 'session' ? 'loaded' : newsState}
           topInset={insets.top}
+          onMarkAllRead={handleMarkAllRead}
         />
 
         <OfflineBanner />
@@ -289,6 +302,7 @@ export default function NewsScreen() {
             heroArticle={heroArticle}
             listArticles={listArticles}
             onArticlePress={handleArticlePress}
+            localReadIds={localReadIds}
           />
         )}
 
@@ -296,6 +310,7 @@ export default function NewsScreen() {
           <OfflineBody
             articles={hook.data ?? []}
             onArticlePress={handleArticlePress}
+            localReadIds={localReadIds}
           />
         )}
 

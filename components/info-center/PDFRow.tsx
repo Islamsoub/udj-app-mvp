@@ -21,7 +21,7 @@ export function PDFRow({ item, onDownload }: Props) {
   return (
     <Pressable
       android_ripple={{ color: colors.jade50 }}
-      style={styles.row}
+      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.textPrimary + '0F' }]}
     >
       <View style={styles.badge}>
         <Text style={styles.badgeText}>PDF</Text>

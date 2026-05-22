@@ -151,6 +151,7 @@ interface AgendaCardProps {
   statusColor?: string;
   statusBorder?: string;
   isOffline?: boolean;
+  onPress?: () => void;
 }
 
 function AgendaCard({
@@ -164,9 +165,13 @@ function AgendaCard({
   statusColor,
   statusBorder,
   isOffline,
+  onPress,
 }: AgendaCardProps) {
   return (
-    <View style={styles.agendaCard}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.agendaCard, pressed && { backgroundColor: colors.textPrimary + '0F' }]}
+    >
       <View style={[styles.agendaAccent, { backgroundColor: accentColor }]} />
       <View style={styles.agendaContent}>
         <Text style={styles.agendaTime}>{time}</Text>
@@ -197,7 +202,7 @@ function AgendaCard({
           )}
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -313,7 +318,7 @@ function LoadedHeader({
       <View style={styles.headerTopRow}>
         <Text style={styles.dateLabel}>{dateStr}</Text>
         <Pressable
-          style={styles.bellBtn}
+          style={({ pressed }) => [styles.bellBtn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]}
           onPress={() => router.push('/notifications')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
@@ -344,7 +349,7 @@ function LoadedHeader({
 
 function StatCard({ label, value, sub, onPress }: { label: string; value: string; sub: string; onPress?: () => void }) {
   return (
-    <Pressable style={styles.statCard} onPress={onPress} hitSlop={4}>
+    <Pressable style={({ pressed }) => [styles.statCard, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 8 }]} onPress={onPress} hitSlop={4}>
       <Text style={styles.statLabel}>{label}</Text>
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statSub}>{sub}</Text>
@@ -361,7 +366,7 @@ function SimpleHeader({ topInset }: { topInset: number }) {
       <View style={styles.headerTopRow}>
         <Text style={styles.simpleHeaderTitle}>Accueil</Text>
         <Pressable
-          style={styles.bellBtn}
+          style={({ pressed }) => [styles.bellBtn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]}
           onPress={() => router.push('/notifications')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
@@ -389,12 +394,12 @@ function SessionExpiredModal({ onClose }: { onClose: () => void }) {
           Votre session a expiré pour des raisons de sécurité. Reconnectez-vous pour continuer à accéder à vos données.
         </Text>
         <Pressable
-          style={styles.modalPrimaryBtn}
+          style={({ pressed }) => [styles.modalPrimaryBtn, pressed && { backgroundColor: colors.jade600 }]}
           onPress={() => router.replace('/(auth)/login')}
         >
           <Text style={styles.modalPrimaryBtnText}>Se connecter</Text>
         </Pressable>
-        <Pressable style={styles.modalOutlineBtn} onPress={onClose}>
+        <Pressable style={({ pressed }) => [styles.modalOutlineBtn, pressed && { backgroundColor: colors.jade400 + '26' }]} onPress={onClose}>
           <Text style={styles.modalOutlineBtnText}>Continuer en hors-ligne</Text>
         </Pressable>
       </View>
@@ -559,27 +564,27 @@ export default function HomeScreen() {
             {/* Agenda section */}
             <View style={styles.sectionHeadingRow}>
               <Text style={styles.sectionHeading}>Agenda du jour</Text>
-              <Pressable onPress={() => router.push('/(tabs)/schedule')} hitSlop={8}>
+              <Pressable onPress={() => router.push('/(tabs)/schedule')} hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }}>
                 <Text style={styles.sectionLink}>Voir tout</Text>
               </Pressable>
             </View>
 
             {todayCards.length > 0 ? (
               todayCards.map((item) => (
-                <Pressable key={item.id} onPress={() => handleAgendaPress(item)}>
-                  <AgendaCard
-                    accentColor={item.accentColor}
-                    time={item.time}
-                    course={item.course}
-                    teacher={item.teacher}
-                    location={item.location}
-                    statusLabel={item.statusLabel}
-                    statusBg={item.statusBg}
-                    statusColor={item.statusColor}
-                    statusBorder={item.statusBorder}
-                    isOffline={isOffline}
-                  />
-                </Pressable>
+                <AgendaCard
+                  key={item.id}
+                  accentColor={item.accentColor}
+                  time={item.time}
+                  course={item.course}
+                  teacher={item.teacher}
+                  location={item.location}
+                  statusLabel={item.statusLabel}
+                  statusBg={item.statusBg}
+                  statusColor={item.statusColor}
+                  statusBorder={item.statusBorder}
+                  isOffline={isOffline}
+                  onPress={() => handleAgendaPress(item)}
+                />
               ))
             ) : (
               <View style={styles.emptyAgendaCard}>
@@ -617,7 +622,7 @@ export default function HomeScreen() {
             <Text style={styles.stateBody}>
               Vérifiez votre connexion internet et réessayez.
             </Text>
-            <Pressable style={styles.retryBtn} onPress={handleRetry}>
+            <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={handleRetry}>
               <Text style={styles.retryBtnText}>Réessayer</Text>
             </Pressable>
           </View>

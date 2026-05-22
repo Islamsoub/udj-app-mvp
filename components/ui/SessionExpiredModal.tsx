@@ -26,13 +26,13 @@ export function SessionExpiredModal({ visible, onContinueOffline }: SessionExpir
         <Text style={styles.modalTitle}>{t('common.session.title')}</Text>
         <Text style={styles.modalBody}>{t('common.session.body')}</Text>
         <Pressable
-          style={styles.modalPrimaryBtn}
+          style={({ pressed }) => [styles.modalPrimaryBtn, pressed && { backgroundColor: colors.jade600 }]}
           onPress={() => router.replace('/(auth)/login')}
         >
           <Text style={styles.modalPrimaryBtnText}>{t('common.session.login')}</Text>
         </Pressable>
         <Pressable
-          style={styles.modalOutlineBtn}
+          style={({ pressed }) => [styles.modalOutlineBtn, pressed && { backgroundColor: colors.jade400 + '26' }]}
           onPress={onContinueOffline}
         >
           <Text style={styles.modalOutlineBtnText}>{t('common.session.continue_offline')}</Text>

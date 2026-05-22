@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { getCategoryColor } from '@/constants/colorMap';
 
@@ -12,6 +12,7 @@ export interface Article {
   timestamp: string;
   readTime: string;
   isHero?: boolean;
+  isRead?: boolean;
 }
 
 function capitalizeFirst(s: string): string {
@@ -21,12 +22,16 @@ function capitalizeFirst(s: string): string {
 
 interface ArticleCardProps {
   article: Article;
+  onPress?: () => void;
 }
 
-export function ArticleCard({ article }: ArticleCardProps) {
+export function ArticleCard({ article, onPress }: ArticleCardProps) {
   const catColor = getCategoryColor(article.category);
   return (
-    <View style={styles.card}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, pressed && { backgroundColor: colors.textPrimary + '0F' }]}
+    >
       <View style={styles.thumbnail} />
       <View style={styles.content}>
         <View style={styles.topRow}>
@@ -35,12 +40,15 @@ export function ArticleCard({ article }: ArticleCardProps) {
               {capitalizeFirst(article.category)}
             </Text>
           </View>
-          <Text style={styles.timestamp}>{article.timestamp}</Text>
+          <View style={styles.timestampRow}>
+            {article.isRead === false && <View style={styles.unreadDot} />}
+            <Text style={styles.timestamp}>{article.timestamp}</Text>
+          </View>
         </View>
         <Text style={styles.title} numberOfLines={2}>{article.title}</Text>
         <Text style={styles.readTime}>{article.readTime}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -93,6 +101,17 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
   },
 
+  timestampRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sp4,
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.jade400,
+  },
   timestamp: {
     fontSize: 12,
     fontWeight: '700',

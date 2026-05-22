@@ -38,10 +38,11 @@ export function DayStrip({ selectedIndex, onSelect }: DayStripProps) {
         return (
           <Pressable
             key={date}
-            style={[
+            style={({ pressed }) => [
               styles.cell,
               isSelected && styles.cellSelected,
               isWeekend && !isSelected && styles.cellWeekend,
+              pressed && !isWeekend && { backgroundColor: colors.jade400 + '26' },
             ]}
             onPress={() => !isWeekend && onSelect(idx)}
             hitSlop={4}

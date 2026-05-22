@@ -125,7 +125,7 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
 
       {/* GPA number + Mention Bien badge + Calculator icon */}
       <View style={styles.gpaRowOuter}>
-        <Pressable style={styles.gpaRow} onPress={onGpaPress} hitSlop={8}>
+        <Pressable style={({ pressed }) => [styles.gpaRow, pressed && { backgroundColor: colors.surface + '26', borderRadius: 8 }]} onPress={onGpaPress} hitSlop={8}>
           <Text style={styles.gpaNumber}>{gpaText}</Text>
           {mention !== null && (
             <View style={[styles.mentionBadge, { backgroundColor: getMentionColor(mention) }]}>
@@ -135,7 +135,7 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
         </Pressable>
         {onCalculatorPress != null && (
           <Pressable
-            style={styles.calcIconBtn}
+            style={({ pressed }) => [styles.calcIconBtn, pressed && { backgroundColor: colors.surface + '26', borderRadius: 999 }]}
             onPress={onCalculatorPress}
             hitSlop={8}
           >

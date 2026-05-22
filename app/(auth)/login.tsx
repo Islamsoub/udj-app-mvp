@@ -271,7 +271,7 @@ export default function LoginScreen() {
                       <Text style={styles.savedName}>Ahmed Omar Said</Text>
                       <Text style={styles.savedId}>UDJ-2024-0432</Text>
                     </View>
-                    <Pressable onPress={() => setLoginState('default')} hitSlop={8}>
+                    <Pressable onPress={() => setLoginState('default')} hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }}>
                       <Text style={styles.changerText}>Changer ›</Text>
                     </Pressable>
                   </View>
@@ -314,7 +314,7 @@ export default function LoginScreen() {
                   <View style={styles.passwordLabelRow}>
                     <Text style={styles.inputLabel}>Mot de passe</Text>
                     {loginState === 'default' && (
-                      <Pressable hitSlop={8}>
+                      <Pressable hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }}>
                         <Text style={styles.forgotInline}>Mot de passe oublié ?</Text>
                       </Pressable>
                     )}
@@ -366,7 +366,7 @@ export default function LoginScreen() {
 
               {/* ── PRIMARY BUTTON ── */}
               <Pressable
-                style={[styles.loginButton, { backgroundColor: buttonBg }]}
+                style={({ pressed }) => [styles.loginButton, { backgroundColor: buttonBg }, pressed && !buttonDisabled && { backgroundColor: colors.jade600 }]}
                 onPress={loginHandler}
                 disabled={buttonDisabled}
                 hitSlop={8}
@@ -396,14 +396,14 @@ export default function LoginScreen() {
 
               {/* ── ERROR: forgot password link below button ── */}
               {isError && (
-                <Pressable hitSlop={8} style={styles.forgotBelow}>
+                <Pressable hitSlop={8} style={({ pressed }) => [styles.forgotBelow, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }]}>
                   <Text style={styles.forgotBelowText}>Mot de passe oublié ?</Text>
                 </Pressable>
               )}
 
               {/* ── LOCKED-OUT: help link ── */}
               {isLocked && (
-                <Pressable hitSlop={8} style={styles.helpLink}>
+                <Pressable hitSlop={8} style={({ pressed }) => [styles.helpLink, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }]}>
                   <Text style={styles.helpLinkText}>{t('auth.helpContact')}</Text>
                 </Pressable>
               )}
@@ -418,7 +418,7 @@ export default function LoginScreen() {
                   </View>
                   <View style={styles.biometricContainer}>
                     <Pressable
-                      style={styles.biometricCircle}
+                      style={({ pressed }) => [styles.biometricCircle, pressed && { backgroundColor: colors.warning + '26', borderRadius: 999 }]}
                       onPress={biometricHandler}
                       hitSlop={8}
                     >

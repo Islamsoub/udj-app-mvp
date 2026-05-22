@@ -13,10 +13,10 @@ export function ArticleReaderHeader({ topInset, onBack, onShare }: ArticleReader
   return (
     <View style={[styles.wrapper, { paddingTop: topInset }]}>
       <View style={styles.row}>
-        <Pressable style={styles.btn} onPress={onBack} hitSlop={8}>
+        <Pressable style={({ pressed }) => [styles.btn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]} onPress={onBack} hitSlop={8}>
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </Pressable>
-        <Pressable style={styles.btn} onPress={onShare} hitSlop={8}>
+        <Pressable style={({ pressed }) => [styles.btn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]} onPress={onShare} hitSlop={8}>
           <Ionicons name="share-social-outline" size={22} color={colors.textPrimary} />
         </Pressable>
       </View>

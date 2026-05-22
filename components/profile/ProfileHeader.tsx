@@ -48,7 +48,7 @@ function HeaderStrip({
   return (
     <View style={styles.headerStrip}>
       <Text style={styles.headerTitle}>{t('profile.title')}</Text>
-      <Pressable style={styles.dotsButton} hitSlop={8} onPress={onDotsPress}>
+      <Pressable style={({ pressed }) => [styles.dotsButton, pressed && { backgroundColor: colors.greyMedium + '26', borderRadius: 999 }]} hitSlop={8} onPress={onDotsPress}>
         <Ionicons name="ellipsis-horizontal" size={18} color={colors.greyMedium} />
       </Pressable>
     </View>

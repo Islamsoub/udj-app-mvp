@@ -13,7 +13,7 @@ export function SemesterTabs({ active, onChange }: SemesterTabsProps) {
 
   return (
     <View style={styles.container}>
-      <Pressable style={styles.tab} onPress={() => onChange(1)} hitSlop={4}>
+      <Pressable style={({ pressed }) => [styles.tab, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }]} onPress={() => onChange(1)} hitSlop={4}>
         <Text style={[styles.label, active === 1 && styles.labelActive]}>
           {t('grades.semester1')}
         </Text>
@@ -23,7 +23,7 @@ export function SemesterTabs({ active, onChange }: SemesterTabsProps) {
       {/* 20px spacer between the two 154px tabs */}
       <View style={styles.gap} />
 
-      <Pressable style={styles.tab} onPress={() => onChange(2)} hitSlop={4}>
+      <Pressable style={({ pressed }) => [styles.tab, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }]} onPress={() => onChange(2)} hitSlop={4}>
         <Text style={[styles.label, active === 2 && styles.labelActive]}>
           {t('grades.semester2')}
         </Text>

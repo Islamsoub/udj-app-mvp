@@ -15,7 +15,7 @@ export function InfoRow({ label, value, onPress, isLogout = false }: InfoRowProp
   const chevronColor = isLogout ? colors.danger : colors.greyMedium;
 
   return (
-    <Pressable style={styles.row} onPress={onPress} hitSlop={4}>
+    <Pressable style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.textPrimary + '0F' }]} onPress={onPress} hitSlop={4}>
       <Text style={[styles.label, { color: labelColor }]} numberOfLines={1}>
         {label}
       </Text>

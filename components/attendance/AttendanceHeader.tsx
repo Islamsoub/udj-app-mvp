@@ -58,7 +58,7 @@ export function AttendanceHeader({
   return (
     <View style={[styles.container, { paddingTop: topInset }]}>
       {/* Back button */}
-      <Pressable style={styles.backBtn} onPress={onBack} hitSlop={8}>
+      <Pressable style={({ pressed }) => [styles.backBtn, pressed && { backgroundColor: colors.surface + '26', borderRadius: 999 }]} onPress={onBack} hitSlop={8}>
         <Ionicons name="chevron-back" size={24} color={colors.surface} />
       </Pressable>
 

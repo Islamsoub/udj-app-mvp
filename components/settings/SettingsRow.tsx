@@ -48,7 +48,7 @@ export function SettingsRow({
   }
 
   return (
-    <Pressable style={styles.row} onPress={onPress} hitSlop={4} disabled={disabled}>
+    <Pressable style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.textPrimary + '0F' }]} onPress={onPress} hitSlop={4} disabled={disabled}>
       <Text style={[styles.label, { color: labelColor }]} numberOfLines={1}>
         {label}
       </Text>

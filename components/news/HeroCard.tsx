@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 
@@ -12,13 +12,17 @@ export interface HeroArticle {
 
 interface HeroCardProps {
   article: HeroArticle;
+  onPress?: () => void;
 }
 
-export function HeroCard({ article }: HeroCardProps) {
+export function HeroCard({ article, onPress }: HeroCardProps) {
   const { t } = useTranslation();
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, pressed && { backgroundColor: colors.surface + '0F' }]}
+    >
       {/* Green image placeholder with urgent pill */}
       <View style={styles.imageArea}>
         <View style={styles.urgentPill}>
@@ -36,7 +40,7 @@ export function HeroCard({ article }: HeroCardProps) {
           <Text style={styles.meta}>{article.readTime}</Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

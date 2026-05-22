@@ -30,7 +30,7 @@ export function ContactRow({ item, onPress }: Props) {
     <Pressable
       onPress={onPress}
       android_ripple={{ color: colors.jade50 }}
-      style={styles.row}
+      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.textPrimary + '0F' }]}
     >
       <Ionicons name={ICON_NAME[item.type]} size={22} color={colors.jade400} />
 

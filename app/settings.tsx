@@ -225,7 +225,7 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
   return (
     <View style={styles.centeredBody}>
       <Text style={styles.errorTitle}>{t('settings.error.title')}</Text>
-      <Pressable style={styles.retryBtn} onPress={onRetry}>
+      <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
       </Pressable>
     </View>

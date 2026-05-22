@@ -28,14 +28,14 @@ export function ScheduleHeader({ topInset, selectedDayIndex, onDaySelect }: Sche
         <Text style={styles.title}>{t('schedule.title')}</Text>
         <View style={styles.actions}>
           <Pressable
-            style={styles.iconCircle}
+            style={({ pressed }) => [styles.iconCircle, pressed && { backgroundColor: colors.textSecondary + '26', borderRadius: 999 }]}
             onPress={() => Alert.alert('', 'Recherche bientôt disponible')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Ionicons name="search-outline" size={20} color={colors.textSecondary} />
           </Pressable>
           <Pressable
-            style={styles.iconCircle}
+            style={({ pressed }) => [styles.iconCircle, pressed && { backgroundColor: colors.textSecondary + '26', borderRadius: 999 }]}
             onPress={() => router.push('/settings')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >

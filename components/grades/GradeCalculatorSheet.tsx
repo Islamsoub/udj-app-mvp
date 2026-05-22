@@ -86,7 +86,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
               <Text style={styles.sectionLabel}>{t('calculator.subject_label')}</Text>
 
               {/* Subject selector */}
-              <Pressable style={styles.selector} onPress={cycleSubject}>
+              <Pressable style={({ pressed }) => [styles.selector, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 8 }]} onPress={cycleSubject}>
                 <Text style={styles.selectorText} numberOfLines={1}>
                   {subject?.name ?? '—'}
                 </Text>

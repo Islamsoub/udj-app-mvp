@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, spacing, radius } from '@/constants/theme';
 import { getCategoryColor } from '@/constants/colorMap';
 
-export type NotificationType = 'grades' | 'schedule' | 'attendance' | 'general';
+export type NotificationType = 'grades' | 'schedule' | 'attendance' | 'news' | 'general';
 
 export type NotificationItemData = {
   id: string;
@@ -13,6 +13,7 @@ export type NotificationItemData = {
   body: string;
   timestamp: string;
   isUnread: boolean;
+  referenceId?: string;
 };
 
 type Props = {
@@ -27,6 +28,7 @@ const NOTIF_TYPE_LABEL: Record<NotificationType, string> = {
   grades:     'Notes',
   schedule:   'Agenda',
   attendance: 'Présence',
+  news:       'Actualités',
   general:    'Général',
 };
 
@@ -34,6 +36,7 @@ const NOTIF_TYPE_CATEGORY_KEY: Record<NotificationType, string> = {
   grades:     'GRADES',
   schedule:   'SCHEDULE',
   attendance: 'ATTENDANCE',
+  news:       'NEWS',
   general:    'GENERAL',
 };
 
@@ -47,6 +50,7 @@ const ICON_CONFIG: Record<NotificationType, IconConfig> = {
   grades:     { bg: colors.jade400,      icon: 'document-text', iconColor: colors.surface },
   schedule:   { bg: colors.info,         icon: 'calendar',      iconColor: colors.surface },
   attendance: { bg: colors.danger,       icon: 'warning',       iconColor: colors.surface },
+  news:       { bg: colors.info,         icon: 'newspaper',     iconColor: colors.surface },
   general:    { bg: NOTIF_GENERAL_BG,    icon: 'notifications', iconColor: colors.jade400 },
 };
 
@@ -59,14 +63,17 @@ export function NotificationItem({ item, onPress }: Props) {
     <Pressable
       onPress={onPress}
       android_ripple={{ color: colors.jade50 }}
-      style={styles.row}
+      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.textPrimary + '0F' }]}
     >
       <View style={[styles.iconCircle, { backgroundColor: bg }]}>
         <Ionicons name={icon} size={22} color={iconColor} />
       </View>
 
       <View style={styles.textCol}>
-        <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, item.isUnread && styles.titleUnread]} numberOfLines={2}>{item.title}</Text>
+          {item.isUnread && <View style={styles.dot} />}
+        </View>
         <Text style={styles.body} numberOfLines={2}>{item.body}</Text>
         <View style={styles.bottomRow}>
           <Text style={styles.timestamp}>{item.timestamp}</Text>
@@ -76,7 +83,6 @@ export function NotificationItem({ item, onPress }: Props) {
         </View>
       </View>
 
-      {item.isUnread && <View style={styles.dot} />}
     </Pressable>
   );
 }
@@ -103,12 +109,21 @@ const styles = StyleSheet.create({
     marginStart: spacing.sp12,
     gap: 2,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sp4,
+  },
   title: {
+    flex: 1,
     fontSize: 14,
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
     lineHeight: 20,
+  },
+  titleUnread: {
+    fontWeight: '700',
   },
   body: {
     fontSize: 13,
@@ -140,11 +155,10 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: colors.jade400,
-    marginTop: 6,
-    marginStart: spacing.sp8,
+    flexShrink: 0,
   },
 });
