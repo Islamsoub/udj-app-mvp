@@ -3,9 +3,9 @@ import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, spacing } from '@/constants/theme';
 
-export type FilterKey = 'all' | 'events' | 'scolarite' | 'sport' | 'youth' | 'sponsors';
+export type FilterKey = 'all' | 'events' | 'scolarite' | 'sport' | 'youth' | 'sponsors' | 'saved';
 
-const FILTERS: FilterKey[] = ['all', 'events', 'scolarite', 'sport', 'youth', 'sponsors'];
+const FILTERS: FilterKey[] = ['all', 'events', 'scolarite', 'sport', 'youth', 'sponsors', 'saved'];
 
 const FILTER_I18N: Record<FilterKey, string> = {
   all: 'news.filter.all',
@@ -14,6 +14,7 @@ const FILTER_I18N: Record<FilterKey, string> = {
   sport: 'news.filter.sport',
   youth: 'news.filter.youth',
   sponsors: 'news.filter.sponsors',
+  saved: 'news.filter.saved',
 };
 
 interface FilterRowProps {

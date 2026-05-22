@@ -326,7 +326,8 @@
       "scolarite": "Scolarite",
       "sport": "Sport",
       "youth": "Jeunesse",
-      "sponsors": "Sponsors"
+      "sponsors": "Sponsors",
+      "saved": "Mes favoris"
     },
     "hero": {
       "urgent_label": "Officiel – Urgent"
@@ -344,6 +345,7 @@
       "notification": "Vous serez notifié dès la publication d'un nouvel article.",
       "see_all": "Voir toutes les catégories pour plus d'articles"
     },
+    "empty_saved": "Aucun article sauvegardé",
     "mark_all_read_error": "Erreur lors de la mise à jour",
     "error": {
       "title": "Actualités indisponibles",

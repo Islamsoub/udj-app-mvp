@@ -19,7 +19,7 @@ export interface UseOfflineQueryResult<T> {
 }
 
 export function useOfflineQuery<T>({
-  cacheKey: _cacheKey,
+  cacheKey,
   getCached,
   fetchFresh,
   updateCache,
@@ -122,7 +122,7 @@ export function useOfflineQuery<T>({
       cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, fetchKey, setLastSyncAt]);
+  }, [enabled, fetchKey, setLastSyncAt, cacheKey]);
 
   const refetch = useCallback(() => {
     setFetchKey((k) => k + 1);

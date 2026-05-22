@@ -57,7 +57,8 @@
       "Bash(python3 -c ' *)",
       "Bash(echo \"Exit: $?\")",
       "Bash(xargs wc *)",
-      "Bash(echo \"EXIT: $?\")"
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
     ]
   }
 }

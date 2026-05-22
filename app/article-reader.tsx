@@ -19,6 +19,7 @@ import { ArticleReaderHeader } from '@/components/news/ArticleReaderHeader';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { getNewsArticle, NewsArticleDetail } from '@/services/api';
+import { isArticleBookmarked, toggleNewsBookmark } from '@/services/db';
 import type { ArticleCategory } from '@/components/news/ArticleCard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -39,7 +40,7 @@ interface ArticleData {
 
 const MOCK_ARTICLE: ArticleData = {
   id: '0',
-  category: 'Scolarite',
+  category: 'scolarite',
   title: 'Inscriptions aux examens de rattrapage : ouverture des dépôts',
   fullDate: '12 mai 2026 · 09:30',
   author: 'Service Scolarité',
@@ -229,16 +230,21 @@ function ErrorBody({ onRetry }: ErrorBodyProps) {
 
 interface BottomBarProps {
   bottomInset: number;
+  isBookmarked: boolean;
   onBookmark: () => void;
   onShare: () => void;
 }
 
-function BottomBar({ bottomInset, onBookmark, onShare }: BottomBarProps) {
+function BottomBar({ bottomInset, isBookmarked, onBookmark, onShare }: BottomBarProps) {
   const { t } = useTranslation();
   return (
     <View style={[styles.bottomBar, { paddingBottom: bottomInset }]}>
       <Pressable style={({ pressed }) => [styles.bookmarkBtn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]} onPress={onBookmark} hitSlop={8}>
-        <Ionicons name="bookmark-outline" size={24} color={colors.textPrimary} />
+        <Ionicons
+          name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
+          size={24}
+          color={isBookmarked ? colors.jade400 : colors.textPrimary}
+        />
       </Pressable>
       <Pressable style={({ pressed }) => [styles.shareBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onShare}>
         <Ionicons name="share-social-outline" size={18} color={colors.surface} />
@@ -263,6 +269,7 @@ const STATE_LABELS: Record<ArticleReaderState, string> = {
 export default function ArticleReaderScreen() {
   const [readerState, setReaderState] = useState<ArticleReaderState>('skeleton');
   const [articleData, setArticleData] = useState<ArticleData | null>(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -270,8 +277,12 @@ export default function ArticleReaderScreen() {
   const fetchArticle = useCallback(async (articleId: string) => {
     setReaderState('skeleton');
     try {
-      const detail = await getNewsArticle(articleId);
+      const [detail, bookmarked] = await Promise.all([
+        getNewsArticle(articleId),
+        isArticleBookmarked(articleId),
+      ]);
       setArticleData(mapArticleDetail(detail));
+      setIsBookmarked(bookmarked);
       setReaderState('loaded');
     } catch (err: unknown) {
       if (isAxiosError(err)) {
@@ -304,8 +315,14 @@ export default function ArticleReaderScreen() {
     }
   }
 
-  function handleBookmark() {
-    // Phase 2: persist bookmark to SQLite
+  async function handleBookmark() {
+    const next = !isBookmarked;
+    setIsBookmarked(next);
+    try {
+      await toggleNewsBookmark(article.id, next);
+    } catch {
+      setIsBookmarked(!next);
+    }
   }
 
   const article = articleData ?? MOCK_ARTICLE;
@@ -333,6 +350,7 @@ export default function ArticleReaderScreen() {
           )}
           <BottomBar
             bottomInset={insets.bottom}
+            isBookmarked={isBookmarked}
             onBookmark={handleBookmark}
             onShare={handleShare}
           />

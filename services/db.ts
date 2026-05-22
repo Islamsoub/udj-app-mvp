@@ -180,13 +180,44 @@ export async function getAllCachedGrades(): Promise<Grade[]> {
   return rows.map(rowToGrade);
 }
 
-export async function getCachedNews(limit: number): Promise<NewsItem[]> {
+export async function getCachedNews(limit: number, category?: string): Promise<NewsItem[]> {
+  const db = await getDb();
+  const rows = category
+    ? await db.getAllAsync<Record<string, SQLite.SQLiteBindValue>>(
+        'SELECT * FROM news_cache WHERE LOWER(category) = LOWER(?) ORDER BY published_at DESC LIMIT ?',
+        [category, limit],
+      )
+    : await db.getAllAsync<Record<string, SQLite.SQLiteBindValue>>(
+        'SELECT * FROM news_cache ORDER BY published_at DESC LIMIT ?',
+        [limit],
+      );
+  return rows.map(rowToNews);
+}
+
+export async function getSavedArticles(limit: number): Promise<NewsItem[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<Record<string, SQLite.SQLiteBindValue>>(
-    'SELECT * FROM news_cache ORDER BY published_at DESC LIMIT ?',
+    'SELECT * FROM news_cache WHERE bookmarked = 1 ORDER BY published_at DESC LIMIT ?',
     [limit],
   );
   return rows.map(rowToNews);
+}
+
+export async function toggleNewsBookmark(id: string, bookmarked: boolean): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    'UPDATE news_cache SET bookmarked = ? WHERE id = ?',
+    [bookmarked ? 1 : 0, id],
+  );
+}
+
+export async function isArticleBookmarked(id: string): Promise<boolean> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<{ bookmarked: number }>(
+    'SELECT bookmarked FROM news_cache WHERE id = ?',
+    [id],
+  );
+  return (row?.bookmarked ?? 0) === 1;
 }
 
 export async function getStudentProfile(): Promise<StudentProfileCache | null> {

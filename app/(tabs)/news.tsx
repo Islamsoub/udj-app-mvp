@@ -23,7 +23,7 @@ import { NewsSkeleton } from '@/components/news/NewsSkeleton';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { getNews, markAllNotificationsRead, NewsItem } from '@/services/api';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
-import { getCachedNews, upsertNews } from '@/services/db';
+import { getCachedNews, upsertNews, getSavedArticles } from '@/services/db';
 import { mapNewsToCache } from '@/services/cacheMappers';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -40,6 +40,7 @@ function newsItemToArticle(item: NewsItem, localReadIds: Set<string>): Article {
     timestamp: formatTimestamp(item.publishedAt),
     readTime: `${item.readTimeMinutes} min`,
     isRead: item.read || localReadIds.has(item.id),
+    bookmarked: item.bookmarked,
   };
 }
 
@@ -53,9 +54,9 @@ function newsItemToHero(item: NewsItem) {
 }
 
 const FILTER_CATEGORY: Partial<Record<FilterKey, string>> = {
-  events:    'Evenement',
-  scolarite: 'Scolarite',
-  sport:     'Sport',
+  events:    'events',
+  scolarite: 'scolarite',
+  sport:     'sport',
   youth:     'youth',
   sponsors:  'sponsors',
 };
@@ -133,7 +134,7 @@ function OfflineBody({ articles, onArticlePress, localReadIds }: OfflineBodyProp
 
 // ─── Empty body ───────────────────────────────────────────────────────────────
 
-function EmptyBody() {
+function EmptyBody({ isSaved }: { isSaved?: boolean }) {
   const { t } = useTranslation();
 
   return (
@@ -144,18 +145,24 @@ function EmptyBody() {
         resizeMode="contain"
       />
 
-      <Text style={styles.stateTitle}>{t('news.empty.title')}</Text>
-      <Text style={styles.stateBody}>{t('news.empty.body')}</Text>
+      <Text style={styles.stateTitle}>
+        {isSaved ? t('news.empty_saved') : t('news.empty.title')}
+      </Text>
 
-      {/* Notification banner */}
-      <View style={styles.notifBanner}>
-        <Text style={styles.notifBannerEmoji}>🔔</Text>
-        <Text style={styles.notifBannerText}>{t('news.empty.notification')}</Text>
-      </View>
+      {!isSaved && (
+        <>
+          <Text style={styles.stateBody}>{t('news.empty.body')}</Text>
 
-      <Pressable hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }}>
-        <Text style={styles.seeAllLink}>{t('news.empty.see_all')}</Text>
-      </Pressable>
+          <View style={styles.notifBanner}>
+            <Text style={styles.notifBannerEmoji}>🔔</Text>
+            <Text style={styles.notifBannerText}>{t('news.empty.notification')}</Text>
+          </View>
+
+          <Pressable hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }}>
+            <Text style={styles.seeAllLink}>{t('news.empty.see_all')}</Text>
+          </Pressable>
+        </>
+      )}
     </View>
   );
 }
@@ -218,24 +225,34 @@ export default function NewsScreen() {
 
   // ─── Offline query ──────────────────────────────────────────────────────────
 
+  const isSavedTab = activeFilter === 'saved';
+
   const hook = useOfflineQuery<NewsItem[]>({
-    cacheKey: `news-${filterCategory ?? 'all'}`,
-    getCached: () => getCachedNews(20),
+    cacheKey: isSavedTab ? 'news-saved' : `news-${filterCategory ?? 'all'}`,
+    getCached: () => isSavedTab ? getSavedArticles(20) : getCachedNews(20, filterCategory),
     fetchFresh: async () => {
-      const data = await getNews(filterCategory ? { category: filterCategory } : undefined);
-      return mapNewsToCache(data.articles ?? []);
+      if (isSavedTab) {
+        return getSavedArticles(20);
+      }
+      const data = await getNews();
+      const all = mapNewsToCache(data.articles ?? []);
+      await upsertNews(all);
+      return filterCategory ? all.filter((a) => a.category === filterCategory) : all;
     },
-    updateCache: (data) => upsertNews(data),
+    updateCache: () => Promise.resolve(),
   });
 
   // ─── Derive hero/list articles ──────────────────────────────────────────────
 
   const { heroArticle, listArticles } = useMemo(() => {
-    const items = hook.data ?? [];
+    const raw = hook.data ?? [];
+    const items = !isSavedTab && filterCategory
+      ? raw.filter((a) => a.category === filterCategory)
+      : raw;
     const hero = items.find((a) => a.isUrgent) ?? items[0] ?? null;
     const list = hero ? items.filter((a) => a.id !== hero.id) : items;
     return { heroArticle: hero, listArticles: list };
-  }, [hook.data]);
+  }, [hook.data, filterCategory, isSavedTab]);
 
   // ─── Derive screen state ────────────────────────────────────────────────────
 
@@ -255,9 +272,8 @@ export default function NewsScreen() {
 
   function handleFilterChange(filter: FilterKey) {
     setActiveFilter(filter);
-    const cat = filter === 'all' ? undefined : FILTER_CATEGORY[filter];
+    const cat = filter === 'all' || filter === 'saved' ? undefined : FILTER_CATEGORY[filter];
     setFilterCategory(cat);
-    hook.refetch();
   }
 
   async function handleMarkAllRead() {
@@ -314,7 +330,7 @@ export default function NewsScreen() {
           />
         )}
 
-        {newsState === 'empty' && <EmptyBody />}
+        {newsState === 'empty' && <EmptyBody isSaved={isSavedTab} />}
 
         {newsState === 'error' && (
           <ErrorBody onRetry={() => hook.refetch()} />

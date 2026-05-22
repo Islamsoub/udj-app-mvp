@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { getCategoryColor } from '@/constants/colorMap';
+import { toggleNewsBookmark } from '@/services/db';
 
-export type ArticleCategory = 'Evenement' | 'Scolarite' | 'Sport';
+export type ArticleCategory = 'official' | 'events' | 'scolarite' | 'sport' | 'youth' | 'sponsors';
 
 export interface Article {
   id: string;
@@ -13,6 +15,7 @@ export interface Article {
   readTime: string;
   isHero?: boolean;
   isRead?: boolean;
+  bookmarked?: boolean;
 }
 
 function capitalizeFirst(s: string): string {
@@ -26,7 +29,19 @@ interface ArticleCardProps {
 }
 
 export function ArticleCard({ article, onPress }: ArticleCardProps) {
+  const [isBookmarked, setIsBookmarked] = useState(article.bookmarked ?? false);
   const catColor = getCategoryColor(article.category);
+
+  async function handleBookmarkPress() {
+    const next = !isBookmarked;
+    setIsBookmarked(next);
+    try {
+      await toggleNewsBookmark(article.id, next);
+    } catch {
+      setIsBookmarked(!next);
+    }
+  }
+
   return (
     <Pressable
       onPress={onPress}
@@ -46,7 +61,16 @@ export function ArticleCard({ article, onPress }: ArticleCardProps) {
           </View>
         </View>
         <Text style={styles.title} numberOfLines={2}>{article.title}</Text>
-        <Text style={styles.readTime}>{article.readTime}</Text>
+        <View style={styles.bottomRow}>
+          <Text style={styles.readTime}>{article.readTime}</Text>
+          <Pressable onPress={handleBookmarkPress} hitSlop={8}>
+            <Ionicons
+              name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
+              size={16}
+              color={isBookmarked ? colors.jade400 : colors.textSecondary}
+            />
+          </Pressable>
+        </View>
       </View>
     </Pressable>
   );
@@ -127,6 +151,11 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   readTime: {
     fontSize: 12,
     fontWeight: '700',
