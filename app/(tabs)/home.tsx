@@ -35,6 +35,7 @@ import {
   mapScheduleToCache,
   mapNewsToCache,
 } from '@/services/cacheMappers';
+import { getGreeting, isWeekend } from '@/utils/greeting';
 
 type HomeState = 'loaded' | 'error' | 'empty' | 'skeleton' | 'offline';
 
@@ -281,8 +282,6 @@ interface LoadedHeaderProps {
   topInset: number;
   lastSyncTime?: string;
   profile: StudentProfileCache | null;
-  todayCount: number;
-  nextClassMinutes: number | null;
 }
 
 function LoadedHeader({
@@ -290,8 +289,6 @@ function LoadedHeader({
   topInset,
   lastSyncTime,
   profile,
-  todayCount,
-  nextClassMinutes,
 }: LoadedHeaderProps) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -308,10 +305,7 @@ function LoadedHeader({
   const displayCredits = String(profile?.creditsEarned ?? 0);
   const displayCreditsTotal = profile?.creditsTotal ?? 0;
 
-  const subtitle =
-    nextClassMinutes !== null
-      ? `${todayCount} cours aujourd'hui – Prochain dans ${nextClassMinutes} min`
-      : `${todayCount} cours aujourd'hui`;
+  const subtitle = t(getGreeting());
 
   return (
     <View style={[styles.headerSection, { paddingTop: topInset + 16 }]}>
@@ -426,6 +420,7 @@ export default function HomeScreen() {
   const [courseDetailVisible, setCourseDetailVisible] = useState(false);
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const setSelectedCourse = useCourseDetailStore((s) => s.setSelectedCourse);
 
@@ -477,13 +472,6 @@ export default function HomeScreen() {
       .map((s) => scheduleToCard(s, nowMins));
   }, [scheduleHook.data, todayDow, nowMins]);
 
-  const nextClassMinutes = useMemo(() => {
-    const upcoming = todayCards.find((c) => c.courseStatus === 'upcoming');
-    if (!upcoming) return null;
-    const [h, m] = upcoming.time.split(' - ')[0].trim().split(':').map(Number);
-    return h * 60 + m - nowMins;
-  }, [todayCards, nowMins]);
-
   const newsCard = useMemo(() => {
     const items = newsHook.data ?? [];
     const urgent = items.find((n) => n.isUrgent) ?? items[0];
@@ -501,7 +489,7 @@ export default function HomeScreen() {
 
     if (anyData && anyOffline) return 'offline';
     if (anyData) {
-      return todayCards.length === 0 && !profileHook.isStale ? 'empty' : 'loaded';
+      return 'loaded';
     }
     if (profileHook.error || scheduleHook.error) return 'error';
     return 'skeleton';
@@ -549,8 +537,6 @@ export default function HomeScreen() {
             isOffline={isOffline}
             topInset={insets.top}
             profile={profileHook.data}
-            todayCount={todayCards.length}
-            nextClassMinutes={nextClassMinutes}
           />
         ) : (
           <SimpleHeader topInset={insets.top} />
@@ -588,7 +574,9 @@ export default function HomeScreen() {
               ))
             ) : (
               <View style={styles.emptyAgendaCard}>
-                <Text style={styles.emptyAgendaText}>Aucun cours aujourd'hui</Text>
+                <Text style={styles.emptyAgendaText}>
+                  {t(isWeekend() ? 'home.agenda.weekend' : 'home.agenda.empty')}
+                </Text>
               </View>
             )}
 

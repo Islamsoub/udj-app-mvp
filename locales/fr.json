@@ -57,6 +57,18 @@
     "news": "Actualités",
     "profile": "Profil"
   },
+  "home": {
+    "greeting": {
+      "morning": "Bonne matinée 🌤️",
+      "afternoon": "Bon après-midi ☀️",
+      "evening": "Bonne soirée 🌙",
+      "weekend": "Bon week-end 😊"
+    },
+    "agenda": {
+      "empty": "Aucun cours aujourd'hui",
+      "weekend": "Pas de cours aujourd'hui 🎉"
+    }
+  },
   "screens": {
     "home": "Accueil",
     "schedule": "Emploi du temps",
