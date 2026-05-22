@@ -3,7 +3,7 @@
     "name": "UDJ",
     "slug": "udj-app-mvp",
     "version": "1.0.0",
-    "scheme": "udj",
+    "scheme": ["udj", "unipocket"],
     "orientation": "portrait",
     "icon": "./assets/icons/icon.png",
     "userInterfaceStyle": "light",

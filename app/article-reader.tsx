@@ -306,10 +306,12 @@ export default function ArticleReaderScreen() {
 
   async function handleShare() {
     try {
-      const message = article.url
-        ? `${article.title}\n${article.url}`
-        : article.title;
-      await Share.share({ message });
+      const deepLink = `unipocket://article/${article.id}`;
+      await Share.share({
+        title: article.title,
+        message: `${article.title}\n${deepLink}`,
+        url: deepLink,
+      });
     } catch (err) {
       console.log('Share error:', err);
     }
@@ -335,7 +337,6 @@ export default function ArticleReaderScreen() {
       <ArticleReaderHeader
         topInset={insets.top}
         onBack={handleBack}
-        onShare={handleShare}
       />
 
       {readerState === 'offline' && <ArticleOfflineBanner />}

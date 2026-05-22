@@ -7,6 +7,7 @@ import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
+import * as Linking from 'expo-linking';
 import { runMigrations } from '@/services/db';
 import { useAuthStore } from '@/stores/authStore';
 import {
@@ -103,6 +104,22 @@ export default function RootLayout() {
 
     return cleanup;
   }, [isAuthenticated]);
+
+  useEffect(() => {
+    function handleDeepLink(url: string) {
+      const { hostname, path } = Linking.parse(url);
+      const segments = [hostname, ...(path ? path.split('/') : [])].filter(Boolean);
+      if (segments[0] === 'article' && segments[1]) {
+        router.push({ pathname: '/article-reader', params: { id: segments[1] } });
+      }
+    }
+
+    Linking.getInitialURL().then((url) => {
+      if (url) handleDeepLink(url);
+    });
+    const sub = Linking.addEventListener('url', ({ url }) => handleDeepLink(url));
+    return () => sub.remove();
+  }, [router]);
 
   useEffect(() => {
     if (fontsLoaded && migrationsReady && authLoaded) {

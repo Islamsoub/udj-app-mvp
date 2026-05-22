@@ -6,18 +6,14 @@ import { colors, spacing } from '@/constants/theme';
 interface ArticleReaderHeaderProps {
   topInset: number;
   onBack: () => void;
-  onShare: () => void;
 }
 
-export function ArticleReaderHeader({ topInset, onBack, onShare }: ArticleReaderHeaderProps) {
+export function ArticleReaderHeader({ topInset, onBack }: ArticleReaderHeaderProps) {
   return (
     <View style={[styles.wrapper, { paddingTop: topInset }]}>
       <View style={styles.row}>
         <Pressable style={({ pressed }) => [styles.btn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]} onPress={onBack} hitSlop={8}>
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
-        </Pressable>
-        <Pressable style={({ pressed }) => [styles.btn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]} onPress={onShare} hitSlop={8}>
-          <Ionicons name="share-social-outline" size={22} color={colors.textPrimary} />
         </Pressable>
       </View>
     </View>
