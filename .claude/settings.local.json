@@ -59,7 +59,8 @@
       "Bash(xargs wc *)",
       "Bash(echo \"EXIT: $?\")",
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
-      "Bash(echo \"EXIT_CODE=$?\")"
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(echo \"EXIT=$?\")"
     ]
   }
 }

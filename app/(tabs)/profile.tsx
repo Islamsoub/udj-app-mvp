@@ -9,6 +9,7 @@ import {
   Image,
   Alert,
   Keyboard,
+  Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -50,9 +51,12 @@ function cacheToHeaderStudent(c: StudentProfileCache): ProfileHeaderStudent {
   };
 }
 
-function deriveAcademicYear(year?: number): string {
-  const startYear = year ?? (new Date().getMonth() < 7 ? new Date().getFullYear() - 1 : new Date().getFullYear());
-  return `${startYear}-${startYear + 1}`;
+function statusKey(status: string): 'active' | 'suspended' | 'graduated' | null {
+  const s = status.toUpperCase();
+  if (s === 'ACTIVE') return 'active';
+  if (s === 'SUSPENDED') return 'suspended';
+  if (s === 'GRADUATED') return 'graduated';
+  return null;
 }
 
 // ─── Loaded / Offline body ────────────────────────────────────────────────────
@@ -61,7 +65,9 @@ interface ProfileBodyProps {
   student: StudentProfileCache | null;
   qrToken: string | null;
   onPresencePress: () => void;
-  onDocumentsPress: () => void;
+  onFacultyPress: () => void;
+  onProgrammePress: () => void;
+  onEmailPress: () => void;
   onLogoutPress: () => void;
 }
 
@@ -69,43 +75,80 @@ function ProfileBody({
   student,
   qrToken,
   onPresencePress,
-  onDocumentsPress,
+  onFacultyPress,
+  onProgrammePress,
+  onEmailPress,
   onLogoutPress,
 }: ProfileBodyProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === 'ar';
 
   const name = student?.name ?? '—';
   const id = student?.studentId ?? '—';
   const programme = student?.programme ?? '—';
-  const annee = deriveAcademicYear(student?.year);
   const filiere = student?.programmeName ?? '—';
-  const niveau = student?.level ?? '—';
+  const facultyName = student?.facultyName ?? '—';
   const presence = student?.attendancePercentage ?? 0;
+  const email = student?.email ?? '—';
+
+  const sKey = statusKey(student?.status ?? '');
+  const statusValue = sKey ? t(`profile.status.${sKey}`) : (student?.status ?? '—');
+
+  const programmeLevel = student?.programmeLevel ?? '';
+  const programmeDuration = student?.programmeDurationSemesters ?? 0;
+  const programmeCredits = student?.programmeTotalCredits ?? 0;
+  const semesterUnit = isAr ? 'فصل' : 'sem.';
+  const creditsUnit = isAr ? 'وحدة' : 'crédits';
+  const programmeInfoValue =
+    programmeLevel || programmeDuration || programmeCredits
+      ? `${programmeLevel} · ${programmeDuration} ${semesterUnit} · ${programmeCredits} ${creditsUnit}`
+      : '—';
+
+  const currentSem = student?.currentSemester ?? 0;
+  const currentSemesterValue =
+    currentSem > 0 ? t('profile.info.semester_value', { n: currentSem }) : '—';
 
   return (
     <View style={styles.body}>
       <StudentCard name={name} id={id} programme={programme} qrToken={qrToken} />
 
       <Text style={styles.sectionHeader}>{t('profile.section.academic')}</Text>
-      <InfoRow label={t('profile.row.filiere')} value={filiere} />
-      <InfoRow label={t('profile.row.niveau')} value={niveau} />
+      <InfoRow
+        label={t('profile.row.filiere')}
+        value={filiere}
+        onPress={onProgrammePress}
+      />
+      <InfoRow
+        label={t('profile.info.faculty')}
+        value={facultyName}
+        onPress={onFacultyPress}
+      />
       <InfoRow
         label={t('profile.row.presence')}
         value={`${presence}%`}
         onPress={onPresencePress}
       />
 
-      <Text style={styles.sectionHeader}>{t('profile.section.settings')}</Text>
-      <InfoRow label={t('profile.row.langue')} value="Français" />
-      <InfoRow label={t('profile.row.annee')} value={annee} />
       <InfoRow
-        label={t('profile.row.notifications')}
-        value={t('profile.row.notifications_value')}
+        icon="mail-outline"
+        label={t('profile.info.email')}
+        value={email}
+        onPress={onEmailPress}
       />
       <InfoRow
-        label={t('profile.row.documents')}
-        value={t('profile.row.documents_value')}
-        onPress={onDocumentsPress}
+        icon="checkmark-circle-outline"
+        label={t('profile.info.status')}
+        value={statusValue}
+      />
+      <InfoRow
+        icon="book-outline"
+        label={t('profile.info.programme_info')}
+        value={programmeInfoValue}
+      />
+      <InfoRow
+        icon="calendar-outline"
+        label={t('profile.info.current_semester')}
+        value={currentSemesterValue}
       />
 
       <InfoRow label={t('profile.row.logout')} isLogout onPress={onLogoutPress} />
@@ -313,7 +356,22 @@ export default function ProfileScreen() {
             student={hook.data}
             qrToken={qrToken}
             onPresencePress={() => router.push('/attendance')}
-            onDocumentsPress={() => router.push('/info-center')}
+            onFacultyPress={() => {
+              const facultyId = useAuthStore.getState().student?.faculty.id;
+              if (facultyId) {
+                router.push({ pathname: '/faculty-detail', params: { id: facultyId } });
+              }
+            }}
+            onProgrammePress={() => {
+              const programmeId = useAuthStore.getState().student?.programme.id;
+              if (programmeId) {
+                router.push({ pathname: '/programme-detail', params: { id: programmeId } });
+              }
+            }}
+            onEmailPress={() => {
+              const email = hook.data?.email;
+              if (email) Linking.openURL(`mailto:${email}`);
+            }}
             onLogoutPress={handleLogout}
           />
         )}

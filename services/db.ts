@@ -142,6 +142,18 @@ export async function runMigrations(): Promise<void> {
   await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN attendance_percentage REAL');
   await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN credits_earned INTEGER NOT NULL DEFAULT 0');
   await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN credits_total INTEGER NOT NULL DEFAULT 0');
+
+  // student_profile: extended contact + programme fields
+  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN email TEXT NOT NULL DEFAULT \'\'');
+  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN faculty_code TEXT NOT NULL DEFAULT \'\'');
+  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN faculty_email TEXT NOT NULL DEFAULT \'\'');
+  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN faculty_phone TEXT NOT NULL DEFAULT \'\'');
+  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN faculty_address TEXT NOT NULL DEFAULT \'\'');
+  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN faculty_hours TEXT NOT NULL DEFAULT \'\'');
+  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN programme_level TEXT NOT NULL DEFAULT \'\'');
+  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN programme_duration_semesters INTEGER NOT NULL DEFAULT 0');
+  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN programme_total_credits INTEGER NOT NULL DEFAULT 0');
+  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN current_semester INTEGER NOT NULL DEFAULT 0');
 }
 
 // --- Read helpers ---
@@ -332,19 +344,32 @@ export async function upsertProfile(profile: StudentProfileCache): Promise<void>
   const db = await getDb();
   await db.runAsync(
     `INSERT OR REPLACE INTO student_profile
-      (student_id, first_name, last_name, name, programme, programme_name,
-       faculty, faculty_name, level, year, semester, status, photo_url,
-       gpa, mention, attendance_percentage, credits_earned, credits_total, cached_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (student_id, first_name, last_name, name, email, programme, programme_name,
+       faculty, faculty_name, faculty_code, faculty_email, faculty_phone,
+       faculty_address, faculty_hours, programme_level, programme_duration_semesters,
+       programme_total_credits, current_semester, level, year, semester, status,
+       photo_url, gpa, mention, attendance_percentage, credits_earned, credits_total,
+       cached_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       profile.studentId,
       profile.firstName,
       profile.lastName,
       profile.name,
+      profile.email,
       profile.programme,
       profile.programmeName,
       profile.faculty,
       profile.facultyName,
+      profile.facultyCode,
+      profile.facultyEmail,
+      profile.facultyPhone,
+      profile.facultyAddress,
+      profile.facultyHours,
+      profile.programmeLevel,
+      profile.programmeDurationSemesters,
+      profile.programmeTotalCredits,
+      profile.currentSemester,
       profile.level,
       profile.year,
       profile.semester,
@@ -465,10 +490,20 @@ function rowToProfile(row: Record<string, SQLite.SQLiteBindValue>): StudentProfi
     firstName: (row.first_name as string | null) ?? '',
     lastName: (row.last_name as string | null) ?? '',
     name: row.name as string,
+    email: (row.email as string | null) ?? '',
     programme: row.programme as string,
     programmeName: (row.programme_name as string | null) ?? '',
     faculty: row.faculty as string,
     facultyName: (row.faculty_name as string | null) ?? '',
+    facultyCode: (row.faculty_code as string | null) ?? '',
+    facultyEmail: (row.faculty_email as string | null) ?? '',
+    facultyPhone: (row.faculty_phone as string | null) ?? '',
+    facultyAddress: (row.faculty_address as string | null) ?? '',
+    facultyHours: (row.faculty_hours as string | null) ?? '',
+    programmeLevel: (row.programme_level as string | null) ?? '',
+    programmeDurationSemesters: (row.programme_duration_semesters as number | null) ?? 0,
+    programmeTotalCredits: (row.programme_total_credits as number | null) ?? 0,
+    currentSemester: (row.current_semester as number | null) ?? 0,
     level: (row.level as string | null) ?? '',
     year: row.year as number,
     semester: (row.semester as number | null) ?? 0,

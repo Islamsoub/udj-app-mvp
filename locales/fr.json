@@ -189,6 +189,19 @@
       "logout": "Se déconnecter",
       "presence": "Présence"
     },
+    "info": {
+      "faculty": "Faculté",
+      "email": "Email universitaire",
+      "status": "Statut",
+      "programme_info": "Programme",
+      "current_semester": "Semestre actuel",
+      "semester_value": "Semestre {{n}}"
+    },
+    "status": {
+      "active": "Actif",
+      "suspended": "Suspendu",
+      "graduated": "Diplômé"
+    },
     "offline": {
       "banner": "Profil local · QR disponible hors-ligne",
       "timestamp": "hier 14:30"
@@ -459,5 +472,24 @@
     "confirm_title": "Se déconnecter ?",
     "confirm_message": "Tu seras déconnecté de ton compte.",
     "confirm_button": "Se déconnecter"
+  },
+  "programme_detail": {
+    "title": "Filière",
+    "row_name": "Nom",
+    "row_code": "Code",
+    "row_level": "Niveau",
+    "row_duration": "Durée",
+    "row_duration_value": "{{n}} semestres",
+    "row_total_credits": "Crédits totaux",
+    "row_faculty": "Faculté"
+  },
+  "faculty_detail": {
+    "title": "Faculté",
+    "row_name": "Nom",
+    "row_code": "Code",
+    "row_email": "Email",
+    "row_phone": "Téléphone",
+    "row_address": "Adresse",
+    "row_hours": "Horaires d'ouverture"
   }
 }

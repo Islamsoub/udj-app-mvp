@@ -133,6 +133,8 @@ router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
         code: student.programme.faculty.code,
         email: student.programme.faculty.email,
         phone: student.programme.faculty.phone,
+        address: student.programme.faculty.address,
+        hours: student.programme.faculty.hours,
       },
       stats: {
         gpa,

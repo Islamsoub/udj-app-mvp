@@ -28,6 +28,8 @@ export type StudentProfile = {
     code: string;
     email?: string;
     phone?: string;
+    address?: string;
+    hours?: string;
   };
   stats?: {
     gpa: number | null;

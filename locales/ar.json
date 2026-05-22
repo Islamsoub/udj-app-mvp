@@ -186,6 +186,19 @@
       "logout": "تسجيل الخروج",
       "presence": "الحضور"
     },
+    "info": {
+      "faculty": "الكلية",
+      "email": "البريد الجامعي",
+      "status": "الحالة",
+      "programme_info": "البرنامج",
+      "current_semester": "الفصل الحالي",
+      "semester_value": "الفصل {{n}}"
+    },
+    "status": {
+      "active": "نشط",
+      "suspended": "موقوف",
+      "graduated": "متخرج"
+    },
     "offline": {
       "banner": "ملف محلي · بطاقة QR متاحة بدون اتصال",
       "timestamp": "أمس 14:30"
@@ -456,5 +469,24 @@
     "confirm_title": "تسجيل الخروج؟",
     "confirm_message": "ستخرج من حسابك.",
     "confirm_button": "تأكيد"
+  },
+  "programme_detail": {
+    "title": "التخصص",
+    "row_name": "الاسم",
+    "row_code": "الرمز",
+    "row_level": "المستوى",
+    "row_duration": "المدة",
+    "row_duration_value": "{{n}} فصول",
+    "row_total_credits": "إجمالي الوحدات",
+    "row_faculty": "الكلية"
+  },
+  "faculty_detail": {
+    "title": "الكلية",
+    "row_name": "الاسم",
+    "row_code": "الرمز",
+    "row_email": "البريد الإلكتروني",
+    "row_phone": "الهاتف",
+    "row_address": "العنوان",
+    "row_hours": "ساعات العمل"
   }
 }
