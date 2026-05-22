@@ -1,5 +1,6 @@
 import '@/i18n';
 import React, { useEffect, useState } from 'react';
+import { StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -10,6 +11,7 @@ import * as Notifications from 'expo-notifications';
 import * as Linking from 'expo-linking';
 import { runMigrations } from '@/services/db';
 import { useAuthStore } from '@/stores/authStore';
+import { useColors } from '@/hooks/useColors';
 import {
   registerForPushNotifications,
   setupNotificationListeners,
@@ -44,6 +46,7 @@ export default function RootLayout() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const student = useAuthStore((s) => s.student);
   const router = useRouter();
+  const { isDark } = useColors();
 
   // Font files go here once assets/fonts/ is populated — empty map loads instantly
   const [fontsLoaded] = useFonts({
@@ -135,6 +138,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
+          <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
           <Stack screenOptions={{ headerShown: false }} />
         </SafeAreaProvider>
       </GestureHandlerRootView>

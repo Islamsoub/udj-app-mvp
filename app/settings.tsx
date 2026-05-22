@@ -24,6 +24,8 @@ import { QuietHoursPicker } from '@/components/settings/QuietHoursPicker';
 import { ClearCacheConfirm } from '@/components/settings/ClearCacheConfirm';
 import { LogoutConfirm } from '@/components/settings/LogoutConfirm';
 import { useAuthStore } from '@/stores/authStore';
+import { useThemeStore } from '@/stores/themeStore';
+import { useColors } from '@/hooks/useColors';
 import { patchPreferences } from '@/services/api';
 import { logout } from '@/services/auth';
 
@@ -50,6 +52,8 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
   const router = useRouter();
   const student = useAuthStore((s) => s.student);
   const prefs = student?.preferences;
+  const themeMode = useThemeStore((s) => s.mode);
+  const setThemeMode = useThemeStore((s) => s.setMode);
 
   const [notifGrades, setNotifGrades] = useState(prefs?.notifGrades ?? true);
   const [notifCours, setNotifCours] = useState(prefs?.notifCourses ?? true);
@@ -63,7 +67,6 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
   const [logoutVisible, setLogoutVisible] = useState(false);
 
   const [langue, setLangue] = useState<'fr' | 'ar'>('fr');
-  const [theme, setTheme] = useState<'light' | 'dark' | 'system'>('system');
   const [textSize, setTextSize] = useState<'small' | 'normal' | 'large'>('normal');
   const [quietStart, setQuietStart] = useState(22);
   const [quietEnd, setQuietEnd] = useState(7);
@@ -187,8 +190,8 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
       <ThemePicker
         visible={themeVisible}
         onClose={() => setThemeVisible(false)}
-        currentValue={theme}
-        onSelect={(v) => { setTheme(v); setThemeVisible(false); }}
+        currentValue={themeMode}
+        onSelect={(v) => { setThemeMode(v); setThemeVisible(false); }}
       />
       <TextSizePicker
         visible={textSizeVisible}
@@ -237,6 +240,7 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
 export default function SettingsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { isDark } = useColors();
   const [settingsState, setSettingsState] = useState<SettingsState>('loaded');
 
   const showBody =
@@ -246,7 +250,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       <SettingsHeader
         topInset={insets.top}

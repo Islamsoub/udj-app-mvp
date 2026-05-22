@@ -1,4 +1,74 @@
-export const colors = {
+// ─── Light palette ────────────────────────────────────────────────────────────
+
+export interface Palette {
+  bgDeep: string;
+  bgPrimary: string;
+  bgSurface: string;
+  bgCard: string;
+  jadePrimary: string;
+  borderLight: string;
+  skeleton: string;
+
+  jade50: string;
+  jade100: string;
+  jade200: string;
+  jade300: string;
+  jade400: string;
+  jade600: string;
+  jade900: string;
+  jadeDM: string;
+
+  warning: string;
+  danger: string;
+  info: string;
+  exam: string;
+  offline: string;
+  success: string;
+
+  background: string;
+  surface: string;
+  border: string;
+  textPrimary: string;
+  textSecondary: string;
+  textTertiary: string;
+
+  dmBgDeep: string;
+  dmBgPrimary: string;
+  dmSurface: string;
+  dmCard: string;
+
+  jade75: string;
+  infoLight: string;
+  offlineBg: string;
+  dangerLight: string;
+  connectorLine: string;
+  greyMuted: string;
+  scheduleBorder: string;
+  mentionBien: string;
+  offlineText: string;
+
+  skeletonBase: string;
+  skeletonHighlight: string;
+
+  newsHeaderBorder: string;
+  urgentPillBg: string;
+  newsOfflineBg: string;
+  warningLight: string;
+  warningBorder: string;
+  newsNotifBg: string;
+  greyMedium: string;
+}
+
+export const lightColors: Palette = {
+  // Aliases / new semantic surface tokens (Phase 1 dark-mode infra)
+  bgDeep: '#0D1512',
+  bgPrimary: '#F5F7F6',
+  bgSurface: '#FFFFFF',
+  bgCard: '#FFFFFF',
+  jadePrimary: '#1D9E75',
+  borderLight: '#E8ECE9',
+  skeleton: '#E8ECE9',
+
   // Jade green palette
   jade50: '#E6F7F1',
   jade100: '#B3E4D3',
@@ -25,36 +95,112 @@ export const colors = {
   textSecondary: '#6B7B74',
   textTertiary: '#9EADA7',
 
-  // Dark mode surfaces
+  // Dark mode surface raw values (kept for backward compat — still referenced
+  // from older code as colors.dmBgDeep etc.)
   dmBgDeep: '#0D1512',
   dmBgPrimary: '#141E1A',
   dmSurface: '#1C2B26',
   dmCard: '#243328',
 
   // Extended tokens
-  jade75: '#D1F0E2',     // "En cours" status pill bg
-  infoLight: '#EFF6FF',  // "À venir" status pill bg
-  offlineBg: '#FEF3EC',  // offline banner / cache banner bg
-  dangerLight: '#FECACA', // error state icon circle bg
-  connectorLine: '#C7CDCB', // timeline connector dot/line
-  greyMuted: '#C7CDCB',    // past-status accent bar
-  scheduleBorder: '#D9D9D9', // Figma-spec border for schedule header, day strip, offline cards
-  mentionBien: 'rgb(99,200,168)', // Mention Bien badge bg + skeleton stats row bg
-  offlineText: '#9A3412',         // offline banner body text (dark brown per Figma)
+  jade75: '#D1F0E2',
+  infoLight: '#EFF6FF',
+  offlineBg: '#FEF3EC',
+  dangerLight: '#FECACA',
+  connectorLine: '#C7CDCB',
+  greyMuted: '#C7CDCB',
+  scheduleBorder: '#D9D9D9',
+  mentionBien: 'rgb(99,200,168)',
+  offlineText: '#9A3412',
 
   // Skeleton shimmer — neutral grey, no jade tint
   skeletonBase: '#E5E7EB',
   skeletonHighlight: '#F3F4F6',
 
   // News-specific tokens
-  newsHeaderBorder: '#AE9292',           // news header bottom border per Figma
-  urgentPillBg: 'rgba(217,217,217,0.5)', // HeroCard "Officiel – Urgent" pill
-  newsOfflineBg: '#F6EAE0',              // news offline banner background
-  warningLight: 'rgba(245,158,11,0.2)',  // saved articles warning banner bg
-  warningBorder: '#FFA629',              // saved articles warning banner border
-  newsNotifBg: '#E1F5F0',               // empty-state notification banner bg
-  greyMedium: '#757575',                 // search icon, inactive filter pill border
-} as const;
+  newsHeaderBorder: '#AE9292',
+  urgentPillBg: 'rgba(217,217,217,0.5)',
+  newsOfflineBg: '#F6EAE0',
+  warningLight: 'rgba(245,158,11,0.2)',
+  warningBorder: '#FFA629',
+  newsNotifBg: '#E1F5F0',
+  greyMedium: '#757575',
+};
+
+// ─── Dark palette ─────────────────────────────────────────────────────────────
+// Mirrors every key in lightColors so screens migrated to useColors() can swap
+// palettes without touching identifiers.
+
+export const darkColors: Palette = {
+  // Aliases / new semantic surface tokens
+  bgDeep: '#0D1512',
+  bgPrimary: '#141E1A',
+  bgSurface: '#1C2B26',
+  bgCard: '#243328',
+  jadePrimary: '#2ECC96',
+  borderLight: '#1F2E28',
+  skeleton: '#1F3029',
+
+  // Jade — brand stays recognizable; bright tints get dark equivalents so
+  // tag/pill backgrounds remain readable on dark surfaces.
+  jade50: '#0D1F18',
+  jade100: '#112A20',
+  jade200: '#1A3D2E',
+  jade300: '#1A4D3A',
+  jade400: '#2ECC96',
+  jade600: '#1D9E75',
+  jade900: '#0A3D2E',
+  jadeDM: '#2ECC96',
+
+  // Semantic — same hues; light variants get dark backgrounds below
+  warning: '#F59E0B',
+  danger: '#EF4444',
+  info: '#3B82F6',
+  exam: '#8B5CF6',
+  offline: '#F97316',
+  success: '#2ECC96',
+
+  // Surfaces (dark)
+  background: '#141E1A',
+  surface: '#1C2B26',
+  border: '#2A3D36',
+  textPrimary: '#F0F5F3',
+  textSecondary: '#8FA89E',
+  textTertiary: '#627870',
+
+  // Raw dm tokens — same values whether the active palette is light or dark
+  dmBgDeep: '#0D1512',
+  dmBgPrimary: '#141E1A',
+  dmSurface: '#1C2B26',
+  dmCard: '#243328',
+
+  // Extended tokens — dark equivalents
+  jade75: '#1A3D2E',
+  infoLight: '#0F1A2A',
+  offlineBg: '#2A1F0A',
+  dangerLight: '#2A0F0F',
+  connectorLine: '#2A3D36',
+  greyMuted: '#2A3D36',
+  scheduleBorder: '#2A3D36',
+  mentionBien: 'rgb(99,200,168)',
+  offlineText: '#F97316',
+
+  skeletonBase: '#1F3029',
+  skeletonHighlight: '#2A3D36',
+
+  newsHeaderBorder: '#2A3D36',
+  urgentPillBg: 'rgba(217,217,217,0.5)',
+  newsOfflineBg: '#2A1F0A',
+  warningLight: 'rgba(245,158,11,0.2)',
+  warningBorder: '#FFA629',
+  newsNotifBg: '#0D1F18',
+  greyMedium: '#8FA89E',
+};
+
+
+
+// Backward-compat alias — screens still import `colors` until Phase 2.
+export const colors = lightColors;
 
 export const spacing = {
   sp2: 2,
