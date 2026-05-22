@@ -56,7 +56,8 @@
       "Bash(python3 -m json.tool)",
       "Bash(python3 -c ' *)",
       "Bash(echo \"Exit: $?\")",
-      "Bash(xargs wc *)"
+      "Bash(xargs wc *)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }

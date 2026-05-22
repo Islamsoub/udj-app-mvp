@@ -7,11 +7,12 @@ import {
   StyleSheet,
   StatusBar,
   Image,
+  Alert,
+  Keyboard,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { isAxiosError } from 'axios';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
@@ -30,6 +31,7 @@ import type { StudentProfileCache } from '@/services/api';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getStudentProfile, upsertProfile } from '@/services/db';
 import { mapProfileToCache } from '@/services/cacheMappers';
+import { logout as logoutService } from '@/services/auth';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -57,31 +59,32 @@ function deriveAcademicYear(year?: number): string {
 
 interface ProfileBodyProps {
   student: StudentProfileCache | null;
+  qrToken: string | null;
   onPresencePress: () => void;
   onDocumentsPress: () => void;
+  onLogoutPress: () => void;
 }
 
-function ProfileBody({ student, onPresencePress, onDocumentsPress }: ProfileBodyProps) {
+function ProfileBody({
+  student,
+  qrToken,
+  onPresencePress,
+  onDocumentsPress,
+  onLogoutPress,
+}: ProfileBodyProps) {
   const { t } = useTranslation();
 
   const name = student?.name ?? '—';
   const id = student?.studentId ?? '—';
   const programme = student?.programme ?? '—';
   const annee = deriveAcademicYear(student?.year);
-  const statut = student?.status ?? 'ACTIF';
   const filiere = student?.programmeName ?? '—';
   const niveau = student?.level ?? '—';
   const presence = student?.attendancePercentage ?? 0;
 
   return (
     <View style={styles.body}>
-      <StudentCard
-        name={name}
-        id={id}
-        programme={programme}
-        annee={annee}
-        statut={statut}
-      />
+      <StudentCard name={name} id={id} programme={programme} qrToken={qrToken} />
 
       <Text style={styles.sectionHeader}>{t('profile.section.academic')}</Text>
       <InfoRow label={t('profile.row.filiere')} value={filiere} />
@@ -105,7 +108,7 @@ function ProfileBody({ student, onPresencePress, onDocumentsPress }: ProfileBody
         onPress={onDocumentsPress}
       />
 
-      <InfoRow label={t('profile.row.logout')} isLogout />
+      <InfoRow label={t('profile.row.logout')} isLogout onPress={onLogoutPress} />
     </View>
   );
 }
@@ -204,11 +207,34 @@ const STATE_LABELS: Record<ProfileState, string> = {
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [devState, setDevState] = useState<ProfileState | null>(null);
   const insets = useSafeAreaInsets();
 
-  const [, setQrToken] = useState<string | null>(null);
+  const [qrToken, setQrToken] = useState<string | null>(null);
   const qrIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const handleLogout = () => {
+    Alert.alert(
+      t('logout.confirm_title'),
+      t('logout.confirm_message'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('logout.confirm_button'),
+          style: 'destructive',
+          onPress: async () => {
+            Keyboard.dismiss();
+            try {
+              await logoutService();
+            } finally {
+              router.replace('/(auth)/login');
+            }
+          },
+        },
+      ],
+    );
+  };
 
   // ─── Offline query ──────────────────────────────────────────────────────────
 
@@ -285,8 +311,10 @@ export default function ProfileScreen() {
         {showBody && (
           <ProfileBody
             student={hook.data}
+            qrToken={qrToken}
             onPresencePress={() => router.push('/attendance')}
             onDocumentsPress={() => router.push('/info-center')}
+            onLogoutPress={handleLogout}
           />
         )}
         {profileState === 'error' && (

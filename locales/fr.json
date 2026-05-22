@@ -5,6 +5,7 @@
     "retry": "Réessayer",
     "loading": "Chargement...",
     "error": "Une erreur est survenue",
+    "cancel": "Annuler",
     "noClasses": "Pas de cours aujourd'hui 🌴",
     "enjoyDay": "Profitez de votre journée !",
     "offlineBanner": "Mode hors-ligne · Dernière sync : {{time}}",
@@ -156,7 +157,9 @@
       "subtitle": "Carte etudiante digitale",
       "programme": "PROGRAMME",
       "annee": "ANNEE",
-      "statut": "STATUT"
+      "statut": "STATUT",
+      "show_qr": "Afficher QR",
+      "collapse_hint": "Appuyer pour réduire"
     },
     "section": {
       "academic": "INFORMATIONS ACADEMIQUES",
@@ -435,5 +438,10 @@
     "errorTitle": "Centre d'information indisponible",
     "errorBody": "Vérifiez votre connexion puis réessayez.",
     "retry": "Réessayer"
+  },
+  "logout": {
+    "confirm_title": "Se déconnecter ?",
+    "confirm_message": "Tu seras déconnecté de ton compte.",
+    "confirm_button": "Se déconnecter"
   }
 }

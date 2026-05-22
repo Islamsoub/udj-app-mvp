@@ -1,101 +1,204 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Animated, Easing } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
+import Svg, { Circle } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { colors, fonts, radius, spacing } from '@/constants/theme';
 
-// Overlay colors specific to the dark-green card background
 const CARD_TEXT_DIM = 'rgba(255,255,255,0.7)';
 const CARD_PILL_BG = 'rgba(255,255,255,0.15)';
+const CARD_RING_TRACK = 'rgba(255,255,255,0.25)';
+
+const COLLAPSED_HEIGHT = 120;
+const EXPANDED_HEIGHT = 320;
+const CYCLE_SECONDS = 55;
+
+const QR_SIZE = 160;
+const RING_SIZE = 18;
+const RING_STROKE = 2;
+const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
+const RING_CIRC = 2 * Math.PI * RING_RADIUS;
 
 interface StudentCardProps {
   name: string;
   id: string;
   programme: string;
-  annee: string;
-  statut: string;
+  qrToken: string | null;
 }
 
-export function StudentCard({ name, id, programme, annee, statut }: StudentCardProps) {
+export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) {
   const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+  const heightAnim = useRef(new Animated.Value(COLLAPSED_HEIGHT)).current;
+  const [secondsLeft, setSecondsLeft] = useState(CYCLE_SECONDS);
+
+  useEffect(() => {
+    setSecondsLeft(CYCLE_SECONDS);
+  }, [qrToken]);
+
+  useEffect(() => {
+    const intv = setInterval(() => {
+      setSecondsLeft((s) => (s <= 1 ? CYCLE_SECONDS : s - 1));
+    }, 1000);
+    return () => clearInterval(intv);
+  }, []);
+
+  const toggle = () => {
+    const next = !expanded;
+    setExpanded(next);
+    Animated.timing(heightAnim, {
+      toValue: next ? EXPANDED_HEIGHT : COLLAPSED_HEIGHT,
+      duration: 250,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const qrValue = qrToken ?? id;
+  const dashOffset = RING_CIRC * (1 - secondsLeft / CYCLE_SECONDS);
+  const countdownLabel = `00:${String(secondsLeft).padStart(2, '0')}`;
 
   return (
-    <View style={styles.card}>
-      {/* Top row: title+subtitle column left, QR box right */}
-      <View style={styles.topRow}>
-        <View style={styles.topLeft}>
-          <Text style={styles.cardTitle} numberOfLines={1}>
-            {t('profile.card.title')}
-          </Text>
-          <Text style={styles.cardSubtitle} numberOfLines={1}>
-            {t('profile.card.subtitle')}
-          </Text>
-        </View>
-        <View style={styles.qrBox} />
-      </View>
+    <Animated.View style={[styles.cardWrap, { height: heightAnim }]}>
+      <Pressable
+        onPress={toggle}
+        style={styles.card}
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+      >
+        {expanded ? (
+          <View style={styles.expanded}>
+            <View style={styles.qrBox}>
+              <QRCode value={qrValue} size={QR_SIZE} backgroundColor="#FFFFFF" />
+            </View>
 
-      {/* Middle: student name & ID */}
-      <View style={styles.middleSection}>
-        <Text style={styles.cardName} numberOfLines={1}>
-          {name}
-        </Text>
-        <Text style={styles.cardStudentId} numberOfLines={1}>
-          {id}
-        </Text>
-      </View>
+            <View style={styles.countdownRow}>
+              <Svg width={RING_SIZE} height={RING_SIZE}>
+                <Circle
+                  cx={RING_SIZE / 2}
+                  cy={RING_SIZE / 2}
+                  r={RING_RADIUS}
+                  stroke={CARD_RING_TRACK}
+                  strokeWidth={RING_STROKE}
+                  fill="none"
+                />
+                <Circle
+                  cx={RING_SIZE / 2}
+                  cy={RING_SIZE / 2}
+                  r={RING_RADIUS}
+                  stroke={colors.surface}
+                  strokeWidth={RING_STROKE}
+                  fill="none"
+                  strokeDasharray={`${RING_CIRC} ${RING_CIRC}`}
+                  strokeDashoffset={dashOffset}
+                  strokeLinecap="round"
+                  transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
+                />
+              </Svg>
+              <Text style={styles.countdownText}>{countdownLabel}</Text>
+            </View>
 
-      {/* Bottom: info pills row */}
-      <View style={styles.pillsRow}>
-        <View style={[styles.pill, styles.pillLg]}>
-          <Text style={styles.pillLabel}>{t('profile.card.programme')}</Text>
-          <Text style={styles.pillValue} numberOfLines={1}>
-            {programme}
-          </Text>
-        </View>
-        <View style={styles.pill}>
-          <Text style={styles.pillLabel}>{t('profile.card.annee')}</Text>
-          <Text style={styles.pillValue} numberOfLines={1}>
-            {annee}
-          </Text>
-        </View>
-        <View style={[styles.pill, styles.pillSm]}>
-          <Text style={styles.pillLabel}>{t('profile.card.statut')}</Text>
-          <Text style={styles.pillValue} numberOfLines={1}>
-            {statut}
-          </Text>
-        </View>
-      </View>
-    </View>
+            <Text style={styles.collapseHint} numberOfLines={1}>
+              {t('profile.card.collapse_hint')}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.collapsed}>
+            <View style={styles.collapsedInfo}>
+              <Text style={styles.cardTitle} numberOfLines={1}>
+                {t('profile.card.title')}
+              </Text>
+              <Text style={styles.cardName} numberOfLines={1}>
+                {name}
+              </Text>
+              <Text style={styles.cardStudentId} numberOfLines={1}>
+                {id}
+              </Text>
+              <Text style={styles.cardSubtitle} numberOfLines={1}>
+                {programme}
+              </Text>
+            </View>
+            <View style={styles.showBtn}>
+              <Text style={styles.showBtnText} numberOfLines={1}>
+                {t('profile.card.show_qr')}
+              </Text>
+            </View>
+          </View>
+        )}
+      </Pressable>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
+  cardWrap: {
     marginHorizontal: spacing.sp16,
-    height: 214,
     borderRadius: 18,
     backgroundColor: colors.jade600,
     overflow: 'hidden',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.sp16,
-    paddingTop: spacing.sp16,
-    paddingBottom: spacing.sp24,
   },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  topLeft: {
+  card: {
     flex: 1,
-    marginEnd: spacing.sp8,
+    paddingHorizontal: spacing.sp16,
+    paddingVertical: spacing.sp16,
+  },
+
+  // Collapsed layout
+  collapsed: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  collapsedInfo: {
+    flex: 1,
+    marginEnd: spacing.sp12,
+  },
+  showBtn: {
+    height: 44,
+    borderRadius: radius.rMd,
+    backgroundColor: CARD_PILL_BG,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.sp16,
+  },
+  showBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    fontFamily: fonts.sans,
+    color: colors.surface,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+
+  // Expanded layout
+  expanded: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   qrBox: {
-    width: 77,
-    height: 77,
+    padding: spacing.sp8,
     borderRadius: radius.rMd,
-    backgroundColor: colors.scheduleBorder,
-    flexShrink: 0,
+    backgroundColor: '#FFFFFF',
   },
+  countdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sp8,
+  },
+  countdownText: {
+    fontSize: 14,
+    fontFamily: fonts.mono,
+    color: colors.surface,
+    includeFontPadding: false,
+  },
+  collapseHint: {
+    fontSize: 11,
+    fontFamily: fonts.sans,
+    color: CARD_TEXT_DIM,
+  },
+
+  // Shared text
   cardTitle: {
     fontSize: 16,
     fontWeight: '700',
@@ -107,51 +210,16 @@ const styles = StyleSheet.create({
     fontFamily: fonts.sans,
     color: CARD_TEXT_DIM,
   },
-  middleSection: {},
   cardName: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 14,
+    fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.surface,
+    marginTop: spacing.sp4,
   },
   cardStudentId: {
     fontSize: 12,
     fontFamily: fonts.mono,
     color: CARD_TEXT_DIM,
-  },
-  pillsRow: {
-    flexDirection: 'row',
-    gap: spacing.sp8,
-  },
-  pill: {
-    width: 94,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: CARD_PILL_BG,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.sp8,
-  },
-  pillLg: {
-    width: 110,
-  },
-  pillSm: {
-    width: 84,
-  },
-  pillLabel: {
-    fontSize: 8,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: CARD_TEXT_DIM,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    includeFontPadding: false,
-  },
-  pillValue: {
-    fontSize: 12,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.surface,
-    includeFontPadding: false,
   },
 });
