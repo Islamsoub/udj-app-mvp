@@ -6,8 +6,12 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettingsStore } from '@/stores/settingsStore';
 import i18n from '@/i18n';
-import { spacing, radius, type Palette } from '@/constants/theme';
+import { lightColors, spacing, radius, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+
+// Onboarding CTAs sit on a jade-tinted brand background — button label is always
+// rendered in the light-palette surface tone regardless of active theme.
+const BRAND_FG = lightColors.surface;
 
 type Lang = 'fr' | 'ar';
 
@@ -237,6 +241,6 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   primaryButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: BRAND_FG,
   },
 });

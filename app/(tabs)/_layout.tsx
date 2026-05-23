@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useColors } from '@/hooks/useColors';
 
 const HomeIcon = (require('../../assets/icons/home.svg') as { default: React.FC<{ width: number; height: number; color?: string }> }).default;
 const AgendaIcon = (require('../../assets/icons/agenda.svg') as { default: React.FC<{ width: number; height: number; color?: string }> }).default;
@@ -12,6 +13,7 @@ const ProfileIcon = (require('../../assets/icons/profile.svg') as { default: Rea
 
 export default function TabsLayout() {
   const { t } = useTranslation();
+  const { colors } = useColors();
 
   const tabs = [
     { name: 'home', title: t('tabs.home'), Icon: HomeIcon, iconW: 28, iconH: 28 },
@@ -23,20 +25,22 @@ export default function TabsLayout() {
 
   const orderedTabs = tabs;
 
+  const tabBarStyle = useMemo(() => ({
+    height: 72,
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingBottom: 12,
+    paddingTop: 6,
+  }), [colors]);
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          height: 72,
-          backgroundColor: '#FFFFFF',
-          borderTopWidth: 1,
-          borderTopColor: '#E8ECE9',
-          paddingBottom: 12,
-          paddingTop: 6,
-        },
-        tabBarActiveTintColor: '#1D9E75',
-        tabBarInactiveTintColor: '#9EADA7',
+        tabBarStyle,
+        tabBarActiveTintColor: colors.jadePrimary,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarLabelStyle: {
           fontSize: 11,
           fontFamily: 'PlusJakartaSans',
@@ -55,7 +59,7 @@ export default function TabsLayout() {
               <Text
                 style={[
                   styles.tabLabel,
-                  { color: focused ? '#1D9E75' : '#9EADA7' },
+                  { color: focused ? colors.jadePrimary : colors.textSecondary },
                   focused && styles.tabLabelActive,
                 ]}
               >

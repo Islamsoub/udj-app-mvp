@@ -72,6 +72,8 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
         {expanded ? (
           <View style={styles.expanded}>
             <View style={styles.qrBox}>
+              {/* QR background must be true white in both themes — scanners
+                  expect maximum contrast against the dark code squares. */}
               <QRCode value={qrValue} size={QR_SIZE} backgroundColor="#FFFFFF" />
             </View>
 
@@ -182,6 +184,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   qrBox: {
     padding: spacing.sp8,
     borderRadius: radius.rMd,
+    // QR container must be true white in both themes — see comment on QRCode below.
     backgroundColor: '#FFFFFF',
   },
   countdownRow: {

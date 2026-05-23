@@ -11,8 +11,12 @@ import {
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, lightColors, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+
+// Splash is a branded jade-green screen — text/iconography always renders in
+// light-palette tones regardless of active theme.
+const BRAND_FG = lightColors.surface;
 import type { ComponentProps } from 'react';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 
@@ -151,7 +155,7 @@ export default function SplashScreen() {
       {splashState === 'no-connection' && (
         <View style={styles.stateContent}>
           <View style={styles.iconCircleDark}>
-            <Ionicons name="cloud-offline-outline" size={32} color={colors.surface} />
+            <Ionicons name="cloud-offline-outline" size={32} color={BRAND_FG} />
           </View>
           <Text style={styles.stateBoldText}>Pas de connexion</Text>
           <Text style={styles.stateBodyText}>
@@ -285,7 +289,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontFamily: fonts.sans,
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: BRAND_FG,
     marginTop: -18,
     textAlign: 'center',
   },
@@ -297,7 +301,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: '100%',
   },
   stateBoldText: {
-    color: colors.surface,
+    color: BRAND_FG,
     fontFamily: fonts.sans,
     fontSize: 18,
     fontWeight: '700',
@@ -343,7 +347,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp32,
   },
   primaryButtonText: {
-    color: colors.surface,
+    color: BRAND_FG,
     fontFamily: fonts.sans,
     fontSize: 16,
     fontWeight: '700',
@@ -355,20 +359,20 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     maxWidth: 320,
     borderRadius: radius.rLg,
     borderWidth: 1.5,
-    borderColor: colors.surface,
+    borderColor: BRAND_FG,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.sp32,
   },
   outlineButtonText: {
-    color: colors.surface,
+    color: BRAND_FG,
     fontFamily: fonts.sans,
     fontSize: 16,
     fontWeight: '700',
   },
   // First install
   welcomeHeading: {
-    color: colors.surface,
+    color: BRAND_FG,
     fontFamily: fonts.sans,
     fontSize: 26,
     fontWeight: '800',
@@ -397,7 +401,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     gap: spacing.sp12,
   },
   featureText: {
-    color: colors.surface,
+    color: BRAND_FG,
     fontFamily: fonts.sans,
     fontSize: 14,
     fontWeight: '500',
@@ -444,14 +448,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     textTransform: 'uppercase',
   },
   versionBoxNumber: {
-    color: colors.surface,
+    color: BRAND_FG,
     fontFamily: fonts.mono,
     fontSize: 18,
     fontWeight: '700',
     marginTop: spacing.sp4,
   },
   versionArrow: {
-    color: colors.surface,
+    color: BRAND_FG,
     fontSize: 20,
   },
   updateButton: {
