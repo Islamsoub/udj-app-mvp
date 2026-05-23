@@ -12,9 +12,21 @@ interface ScheduleHeaderProps {
   topInset: number;
   selectedDayIndex: number;
   onDaySelect: (index: number) => void;
+  weekOffset: number;
+  onPrevWeek: () => void;
+  onNextWeek: () => void;
+  onToday: () => void;
 }
 
-export function ScheduleHeader({ topInset, selectedDayIndex, onDaySelect }: ScheduleHeaderProps) {
+export function ScheduleHeader({
+  topInset,
+  selectedDayIndex,
+  onDaySelect,
+  weekOffset,
+  onPrevWeek,
+  onNextWeek,
+  onToday,
+}: ScheduleHeaderProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const { colors } = useColors();
@@ -48,7 +60,14 @@ export function ScheduleHeader({ topInset, selectedDayIndex, onDaySelect }: Sche
       </View>
 
       {/* Day strip — has its own top/bottom border per Figma */}
-      <DayStrip selectedIndex={selectedDayIndex} onSelect={onDaySelect} />
+      <DayStrip
+        selectedIndex={selectedDayIndex}
+        onSelect={onDaySelect}
+        weekOffset={weekOffset}
+        onPrevWeek={onPrevWeek}
+        onNextWeek={onNextWeek}
+        onToday={onToday}
+      />
 
       {/* Today subtitle — Y=120 from content top (16px gap after strip end at Y=104) */}
       <Text style={styles.subtitle}>{todaySubtitle}</Text>

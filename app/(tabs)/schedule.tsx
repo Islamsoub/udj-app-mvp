@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,14 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { Directions, Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
@@ -33,6 +41,9 @@ import { useAuthStore } from '@/stores/authStore';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ScheduleState = 'skeleton' | 'loaded' | 'offline' | 'empty' | 'error' | 'session';
+
+// Djibouti weekend — Fri & Sat are non-teaching days, skipped when paging.
+const WEEKEND = new Set([5, 6]);
 
 // ─── Convert flat Schedule cache → ScheduleEntry ──────────────────────────────
 
@@ -124,6 +135,11 @@ function SkeletonScheduleHeader({ topInset }: { topInset: number }) {
         </View>
       </View>
 
+      {/* Week-nav placeholder — matches DayStrip's week-navigation row height */}
+      <View style={skelStyles.weekNavSkel}>
+        <SkeletonBox width={200} height={20} borderRadius={6} />
+      </View>
+
       {/* Day strip */}
       <View style={skelStyles.dayStrip}>
         {[0, 1, 2, 3, 4, 5, 6].map((i) => (
@@ -169,6 +185,10 @@ const makeSkelStyles = (colors: Palette) => StyleSheet.create({
     height: 34,
     borderRadius: 17,
     backgroundColor: colors.border,
+  },
+  weekNavSkel: {
+    alignItems: 'center',
+    marginBottom: spacing.sp8,
   },
   dayStrip: {
     flexDirection: 'row',
@@ -366,6 +386,7 @@ const STATE_LABELS: Record<ScheduleState, string> = {
 export default function ScheduleScreen() {
   const [devState, setDevState] = useState<ScheduleState | null>(null);
   const [selectedDay, setSelectedDay] = useState(() => new Date().getDay());
+  const [weekOffset, setWeekOffset] = useState(0);
   const [courseDetailVisible, setCourseDetailVisible] = useState(false);
   const insets = useSafeAreaInsets();
   const { colors } = useColors();
@@ -432,6 +453,65 @@ export default function ScheduleScreen() {
     setCourseDetailVisible(true);
   };
 
+  // ─── Swipe-between-days ─────────────────────────────────────────────────────
+
+  const translateX = useSharedValue(0);
+
+  const animatedTimelineStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const goToNextDay = useCallback(() => {
+    setSelectedDay((prev) => {
+      let next = (prev + 1) % 7;
+      while (WEEKEND.has(next)) next = (next + 1) % 7;
+      return next;
+    });
+  }, []);
+
+  const goToPrevDay = useCallback(() => {
+    setSelectedDay((prev) => {
+      let next = (prev - 1 + 7) % 7;
+      while (WEEKEND.has(next)) next = (next - 1 + 7) % 7;
+      return next;
+    });
+  }, []);
+
+  const goToPrevWeek = useCallback(() => setWeekOffset((prev) => prev - 1), []);
+  const goToNextWeek = useCallback(() => setWeekOffset((prev) => prev + 1), []);
+  const goToThisWeek = useCallback(() => {
+    setWeekOffset(0);
+    const today = new Date().getDay();
+    // If today is Fri/Sat, jump to Sunday — the next academic day.
+    setSelectedDay(WEEKEND.has(today) ? 0 : today);
+  }, []);
+
+  const dayPagingGesture = useMemo(() => {
+    const flingLeft = Gesture.Fling()
+      .direction(Directions.LEFT)
+      .onEnd(() => {
+        'worklet';
+        translateX.value = withSequence(
+          withTiming(-30, { duration: 100 }),
+          withTiming(0, { duration: 100 }),
+        );
+        runOnJS(goToNextDay)();
+      });
+
+    const flingRight = Gesture.Fling()
+      .direction(Directions.RIGHT)
+      .onEnd(() => {
+        'worklet';
+        translateX.value = withSequence(
+          withTiming(30, { duration: 100 }),
+          withTiming(0, { duration: 100 }),
+        );
+        runOnJS(goToPrevDay)();
+      });
+
+    return Gesture.Race(flingLeft, flingRight);
+  }, [goToNextDay, goToPrevDay, translateX]);
+
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
@@ -443,40 +523,48 @@ export default function ScheduleScreen() {
           topInset={insets.top}
           selectedDayIndex={selectedDay}
           onDaySelect={setSelectedDay}
+          weekOffset={weekOffset}
+          onPrevWeek={goToPrevWeek}
+          onNextWeek={goToNextWeek}
+          onToday={goToThisWeek}
         />
       )}
 
       <OfflineBanner />
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {schedState === 'skeleton' && <SkeletonScheduleBody />}
+      <GestureDetector gesture={dayPagingGesture}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <Animated.View style={animatedTimelineStyle}>
+            {schedState === 'skeleton' && <SkeletonScheduleBody />}
 
-        {(schedState === 'loaded' || schedState === 'session') && (
-          <LoadedTimeline entries={dayEntries} onCoursePress={handleCoursePress} />
-        )}
+            {(schedState === 'loaded' || schedState === 'session') && (
+              <LoadedTimeline entries={dayEntries} onCoursePress={handleCoursePress} />
+            )}
 
-        {schedState === 'offline' && <OfflineBody courses={offlineDayCourses} />}
+            {schedState === 'offline' && <OfflineBody courses={offlineDayCourses} />}
 
-        {schedState === 'empty' && (
-          <EmptyStateBody
-            onExport={() => console.log('[ICAL] export triggered')}
-            onNextWeek={() => {}}
-          />
-        )}
+            {schedState === 'empty' && (
+              <EmptyStateBody
+                onExport={() => console.log('[ICAL] export triggered')}
+                onNextWeek={goToNextWeek}
+              />
+            )}
 
-        {schedState === 'error' && (
-          <ErrorStateBody
-            onRetry={() => hook.refetch()}
-            onViewCache={() => setDevState('offline')}
-          />
-        )}
+            {schedState === 'error' && (
+              <ErrorStateBody
+                onRetry={() => hook.refetch()}
+                onViewCache={() => setDevState('offline')}
+              />
+            )}
 
-        <View style={{ height: 120 }} />
-      </ScrollView>
+            <View style={{ height: 120 }} />
+          </Animated.View>
+        </ScrollView>
+      </GestureDetector>
 
       <SessionExpiredModal
         visible={schedState === 'session'}

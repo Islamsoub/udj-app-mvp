@@ -78,6 +78,8 @@
   },
   "schedule": {
     "title": "Emploi du temps",
+    "week_of": "Sem. du {{date}}",
+    "today": "Aujourd'hui",
     "today_prefix": "Aujourd'hui – Jeudi 20 mars",
     "pause_hours": "Pause de {{count}} heures",
     "status": {

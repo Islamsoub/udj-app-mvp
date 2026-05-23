@@ -75,6 +75,8 @@
   },
   "schedule": {
     "title": "جدول المحاضرات",
+    "week_of": "أسبوع {{date}}",
+    "today": "اليوم",
     "today_prefix": "اليوم – الخميس 20 مارس",
     "pause_hours": "استراحة {{count}} ساعات",
     "status": {
