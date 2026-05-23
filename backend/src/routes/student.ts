@@ -1,13 +1,55 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import multer from 'multer';
 import { z } from 'zod';
 import prisma from '../utils/prisma';
 import { env } from '../utils/env';
+import { supabase, JUSTIFICATION_BUCKET } from '../utils/supabase';
 import authMiddleware from '../middleware/auth';
 import { AppError } from '../utils/AppError';
 
 const router = Router();
 router.use(authMiddleware);
+
+// ── Multer for justification uploads ──────────────────────────────────────────
+
+const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'application/pdf']);
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+const EXT_BY_MIME: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'application/pdf': 'pdf',
+};
+
+const justificationUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_FILE_BYTES, files: 1 },
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED_MIME.has(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new AppError('Invalid file type. Allowed: JPEG, PNG, PDF', 400));
+    }
+  },
+});
+
+function justificationUploadMiddleware(req: Request, res: Response, next: NextFunction): void {
+  justificationUpload.single('justification')(req, res, (err: unknown) => {
+    if (!err) {
+      next();
+      return;
+    }
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        next(new AppError('File too large. Max 5MB', 400));
+        return;
+      }
+      next(new AppError(err.message, 400));
+      return;
+    }
+    next(err);
+  });
+}
 
 function computeMention(gpa: number): string {
   if (gpa >= 16) return 'Très Bien';
@@ -343,16 +385,34 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
     const records = await prisma.attendanceRecord.findMany({
       where: { studentId, subject: { semesterId: currentSemester.id } },
       select: {
+        id: true,
         status: true,
         subjectId: true,
+        sessionDate: true,
+        justificationUrl: true,
+        justificationStatus: true,
         subject: { select: { id: true, nameFr: true, nameAr: true, code: true } },
       },
+      orderBy: { sessionDate: 'desc' },
     });
 
     type SubjectInfo = { id: string; nameFr: string; nameAr: string; code: string };
+    type AbsenceEntry = {
+      id: string;
+      date: string;
+      status: 'ABSENT' | 'JUSTIFIED';
+      justificationUrl: string | null;
+      justificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
+    };
     const subjectMap = new Map<
       string,
-      { subject: SubjectInfo; present: number; absent: number; justified: number }
+      {
+        subject: SubjectInfo;
+        present: number;
+        absent: number;
+        justified: number;
+        absences: AbsenceEntry[];
+      }
     >();
 
     for (const r of records) {
@@ -362,19 +422,32 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
           present: 0,
           absent: 0,
           justified: 0,
+          absences: [],
         });
       }
       const entry = subjectMap.get(r.subjectId)!;
       if (r.status === 'PRESENT') entry.present++;
       else if (r.status === 'ABSENT') entry.absent++;
       else if (r.status === 'JUSTIFIED') entry.justified++;
+
+      if (r.status === 'ABSENT' || r.status === 'JUSTIFIED') {
+        entry.absences.push({
+          id: r.id,
+          date: r.sessionDate.toISOString(),
+          status: r.status,
+          justificationUrl: r.justificationUrl,
+          justificationStatus: r.justificationStatus,
+        });
+      }
     }
 
-    const subjects = [...subjectMap.values()].map(({ subject, present, absent, justified }) => {
-      const total = present + absent + justified;
-      const percentage = total > 0 ? Math.round(((present + justified) / total) * 100) : 0;
-      return { subject, total, present, absent, justified, percentage };
-    });
+    const subjects = [...subjectMap.values()].map(
+      ({ subject, present, absent, justified, absences }) => {
+        const total = present + absent + justified;
+        const percentage = total > 0 ? Math.round(((present + justified) / total) * 100) : 0;
+        return { subject, total, present, absent, justified, percentage, absences };
+      }
+    );
 
     const totalAll = records.length;
     const presentAll = records.filter((r) => r.status === 'PRESENT').length;
@@ -544,5 +617,73 @@ router.get('/qr-token', async (req: Request, res: Response, next: NextFunction) 
     next(err);
   }
 });
+
+// ── POST /student/attendance/:recordId/justification ──────────────────────────
+
+router.post(
+  '/attendance/:recordId/justification',
+  justificationUploadMiddleware,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const studentId = req.studentId!;
+      const recordId = String(req.params.recordId ?? '');
+
+      if (!recordId) {
+        throw new AppError('Missing recordId', 400);
+      }
+      if (!req.file) {
+        throw new AppError('Missing file field "justification"', 400);
+      }
+
+      const record = await prisma.attendanceRecord.findUnique({
+        where: { id: recordId },
+        select: { id: true, studentId: true, status: true },
+      });
+
+      if (!record || record.studentId !== studentId) {
+        throw new AppError('Attendance record not found', 404);
+      }
+
+      if (record.status !== 'ABSENT') {
+        throw new AppError('Justification can only be uploaded for ABSENT records', 409);
+      }
+
+      const ext = EXT_BY_MIME[req.file.mimetype];
+      const objectPath = `${studentId}/${recordId}_${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(JUSTIFICATION_BUCKET)
+        .upload(objectPath, req.file.buffer, {
+          contentType: req.file.mimetype,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        throw new AppError(`Storage upload failed: ${uploadError.message}`, 500);
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from(JUSTIFICATION_BUCKET)
+        .getPublicUrl(objectPath);
+
+      const updated = await prisma.attendanceRecord.update({
+        where: { id: recordId },
+        data: {
+          justificationUrl: publicUrlData.publicUrl,
+          justificationStatus: 'PENDING',
+        },
+        select: { justificationUrl: true, justificationStatus: true },
+      });
+
+      res.status(200).json({
+        success: true,
+        justificationUrl: updated.justificationUrl,
+        justificationStatus: updated.justificationStatus,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 export default router;

@@ -35,6 +35,12 @@ enum AttendanceStatus {
   JUSTIFIED
 }
 
+enum JustificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum NotificationType {
   GRADES
   SCHEDULE
@@ -189,16 +195,18 @@ model ScheduleEntry {
 }
 
 model AttendanceRecord {
-  id               String           @id @default(uuid())
-  studentId        String           @map("student_id")
-  subjectId        String           @map("subject_id")
-  sessionDate      DateTime         @map("session_date")
-  status           AttendanceStatus
-  justificationUrl String?          @map("justification_url")
-  createdAt        DateTime         @default(now()) @map("created_at")
-  updatedAt        DateTime         @updatedAt @map("updated_at")
-  student          Student          @relation(fields: [studentId], references: [id])
-  subject          Subject          @relation(fields: [subjectId], references: [id])
+  id                  String               @id @default(uuid())
+  studentId           String               @map("student_id")
+  subjectId           String               @map("subject_id")
+  sessionDate         DateTime             @map("session_date")
+  status              AttendanceStatus
+  justificationUrl    String?              @map("justification_url")
+  justificationStatus JustificationStatus? @map("justification_status")
+  justificationNote   String?              @map("justification_note")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  student             Student              @relation(fields: [studentId], references: [id])
+  subject             Subject              @relation(fields: [subjectId], references: [id])
 
   @@unique([studentId, subjectId, sessionDate])
   @@map("attendance_records")

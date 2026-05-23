@@ -8,6 +8,8 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),
   QR_SECRET: z.string().min(32),
+  SUPABASE_URL: z.string().url(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   PORT: z.string().default('3000'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });
