@@ -36,7 +36,7 @@ export function InfoRow({ label, value, onPress, isLogout = false, icon }: InfoR
         {label}
       </Text>
       {value ? (
-        <Text style={styles.value} numberOfLines={1}>
+        <Text style={styles.value} numberOfLines={1} ellipsizeMode="tail">
           {value}
         </Text>
       ) : null}
@@ -78,16 +78,26 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginEnd: spacing.sp12,
   },
   label: {
-    flex: 1,
+    // Keep label at its natural width and let it grow to fill free space
+    // (pushing the value to the end), but never shrink — so the value
+    // truncates instead of the label when the value is long (e.g. email).
+    flexGrow: 1,
+    flexShrink: 0,
+    flexBasis: 'auto',
     fontSize: 14,
     fontWeight: '500',
     fontFamily: fonts.sans,
   },
   value: {
+    // Value shrinks and truncates (numberOfLines=1 + ellipsizeMode tail)
+    // when space runs out; marginStart keeps a gap from the label.
+    flexShrink: 1,
+    flexBasis: 'auto',
     fontSize: 14,
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
+    marginStart: spacing.sp8,
     marginEnd: spacing.sp8,
   },
 });
