@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   Pressable,
   StyleSheet,
   StatusBar,
+  Alert,
+  I18nManager,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,9 +26,19 @@ import { ClearCacheConfirm } from '@/components/settings/ClearCacheConfirm';
 import { LogoutConfirm } from '@/components/settings/LogoutConfirm';
 import { useAuthStore } from '@/stores/authStore';
 import { useThemeStore } from '@/stores/themeStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { useColors } from '@/hooks/useColors';
 import { patchPreferences } from '@/services/api';
 import { logout } from '@/services/auth';
+import { getCacheStats, getLastSyncTime } from '@/services/db';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1048576).toFixed(1)} MB`;
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -47,14 +59,26 @@ const STATE_LABELS: Record<SettingsState, string> = {
 // ─── Loaded body ──────────────────────────────────────────────────────────────
 
 function SettingsBody({ isOffline }: { isOffline: boolean }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const student = useAuthStore((s) => s.student);
   const prefs = student?.preferences;
+  const updatePreferences = useAuthStore((s) => s.updatePreferences);
   const themeMode = useThemeStore((s) => s.mode);
   const setThemeMode = useThemeStore((s) => s.setMode);
+
+  const currentLang: 'fr' | 'ar' = i18n.language === 'ar' ? 'ar' : 'fr';
+
+  const themeLabel = {
+    light: t('settings.picker.theme_light'),
+    dark: t('settings.picker.theme_dark'),
+    system: t('settings.picker.theme_system'),
+  }[themeMode];
+
+  const languageLabel =
+    currentLang === 'ar' ? t('settings.picker.lang_ar') : t('settings.picker.lang_fr');
 
   const [notifGrades, setNotifGrades] = useState(prefs?.notifGrades ?? true);
   const [notifCours, setNotifCours] = useState(prefs?.notifCourses ?? true);
@@ -67,14 +91,67 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
   const [clearCacheVisible, setClearCacheVisible] = useState(false);
   const [logoutVisible, setLogoutVisible] = useState(false);
 
-  const [langue, setLangue] = useState<'fr' | 'ar'>('fr');
-  const [quietStart, setQuietStart] = useState(22);
-  const [quietEnd, setQuietEnd] = useState(7);
+  const [quietStart, setQuietStart] = useState(() =>
+    parseInt(prefs?.quietHoursStart?.split(':')[0] || '22', 10),
+  );
+  const [quietEnd, setQuietEnd] = useState(() =>
+    parseInt(prefs?.quietHoursEnd?.split(':')[0] || '7', 10),
+  );
 
-  const handleNotifToggle = (key: 'notifGrades' | 'notifCourses' | 'notifAttendance') =>
-    (value: boolean) => {
-      patchPreferences({ [key]: value }).catch(() => {});
+  const [cacheSize, setCacheSize] = useState('…');
+  const [lastSync, setLastSync] = useState('—');
+
+  useEffect(() => {
+    getCacheStats().then((stats) => {
+      // Exclude bookmarks — they're a subset of news_cache, already counted.
+      const total = stats.reduce(
+        (sum, s) => (s.key === 'bookmarks' ? sum : sum + s.estimatedBytes),
+        0,
+      );
+      setCacheSize(formatBytes(total));
+    });
+  }, []);
+
+  useEffect(() => {
+    getLastSyncTime().then((ts) => {
+      if (!ts) return;
+      const d = new Date(ts);
+      const now = new Date();
+      const isToday = d.toDateString() === now.toDateString();
+      const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setLastSync(
+        isToday ? `${t('common.today')} ${time}` : `${d.toLocaleDateString()} ${time}`,
+      );
+    });
+  }, [t]);
+
+  const handleNotifToggle =
+    (key: 'notifGrades' | 'notifCourses' | 'notifAttendance') => (value: boolean) => {
+      patchPreferences({ [key]: value })
+        .then(() => updatePreferences({ [key]: value }))
+        .catch(() => {});
     };
+
+  const handleLanguageChange = (lang: 'fr' | 'ar') => {
+    setLangueVisible(false);
+    if (lang === currentLang) return;
+    i18n.changeLanguage(lang);
+    useSettingsStore.getState().setLanguage(lang);
+    if ((lang === 'ar') !== I18nManager.isRTL) {
+      I18nManager.forceRTL(lang === 'ar');
+      Alert.alert(t('settings.restart_title'), t('settings.restart_message'));
+    }
+  };
+
+  const handleQuietHoursSave = (start: number, end: number) => {
+    setQuietStart(start);
+    setQuietEnd(end);
+    const startStr = `${String(start).padStart(2, '0')}:00`;
+    const endStr = `${String(end).padStart(2, '0')}:00`;
+    patchPreferences({ quietHoursStart: startStr, quietHoursEnd: endStr })
+      .then(() => updatePreferences({ quietHoursStart: startStr, quietHoursEnd: endStr }))
+      .catch(() => {});
+  };
 
   const handleLogout = () => {
     logout()
@@ -92,12 +169,12 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
       <Text style={styles.sectionHeader}>{t('settings.section.preferences')}</Text>
       <SettingsRow
         label={t('settings.row.language')}
-        value={t('settings.row.language_value')}
+        value={languageLabel}
         onPress={() => setLangueVisible(true)}
       />
       <SettingsRow
         label={t('settings.row.theme')}
-        value={t('settings.row.theme_value')}
+        value={themeLabel}
         onPress={() => setThemeVisible(true)}
       />
 
@@ -143,7 +220,7 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
       <Text style={styles.sectionHeader}>{t('settings.section.data')}</Text>
       <SettingsRow
         label={t('settings.row.offline_storage')}
-        value={t('settings.row.offline_storage_value')}
+        value={cacheSize}
         onPress={() => router.push('/storage-detail')}
       />
       <SettingsRow
@@ -153,7 +230,7 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
       />
       <SettingsRow
         label={t('settings.row.last_sync')}
-        value={t('settings.row.last_sync_value')}
+        value={lastSync}
         showChevron={false}
       />
 
@@ -179,8 +256,8 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
       <LanguePicker
         visible={langueVisible}
         onClose={() => setLangueVisible(false)}
-        currentValue={langue}
-        onSelect={(v) => { setLangue(v); setLangueVisible(false); }}
+        currentValue={currentLang}
+        onSelect={handleLanguageChange}
       />
       <ThemePicker
         visible={themeVisible}
@@ -193,7 +270,7 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
         onClose={() => setQuietHoursVisible(false)}
         startHour={quietStart}
         endHour={quietEnd}
-        onSave={(start, end) => { setQuietStart(start); setQuietEnd(end); }}
+        onSave={handleQuietHoursSave}
       />
       <ClearCacheConfirm
         visible={clearCacheVisible}

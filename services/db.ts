@@ -474,6 +474,19 @@ export async function getCacheStats(): Promise<CacheStat[]> {
   return stats;
 }
 
+/**
+ * Most recent sync time across the profile cache, as epoch milliseconds.
+ * `cached_at` is stored as an ISO-8601 string, which sorts lexicographically,
+ * so MAX() yields the latest timestamp. Returns null when nothing is cached.
+ */
+export async function getLastSyncTime(): Promise<number | null> {
+  const db = await getDb();
+  const result = await db.getFirstAsync<{ latest: string | null }>(
+    'SELECT MAX(cached_at) as latest FROM student_profile',
+  );
+  return result?.latest ? new Date(result.latest).getTime() : null;
+}
+
 export async function clearAllCache(): Promise<void> {
   const db = await getDb();
   await db.withTransactionAsync(async () => {

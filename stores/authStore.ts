@@ -56,6 +56,7 @@ interface AuthState {
   loaded: boolean;
   setTokens: (accessToken: string) => void;
   setStudent: (student: StudentProfile) => void;
+  updatePreferences: (partial: Partial<NonNullable<StudentProfile['preferences']>>) => void;
   logout: () => void;
   reset: () => void;
   setShowSessionExpired: (show: boolean) => void;
@@ -74,6 +75,26 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ accessToken, isAuthenticated: true, showSessionExpired: false }),
 
   setStudent: (student) => set({ student }),
+
+  updatePreferences: (partial) =>
+    set((state) =>
+      state.student
+        ? {
+            student: {
+              ...state.student,
+              preferences: {
+                notifGrades: true,
+                notifCourses: true,
+                notifAttendance: true,
+                quietHoursStart: null,
+                quietHoursEnd: null,
+                ...state.student.preferences,
+                ...partial,
+              },
+            },
+          }
+        : {},
+    ),
 
   logout: () =>
     set({ accessToken: null, student: null, isAuthenticated: false, showSessionExpired: false }),

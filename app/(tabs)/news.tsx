@@ -7,7 +7,6 @@ import {
   StyleSheet,
   StatusBar,
   Image,
-  Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -22,7 +21,7 @@ import { HeroCard } from '@/components/news/HeroCard';
 import { ArticleCard, Article, ArticleCategory } from '@/components/news/ArticleCard';
 import { NewsSkeleton } from '@/components/news/NewsSkeleton';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
-import { getNews, markAllNotificationsRead, NewsItem } from '@/services/api';
+import { getNews, NewsItem } from '@/services/api';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getCachedNews, upsertNews, getSavedArticles } from '@/services/db';
 import { mapNewsToCache } from '@/services/cacheMappers';
@@ -95,7 +94,7 @@ function SavedArticlesBanner() {
 // ─── Loaded body ──────────────────────────────────────────────────────────────
 
 interface LoadedBodyProps {
-  heroArticle: NewsItem;
+  heroArticle: NewsItem | null;
   listArticles: NewsItem[];
   onArticlePress: (id: string) => void;
   localReadIds: Set<string>;
@@ -106,7 +105,9 @@ function LoadedBody({ heroArticle, listArticles, onArticlePress, localReadIds }:
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.loadedBody}>
-      <HeroCard article={newsItemToHero(heroArticle)} onPress={() => onArticlePress(heroArticle.id)} />
+      {heroArticle != null && (
+        <HeroCard article={newsItemToHero(heroArticle)} onPress={() => onArticlePress(heroArticle.id)} />
+      )}
       <View style={styles.loadedArticleList}>
         {listArticles.map((article) => (
           <ArticleCard key={article.id} article={newsItemToArticle(article, localReadIds)} onPress={() => onArticlePress(article.id)} />
@@ -231,10 +232,9 @@ export default function NewsScreen() {
   const [devState, setDevState] = useState<NewsState | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
   const [filterCategory, setFilterCategory] = useState<string | undefined>(undefined);
-  const [localReadIds, setLocalReadIds] = useState<Set<string>>(new Set());
+  const localReadIds = useMemo(() => new Set<string>(), []);
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { t } = useTranslation();
 
   // ─── Offline query ──────────────────────────────────────────────────────────
 
@@ -262,7 +262,11 @@ export default function NewsScreen() {
     const items = !isSavedTab && filterCategory
       ? raw.filter((a) => a.category === filterCategory)
       : raw;
-    const hero = items.find((a) => a.isUrgent) ?? items[0] ?? null;
+    // Hero is only ever the urgent/official article — never a fallback first item.
+    // On "Tout" this surfaces the urgent article; on a category tab `items` is
+    // already filtered to that category, so the hero appears only when the urgent
+    // article belongs to the active filter.
+    const hero = items.find((a) => a.isUrgent) ?? null;
     const list = hero ? items.filter((a) => a.id !== hero.id) : items;
     return { heroArticle: hero, listArticles: list };
   }, [hook.data, filterCategory, isSavedTab]);
@@ -289,16 +293,6 @@ export default function NewsScreen() {
     setFilterCategory(cat);
   }
 
-  async function handleMarkAllRead() {
-    try {
-      await markAllNotificationsRead();
-      const allIds = new Set([...(hook.data ?? []).map((a) => a.id)]);
-      setLocalReadIds(allIds);
-    } catch {
-      Alert.alert(t('news.mark_all_read_error'));
-    }
-  }
-
   function handleArticlePress(id: string) {
     router.push({ pathname: '/article-reader', params: { id } });
   }
@@ -310,7 +304,6 @@ export default function NewsScreen() {
       <NewsHeader
         state={newsState === 'session' ? 'loaded' : newsState}
         topInset={insets.top}
-        onMarkAllRead={handleMarkAllRead}
       />
 
       <OfflineBanner />
@@ -326,7 +319,7 @@ export default function NewsScreen() {
 
         {newsState === 'skeleton' && <NewsSkeleton />}
 
-        {(newsState === 'loaded' || newsState === 'session') && heroArticle != null && (
+        {(newsState === 'loaded' || newsState === 'session') && (heroArticle != null || listArticles.length > 0) && (
           <LoadedBody
             heroArticle={heroArticle}
             listArticles={listArticles}

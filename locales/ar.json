@@ -2,6 +2,7 @@
   "common": {
     "offline": "وضع عدم الاتصال",
     "lastSync": "آخر مزامنة",
+    "today": "اليوم",
     "retry": "إعادة المحاولة",
     "loading": "جارٍ التحميل...",
     "error": "حدث خطأ",
@@ -236,23 +237,20 @@
     },
     "row": {
       "language": "اللغة",
-      "language_value": "الفرنسية",
       "theme": "المظهر",
-      "theme_value": "النظام",
       "notif_grades": "النتائج المتاحة",
       "notif_courses": "تذكير بالدرس",
       "notif_attendance": "تنبيهات الحضور",
       "quiet_hours": "ساعات الهدوء",
-      "quiet_hours_value": "22:00 – 07:00",
       "offline_storage": "التخزين بدون اتصال",
-      "offline_storage_value": "12.4 ميغابايت",
       "clear_cache": "مسح الذاكرة المؤقتة",
       "last_sync": "آخر مزامنة",
-      "last_sync_value": "اليوم 14:30",
       "account_info": "معلومات الحساب",
       "account_info_value": "أحمد عمر",
       "logout": "تسجيل الخروج"
     },
+    "restart_title": "يجب إعادة التشغيل",
+    "restart_message": "أعد تشغيل التطبيق لتطبيق تغيير اللغة.",
     "error": {
       "title": "تعذّر تحميل الإعدادات"
     },

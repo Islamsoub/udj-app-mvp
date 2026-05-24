@@ -2,6 +2,7 @@
   "common": {
     "offline": "Mode hors-ligne",
     "lastSync": "Dernière sync",
+    "today": "Aujourd'hui",
     "retry": "Réessayer",
     "loading": "Chargement...",
     "error": "Une erreur est survenue",
@@ -239,23 +240,20 @@
     },
     "row": {
       "language": "Langue",
-      "language_value": "Français",
       "theme": "Thème",
-      "theme_value": "Système",
       "notif_grades": "Notes disponibles",
       "notif_courses": "Rappel de cours",
       "notif_attendance": "Alertes présence",
       "quiet_hours": "Heures de silence",
-      "quiet_hours_value": "22h – 7h",
       "offline_storage": "Stockage hors-ligne",
-      "offline_storage_value": "12.4 MB",
       "clear_cache": "Vider le cache",
       "last_sync": "Dernière synchronisation",
-      "last_sync_value": "Aujourd'hui 14:30",
       "account_info": "Informations du compte",
       "account_info_value": "Ahmed Omar",
       "logout": "Déconnexion"
     },
+    "restart_title": "Redémarrage requis",
+    "restart_message": "Redémarre l'app pour appliquer le changement de langue.",
     "error": {
       "title": "Impossible de charger les paramètres"
     },
