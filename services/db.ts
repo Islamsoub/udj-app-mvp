@@ -368,10 +368,20 @@ export async function upsertNews(items: NewsItem[]): Promise<void> {
   await db.withTransactionAsync(async () => {
     for (const item of items) {
       await db.runAsync(
-        `INSERT OR REPLACE INTO news_cache
+        `INSERT INTO news_cache
           (id, title, body, category, published_at, read_time_minutes, is_urgent,
            bookmarked, read, cached_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           title             = excluded.title,
+           category          = excluded.category,
+           published_at      = excluded.published_at,
+           read_time_minutes = excluded.read_time_minutes,
+           is_urgent         = excluded.is_urgent,
+           cached_at         = excluded.cached_at,
+           -- bookmarked and read intentionally NOT updated → preserved
+           -- body: only update if incoming value is non-empty
+           body = CASE WHEN excluded.body != '' THEN excluded.body ELSE news_cache.body END`,
         [
           item.id,
           item.title,
@@ -465,9 +475,16 @@ export async function upsertNotifications(items: CachedNotification[]): Promise<
   await db.withTransactionAsync(async () => {
     for (const item of items) {
       await db.runAsync(
-        `INSERT OR REPLACE INTO notifications
+        `INSERT INTO notifications
           (id, type, title_fr, body_fr, is_read, created_at, cached_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           type       = excluded.type,
+           title_fr   = excluded.title_fr,
+           body_fr    = excluded.body_fr,
+           created_at = excluded.created_at,
+           cached_at  = excluded.cached_at
+           -- is_read intentionally NOT updated → preserves local read state`,
         [
           item.id,
           item.type,
