@@ -426,6 +426,8 @@
     "status_approved": "Approuvé",
     "status_rejected": "Rejeté",
     "justify": "Justifier",
+    "confirm_send": "Envoyer le justificatif",
+    "confirm_title": "Confirmer l'envoi",
     "unjustified_absences": "Absences à justifier",
     "projection_safe": "Tu peux manquer encore {{count}} cours",
     "projection_warning": "{{count}} absences restantes",

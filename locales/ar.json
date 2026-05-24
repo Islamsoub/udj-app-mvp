@@ -423,6 +423,8 @@
     "status_approved": "موافق عليه",
     "status_rejected": "مرفوض",
     "justify": "تبرير",
+    "confirm_send": "إرسال التبرير",
+    "confirm_title": "تأكيد الإرسال",
     "unjustified_absences": "الغيابات المطلوب تبريرها",
     "projection_safe": "يمكنك التغيب {{count}} حصص أخرى",
     "projection_warning": "{{count}} غيابات متبقية",
