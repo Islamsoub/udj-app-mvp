@@ -33,8 +33,21 @@ export function ScheduleHeader({
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const DAYS_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
   const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-  const today = new Date();
-  const todaySubtitle = `Aujourd'hui – ${DAYS_FR[today.getDay()]} ${today.getDate()} ${MONTHS_FR[today.getMonth()]}`;
+
+  // Date of the currently-selected day in the currently-displayed week.
+  const selectedDate = useMemo(() => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - dayOfWeek + weekOffset * 7);
+    const selected = new Date(startOfWeek);
+    selected.setDate(startOfWeek.getDate() + selectedDayIndex);
+    return selected;
+  }, [selectedDayIndex, weekOffset]);
+
+  const isToday = weekOffset === 0 && selectedDayIndex === new Date().getDay();
+  const dateLabel = `${DAYS_FR[selectedDate.getDay()]} ${selectedDate.getDate()} ${MONTHS_FR[selectedDate.getMonth()]}`;
+  const subtitle = isToday ? `${t('schedule.today')} – ${dateLabel}` : dateLabel;
 
   return (
     <View style={styles.header}>
@@ -69,8 +82,8 @@ export function ScheduleHeader({
         onToday={onToday}
       />
 
-      {/* Today subtitle — Y=120 from content top (16px gap after strip end at Y=104) */}
-      <Text style={styles.subtitle}>{todaySubtitle}</Text>
+      {/* Selected-day subtitle — Y=120 from content top (16px gap after strip end at Y=104) */}
+      <Text style={styles.subtitle}>{subtitle}</Text>
 
       {/* Header bottom border */}
       <View style={styles.divider} />

@@ -70,9 +70,29 @@ function scheduleToEntry(s: Schedule): ScheduleEntry {
 
 // ─── API helpers ──────────────────────────────────────────────────────────────
 
-function computeStatus(startTime: string, endTime: string): CourseStatus {
-  const now = new Date();
-  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+function computeStatus(
+  startTime: string,
+  endTime: string,
+  selectedDayIndex: number,
+  weekOffset: number,
+): CourseStatus {
+  const today = new Date();
+  const todayDow = today.getDay();
+
+  // Future week → all upcoming
+  if (weekOffset > 0) return 'upcoming';
+
+  // Past week → all past
+  if (weekOffset < 0) return 'past';
+
+  // Current week but future day → all upcoming
+  if (selectedDayIndex > todayDow) return 'upcoming';
+
+  // Current week but past day → all past
+  if (selectedDayIndex < todayDow) return 'past';
+
+  // Current week, current day → compare time
+  const nowMinutes = today.getHours() * 60 + today.getMinutes();
   const [sh, sm] = startTime.split(':').map(Number);
   const [eh, em] = endTime.split(':').map(Number);
   if (nowMinutes >= eh * 60 + em) return 'past';
@@ -82,6 +102,8 @@ function computeStatus(startTime: string, endTime: string): CourseStatus {
 
 function buildTimelineEntries(
   entries: ScheduleEntry[],
+  selectedDayIndex: number,
+  weekOffset: number,
 ): (ExtendedCourse | PauseEntry)[] {
   const sorted = [...entries].sort((a, b) =>
     a.startTime.localeCompare(b.startTime),
@@ -96,7 +118,7 @@ function buildTimelineEntries(
       room: entry.room,
       start: entry.startTime,
       end: entry.endTime,
-      status: computeStatus(entry.startTime, entry.endTime),
+      status: computeStatus(entry.startTime, entry.endTime, selectedDayIndex, weekOffset),
       code: entry.subject.code,
       coefficient: entry.subject.coefficient,
     });
@@ -415,8 +437,12 @@ export default function ScheduleScreen() {
   );
 
   const dayEntries = useMemo(
-    () => buildTimelineEntries(allEntries.filter((e) => e.dayOfWeek === selectedDay)),
-    [allEntries, selectedDay],
+    () => buildTimelineEntries(
+      allEntries.filter((e) => e.dayOfWeek === selectedDay),
+      selectedDay,
+      weekOffset,
+    ),
+    [allEntries, selectedDay, weekOffset],
   );
 
   const offlineDayCourses: Course[] = useMemo(
@@ -431,9 +457,9 @@ export default function ScheduleScreen() {
           room: s.room,
           start: s.startTime,
           end: s.endTime,
-          status: computeStatus(s.startTime, s.endTime),
+          status: computeStatus(s.startTime, s.endTime, selectedDay, weekOffset),
         })),
-    [hook.data, selectedDay],
+    [hook.data, selectedDay, weekOffset],
   );
 
   // ─── Derive screen state ────────────────────────────────────────────────────
