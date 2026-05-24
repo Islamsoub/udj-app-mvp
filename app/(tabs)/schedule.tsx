@@ -576,7 +576,7 @@ export default function ScheduleScreen() {
 
             {schedState === 'empty' && (
               <EmptyStateBody
-                onExport={() => console.log('[ICAL] export triggered')}
+                onExport={() => {}}
                 onNextWeek={goToNextWeek}
               />
             )}

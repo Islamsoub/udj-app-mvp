@@ -65,8 +65,8 @@ export default function RootLayout() {
     async function prepare() {
       try {
         await Promise.all([runMigrations(), loadAuthFromStorage()]);
-      } catch (e) {
-        console.warn('Startup error:', e);
+      } catch {
+        // Startup failure — proceed to render; cached state handles offline
       } finally {
         setMigrationsReady(true);
       }

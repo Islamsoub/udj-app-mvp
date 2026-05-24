@@ -290,10 +290,6 @@ export default function NotificationsScreen() {
     },
     fetchFresh: async () => {
       const res = await getNotifications();
-      if (__DEV__) {
-        // eslint-disable-next-line no-console
-        console.log('[Notifications] raw API sample (first 3):', JSON.stringify(res.notifications?.slice(0, 3)));
-      }
       return mapNotificationsToCache(res.notifications);
     },
     updateCache: (data) => upsertNotifications(data),

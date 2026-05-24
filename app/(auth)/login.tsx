@@ -9,6 +9,7 @@ import {
   Animated,
   ActivityIndicator,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,7 +19,15 @@ import { fonts, spacing, radius, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
-import { login } from '@/services/auth';
+import { login, restoreSession } from '@/services/auth';
+import {
+  isBiometricAvailable,
+  isBiometricEnabled,
+  hasBeenAskedBiometric,
+  enableBiometric,
+  markBiometricAsked,
+  authenticateBiometric,
+} from '@/services/biometric';
 
 const LogoSVG = (
   require('@/assets/icons/Logo.svg') as { default: React.FC<{ width: number; height: number }> }
@@ -66,6 +75,7 @@ const SKELETON_BG = 'rgba(217,217,217,0.6)';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [loginState, setLoginState] = useState<LoginState>('default');
@@ -73,8 +83,24 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [countdown, setCountdown] = useState(5 * 60);
   const [attemptsLeft, setAttemptsLeft] = useState<number | null>(null);
+  const [biometricVisible, setBiometricVisible] = useState(false);
 
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
+
+  // Show the biometric button only when the device supports it AND the user opted in.
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const [available, enabled] = await Promise.all([
+        isBiometricAvailable(),
+        isBiometricEnabled(),
+      ]);
+      if (mounted) setBiometricVisible(available && enabled);
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Locked-out countdown
   useEffect(() => {
@@ -117,10 +143,41 @@ export default function LoginScreen() {
     return `${m}:${String(s).padStart(2, '0')}`;
   };
 
+  // After a successful password login, offer to enable biometric login — once.
+  const maybePromptBiometricSetup = async (): Promise<void> => {
+    const available = await isBiometricAvailable();
+    if (!available) return;
+    if (await hasBeenAskedBiometric()) return;
+
+    await new Promise<void>((resolve) => {
+      Alert.alert(
+        t('auth.biometricSetupTitle'),
+        t('auth.biometricSetupMessage'),
+        [
+          {
+            text: t('common.cancel'),
+            style: 'cancel',
+            onPress: () => {
+              void markBiometricAsked().finally(resolve);
+            },
+          },
+          {
+            text: t('auth.biometricEnable'),
+            onPress: () => {
+              void enableBiometric().finally(resolve);
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    });
+  };
+
   const loginHandler = async (): Promise<void> => {
     setLoginState('submitting');
     try {
       await login(studentId.trim(), password);
+      await maybePromptBiometricSetup();
       router.replace('/(tabs)/home');
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -147,11 +204,43 @@ export default function LoginScreen() {
     }
   };
 
-  const biometricHandler = (): void => {
-    router.replace('/(tabs)/home');
-  };
+  const biometricHandler = async (): Promise<void> => {
+    // Guard against a device that lost biometric capability since opt-in.
+    const available = await isBiometricAvailable();
+    if (!available) {
+      setBiometricVisible(false);
+      Alert.alert(t('auth.biometricSetupTitle'), t('auth.biometricNotAvailable'));
+      return;
+    }
 
-  const { t } = useTranslation();
+    const result = await authenticateBiometric(
+      t('auth.biometricConfirm'),
+      t('common.cancel')
+    );
+
+    if (!result.success) {
+      // Silent on user/system cancellation; alert only on a genuine failure.
+      if (
+        result.error &&
+        result.error !== 'user_cancel' &&
+        result.error !== 'system_cancel' &&
+        result.error !== 'app_cancel'
+      ) {
+        Alert.alert(t('auth.biometricSetupTitle'), t('auth.biometricFailed'));
+      }
+      return;
+    }
+
+    // Identity confirmed — restore the session from the stored refresh token.
+    setLoginState('submitting');
+    const restored = await restoreSession();
+    if (restored) {
+      router.replace('/(tabs)/home');
+    } else {
+      // No valid refresh token / network failure — keep the user on login.
+      setLoginState('network-error');
+    }
+  };
 
   const isSkeleton = loginState === 'skeleton';
   const isLocked = loginState === 'locked-out';
@@ -411,8 +500,8 @@ export default function LoginScreen() {
                 </Pressable>
               )}
 
-              {/* ── DIVIDER + BIOMETRIC (default only) ── */}
-              {loginState === 'default' && (
+              {/* ── DIVIDER + BIOMETRIC (default, hardware available + opted in) ── */}
+              {loginState === 'default' && biometricVisible && (
                 <>
                   <View style={styles.dividerRow}>
                     <View style={styles.dividerLine} />

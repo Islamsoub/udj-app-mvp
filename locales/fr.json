@@ -34,7 +34,13 @@
     "lockedMinutesLeft": "minutes restantes",
     "helpContact": "Besoin d'aide ? Contactez la scolarité",
     "networkError": "Vérifiez votre connexion et réessayez.",
-    "biometricPrompt": "Connexion biométrique"
+    "biometricPrompt": "Connexion biométrique",
+    "biometricConfirm": "Confirme ton identité",
+    "biometricSetupTitle": "Connexion biométrique",
+    "biometricSetupMessage": "Utiliser l'empreinte digitale pour te connecter ?",
+    "biometricEnable": "Activer",
+    "biometricNotAvailable": "Biométrie non disponible sur cet appareil",
+    "biometricFailed": "Échec de l'authentification"
   },
   "onboarding": {
     "skip": "Passer",

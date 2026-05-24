@@ -195,7 +195,7 @@ function LoadedContent() {
         <PDFRow
           key={item.id}
           item={item}
-          onDownload={() => console.log('[INFO_CENTER] download')}
+          onDownload={() => {}}
         />
       ))}
 
@@ -250,7 +250,7 @@ export default function InfoCenterScreen() {
         {screenState === 'skeleton' && <InfoCenterSkeleton />}
         {showContent && <LoadedContent />}
         {screenState === 'error' && (
-          <ErrorBody onRetry={() => console.log('[INFO_CENTER] retry')} />
+          <ErrorBody onRetry={() => {}} />
         )}
       </View>
 

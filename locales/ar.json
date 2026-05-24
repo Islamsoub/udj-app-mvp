@@ -31,7 +31,13 @@
     "lockedMinutesLeft": "دقائق متبقية",
     "helpContact": "تحتاج مساعدة؟ تواصل مع قسم الشؤون الطلابية",
     "networkError": "تحقق من اتصالك وحاول مجدداً.",
-    "biometricPrompt": "تسجيل الدخول البيومتري"
+    "biometricPrompt": "تسجيل الدخول البيومتري",
+    "biometricConfirm": "أكد هويتك",
+    "biometricSetupTitle": "تسجيل الدخول البيومتري",
+    "biometricSetupMessage": "استخدام البصمة لتسجيل الدخول؟",
+    "biometricEnable": "تفعيل",
+    "biometricNotAvailable": "البصمة غير متوفرة على هذا الجهاز",
+    "biometricFailed": "فشل المصادقة"
   },
   "onboarding": {
     "skip": "تخطي",

@@ -32,8 +32,8 @@ export async function registerForPushNotifications(): Promise<string | null> {
 
   try {
     await api.post('/student/push-token', { token: tokenData.data });
-  } catch (e) {
-    console.warn('Failed to register push token:', e);
+  } catch {
+    // Push token registration failed — non-fatal, retried on next launch
   }
 
   return tokenData.data;

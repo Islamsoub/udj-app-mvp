@@ -327,8 +327,8 @@ export default function ArticleReaderScreen() {
         message: `${article.title}\n${deepLink}`,
         url: deepLink,
       });
-    } catch (err) {
-      console.log('Share error:', err);
+    } catch {
+      // Share dismissed or unavailable — no-op
     }
   }
 

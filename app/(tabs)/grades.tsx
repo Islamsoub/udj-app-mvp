@@ -280,7 +280,7 @@ export default function GradesScreen() {
         {gradesState === 'empty' && (
           <EmptyStateBody
             onRetry={() => hook.refetch()}
-            onContact={() => console.log('[GRADES] contact triggered')}
+            onContact={() => {}}
             styles={styles}
           />
         )}
