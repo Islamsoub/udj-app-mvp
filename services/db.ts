@@ -433,6 +433,63 @@ export async function upsertNotifications(items: CachedNotification[]): Promise<
   });
 }
 
+// --- Cache management ---
+
+export interface CacheStat {
+  key: string;
+  table: string;
+  rows: number;
+  estimatedBytes: number;
+}
+
+const CACHE_TABLES: Array<{ key: string; table: string; avgRowBytes: number }> = [
+  { key: 'profile', table: 'student_profile', avgRowBytes: 400 },
+  { key: 'schedule', table: 'schedules', avgRowBytes: 200 },
+  { key: 'grades', table: 'grades', avgRowBytes: 200 },
+  { key: 'news', table: 'news_cache', avgRowBytes: 500 },
+  { key: 'notifications', table: 'notifications', avgRowBytes: 200 },
+  { key: 'attendance', table: 'attendance', avgRowBytes: 200 },
+];
+
+export async function getCacheStats(): Promise<CacheStat[]> {
+  const db = await getDb();
+  const stats: CacheStat[] = [];
+  for (const { key, table, avgRowBytes } of CACHE_TABLES) {
+    const row = await db.getFirstAsync<{ count: number }>(
+      `SELECT COUNT(*) as count FROM ${table}`,
+    );
+    const rows = row?.count ?? 0;
+    stats.push({ key, table, rows, estimatedBytes: rows * avgRowBytes });
+  }
+  // Bookmarks (subset of news_cache)
+  const bookmarkRow = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM news_cache WHERE bookmarked = 1',
+  );
+  stats.push({
+    key: 'bookmarks',
+    table: 'news_cache',
+    rows: bookmarkRow?.count ?? 0,
+    estimatedBytes: (bookmarkRow?.count ?? 0) * 500,
+  });
+  return stats;
+}
+
+export async function clearAllCache(): Promise<void> {
+  const db = await getDb();
+  await db.withTransactionAsync(async () => {
+    for (const { table } of CACHE_TABLES) {
+      await db.execAsync(`DELETE FROM ${table}`);
+    }
+  });
+}
+
+export async function clearTableCache(table: string): Promise<void> {
+  const allowedTables = CACHE_TABLES.map((t) => t.table);
+  if (!allowedTables.includes(table)) return;
+  const db = await getDb();
+  await db.execAsync(`DELETE FROM ${table}`);
+}
+
 // --- Row mappers ---
 
 function rowToSchedule(row: Record<string, SQLite.SQLiteBindValue>): Schedule {
