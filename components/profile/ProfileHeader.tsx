@@ -18,9 +18,6 @@ export interface ProfileHeaderStudent {
   name: string;
   id: string;
   filiere: string;
-  gpa: number;
-  credits: number;
-  presence: number;
 }
 
 interface ProfileHeaderProps {
@@ -87,55 +84,6 @@ function OfflineBannerStrip({
   );
 }
 
-// ── Stat tiles ─────────────────────────────────────────────────────────────────
-
-function StatTiles({
-  student,
-  isSkeleton,
-  t,
-  styles,
-}: {
-  student: ProfileHeaderStudent;
-  isSkeleton: boolean;
-  t: ReturnType<typeof useTranslation>['t'];
-  styles: ReturnType<typeof makeStyles>;
-}) {
-  return (
-    <View style={styles.tilesRow}>
-      {isSkeleton ? (
-        <>
-          <View style={{ flex: 1 }}>
-            <SkeletonBox width="100%" height={62} borderRadius={radius.rLg} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <SkeletonBox width="100%" height={62} borderRadius={radius.rLg} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <SkeletonBox width="100%" height={62} borderRadius={radius.rLg} />
-          </View>
-        </>
-      ) : (
-        <>
-          <View style={styles.tile}>
-            <Text style={styles.tileLabel}>{t('profile.gpa')}</Text>
-            <Text style={[styles.tileValue, styles.tileValueMono]}>
-              {student.gpa.toFixed(1)}
-            </Text>
-          </View>
-          <View style={styles.tile}>
-            <Text style={styles.tileLabel}>{t('profile.credits')}</Text>
-            <Text style={styles.tileValue}>{student.credits}</Text>
-          </View>
-          <View style={styles.tile}>
-            <Text style={styles.tileLabel}>{t('profile.presence')}</Text>
-            <Text style={styles.tileValue}>{student.presence}%</Text>
-          </View>
-        </>
-      )}
-    </View>
-  );
-}
-
 // ── Profile info block (avatar + name / ID / filière) ─────────────────────────
 
 function ProfileInfoBlock({
@@ -198,7 +146,6 @@ export function ProfileHeader({ state, topInset, student, onDotsPress }: Profile
                 style={{ marginTop: spacing.sp32 }}
                 styles={styles}
               />
-              <StatTiles student={student} isSkeleton={false} t={t} styles={styles} />
             </>
           )}
         </View>
@@ -235,7 +182,6 @@ export function ProfileHeader({ state, topInset, student, onDotsPress }: Profile
             style={{ marginTop: AVATAR_Y_LOADED - HEADER_STRIP_H }}
             styles={styles}
           />
-          <StatTiles student={student} isSkeleton={isSkeleton} t={t} styles={styles} />
         </>
       )}
     </View>
@@ -350,40 +296,5 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontSize: 12,
     fontFamily: fonts.sans,
     color: colors.jade600,
-  },
-
-  // Stat tiles row
-  tilesRow: {
-    height: 62,
-    flexDirection: 'row',
-    gap: spacing.sp14,
-    marginHorizontal: spacing.sp16,
-    marginTop: spacing.sp16,
-  },
-  tile: {
-    flex: 1,
-    height: 62,
-    borderRadius: radius.rLg,
-    backgroundColor: colors.scheduleBorder,
-    alignItems: 'center',
-    paddingTop: 13,
-  },
-  tileLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.textSecondary,
-    includeFontPadding: false,
-  },
-  tileValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.textPrimary,
-    marginTop: spacing.sp2,
-    includeFontPadding: false,
-  },
-  tileValueMono: {
-    fontFamily: fonts.mono,
   },
 });

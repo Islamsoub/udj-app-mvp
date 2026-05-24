@@ -46,9 +46,6 @@ function cacheToHeaderStudent(c: StudentProfileCache): ProfileHeaderStudent {
     name: c.name,
     id: c.studentId,
     filiere: c.programmeName,
-    gpa: c.gpa ?? 0,
-    credits: c.creditsEarned,
-    presence: c.attendancePercentage ?? 0,
   };
 }
 
@@ -330,7 +327,7 @@ export default function ProfileScreen() {
   const headerStudent: ProfileHeaderStudent =
     hook.data != null
       ? cacheToHeaderStudent(hook.data)
-      : { name: '—', id: '—', filiere: '—', gpa: 0, credits: 0, presence: 0 };
+      : { name: '—', id: '—', filiere: '—' };
 
   const showBody =
     profileState === 'loaded' ||
