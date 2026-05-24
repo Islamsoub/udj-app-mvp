@@ -2,11 +2,9 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
-// Skeleton QR card background — newsOfflineBg at 73% opacity per Figma PROFIL5
-const SKELETON_CARD_BG = 'rgba(246,234,224,0.73)';
 
 function SkeletonInfoRow({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   return (
@@ -91,13 +89,16 @@ export function ProfileSkeleton() {
   );
 }
 
-const makeStyles = (colors: Palette) => StyleSheet.create({
+const makeStyles = (colors: Palette) => {
+  // Skeleton QR card background — newsOfflineBg at 73% opacity per Figma PROFIL5
+  const skeletonCardBg = withAlpha(colors.newsOfflineBg, 0.73);
+  return StyleSheet.create({
   cardSkeleton: {
     marginHorizontal: spacing.sp16,
     marginTop: 18,
     height: 214,
     borderRadius: 18,
-    backgroundColor: SKELETON_CARD_BG,
+    backgroundColor: skeletonCardBg,
     overflow: 'hidden',
     flexDirection: 'column',
     justifyContent: 'space-between',
@@ -134,7 +135,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingBottom: spacing.sp8,
   },
   skeletonRow: {
-    height: 54,
+    height: 56,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -149,4 +150,5 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontFamily: fonts.sans,
     color: colors.textSecondary,
   },
-});
+  });
+};

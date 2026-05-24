@@ -77,7 +77,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingBottom: spacing.sp8,
   },
   skeletonRow: {
-    height: 54,
+    height: 56,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,

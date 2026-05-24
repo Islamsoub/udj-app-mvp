@@ -34,7 +34,7 @@ function DetailRow({ label, value, mono = false, isLast = false, rowStyles }: De
 
 const makeRowStyles = (colors: Palette) => StyleSheet.create({
   row: {
-    minHeight: 54,
+    minHeight: 56,
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.sp16,
     paddingVertical: spacing.sp12,

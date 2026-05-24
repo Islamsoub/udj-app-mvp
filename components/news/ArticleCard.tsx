@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { getCategoryColor } from '@/constants/colorMap';
 import { toggleNewsBookmark } from '@/services/db';
@@ -48,7 +48,7 @@ export function ArticleCard({ article, onPress }: ArticleCardProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && { backgroundColor: colors.textPrimary + '0F' }]}
+      style={({ pressed }) => [styles.card, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
     >
       <View style={styles.thumbnail} />
       <View style={styles.content}>

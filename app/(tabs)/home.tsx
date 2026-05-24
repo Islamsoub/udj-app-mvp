@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { fonts, spacing, radius, type Palette } from '@/constants/theme';
+import { fonts, spacing, radius, sizing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { getSubjectColor } from '@/constants/colorMap';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
@@ -95,12 +95,12 @@ function scheduleToCard(s: Schedule, nowMins: number, colors: Palette): AgendaCa
   if (s.isExam) {
     accentColor = colors.exam;
     statusLabel = 'Examen';
-    statusBg = 'rgba(139,92,246,0.15)';
+    statusBg = withAlpha(colors.exam, 0.15);
     statusColor = colors.exam;
     statusBorder = colors.exam;
   } else if (isActive) {
     statusLabel = 'En cours';
-    statusBg = 'rgba(29,158,117,0.15)';
+    statusBg = withAlpha(colors.jade400, 0.15);
     statusColor = colors.jade400;
   }
 
@@ -177,7 +177,7 @@ function AgendaCard({
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.agendaCard, pressed && { backgroundColor: colors.textPrimary + '0F' }]}
+      style={({ pressed }) => [styles.agendaCard, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
     >
       <View style={[styles.agendaAccent, { backgroundColor: accentColor }]} />
       <View style={styles.agendaContent}>
@@ -240,7 +240,7 @@ function SkeletonHeader() {
     <View style={styles.headerSection}>
       <View style={styles.headerTopRow}>
         <SkeletonBox style={styles.skelBar180} />
-        <SkeletonBox style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(217,217,217,0.6)' }} />
+        <SkeletonBox style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: withAlpha(colors.skeletonBox, 0.6) }} />
       </View>
       <SkeletonBox style={[styles.skelBar, { width: 240, marginTop: 8 }]} />
       <SkeletonBox style={[styles.skelBar, { width: 160, marginTop: 8 }]} />
@@ -262,23 +262,23 @@ function SkeletonBody() {
   return (
     <View style={styles.bodySection}>
       <View style={styles.sectionHeadingRow}>
-        <SkeletonBox style={{ width: 169, height: 15, borderRadius: radius.rFull, backgroundColor: 'rgba(217,217,217,0.6)' }} />
-        <SkeletonBox style={{ width: 44, height: 15, borderRadius: radius.rFull, backgroundColor: 'rgba(217,217,217,0.6)' }} />
+        <SkeletonBox style={{ width: 169, height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) }} />
+        <SkeletonBox style={{ width: 44, height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) }} />
       </View>
       {[0, 1, 2].map((i) => (
         <View key={i} style={styles.skelAgendaCard}>
           <SkeletonBox style={styles.skelAccent} />
           <View style={styles.skelAgendaInner}>
             <SkeletonBox style={[styles.skelBar, { width: 100 }]} />
-            <SkeletonBox style={[styles.skelBar, { width: 200, marginTop: 6 }]} />
-            <SkeletonBox style={[styles.skelBar, { width: 140, marginTop: 6 }]} />
-            <SkeletonBox style={[styles.skelBar, { width: 80, marginTop: 6 }]} />
+            <SkeletonBox style={[styles.skelBar, { width: 200, marginTop: spacing.sp6 }]} />
+            <SkeletonBox style={[styles.skelBar, { width: 140, marginTop: spacing.sp6 }]} />
+            <SkeletonBox style={[styles.skelBar, { width: 80, marginTop: spacing.sp6 }]} />
           </View>
         </View>
       ))}
       <View style={[styles.sectionHeadingRow, { marginTop: 24 }]}>
-        <SkeletonBox style={{ width: 169, height: 15, borderRadius: radius.rFull, backgroundColor: 'rgba(217,217,217,0.6)' }} />
-        <SkeletonBox style={{ width: 44, height: 15, borderRadius: radius.rFull, backgroundColor: 'rgba(217,217,217,0.6)' }} />
+        <SkeletonBox style={{ width: 169, height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) }} />
+        <SkeletonBox style={{ width: 44, height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) }} />
       </View>
       {[0, 1].map((i) => (
         <SkeletonBox key={i} style={styles.skelNewsCard} />
@@ -326,7 +326,7 @@ function LoadedHeader({
       <View style={styles.headerTopRow}>
         <Text style={styles.dateLabel}>{dateStr}</Text>
         <Pressable
-          style={({ pressed }) => [styles.bellBtn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]}
+          style={({ pressed }) => [styles.bellBtn, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.15), borderRadius: 999 }]}
           onPress={() => router.push('/notifications')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
@@ -359,7 +359,7 @@ function StatCard({ label, value, sub, onPress }: { label: string; value: string
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <Pressable style={({ pressed }) => [styles.statCard, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 8 }]} onPress={onPress} hitSlop={4}>
+    <Pressable style={({ pressed }) => [styles.statCard, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 8 }]} onPress={onPress} hitSlop={4}>
       <Text style={styles.statLabel}>{label}</Text>
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statSub}>{sub}</Text>
@@ -378,7 +378,7 @@ function SimpleHeader({ topInset }: { topInset: number }) {
       <View style={styles.headerTopRow}>
         <Text style={styles.simpleHeaderTitle}>Accueil</Text>
         <Pressable
-          style={({ pressed }) => [styles.bellBtn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]}
+          style={({ pressed }) => [styles.bellBtn, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.15), borderRadius: 999 }]}
           onPress={() => router.push('/notifications')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
@@ -413,7 +413,7 @@ function SessionExpiredModal({ onClose }: { onClose: () => void }) {
         >
           <Text style={styles.modalPrimaryBtnText}>Se connecter</Text>
         </Pressable>
-        <Pressable style={({ pressed }) => [styles.modalOutlineBtn, pressed && { backgroundColor: colors.jade400 + '26' }]} onPress={onClose}>
+        <Pressable style={({ pressed }) => [styles.modalOutlineBtn, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) }]} onPress={onClose}>
           <Text style={styles.modalOutlineBtnText}>Continuer en hors-ligne</Text>
         </Pressable>
       </View>
@@ -572,7 +572,7 @@ export default function HomeScreen() {
             {/* Agenda section */}
             <View style={styles.sectionHeadingRow}>
               <Text style={styles.sectionHeading}>Agenda du jour</Text>
-              <Pressable onPress={() => router.push('/(tabs)/schedule')} hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }}>
+              <Pressable onPress={() => router.push('/(tabs)/schedule')} hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}>
                 <Text style={styles.sectionLink}>Voir tout</Text>
               </Pressable>
             </View>
@@ -704,7 +704,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   statSub: { fontSize: 11, color: colors.textTertiary, fontFamily: fonts.sans, marginTop: spacing.sp2 },
 
   headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  bellBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  bellBtn: { width: sizing.touchTarget, height: sizing.touchTarget, alignItems: 'center', justifyContent: 'center' },
 
   simpleHeader: { backgroundColor: colors.surface, paddingHorizontal: spacing.sp16 },
   simpleHeaderTitle: {
@@ -732,7 +732,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   agendaTime: { fontSize: 12, color: colors.textSecondary, fontFamily: fonts.mono },
   agendaCourse: { fontSize: 14, fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans, marginTop: 1 },
   agendaTeacher: { fontSize: 12, color: colors.textSecondary, fontFamily: fonts.sans },
-  offlineWarningRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  offlineWarningRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sp4, marginTop: spacing.sp2 },
   offlineWarningText: { fontSize: 11, color: colors.warning, fontFamily: fonts.sans },
   pillRow: { flexDirection: 'row', gap: spacing.sp8, marginTop: spacing.sp8, alignItems: 'center' },
   locationPill: { backgroundColor: colors.background, borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
@@ -748,7 +748,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   newsCard: {
     flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.rLg,
-    marginBottom: 14, minHeight: 64, alignItems: 'center',
+    marginBottom: spacing.sp14, minHeight: 64, alignItems: 'center',
     paddingHorizontal: spacing.sp12, paddingVertical: 10, gap: spacing.sp12,
   },
   newsThumbnail: { width: 38, height: 37, borderRadius: radius.rMd, backgroundColor: colors.background },
@@ -756,12 +756,12 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   newsTitle: { fontSize: 13, fontWeight: '600', color: colors.textPrimary, fontFamily: fonts.sans },
   newsCategoryPill: {
     alignSelf: 'flex-start', backgroundColor: colors.background,
-    borderRadius: radius.rFull, paddingHorizontal: spacing.sp8, paddingVertical: 2, marginTop: 4,
+    borderRadius: radius.rFull, paddingHorizontal: spacing.sp8, paddingVertical: spacing.sp2, marginTop: spacing.sp4,
   },
   newsCategoryText: { fontSize: 10, color: colors.textSecondary, fontFamily: fonts.sans },
 
   newsOfflineCard: {
-    flexDirection: 'row', backgroundColor: 'rgba(245,158,11,0.08)',
+    flexDirection: 'row', backgroundColor: withAlpha(colors.warning, 0.08),
     borderWidth: 1, borderColor: colors.warning, borderRadius: radius.rLg,
     padding: spacing.sp16, gap: spacing.sp12, alignItems: 'center',
   },
@@ -774,7 +774,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   centerState: { flex: 1, alignItems: 'center', paddingHorizontal: spacing.sp24, paddingTop: 144 },
   errorIconCircle: {
     width: 72, height: 72, borderRadius: 216,
-    backgroundColor: 'rgba(245,180,180,1)', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.errorCircleBg, alignItems: 'center', justifyContent: 'center',
   },
   stateTitle: {
     fontSize: 16, fontWeight: '700', color: colors.textPrimary,
@@ -791,15 +791,15 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   retryBtnText: { fontSize: 15, fontWeight: '700', color: colors.surface, fontFamily: fonts.sans },
   palmEmoji: { fontSize: 80, textAlign: 'center' },
 
-  skelBar180: { width: 180, height: 15, borderRadius: radius.rFull, backgroundColor: 'rgba(217,217,217,0.6)' },
-  skelBar: { height: 15, borderRadius: radius.rFull, backgroundColor: 'rgba(217,217,217,0.6)' },
-  skelStatCard: { flex: 1, height: 72, borderRadius: radius.rLg, backgroundColor: 'rgba(217,217,217,0.6)' },
+  skelBar180: { width: 180, height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
+  skelBar: { height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
+  skelStatCard: { flex: 1, height: 72, borderRadius: radius.rLg, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
   skelAgendaCard: {
     flexDirection: 'row', backgroundColor: colors.surface,
     borderRadius: radius.rLg, marginBottom: 23, height: 91, overflow: 'hidden',
   },
   skelAccent: {
-    width: 9, height: 91, backgroundColor: 'rgba(217,217,217,0.6)',
+    width: 9, height: 91, backgroundColor: withAlpha(colors.skeletonBox, 0.6),
     borderTopStartRadius: radius.rLg, borderBottomStartRadius: radius.rLg,
   },
   skelAgendaInner: {
@@ -808,12 +808,12 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   skelNewsCard: {
     width: '100%', height: 64, borderRadius: radius.rLg,
-    backgroundColor: 'rgba(217,217,217,0.6)', marginBottom: 14,
+    backgroundColor: withAlpha(colors.skeletonBox, 0.6), marginBottom: spacing.sp14,
   },
 
   modalOverlay: {
     position: 'absolute', top: 0, bottom: 0, start: 0, end: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end',
+    backgroundColor: withAlpha(colors.black, 0.5), justifyContent: 'flex-end',
   },
   modalSheet: {
     backgroundColor: colors.surface, borderTopStartRadius: radius.r2xl,
@@ -821,10 +821,10 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   dragHandle: {
     width: 49, height: 9, borderRadius: spacing.sp8,
-    backgroundColor: '#D9D9D9', alignSelf: 'center', marginBottom: spacing.sp24,
+    backgroundColor: colors.skeletonBox, alignSelf: 'center', marginBottom: spacing.sp24,
   },
   modalIconCircle: {
-    width: 72, height: 72, borderRadius: 216, backgroundColor: 'rgba(224,211,254,1)',
+    width: 72, height: 72, borderRadius: 216, backgroundColor: colors.examCircleBg,
     alignSelf: 'center', alignItems: 'center', justifyContent: 'center',
   },
   modalTitle: {

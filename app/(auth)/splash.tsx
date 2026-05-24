@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, lightColors, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, lightColors, radius, spacing, withAlpha, colors, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 // Splash is a branded jade-green screen — text/iconography always renders in
@@ -28,15 +28,15 @@ const LogoSVG = (
 const JWT_KEY = 'udj_jwt';
 
 // RGBA variants not expressible as opaque hex tokens in theme.ts
-const WHITE_08 = 'rgba(255,255,255,0.08)';
-const WHITE_15 = 'rgba(255,255,255,0.15)';
-const WHITE_40 = 'rgba(255,255,255,0.4)';
-const WHITE_60 = 'rgba(255,255,255,0.6)';
-const WHITE_70 = 'rgba(255,255,255,0.7)';
-const WHITE_80 = 'rgba(255,255,255,0.8)';
-const DANGER_20 = 'rgba(239,68,68,0.2)';
-const JADE400_20 = 'rgba(29,158,117,0.2)';
-const JADE400_40 = 'rgba(29,158,117,0.4)';
+const WHITE_08 = withAlpha(colors.white, 0.08);
+const WHITE_15 = withAlpha(colors.white, 0.15);
+const WHITE_40 = withAlpha(colors.white, 0.4);
+const WHITE_60 = withAlpha(colors.white, 0.6);
+const WHITE_70 = withAlpha(colors.white, 0.7);
+const WHITE_80 = withAlpha(colors.white, 0.8);
+const DANGER_20 = withAlpha(colors.danger, 0.2);
+const JADE400_20 = withAlpha(colors.jade400, 0.2);
+const JADE400_40 = withAlpha(colors.jade400, 0.4);
 
 type SplashState = 'loading' | 'no-connection' | 'maintenance' | 'first-install' | 'force-update';
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
@@ -250,7 +250,7 @@ export default function SplashScreen() {
                 width: progressAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 37] }),
                 height: 3,
                 borderRadius: 12,
-                backgroundColor: '#D9D9D9',
+                backgroundColor: colors.skeletonBox,
               }}
             />
           </View>
@@ -475,7 +475,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 24,
     height: 3,
     borderRadius: 12,
-    backgroundColor: '#D9D9D9',
+    backgroundColor: colors.skeletonBox,
   },
   loadingText: {
     position: 'absolute',

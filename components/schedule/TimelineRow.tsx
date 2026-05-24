@@ -75,7 +75,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   gutter: {
     width: 48,
-    paddingTop: 6,
+    paddingTop: spacing.sp6,
   },
   timeLabel: {
     fontSize: 12,
@@ -85,7 +85,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   connectorCol: {
     width: 11,
     alignItems: 'center',
-    paddingTop: 6,
+    paddingTop: spacing.sp6,
     marginStart: 3,
   },
   dot: {
@@ -101,7 +101,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   pauseContent: {
     flex: 1,
-    paddingTop: 6,
+    paddingTop: spacing.sp6,
     paddingStart: spacing.sp8,
   },
   pauseText: {

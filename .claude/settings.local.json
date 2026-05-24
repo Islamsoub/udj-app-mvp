@@ -61,7 +61,9 @@
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
       "Bash(echo \"EXIT_CODE=$?\")",
       "Bash(echo \"EXIT=$?\")",
-      "PowerShell(npx tsc --noEmit)"
+      "PowerShell(npx tsc --noEmit)",
+      "Bash(python -c ' *)",
+      "Bash(echo \"EXIT:$?\")"
     ]
   }
 }

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { getMentionColor, getMentionTextColor } from '@/constants/colorMap';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
@@ -128,7 +128,7 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
 
       {/* GPA number + Mention Bien badge + Calculator icon */}
       <View style={styles.gpaRowOuter}>
-        <Pressable style={({ pressed }) => [styles.gpaRow, pressed && { backgroundColor: colors.surface + '26', borderRadius: 8 }]} onPress={onGpaPress} hitSlop={8}>
+        <Pressable style={({ pressed }) => [styles.gpaRow, pressed && { backgroundColor: withAlpha(colors.surface, 0.15), borderRadius: 8 }]} onPress={onGpaPress} hitSlop={8}>
           <Text style={styles.gpaNumber}>{gpaText}</Text>
           {mention !== null && (
             <View style={[styles.mentionBadge, { backgroundColor: getMentionColor(mention, colors) }]}>
@@ -138,7 +138,7 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
         </Pressable>
         {onCalculatorPress != null && (
           <Pressable
-            style={({ pressed }) => [styles.calcIconBtn, pressed && { backgroundColor: colors.surface + '26', borderRadius: 999 }]}
+            style={({ pressed }) => [styles.calcIconBtn, pressed && { backgroundColor: withAlpha(colors.surface, 0.15), borderRadius: 999 }]}
             onPress={onCalculatorPress}
             hitSlop={8}
           >
@@ -193,7 +193,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   gpaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.sp12,
     flex: 1,
   },
   calcIconBtn: {
@@ -212,8 +212,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.mentionBien,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: spacing.sp12,
+    paddingVertical: spacing.sp6,
   },
   mentionText: {
     fontSize: 12,

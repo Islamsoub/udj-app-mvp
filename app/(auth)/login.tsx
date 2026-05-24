@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { fonts, spacing, radius, type Palette } from '@/constants/theme';
+import { fonts, spacing, radius, sizing, withAlpha, colors, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -62,16 +62,16 @@ const STATE_LABELS: Record<LoginState, string> = {
 };
 
 // One-off RGBA values not expressible as opaque hex tokens in theme.ts
-const WHITE_12 = 'rgba(255,255,255,0.12)';
-const WHITE_80 = 'rgba(255,255,255,0.8)';
-const WHITE_15 = 'rgba(255,255,255,0.15)';
-const WHITE_40 = 'rgba(255,255,255,0.4)';
-const WHITE_60 = 'rgba(255,255,255,0.6)';
-const WARNING_15 = 'rgba(245,158,11,0.15)';
-const WARNING_12 = 'rgba(245,158,11,0.12)';
-const DANGER_08 = 'rgba(239,68,68,0.08)';
-const EXAM_12 = 'rgba(139,92,246,0.12)';
-const SKELETON_BG = 'rgba(217,217,217,0.6)';
+const WHITE_12 = withAlpha(colors.white, 0.12);
+const WHITE_80 = withAlpha(colors.white, 0.8);
+const WHITE_15 = withAlpha(colors.white, 0.15);
+const WHITE_40 = withAlpha(colors.white, 0.4);
+const WHITE_60 = withAlpha(colors.white, 0.6);
+const WARNING_15 = withAlpha(colors.warning, 0.15);
+const WARNING_12 = withAlpha(colors.warning, 0.12);
+const DANGER_08 = withAlpha(colors.danger, 0.08);
+const EXAM_12 = withAlpha(colors.exam, 0.12);
+const SKELETON_BG = withAlpha(colors.skeletonBox, 0.6);
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -258,9 +258,9 @@ export default function LoginScreen() {
 
   const passwordInputStyle = isError
     ? { backgroundColor: DANGER_08, borderColor: colors.danger }
-    : { backgroundColor: colors.jade50, borderColor: '#D9D9D9' };
+    : { backgroundColor: colors.jade50, borderColor: colors.skeletonBox };
 
-  const buttonBg = isNetworkError || isLocked ? '#D9D9D9' : colors.jade400;
+  const buttonBg = isNetworkError || isLocked ? colors.skeletonBox : colors.jade400;
   const buttonTextGrey = isNetworkError || isLocked;
   const buttonDisabled = isSubmitting || isNetworkError || isLocked;
 
@@ -363,7 +363,7 @@ export default function LoginScreen() {
                       <Text style={styles.savedName}>Ahmed Omar Said</Text>
                       <Text style={styles.savedId}>UDJ-2024-0432</Text>
                     </View>
-                    <Pressable onPress={() => setLoginState('default')} hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }}>
+                    <Pressable onPress={() => setLoginState('default')} hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}>
                       <Text style={styles.changerText}>Changer ›</Text>
                     </Pressable>
                   </View>
@@ -406,7 +406,7 @@ export default function LoginScreen() {
                   <View style={styles.passwordLabelRow}>
                     <Text style={styles.inputLabel}>Mot de passe</Text>
                     {loginState === 'default' && (
-                      <Pressable hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }}>
+                      <Pressable hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}>
                         <Text style={styles.forgotInline}>Mot de passe oublié ?</Text>
                       </Pressable>
                     )}
@@ -488,14 +488,14 @@ export default function LoginScreen() {
 
               {/* ── ERROR: forgot password link below button ── */}
               {isError && (
-                <Pressable hitSlop={8} style={({ pressed }) => [styles.forgotBelow, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }]}>
+                <Pressable hitSlop={8} style={({ pressed }) => [styles.forgotBelow, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }]}>
                   <Text style={styles.forgotBelowText}>Mot de passe oublié ?</Text>
                 </Pressable>
               )}
 
               {/* ── LOCKED-OUT: help link ── */}
               {isLocked && (
-                <Pressable hitSlop={8} style={({ pressed }) => [styles.helpLink, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }]}>
+                <Pressable hitSlop={8} style={({ pressed }) => [styles.helpLink, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }]}>
                   <Text style={styles.helpLinkText}>{t('auth.helpContact')}</Text>
                 </Pressable>
               )}
@@ -510,7 +510,7 @@ export default function LoginScreen() {
                   </View>
                   <View style={styles.biometricContainer}>
                     <Pressable
-                      style={({ pressed }) => [styles.biometricCircle, pressed && { backgroundColor: colors.warning + '26', borderRadius: 999 }]}
+                      style={({ pressed }) => [styles.biometricCircle, pressed && { backgroundColor: withAlpha(colors.warning, 0.15), borderRadius: 999 }]}
                       onPress={biometricHandler}
                       hitSlop={8}
                     >
@@ -621,7 +621,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginBottom: spacing.sp6,
   },
   textInput: {
-    height: 46,
+    height: spacing.sp48,
     borderRadius: radius.rLg,
     borderWidth: 1,
     paddingHorizontal: spacing.sp16,
@@ -633,8 +633,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontFamily: fonts.mono,
   },
   textInputDisabled: {
-    backgroundColor: '#D9D9D9',
-    borderColor: '#D9D9D9',
+    backgroundColor: colors.skeletonBox,
+    borderColor: colors.skeletonBox,
   },
   passwordLabelRow: {
     flexDirection: 'row',
@@ -655,7 +655,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.sp8,
-    minHeight: 44,
+    minHeight: sizing.touchTarget,
   },
   loginButtonText: {
     fontFamily: fonts.sans,
@@ -702,7 +702,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   forgotBelow: {
     alignItems: 'center',
     marginTop: spacing.sp16,
-    minHeight: 44,
+    minHeight: sizing.touchTarget,
     justifyContent: 'center',
   },
   forgotBelowText: {
@@ -783,7 +783,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   helpLink: {
     alignItems: 'center',
     marginTop: spacing.sp16,
-    minHeight: 44,
+    minHeight: sizing.touchTarget,
     justifyContent: 'center',
   },
   helpLinkText: {
@@ -897,8 +897,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp16,
   },
   biometricCircle: {
-    width: 44,
-    height: 44,
+    width: sizing.touchTarget,
+    height: sizing.touchTarget,
     borderRadius: radius.rFull,
     backgroundColor: colors.border,
     alignItems: 'center',
@@ -923,7 +923,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginBottom: spacing.sp6,
   },
   skeletonInput: {
-    height: 46,
+    height: spacing.sp48,
     borderRadius: radius.rLg,
     marginBottom: spacing.sp4,
   },

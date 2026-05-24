@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import type { Subject } from './SubjectCard';
 
@@ -89,7 +89,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
               <Text style={styles.sectionLabel}>{t('calculator.subject_label')}</Text>
 
               {/* Subject selector */}
-              <Pressable style={({ pressed }) => [styles.selector, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 8 }]} onPress={cycleSubject}>
+              <Pressable style={({ pressed }) => [styles.selector, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 8 }]} onPress={cycleSubject}>
                 <Text style={styles.selectorText} numberOfLines={1}>
                   {subject?.name ?? '—'}
                 </Text>
@@ -179,7 +179,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
 const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: withAlpha(colors.black, 0.45),
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -193,7 +193,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     height: 4,
     borderRadius: radius.rFull,
     backgroundColor: '#E5E5E5',
-    marginTop: 12,
+    marginTop: spacing.sp12,
     marginBottom: 16,
   },
 
@@ -235,7 +235,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Subject selector
   selector: {
-    height: 54,
+    height: 56,
     borderRadius: radius.rLg,
     borderWidth: 1,
     borderColor: colors.border,
@@ -256,7 +256,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── CC display row
   ccRow: {
-    height: 54,
+    height: 56,
     borderRadius: radius.rLg,
     backgroundColor: colors.background,
     paddingHorizontal: spacing.sp16,
@@ -274,7 +274,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   ccRight: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 2,
+    gap: spacing.sp2,
   },
   ccValue: {
     fontSize: 18,
@@ -291,7 +291,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Target grade input
   inputRow: {
-    height: 54,
+    height: 56,
     borderRadius: radius.rLg,
     borderWidth: 1,
     borderColor: colors.jade600,

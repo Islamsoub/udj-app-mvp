@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet, I18nManager } from 'react-native';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { StatusPill, CourseStatus } from './StatusPill';
 import { getSubjectColor } from '@/constants/colorMap';
@@ -48,7 +48,7 @@ export function CourseCard({ course, onPress }: CourseCardProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && { backgroundColor: colors.textPrimary + '0F' }]}
+      style={({ pressed }) => [styles.card, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
     >
       {!isRTL && accentBar}
       <View style={styles.content}>
@@ -100,7 +100,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   pillRow: {
     flexDirection: 'row',
-    gap: 14,
+    gap: spacing.sp14,
     alignItems: 'center',
   },
   timePill: {
@@ -108,7 +108,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 999,
-    paddingHorizontal: 14,
+    paddingHorizontal: spacing.sp14,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',

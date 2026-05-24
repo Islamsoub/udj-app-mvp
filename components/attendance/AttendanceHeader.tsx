@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, sizing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 
@@ -27,19 +27,19 @@ function getBadgeConfig(percentage: number, colors: Palette): BadgeConfig {
   if (percentage >= 85) {
     return {
       labelKey: 'attendance.badge_regular',
-      bg: 'rgba(255,255,255,0.2)',
+      bg: withAlpha(colors.white, 0.2),
       textColor: colors.surface,
     };
   } else if (percentage >= 75) {
     return {
       labelKey: 'attendance.badge_warning',
-      bg: 'rgba(245,158,11,0.3)',
+      bg: withAlpha(colors.warning, 0.3),
       textColor: colors.warning,
     };
   } else {
     return {
       labelKey: 'attendance.badge_critical',
-      bg: 'rgba(239,68,68,0.3)',
+      bg: withAlpha(colors.danger, 0.3),
       textColor: colors.surface,
     };
   }
@@ -61,7 +61,7 @@ export function AttendanceHeader({
   return (
     <View style={[styles.container, { paddingTop: topInset }]}>
       {/* Back button */}
-      <Pressable style={({ pressed }) => [styles.backBtn, pressed && { backgroundColor: colors.surface + '26', borderRadius: 999 }]} onPress={onBack} hitSlop={8}>
+      <Pressable style={({ pressed }) => [styles.backBtn, pressed && { backgroundColor: withAlpha(colors.surface, 0.15), borderRadius: 999 }]} onPress={onBack} hitSlop={8}>
         <Ionicons name="chevron-back" size={24} color={colors.surface} />
       </Pressable>
 
@@ -113,7 +113,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingBottom: spacing.sp20,
   },
   backBtn: {
-    height: 44,
+    height: sizing.touchTarget,
     paddingHorizontal: spacing.sp16,
     justifyContent: 'center',
     alignSelf: 'flex-start',
@@ -132,7 +132,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   percentageRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.sp12,
     paddingHorizontal: spacing.sp16,
     marginTop: spacing.sp8,
   },

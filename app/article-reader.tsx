@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, sizing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { getCategoryColor } from '@/constants/colorMap';
 import { ArticleReaderHeader } from '@/components/news/ArticleReaderHeader';
@@ -252,7 +252,7 @@ function BottomBar({ bottomInset, isBookmarked, onBookmark, onShare }: BottomBar
   const { t } = useTranslation();
   return (
     <View style={[styles.bottomBar, { paddingBottom: bottomInset }]}>
-      <Pressable style={({ pressed }) => [styles.bookmarkBtn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]} onPress={onBookmark} hitSlop={8}>
+      <Pressable style={({ pressed }) => [styles.bookmarkBtn, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.15), borderRadius: 999 }]} onPress={onBookmark} hitSlop={8}>
         <Ionicons
           name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
           size={24}
@@ -393,7 +393,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Offline banner
   offlineBanner: {
-    height: 46,
+    height: spacing.sp48,
     backgroundColor: colors.newsOfflineBg,
     borderBottomWidth: 1,
     borderBottomColor: colors.offline,
@@ -416,9 +416,9 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingBottom: spacing.sp16,
   },
   heroLabelPill: {
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: withAlpha(colors.black, 0.3),
+    paddingHorizontal: spacing.sp12,
+    paddingVertical: spacing.sp6,
     borderRadius: radius.rMd,
     alignSelf: 'flex-start',
   },
@@ -444,7 +444,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   categoryPill: {
     height: 28,
     borderRadius: radius.rFull,
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.sp12,
     alignSelf: 'flex-start',
     alignItems: 'center',
     justifyContent: 'center',
@@ -557,14 +557,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'space-between',
   },
   bookmarkBtn: {
-    width: 44,
-    height: 44,
+    width: sizing.touchTarget,
+    height: sizing.touchTarget,
     alignItems: 'center',
     justifyContent: 'center',
   },
   shareBtn: {
-    height: 44,
-    paddingHorizontal: 24,
+    height: sizing.touchTarget,
+    paddingHorizontal: spacing.sp24,
     borderRadius: radius.rFull,
     backgroundColor: colors.jade400,
     flexDirection: 'row',

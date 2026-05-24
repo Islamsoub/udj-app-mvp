@@ -4,7 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, type Palette } from '@/constants/theme';
+import { fonts, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
 import { useAuthStore } from '@/stores/authStore';
@@ -65,7 +65,7 @@ function DetailRow({
         style={({ pressed }) => [
           rowStyles.row,
           !isLast && rowStyles.rowBorder,
-          pressed && { backgroundColor: colors.textPrimary + '0F' },
+          pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) },
         ]}
         onPress={onPress}
         hitSlop={4}

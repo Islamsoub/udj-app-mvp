@@ -3,15 +3,12 @@ import { View, Text, StyleSheet, Pressable, Animated, Easing } from 'react-nativ
 import QRCode from 'react-native-qrcode-svg';
 import Svg, { Circle } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { fonts, lightColors, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, lightColors, radius, sizing, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 // White brand foreground — text/strokes sit on the jade card, so they must
 // stay white in both light and dark mode (same BRAND_FG pattern as splash.tsx).
 const BRAND_FG = lightColors.surface;
-const CARD_TEXT_DIM = 'rgba(255,255,255,0.7)';
-const CARD_PILL_BG = 'rgba(255,255,255,0.15)';
-const CARD_RING_TRACK = 'rgba(255,255,255,0.25)';
 
 const COLLAPSED_HEIGHT = 120;
 const EXPANDED_HEIGHT = 320;
@@ -33,7 +30,10 @@ interface StudentCardProps {
 export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) {
   const { t } = useTranslation();
   const { colors } = useColors();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const cardTextDim = withAlpha(colors.white, 0.7);
+  const cardPillBg = withAlpha(colors.white, 0.15);
+  const cardRingTrack = withAlpha(colors.white, 0.25);
+  const styles = useMemo(() => makeStyles(colors, cardTextDim, cardPillBg), [colors, cardTextDim, cardPillBg]);
   const [expanded, setExpanded] = useState(false);
   const heightAnim = useRef(new Animated.Value(COLLAPSED_HEIGHT)).current;
   const [secondsLeft, setSecondsLeft] = useState(CYCLE_SECONDS);
@@ -86,7 +86,7 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
                   cx={RING_SIZE / 2}
                   cy={RING_SIZE / 2}
                   r={RING_RADIUS}
-                  stroke={CARD_RING_TRACK}
+                  stroke={cardRingTrack}
                   strokeWidth={RING_STROKE}
                   fill="none"
                 />
@@ -138,7 +138,7 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
   );
 }
 
-const makeStyles = (colors: Palette) => StyleSheet.create({
+const makeStyles = (colors: Palette, cardTextDim: string, cardPillBg: string) => StyleSheet.create({
   cardWrap: {
     marginHorizontal: spacing.sp16,
     borderRadius: 18,
@@ -162,9 +162,9 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginEnd: spacing.sp12,
   },
   showBtn: {
-    height: 44,
+    height: sizing.touchTarget,
     borderRadius: radius.rMd,
-    backgroundColor: CARD_PILL_BG,
+    backgroundColor: cardPillBg,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.sp16,
@@ -204,7 +204,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   collapseHint: {
     fontSize: 11,
     fontFamily: fonts.sans,
-    color: CARD_TEXT_DIM,
+    color: cardTextDim,
   },
 
   // Shared text
@@ -217,7 +217,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   cardSubtitle: {
     fontSize: 12,
     fontFamily: fonts.sans,
-    color: CARD_TEXT_DIM,
+    color: cardTextDim,
   },
   cardName: {
     fontSize: 14,
@@ -229,6 +229,6 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   cardStudentId: {
     fontSize: 12,
     fontFamily: fonts.mono,
-    color: CARD_TEXT_DIM,
+    color: cardTextDim,
   },
 });

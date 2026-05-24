@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 const FR_ABBREVS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
@@ -81,7 +81,7 @@ export function DayStrip({
           onPress={onPrevWeek}
           style={({ pressed }) => [
             styles.arrowBtn,
-            pressed && { backgroundColor: colors.jade400 + '26' },
+            pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) },
           ]}
           hitSlop={8}
           accessibilityRole="button"
@@ -95,7 +95,7 @@ export function DayStrip({
           onPress={onNextWeek}
           style={({ pressed }) => [
             styles.arrowBtn,
-            pressed && { backgroundColor: colors.jade400 + '26' },
+            pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) },
           ]}
           hitSlop={8}
           accessibilityRole="button"
@@ -132,7 +132,7 @@ export function DayStrip({
                 styles.cell,
                 isSelected && styles.cellSelected,
                 isWeekend && !isSelected && styles.cellWeekend,
-                pressed && !isWeekend && { backgroundColor: colors.jade400 + '26' },
+                pressed && !isWeekend && { backgroundColor: withAlpha(colors.jade400, 0.15) },
               ]}
               onPress={() => !isWeekend && onSelect(idx)}
               hitSlop={4}

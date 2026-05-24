@@ -139,7 +139,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   grid: {
     flexDirection: 'row',
     height: 72,
-    marginTop: 6,
+    marginTop: spacing.sp6,
   },
   gridCol: {
     flex: 1,

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, type Palette } from '@/constants/theme';
+import { fonts, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface OptionRowProps {
@@ -25,7 +25,7 @@ export function OptionRow({
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Pressable
-      style={({ pressed }) => [styles.row, !isLast && styles.rowBorder, pressed && { backgroundColor: colors.textPrimary + '0F' }]}
+      style={({ pressed }) => [styles.row, !isLast && styles.rowBorder, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
       onPress={onPress}
       hitSlop={4}
     >
@@ -49,7 +49,7 @@ export function OptionRow({
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
   row: {
-    minHeight: 54,
+    minHeight: 56,
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.sp20,
     paddingVertical: spacing.sp12,

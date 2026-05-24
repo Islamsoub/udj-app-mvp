@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts, spacing, type Palette } from '@/constants/theme';
+import { fonts, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export type FilterKey = 'all' | 'events' | 'scolarite' | 'sport' | 'youth' | 'sponsors' | 'saved';
@@ -40,7 +40,7 @@ export function FilterRow({ activeFilter, onFilterChange }: FilterRowProps) {
           return (
             <Pressable
               key={f}
-              style={({ pressed }) => [styles.pill, isActive && styles.pillActive, pressed && { backgroundColor: colors.jade400 + '26' }]}
+              style={({ pressed }) => [styles.pill, isActive && styles.pillActive, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) }]}
               onPress={() => onFilterChange(f)}
               hitSlop={8}
             >

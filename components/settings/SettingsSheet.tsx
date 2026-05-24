@@ -1,6 +1,6 @@
 import React, { ReactNode, useMemo } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface SettingsSheetProps {
@@ -45,7 +45,7 @@ export function SettingsSheet({
 const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: withAlpha(colors.black, 0.45),
     justifyContent: 'flex-end',
   },
   sheet: {

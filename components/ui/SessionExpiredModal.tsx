@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface SessionExpiredModalProps {
@@ -35,7 +35,7 @@ export function SessionExpiredModal({ visible, onContinueOffline }: SessionExpir
           <Text style={styles.modalPrimaryBtnText}>{t('common.session.login')}</Text>
         </Pressable>
         <Pressable
-          style={({ pressed }) => [styles.modalOutlineBtn, pressed && { backgroundColor: colors.jade400 + '26' }]}
+          style={({ pressed }) => [styles.modalOutlineBtn, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) }]}
           onPress={onContinueOffline}
         >
           <Text style={styles.modalOutlineBtnText}>{t('common.session.continue_offline')}</Text>
@@ -52,7 +52,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     bottom: 0,
     start: 0,
     end: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: withAlpha(colors.black, 0.5),
     justifyContent: 'flex-end',
   },
   modalSheet: {
@@ -74,7 +74,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 216,
-    backgroundColor: 'rgba(139,92,246,0.15)',
+    backgroundColor: withAlpha(colors.exam, 0.15),
     alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',

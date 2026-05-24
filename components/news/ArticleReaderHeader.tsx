@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { spacing, type Palette } from '@/constants/theme';
+import { sizing, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface ArticleReaderHeaderProps {
@@ -15,7 +15,7 @@ export function ArticleReaderHeader({ topInset, onBack }: ArticleReaderHeaderPro
   return (
     <View style={[styles.wrapper, { paddingTop: topInset }]}>
       <View style={styles.row}>
-        <Pressable style={({ pressed }) => [styles.btn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]} onPress={onBack} hitSlop={8}>
+        <Pressable style={({ pressed }) => [styles.btn, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.15), borderRadius: 999 }]} onPress={onBack} hitSlop={8}>
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
         </Pressable>
       </View>
@@ -37,8 +37,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingHorizontal: spacing.sp16,
   },
   btn: {
-    width: 44,
-    height: 44,
+    width: sizing.touchTarget,
+    height: sizing.touchTarget,
     alignItems: 'center',
     justifyContent: 'center',
   },

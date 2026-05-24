@@ -4,6 +4,7 @@ import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useColors } from '@/hooks/useColors';
+import { spacing } from '@/constants/theme';
 
 const HomeIcon = (require('../../assets/icons/home.svg') as { default: React.FC<{ width: number; height: number; color?: string }> }).default;
 const AgendaIcon = (require('../../assets/icons/agenda.svg') as { default: React.FC<{ width: number; height: number; color?: string }> }).default;
@@ -30,8 +31,8 @@ export default function TabsLayout() {
     backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    paddingBottom: 12,
-    paddingTop: 6,
+    paddingBottom: spacing.sp12,
+    paddingTop: spacing.sp6,
   }), [colors]);
 
   return (
@@ -82,7 +83,7 @@ const styles = StyleSheet.create({
   tabLabel: {
     fontSize: 11,
     fontWeight: '500',
-    marginTop: 2,
+    marginTop: spacing.sp2,
   },
   tabLabelActive: {
     fontWeight: '700',

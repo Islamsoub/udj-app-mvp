@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts, spacing, type Palette } from '@/constants/theme';
+import { fonts, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface SemesterTabsProps {
@@ -16,7 +16,7 @@ export function SemesterTabs({ active, onChange }: SemesterTabsProps) {
 
   return (
     <View style={styles.container}>
-      <Pressable style={({ pressed }) => [styles.tab, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }]} onPress={() => onChange(1)} hitSlop={4}>
+      <Pressable style={({ pressed }) => [styles.tab, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }]} onPress={() => onChange(1)} hitSlop={4}>
         <Text style={[styles.label, active === 1 && styles.labelActive]}>
           {t('grades.semester1')}
         </Text>
@@ -26,7 +26,7 @@ export function SemesterTabs({ active, onChange }: SemesterTabsProps) {
       {/* 20px spacer between the two 154px tabs */}
       <View style={styles.gap} />
 
-      <Pressable style={({ pressed }) => [styles.tab, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }]} onPress={() => onChange(2)} hitSlop={4}>
+      <Pressable style={({ pressed }) => [styles.tab, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }]} onPress={() => onChange(2)} hitSlop={4}>
         <Text style={[styles.label, active === 2 && styles.labelActive]}>
           {t('grades.semester2')}
         </Text>

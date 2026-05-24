@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import MenuSchIcon from '@/assets/icons/menu_sch_icon.svg';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { DayStrip } from './DayStrip';
 
@@ -56,14 +56,14 @@ export function ScheduleHeader({
         <Text style={styles.title}>{t('schedule.title')}</Text>
         <View style={styles.actions}>
           <Pressable
-            style={({ pressed }) => [styles.iconCircle, pressed && { backgroundColor: colors.textSecondary + '26', borderRadius: 999 }]}
+            style={({ pressed }) => [styles.iconCircle, pressed && { backgroundColor: withAlpha(colors.textSecondary, 0.15), borderRadius: 999 }]}
             onPress={() => Alert.alert('', 'Recherche bientôt disponible')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Ionicons name="search-outline" size={20} color={colors.textSecondary} />
           </Pressable>
           <Pressable
-            style={({ pressed }) => [styles.iconCircle, pressed && { backgroundColor: colors.textSecondary + '26', borderRadius: 999 }]}
+            style={({ pressed }) => [styles.iconCircle, pressed && { backgroundColor: withAlpha(colors.textSecondary, 0.15), borderRadius: 999 }]}
             onPress={() => router.push('/settings')}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >

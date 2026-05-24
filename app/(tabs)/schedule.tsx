@@ -640,14 +640,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   skelGutter: {
     width: 44,
-    paddingTop: 6,
+    paddingTop: spacing.sp6,
     alignItems: 'flex-end',
     paddingEnd: spacing.sp8,
   },
   skelConnector: {
     width: 20,
     alignItems: 'center',
-    paddingTop: 6,
+    paddingTop: spacing.sp6,
   },
   skelDot: {
     width: 10,
@@ -668,8 +668,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   // ── Offline body — 14px gap between cache banner and cards per Figma
   offlineBody: {
     paddingHorizontal: spacing.sp16,
-    paddingTop: 14,
-    gap: 14,
+    paddingTop: spacing.sp14,
+    gap: spacing.sp14,
   },
   offlineEmpty: {
     padding: spacing.sp16,

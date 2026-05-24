@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, type Palette } from '@/constants/theme';
+import { fonts, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -51,7 +51,7 @@ export function InfoRow({ label, value, onPress, isLogout = false, icon }: InfoR
       <Pressable
         style={({ pressed }) => [
           styles.row,
-          pressed && { backgroundColor: colors.textPrimary + '0F' },
+          pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) },
         ]}
         onPress={onPress}
         hitSlop={4}
@@ -66,7 +66,7 @@ export function InfoRow({ label, value, onPress, isLogout = false, icon }: InfoR
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
   row: {
-    minHeight: 54,
+    minHeight: 56,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,

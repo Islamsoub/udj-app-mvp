@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet, ViewStyle } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 
@@ -32,7 +32,7 @@ interface ProfileHeaderProps {
 
 // Spec-derived heights (content area, topInset added via paddingTop at render)
 const HEADER_STRIP_H = 93;
-const OFFLINE_BANNER_H = 46;
+const OFFLINE_BANNER_H = spacing.sp48;
 
 // Y positions within white area (measured from white-area top, after paddingTop)
 const AVATAR_Y_LOADED = 121;
@@ -53,7 +53,7 @@ function HeaderStrip({
   return (
     <View style={styles.headerStrip}>
       <Text style={styles.headerTitle}>{t('profile.title')}</Text>
-      <Pressable style={({ pressed }) => [styles.dotsButton, pressed && { backgroundColor: colors.greyMedium + '26', borderRadius: 999 }]} hitSlop={8} onPress={onDotsPress}>
+      <Pressable style={({ pressed }) => [styles.dotsButton, pressed && { backgroundColor: withAlpha(colors.greyMedium, 0.15), borderRadius: 999 }]} hitSlop={8} onPress={onDotsPress}>
         <Ionicons name="settings-outline" size={18} color={colors.greyMedium} />
       </Pressable>
     </View>
@@ -264,7 +264,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     alignItems: 'flex-end',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.sp16,
-    paddingBottom: 14,
+    paddingBottom: spacing.sp14,
   },
   headerTitle: {
     fontSize: 18,
@@ -279,7 +279,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.background,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 6,
+    marginBottom: spacing.sp6,
   },
 
   // Offline banner
@@ -356,7 +356,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   tilesRow: {
     height: 62,
     flexDirection: 'row',
-    gap: 14,
+    gap: spacing.sp14,
     marginHorizontal: spacing.sp16,
     marginTop: spacing.sp16,
   },
@@ -380,7 +380,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
-    marginTop: 2,
+    marginTop: spacing.sp2,
     includeFontPadding: false,
   },
   tileValueMono: {

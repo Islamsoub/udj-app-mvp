@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettingsStore } from '@/stores/settingsStore';
 import i18n from '@/i18n';
-import { lightColors, spacing, radius, type Palette } from '@/constants/theme';
+import { lightColors, spacing, sizing, radius, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 // Onboarding CTAs sit on a jade-tinted brand background — button label is always
@@ -92,6 +92,7 @@ export default function OnboardingScreen() {
               style={[styles.langCard, selectedLang === 'fr' && styles.langCardSelected]}
               onPress={() => handleLangSelect('fr')}
             >
+              {/* Language names are not translated — they must be readable in their own script */}
               <Text style={styles.langCardText}>Français</Text>
               {selectedLang === 'fr' && (
                 <Ionicons name="checkmark-circle" size={24} color={colors.jade400} />
@@ -102,6 +103,7 @@ export default function OnboardingScreen() {
               style={[styles.langCard, selectedLang === 'ar' && styles.langCardSelected]}
               onPress={() => handleLangSelect('ar')}
             >
+              {/* Language names are not translated — they must be readable in their own script */}
               <Text style={styles.langCardText}>العربية</Text>
               {selectedLang === 'ar' && (
                 <Ionicons name="checkmark-circle" size={24} color={colors.jade400} />
@@ -145,7 +147,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     alignSelf: 'flex-end',
     paddingHorizontal: spacing.sp16,
     paddingTop: spacing.sp8,
-    minHeight: 44,
+    minHeight: sizing.touchTarget,
     justifyContent: 'center',
   },
   skipText: {
@@ -154,7 +156,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     color: colors.jade600,
   },
   skipIcon: {
-    marginStart: 2,
+    marginStart: 2, // sub-pixel chevron nudge — intentional, not on the 8px grid
   },
   contentArea: {
     flex: 1,

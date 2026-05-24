@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, sizing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -81,7 +81,7 @@ function Header({ topInset, onBack }: { topInset: number; onBack: () => void }) 
       <View style={styles.headerRow}>
         <Pressable
           onPress={onBack}
-          style={({ pressed }) => [styles.backBtn, pressed && { backgroundColor: colors.textPrimary + '26', borderRadius: 999 }]}
+          style={({ pressed }) => [styles.backBtn, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.15), borderRadius: 999 }]}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
@@ -293,8 +293,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     height: 56,
   },
   backBtn: {
-    width: 44,
-    height: 44,
+    width: sizing.touchTarget,
+    height: sizing.touchTarget,
     alignItems: 'center',
     justifyContent: 'center',
   },

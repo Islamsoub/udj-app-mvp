@@ -54,7 +54,7 @@ function InfoRow({
 
 const makeInfoStyles = (colors: Palette) => StyleSheet.create({
   row: {
-    height: 54,
+    height: 56,
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.sp16,
     flexDirection: 'row',

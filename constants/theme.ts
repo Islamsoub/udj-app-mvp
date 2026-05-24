@@ -57,6 +57,16 @@ export interface Palette {
   warningBorder: string;
   newsNotifBg: string;
   greyMedium: string;
+
+  // Base neutrals — only ever used through withAlpha() for overlays/scrims,
+  // or as solid fills where a true white/black is required.
+  white: string;
+  black: string;
+
+  // Decorative fills (skeleton blocks + empty/error/modal state icon circles)
+  skeletonBox: string;
+  errorCircleBg: string;
+  examCircleBg: string;
 }
 
 export const lightColors: Palette = {
@@ -125,6 +135,12 @@ export const lightColors: Palette = {
   warningBorder: '#FFA629',
   newsNotifBg: '#E1F5F0',
   greyMedium: '#757575',
+
+  white: '#FFFFFF',
+  black: '#000000',
+  skeletonBox: '#D9D9D9',
+  errorCircleBg: '#F5B4B4',
+  examCircleBg: '#E0D3FE',
 };
 
 // ─── Dark palette ─────────────────────────────────────────────────────────────
@@ -195,6 +211,12 @@ export const darkColors: Palette = {
   warningBorder: '#FFA629',
   newsNotifBg: '#0D1F18',
   greyMedium: '#8FA89E',
+
+  white: '#FFFFFF',
+  black: '#000000',
+  skeletonBox: '#2A3D36',
+  errorCircleBg: '#F5B4B4',
+  examCircleBg: '#E0D3FE',
 };
 
 
@@ -202,18 +224,44 @@ export const darkColors: Palette = {
 // Backward-compat alias — screens still import `colors` until Phase 2.
 export const colors = lightColors;
 
+/**
+ * Apply an alpha channel to a 6-digit hex color, returning an 8-digit
+ * #RRGGBBAA string. Centralizes alpha so components never concatenate raw
+ * hex suffixes (e.g. `colors.jade400 + '26'`) or hand-write rgba() literals.
+ *
+ * @param color 6-digit hex (e.g. '#1D9E75')
+ * @param alpha 0–1 opacity (e.g. 0.15)
+ */
+export function withAlpha(color: string, alpha: number): string {
+  const hex = Math.round(alpha * 255).toString(16).padStart(2, '0');
+  return color + hex;
+}
+
 export const spacing = {
   sp2: 2,
   sp4: 4,
   sp6: 6,
   sp8: 8,
   sp12: 12,
+  sp14: 14,
   sp16: 16,
   sp20: 20,
   sp24: 24,
   sp32: 32,
   sp48: 48,
   sp64: 64,
+} as const;
+
+// Fixed component dimensions that recur across screens. touchTarget is the
+// 44x44 minimum tappable size mandated by the design system.
+export const sizing = {
+  touchTarget: 44,
+  avatarSm: 32,
+  avatarMd: 48,
+  avatarLg: 64,
+  iconSm: 20,
+  iconMd: 24,
+  iconLg: 32,
 } as const;
 
 export const radius = {
@@ -337,6 +385,7 @@ export const typographyAR = {
 export const theme = {
   colors,
   spacing,
+  sizing,
   radius,
   fonts,
   typographyFR,

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts, spacing, radius, type Palette } from '@/constants/theme';
+import { fonts, spacing, radius, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsSheet } from './SettingsSheet';
 
@@ -28,11 +28,11 @@ export function LogoutConfirm({
     >
       <Text style={styles.body}>{t('settings.confirm.logout_body')}</Text>
       <View style={styles.buttons}>
-        <Pressable style={({ pressed }) => [styles.btn, styles.btnOutline, pressed && { backgroundColor: colors.jade400 + '26' }]} onPress={onClose}>
+        <Pressable style={({ pressed }) => [styles.btn, styles.btnOutline, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) }]} onPress={onClose}>
           <Text style={styles.btnOutlineText}>{t('settings.confirm.cancel')}</Text>
         </Pressable>
         <Pressable
-          style={({ pressed }) => [styles.btn, styles.btnDestructive, pressed && { backgroundColor: colors.danger + '26' }]}
+          style={({ pressed }) => [styles.btn, styles.btnDestructive, pressed && { backgroundColor: withAlpha(colors.danger, 0.15) }]}
           onPress={() => {
             onConfirm();
             onClose();

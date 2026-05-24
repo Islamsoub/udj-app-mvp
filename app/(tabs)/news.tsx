@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
@@ -168,7 +168,7 @@ function EmptyBody({ isSaved }: { isSaved?: boolean }) {
             <Text style={styles.notifBannerText}>{t('news.empty.notification')}</Text>
           </View>
 
-          <Pressable hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }}>
+          <Pressable hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}>
             <Text style={styles.seeAllLink}>{t('news.empty.see_all')}</Text>
           </Pressable>
         </>
@@ -205,7 +205,7 @@ function ErrorBody({ onRetry }: ErrorBodyProps) {
         <Text style={styles.retryBtnText}>{t('news.error.retry')}</Text>
       </Pressable>
 
-      <Pressable hitSlop={8} style={({ pressed }) => [{ marginTop: spacing.sp16 }, pressed && { backgroundColor: colors.jade400 + '26', borderRadius: 6 }]}>
+      <Pressable hitSlop={8} style={({ pressed }) => [{ marginTop: spacing.sp16 }, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }]}>
         <Text style={styles.savedArticlesLink}>{t('news.error.saved_articles')}</Text>
       </Pressable>
     </View>
@@ -377,7 +377,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   // ── Saved articles warning banner (offline body)
   savedBanner: {
     marginHorizontal: spacing.sp16,
-    height: 46,
+    height: spacing.sp48,
     borderRadius: radius.rLg,
     backgroundColor: colors.warningLight,
     borderWidth: 1,

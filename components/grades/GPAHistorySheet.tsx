@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import Svg, { Polyline, Polygon, Circle, Line } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export interface GPADataPoint {
@@ -135,7 +135,7 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
                 {hasLine && (
                   <Polygon
                     points={areaPoints}
-                    fill="rgba(29,158,117,0.10)"
+                    fill={withAlpha(colors.jade400, 0.1)}
                   />
                 )}
 
@@ -279,7 +279,7 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
 const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: withAlpha(colors.black, 0.45),
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -293,7 +293,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     height: 4,
     borderRadius: radius.rFull,
     backgroundColor: '#E5E5E5',
-    marginTop: 12,
+    marginTop: spacing.sp12,
     marginBottom: 16,
   },
 

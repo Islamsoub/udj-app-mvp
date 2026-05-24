@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, sizing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { useCourseDetailStore } from '@/stores/courseDetailStore';
 import {
@@ -59,11 +59,11 @@ function TrashIcon({ color }: { color: string }) {
 function pillVariant(status: CourseStatus, colors: Palette): { bg: string; text: string } {
   switch (status) {
     case 'active':
-      return { bg: 'rgba(139,92,246,0.15)', text: colors.exam };
+      return { bg: withAlpha(colors.exam, 0.15), text: colors.exam };
     case 'past':
       return { bg: colors.border, text: colors.greyMedium };
     case 'upcoming':
-      return { bg: 'rgba(29,158,117,0.15)', text: colors.jade600 };
+      return { bg: withAlpha(colors.jade400, 0.15), text: colors.jade600 };
   }
 }
 
@@ -256,7 +256,7 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
 const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    backgroundColor: withAlpha(colors.black, 0.45),
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -270,7 +270,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     height: 4,
     borderRadius: radius.rFull,
     backgroundColor: '#E5E5E5',
-    marginTop: 12,
+    marginTop: spacing.sp12,
     marginBottom: 20,
   },
 
@@ -299,7 +299,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Info rows
   infoRow: {
-    height: 54,
+    height: 56,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -333,7 +333,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   statusPill: {
     height: 28,
     borderRadius: radius.rFull,
-    paddingHorizontal: 12,
+    paddingHorizontal: spacing.sp12,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -426,8 +426,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     color: colors.textTertiary,
   },
   noteDeleteBtn: {
-    minWidth: 44,
-    minHeight: 44,
+    minWidth: sizing.touchTarget,
+    minHeight: sizing.touchTarget,
     alignItems: 'flex-end',
     justifyContent: 'center',
   },

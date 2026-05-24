@@ -75,7 +75,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   contactRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 54,
+    height: 56,
     paddingHorizontal: spacing.sp16,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -88,7 +88,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: 54,
+    height: 56,
     paddingHorizontal: spacing.sp16,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,

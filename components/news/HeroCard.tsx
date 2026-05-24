@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export interface HeroArticle {
@@ -24,7 +24,7 @@ export function HeroCard({ article, onPress }: HeroCardProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && { backgroundColor: colors.surface + '0F' }]}
+      style={({ pressed }) => [styles.card, pressed && { backgroundColor: withAlpha(colors.surface, 0.06) }]}
     >
       {/* Green image placeholder with urgent pill */}
       <View style={styles.imageArea}>

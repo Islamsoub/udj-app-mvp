@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, Switch, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, type Palette } from '@/constants/theme';
+import { fonts, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface SettingsRowProps {
@@ -51,7 +51,7 @@ export function SettingsRow({
   }
 
   return (
-    <Pressable style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.textPrimary + '0F' }]} onPress={onPress} hitSlop={4} disabled={disabled}>
+    <Pressable style={({ pressed }) => [styles.row, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]} onPress={onPress} hitSlop={4} disabled={disabled}>
       <Text style={[styles.label, { color: labelColor }]} numberOfLines={1}>
         {label}
       </Text>
@@ -69,7 +69,7 @@ export function SettingsRow({
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
   row: {
-    height: 54,
+    height: 56,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,

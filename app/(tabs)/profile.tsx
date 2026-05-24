@@ -546,7 +546,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   pendingBanner: {
     marginHorizontal: spacing.sp16,
-    minHeight: 54,
+    minHeight: 56,
     borderRadius: radius.rMd,
     backgroundColor: colors.newsOfflineBg,
     borderWidth: 1,

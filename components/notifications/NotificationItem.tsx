@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, radius, type Palette } from '@/constants/theme';
+import { fonts, spacing, radius, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { getCategoryColor } from '@/constants/colorMap';
 
@@ -69,7 +69,7 @@ export function NotificationItem({ item, onPress }: Props) {
     <Pressable
       onPress={onPress}
       android_ripple={{ color: colors.jade50 }}
-      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.textPrimary + '0F' }]}
+      style={({ pressed }) => [styles.row, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
     >
       <View style={[styles.iconCircle, { backgroundColor: bg }]}>
         <Ionicons name={icon} size={22} color={iconColor} />
@@ -113,7 +113,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   textCol: {
     flex: 1,
     marginStart: spacing.sp12,
-    gap: 2,
+    gap: spacing.sp2,
   },
   titleRow: {
     flexDirection: 'row',
@@ -142,7 +142,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 2,
+    marginTop: spacing.sp2,
   },
   timestamp: {
     fontSize: 12,
@@ -153,7 +153,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   typePill: {
     borderRadius: radius.rFull,
     paddingHorizontal: spacing.sp8,
-    paddingVertical: 2,
+    paddingVertical: spacing.sp2,
   },
   typePillText: {
     fontSize: 10,

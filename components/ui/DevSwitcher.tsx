@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { fonts, lightColors, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, lightColors, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface DevSwitcherProps<T extends string> {
@@ -73,7 +73,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingHorizontal: spacing.sp8,
     paddingVertical: spacing.sp4,
     borderRadius: radius.rSm,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: withAlpha(colors.black, 0.55),
   },
   btnActive: {
     backgroundColor: colors.jade400,

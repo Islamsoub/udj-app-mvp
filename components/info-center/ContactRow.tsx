@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, View, Text, StyleSheet, I18nManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, type Palette } from '@/constants/theme';
+import { fonts, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export type ContactType = 'phone' | 'location' | 'email';
@@ -33,7 +33,7 @@ export function ContactRow({ item, onPress }: Props) {
     <Pressable
       onPress={onPress}
       android_ripple={{ color: colors.jade50 }}
-      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.textPrimary + '0F' }]}
+      style={({ pressed }) => [styles.row, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
     >
       <Ionicons name={ICON_NAME[item.type]} size={22} color={colors.jade400} />
 
@@ -51,7 +51,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 54,
+    height: 56,
     paddingHorizontal: spacing.sp16,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,

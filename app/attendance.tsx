@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -544,7 +544,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Inline offline banner
   offlineBanner: {
-    height: 46,
+    height: spacing.sp48,
     backgroundColor: colors.newsOfflineBg,
     borderBottomWidth: 1,
     borderBottomColor: colors.offline,
@@ -641,7 +641,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 216,
-    backgroundColor: 'rgba(29,158,117,0.1)',
+    backgroundColor: withAlpha(colors.jade400, 0.1),
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, type Palette } from '@/constants/theme';
+import { fonts, spacing, sizing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface SettingsHeaderProps {
@@ -38,13 +38,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: spacing.sp16,
-    paddingBottom: 14,
+    paddingBottom: spacing.sp14,
   },
   backBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 44,
-    minWidth: 44,
+    minHeight: sizing.touchTarget,
+    minWidth: sizing.touchTarget,
     gap: spacing.sp4,
   },
   title: {

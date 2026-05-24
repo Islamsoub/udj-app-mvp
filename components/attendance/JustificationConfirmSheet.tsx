@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface Props {
@@ -111,7 +111,7 @@ export function JustificationConfirmSheet({
           <Pressable
             style={({ pressed }) => [
               styles.cancelBtn,
-              pressed && { backgroundColor: colors.jade400 + '14' },
+              pressed && { backgroundColor: withAlpha(colors.jade400, 0.08) },
             ]}
             onPress={handleClose}
             disabled={uploading}
@@ -131,7 +131,7 @@ const makeStyles = (colors: Palette) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.45)',
+      backgroundColor: withAlpha(colors.black, 0.45),
       justifyContent: 'flex-end',
     },
     sheet: {

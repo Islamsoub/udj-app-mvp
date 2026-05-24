@@ -53,7 +53,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: spacing.sp16,
     paddingHorizontal: spacing.sp16,
-    minHeight: 54,
+    minHeight: 56,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
