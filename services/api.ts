@@ -96,6 +96,7 @@ export interface NewsItem {
   publishedAt: string;
   readTimeMinutes: number;
   isUrgent: boolean;
+  imageUrl: string | null;
   bookmarked: boolean;
   read: boolean;
   cachedAt: string;

@@ -112,6 +112,7 @@ export function mapNewsToCache(articles: NewsArticleSummary[]): NewsItem[] {
     publishedAt: a.publishedAt,
     readTimeMinutes: a.readTimeMinutes,
     isUrgent: a.isUrgent,
+    imageUrl: a.heroImageUrl,
     bookmarked: false,
     read: false,
     cachedAt: NOW(),

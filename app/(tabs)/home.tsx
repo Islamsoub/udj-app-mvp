@@ -7,6 +7,7 @@ import {
   StyleSheet,
   StatusBar,
   Animated,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { fonts, spacing, radius, sizing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
-import { getSubjectColor } from '@/constants/colorMap';
+import { getSubjectColor, getCategoryColor } from '@/constants/colorMap';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { CourseDetailSheet } from '@/components/schedule/CourseDetailSheet';
@@ -122,10 +123,6 @@ function scheduleToCard(s: Schedule, nowMins: number, colors: Palette): AgendaCa
   };
 }
 
-function newsItemToCard(item: NewsItem) {
-  return { title: item.title, category: item.category };
-}
-
 // ─── Skeleton pulse ───────────────────────────────────────────────────────────
 
 function SkeletonBox({ style }: { style: object }) {
@@ -215,19 +212,36 @@ function AgendaCard({
 
 // ─── News card ────────────────────────────────────────────────────────────────
 
-function NewsCard({ title, category }: { title: string; category: string }) {
+function NewsCard({
+  title,
+  category,
+  imageUrl,
+  onPress,
+}: {
+  title: string;
+  category: string;
+  imageUrl?: string | null;
+  onPress: () => void;
+}) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <View style={styles.newsCard}>
-      <View style={styles.newsThumbnail} />
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.newsCard, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
+    >
+      {imageUrl ? (
+        <Image source={{ uri: imageUrl }} style={styles.newsThumbnail} resizeMode="cover" />
+      ) : (
+        <View style={styles.newsThumbnail} />
+      )}
       <View style={styles.newsText}>
         <Text style={styles.newsTitle} numberOfLines={2}>{title}</Text>
-        <View style={styles.newsCategoryPill}>
-          <Text style={styles.newsCategoryText}>{category}</Text>
+        <View style={[styles.newsCategoryPill, { backgroundColor: getCategoryColor(category).bg }]}>
+          <Text style={[styles.newsCategoryText, { color: getCategoryColor(category).text }]}>{category}</Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -494,10 +508,8 @@ export default function HomeScreen() {
       .map((s) => scheduleToCard(s, nowMins, colors));
   }, [scheduleHook.data, todayDow, nowMins, colors]);
 
-  const newsCard = useMemo(() => {
-    const items = newsHook.data ?? [];
-    const urgent = items.find((n) => n.isUrgent) ?? items[0];
-    return urgent ? newsItemToCard(urgent) : null;
+  const newsCards = useMemo(() => {
+    return (newsHook.data ?? []).slice(0, 3);
   }, [newsHook.data]);
 
   // ─── Derive screen state from hooks ────────────────────────────────────────
@@ -604,12 +616,26 @@ export default function HomeScreen() {
 
             {/* News section */}
             <View style={[styles.sectionHeadingRow, { marginTop: 24 }]}>
-              <Text style={styles.sectionHeading}>Actualité du jour</Text>
-              <Text style={styles.sectionLink}>Voir tout</Text>
+              <Text style={styles.sectionHeading}>{t('home.news_section')}</Text>
+              <Pressable
+                onPress={() => router.push('/(tabs)/news')}
+                hitSlop={8}
+                style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}
+              >
+                <Text style={styles.sectionLink}>{t('home.see_all')}</Text>
+              </Pressable>
             </View>
 
-            {newsCard != null ? (
-              <NewsCard title={newsCard.title} category={newsCard.category} />
+            {newsCards.length > 0 ? (
+              newsCards.map((article) => (
+                <NewsCard
+                  key={article.id}
+                  title={article.title}
+                  category={article.category}
+                  imageUrl={article.imageUrl}
+                  onPress={() => router.push({ pathname: '/article-reader', params: { id: article.id } })}
+                />
+              ))
             ) : isOffline ? (
               <View style={styles.newsOfflineCard}>
                 <View style={styles.newsOfflineIcon}>
@@ -758,7 +784,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     alignSelf: 'flex-start', backgroundColor: colors.background,
     borderRadius: radius.rFull, paddingHorizontal: spacing.sp8, paddingVertical: spacing.sp2, marginTop: spacing.sp4,
   },
-  newsCategoryText: { fontSize: 10, color: colors.textSecondary, fontFamily: fonts.sans },
+  newsCategoryText: { fontSize: 10, color: colors.textSecondary, fontFamily: fonts.sans, textTransform: 'capitalize' },
 
   newsOfflineCard: {
     flexDirection: 'row', backgroundColor: withAlpha(colors.warning, 0.08),

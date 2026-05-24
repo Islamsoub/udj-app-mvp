@@ -74,7 +74,9 @@
     "agenda": {
       "empty": "Aucun cours aujourd'hui",
       "weekend": "Pas de cours aujourd'hui 🎉"
-    }
+    },
+    "news_section": "Actualités récentes",
+    "see_all": "Voir tout"
   },
   "screens": {
     "home": "Accueil",

@@ -132,9 +132,10 @@ export async function runMigrations(): Promise<void> {
   await addColumnSafe(db, 'ALTER TABLE attendance ADD COLUMN sessions_remaining INTEGER NOT NULL DEFAULT 0');
   await addColumnSafe(db, 'ALTER TABLE attendance ADD COLUMN percentage REAL NOT NULL DEFAULT 0');
 
-  // news_cache: read_time_minutes, is_urgent
+  // news_cache: read_time_minutes, is_urgent, image_url
   await addColumnSafe(db, 'ALTER TABLE news_cache ADD COLUMN read_time_minutes INTEGER NOT NULL DEFAULT 0');
   await addColumnSafe(db, 'ALTER TABLE news_cache ADD COLUMN is_urgent INTEGER NOT NULL DEFAULT 0');
+  await addColumnSafe(db, 'ALTER TABLE news_cache ADD COLUMN image_url TEXT');
 
   // student_profile: extended fields
   await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN first_name TEXT NOT NULL DEFAULT \'\'');
@@ -370,14 +371,15 @@ export async function upsertNews(items: NewsItem[]): Promise<void> {
       await db.runAsync(
         `INSERT INTO news_cache
           (id, title, body, category, published_at, read_time_minutes, is_urgent,
-           bookmarked, read, cached_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           image_url, bookmarked, read, cached_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(id) DO UPDATE SET
            title             = excluded.title,
            category          = excluded.category,
            published_at      = excluded.published_at,
            read_time_minutes = excluded.read_time_minutes,
            is_urgent         = excluded.is_urgent,
+           image_url         = excluded.image_url,
            cached_at         = excluded.cached_at,
            -- bookmarked and read intentionally NOT updated → preserved
            -- body: only update if incoming value is non-empty
@@ -390,6 +392,7 @@ export async function upsertNews(items: NewsItem[]): Promise<void> {
           item.publishedAt,
           item.readTimeMinutes,
           item.isUrgent ? 1 : 0,
+          item.imageUrl,
           item.bookmarked ? 1 : 0,
           item.read ? 1 : 0,
           item.cachedAt,
@@ -614,6 +617,7 @@ function rowToNews(row: Record<string, SQLite.SQLiteBindValue>): NewsItem {
     publishedAt: row.published_at as string,
     readTimeMinutes: (row.read_time_minutes as number | null) ?? 0,
     isUrgent: (row.is_urgent as number | null) === 1,
+    imageUrl: (row.image_url as string | null) ?? null,
     bookmarked: (row.bookmarked as number) === 1,
     read: (row.read as number) === 1,
     cachedAt: row.cached_at as string,
