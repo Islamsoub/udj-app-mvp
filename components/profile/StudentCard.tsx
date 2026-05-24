@@ -3,9 +3,12 @@ import { View, Text, StyleSheet, Pressable, Animated, Easing } from 'react-nativ
 import QRCode from 'react-native-qrcode-svg';
 import Svg, { Circle } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, lightColors, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
+// White brand foreground — text/strokes sit on the jade card, so they must
+// stay white in both light and dark mode (same BRAND_FG pattern as splash.tsx).
+const BRAND_FG = lightColors.surface;
 const CARD_TEXT_DIM = 'rgba(255,255,255,0.7)';
 const CARD_PILL_BG = 'rgba(255,255,255,0.15)';
 const CARD_RING_TRACK = 'rgba(255,255,255,0.25)';
@@ -91,7 +94,7 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
                   cx={RING_SIZE / 2}
                   cy={RING_SIZE / 2}
                   r={RING_RADIUS}
-                  stroke={colors.surface}
+                  stroke={BRAND_FG}
                   strokeWidth={RING_STROKE}
                   fill="none"
                   strokeDasharray={`${RING_CIRC} ${RING_CIRC}`}
@@ -170,7 +173,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     fontFamily: fonts.sans,
-    color: colors.surface,
+    color: BRAND_FG,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -195,7 +198,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   countdownText: {
     fontSize: 14,
     fontFamily: fonts.mono,
-    color: colors.surface,
+    color: BRAND_FG,
     includeFontPadding: false,
   },
   collapseHint: {
@@ -209,7 +212,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     fontFamily: fonts.sans,
-    color: colors.surface,
+    color: BRAND_FG,
   },
   cardSubtitle: {
     fontSize: 12,
@@ -220,7 +223,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     fontFamily: fonts.sans,
-    color: colors.surface,
+    color: BRAND_FG,
     marginTop: spacing.sp4,
   },
   cardStudentId: {

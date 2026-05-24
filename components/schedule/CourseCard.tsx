@@ -89,7 +89,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   subject: {
     fontSize: 12,
     fontFamily: 'PlusJakartaSans-Bold',
-    color: colors.dmCard,
+    color: colors.textPrimary,
     marginBottom: 4,
   },
   subtitle: {
