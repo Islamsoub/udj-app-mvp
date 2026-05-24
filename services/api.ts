@@ -310,6 +310,14 @@ export const getGradesAllSemesters = () =>
 
 // ── Attendance ───────────────────────────────────────────────────────────────
 
+export interface AbsenceRecord {
+  id: string;
+  date: string;
+  status: 'ABSENT' | 'JUSTIFIED';
+  justificationUrl: string | null;
+  justificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
+}
+
 export interface AttendanceSubject {
   subject: {
     id: string;
@@ -322,6 +330,7 @@ export interface AttendanceSubject {
   absent: number;
   justified: number;
   percentage: number;
+  absences: AbsenceRecord[];
 }
 
 export interface AttendanceApiResponse {
@@ -335,6 +344,27 @@ export interface AttendanceApiResponse {
 
 export const getAttendance = () =>
   instance.get<AttendanceApiResponse>('/student/attendance').then((r) => r.data);
+
+export async function uploadJustification(
+  recordId: string,
+  fileUri: string,
+  mimeType: string,
+): Promise<{ justificationUrl: string; justificationStatus: string }> {
+  const ext = mimeType.includes('pdf') ? 'pdf' : mimeType.includes('png') ? 'png' : 'jpg';
+  const formData = new FormData();
+  formData.append('justification', {
+    uri: fileUri,
+    type: mimeType,
+    name: `justification_${recordId}.${ext}`,
+  } as any);
+
+  const res = await instance.post(
+    `/student/attendance/${recordId}/justification`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+  return res.data;
+}
 
 // ── Notifications ─────────────────────────────────────────────────────────────
 

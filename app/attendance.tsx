@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,15 @@ import {
   Pressable,
   StyleSheet,
   StatusBar,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
@@ -26,7 +29,9 @@ import {
   getAttendance as getAttendanceApi,
   AttendanceApiResponse,
   AttendanceSubject,
+  AbsenceRecord,
   Attendance,
+  uploadJustification,
 } from '@/services/api';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getAttendance as getCachedAttendance, upsertAttendance } from '@/services/db';
@@ -92,15 +97,170 @@ function AttendanceOfflineBanner() {
 
 // ─── Cards body ───────────────────────────────────────────────────────────────
 
+// ─── Upload helper ────────────────────────────────────────────────────────────
+
+async function pickAndUpload(
+  recordId: string,
+  source: 'camera' | 'gallery',
+  t: TFunction,
+  onStart: () => void,
+  onEnd: () => void,
+  onSuccess: () => void,
+): Promise<void> {
+  if (source === 'camera') {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(t('attendance.camera_denied'));
+      return;
+    }
+  }
+
+  const result =
+    source === 'camera'
+      ? await ImagePicker.launchCameraAsync({
+          mediaTypes: 'images',
+          quality: 0.7,
+          allowsEditing: true,
+        })
+      : await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: 'images',
+          quality: 0.7,
+          allowsEditing: true,
+        });
+
+  if (result.canceled || !result.assets?.[0]) return;
+
+  const asset = result.assets[0];
+  onStart();
+  try {
+    await uploadJustification(recordId, asset.uri, asset.mimeType || 'image/jpeg');
+    Alert.alert(t('attendance.upload_success'));
+    onSuccess();
+  } catch {
+    Alert.alert(t('attendance.upload_error'));
+  } finally {
+    onEnd();
+  }
+}
+
+function showPickerAlert(
+  recordId: string,
+  t: TFunction,
+  onStart: () => void,
+  onEnd: () => void,
+  onSuccess: () => void,
+): void {
+  Alert.alert(
+    t('attendance.section_justification'),
+    undefined,
+    [
+      {
+        text: t('attendance.upload_camera'),
+        onPress: () => pickAndUpload(recordId, 'camera', t, onStart, onEnd, onSuccess),
+      },
+      {
+        text: t('attendance.upload_gallery'),
+        onPress: () => pickAndUpload(recordId, 'gallery', t, onStart, onEnd, onSuccess),
+      },
+      { text: t('common.cancel'), style: 'cancel' },
+    ],
+  );
+}
+
+// ─── Status pill ──────────────────────────────────────────────────────────────
+
+function StatusPill({
+  status,
+  colors,
+  t,
+}: {
+  status: AbsenceRecord['justificationStatus'] | 'ABSENT';
+  colors: Palette;
+  t: TFunction;
+}) {
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+
+  let bg: string;
+  let fg: string;
+  let label: string;
+
+  switch (status) {
+    case 'PENDING':
+      bg = colors.warningLight;
+      fg = colors.warning;
+      label = t('attendance.status_pending');
+      break;
+    case 'APPROVED':
+      bg = colors.jade50;
+      fg = colors.jade400;
+      label = t('attendance.status_approved');
+      break;
+    case 'REJECTED':
+      bg = colors.dangerLight;
+      fg = colors.danger;
+      label = t('attendance.status_rejected');
+      break;
+    default:
+      bg = colors.dangerLight;
+      fg = colors.danger;
+      label = 'ABSENT';
+      break;
+  }
+
+  return (
+    <View style={[styles.statusPill, { backgroundColor: bg }]}>
+      <Text style={[styles.statusPillText, { color: fg }]}>{label}</Text>
+    </View>
+  );
+}
+
+// ─── Cards body ───────────────────────────────────────────────────────────────
+
 interface CardsBodyProps {
   data: AttendanceApiResponse;
   remainingByCode: Record<string, number>;
+  onRefresh: () => void;
 }
 
-function CardsBody({ data, remainingByCode }: CardsBodyProps) {
+function CardsBody({ data, remainingByCode, onRefresh }: CardsBodyProps) {
   const { t } = useTranslation();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const [uploading, setUploading] = useState<string | null>(null);
+
+  const handleUploadPress = useCallback(
+    (recordId: string) => {
+      showPickerAlert(
+        recordId,
+        t,
+        () => setUploading(recordId),
+        () => setUploading(null),
+        onRefresh,
+      );
+    },
+    [t, onRefresh],
+  );
+
+  // Subjects below 85% that have absence records
+  const atRiskSubjects = useMemo(
+    () =>
+      data.subjects.filter(
+        (s) => s.percentage < 85 && s.absences && s.absences.length > 0,
+      ),
+    [data.subjects],
+  );
+
+  // Pick the first unjustified absence across all subjects for the generic upload card
+  const firstUnjustifiedId = useMemo(() => {
+    for (const s of data.subjects) {
+      if (!s.absences) continue;
+      const rec = s.absences.find(
+        (a) => a.status === 'ABSENT' && !a.justificationStatus,
+      );
+      if (rec) return rec.id;
+    }
+    return null;
+  }, [data.subjects]);
 
   return (
     <View style={styles.cardsBody}>
@@ -120,12 +280,112 @@ function CardsBody({ data, remainingByCode }: CardsBodyProps) {
       <Text style={styles.sectionHeader}>{t('attendance.section_justification')}</Text>
 
       <Pressable
-        style={({ pressed }) => [styles.uploadCard, pressed && { backgroundColor: colors.jade400 + '26' }]}
-        onPress={() => console.log('[ATTENDANCE] upload justificatif')}
+        style={({ pressed }) => [
+          styles.uploadCard,
+          pressed && { backgroundColor: colors.jade400 + '26' },
+        ]}
+        onPress={() => {
+          if (firstUnjustifiedId) {
+            handleUploadPress(firstUnjustifiedId);
+          } else {
+            // No specific record — show picker for generic upload
+            showPickerAlert(
+              'general',
+              t,
+              () => setUploading('general'),
+              () => setUploading(null),
+              onRefresh,
+            );
+          }
+        }}
+        disabled={uploading === 'general' || uploading === firstUnjustifiedId}
       >
-        <Ionicons name="camera-outline" size={22} color={colors.jade600} />
-        <Text style={styles.uploadText}>{t('attendance.upload')}</Text>
+        {uploading === 'general' || uploading === firstUnjustifiedId ? (
+          <ActivityIndicator size="small" color={colors.jade400} />
+        ) : (
+          <>
+            <Ionicons name="camera-outline" size={22} color={colors.jade600} />
+            <Text style={styles.uploadText}>{t('attendance.upload')}</Text>
+          </>
+        )}
       </Pressable>
+
+      {/* ── Unjustified absences list ─────────────────────────────────────── */}
+      {atRiskSubjects.length > 0 && (
+        <>
+          <Text style={[styles.sectionHeader, { marginTop: spacing.sp16 }]}>
+            {t('attendance.unjustified_absences')}
+          </Text>
+
+          {atRiskSubjects.map((subject) => (
+            <View key={subject.subject.code} style={styles.absenceSection}>
+              <Text style={styles.absenceSubjectName}>
+                {subject.subject.nameFr}
+              </Text>
+
+              {subject.absences.map((record) => {
+                const effectiveStatus: AbsenceRecord['justificationStatus'] | 'ABSENT' =
+                  record.justificationStatus ?? 'ABSENT';
+                const isUploading = uploading === record.id;
+
+                return (
+                  <View key={record.id} style={styles.absenceRow}>
+                    <Text style={styles.absenceDate}>
+                      {new Date(record.date).toLocaleDateString('fr-FR', {
+                        day: '2-digit',
+                        month: 'short',
+                      })}
+                    </Text>
+
+                    <StatusPill status={effectiveStatus} colors={colors} t={t} />
+
+                    {effectiveStatus === 'ABSENT' && (
+                      <Pressable
+                        style={({ pressed }) => [
+                          styles.justifyBtn,
+                          pressed && { backgroundColor: colors.jade600 },
+                        ]}
+                        onPress={() => handleUploadPress(record.id)}
+                        disabled={isUploading}
+                        hitSlop={8}
+                      >
+                        {isUploading ? (
+                          <ActivityIndicator size="small" color={colors.surface} />
+                        ) : (
+                          <Text style={styles.justifyBtnText}>
+                            {t('attendance.justify')}
+                          </Text>
+                        )}
+                      </Pressable>
+                    )}
+
+                    {effectiveStatus === 'REJECTED' && (
+                      <Pressable
+                        style={({ pressed }) => [
+                          styles.justifyBtn,
+                          { backgroundColor: colors.danger },
+                          pressed && { backgroundColor: '#DC2626' },
+                        ]}
+                        onPress={() => handleUploadPress(record.id)}
+                        disabled={isUploading}
+                        hitSlop={8}
+                      >
+                        {isUploading ? (
+                          <ActivityIndicator size="small" color={colors.surface} />
+                        ) : (
+                          <Text style={styles.justifyBtnText}>
+                            {t('attendance.justify')}
+                          </Text>
+                        )}
+                      </Pressable>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          ))}
+        </>
+      )}
     </View>
   );
 }
@@ -180,6 +440,9 @@ export default function AttendanceScreen() {
 
   const studentId = useAuthStore.getState().student?.id ?? 'me';
 
+  // Fresh API absences (not stored in SQLite cache)
+  const [freshAbsences, setFreshAbsences] = useState<Record<string, AbsenceRecord[]>>({});
+
   // ─── Offline query ──────────────────────────────────────────────────────────
 
   const hook = useOfflineQuery<Attendance[]>({
@@ -190,6 +453,14 @@ export default function AttendanceScreen() {
     },
     fetchFresh: async () => {
       const res = await getAttendanceApi();
+      // Capture absences from the API response (not cacheable in SQLite)
+      const absMap: Record<string, AbsenceRecord[]> = {};
+      for (const s of res.subjects) {
+        if (s.absences && s.absences.length > 0) {
+          absMap[s.subject.code] = s.absences;
+        }
+      }
+      setFreshAbsences(absMap);
       return mapAttendanceToCache(res.subjects, studentId);
     },
     updateCache: (data) => upsertAttendance(data),
@@ -221,9 +492,10 @@ export default function AttendanceScreen() {
         absent: a.sessionsTotal - a.sessionsPresent,
         justified: 0,
         percentage: a.percentage,
+        absences: freshAbsences[a.subjectCode] ?? [],
       })),
     };
-  }, [hook.data]);
+  }, [hook.data, freshAbsences]);
 
   const remainingByCode = useMemo(() => {
     const out: Record<string, number> = {};
@@ -275,7 +547,7 @@ export default function AttendanceScreen() {
       >
         {screenState === 'skeleton' && <AttendanceSkeleton />}
         {showCards && attendanceData != null && (
-          <CardsBody data={attendanceData} remainingByCode={remainingByCode} />
+          <CardsBody data={attendanceData} remainingByCode={remainingByCode} onRefresh={() => hook.refetch()} />
         )}
         {screenState === 'empty' && <EmptyBody />}
         {screenState === 'error' && (
@@ -362,6 +634,61 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.jade600,
+  },
+
+  // ── Absence list
+  absenceSection: {
+    paddingHorizontal: spacing.sp16,
+    marginBottom: spacing.sp16,
+  },
+  absenceSubjectName: {
+    fontSize: 14,
+    fontWeight: '600',
+    fontFamily: fonts.sans,
+    color: colors.textPrimary,
+    marginBottom: spacing.sp8,
+  },
+  absenceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: radius.rMd,
+    paddingVertical: spacing.sp12,
+    paddingHorizontal: spacing.sp16,
+    marginBottom: spacing.sp8,
+    gap: spacing.sp12,
+  },
+  absenceDate: {
+    flex: 1,
+    fontSize: 13,
+    fontFamily: fonts.mono,
+    fontWeight: '400',
+    color: colors.textPrimary,
+  },
+  statusPill: {
+    paddingHorizontal: spacing.sp8,
+    paddingVertical: spacing.sp4,
+    borderRadius: radius.rFull,
+  },
+  statusPillText: {
+    fontSize: 11,
+    fontWeight: '600',
+    fontFamily: fonts.sans,
+  },
+  justifyBtn: {
+    minWidth: 80,
+    height: 32,
+    borderRadius: radius.rSm,
+    backgroundColor: colors.jade400,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.sp12,
+  },
+  justifyBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: fonts.sans,
+    color: colors.surface,
   },
 
   // ── Center states (empty / error)
