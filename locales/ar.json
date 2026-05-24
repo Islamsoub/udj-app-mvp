@@ -447,6 +447,8 @@
     "status": "الحالة",
     "notes_section": "ملاحظات شخصية",
     "notes_placeholder": "أضف ملاحظة...",
+    "notes_empty": "لا توجد ملاحظات",
+    "notes_delete": "حذف الملاحظة",
     "save": "حفظ",
     "status_active": "جارٍ",
     "status_past": "انتهى",

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Modal,
   View,
@@ -9,15 +9,51 @@ import {
   StyleSheet,
   Keyboard,
 } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { useCourseDetailStore } from '@/stores/courseDetailStore';
+import {
+  getCourseNotes,
+  saveCourseNote,
+  deleteCourseNote,
+  type CourseNote,
+} from '@/services/db';
 import type { CourseStatus } from './StatusPill';
 
 interface Props {
   visible: boolean;
   onClose: () => void;
+}
+
+const MONTHS_FR = [
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+];
+
+// Stored timestamps are UTC ISO strings; render in the device's local time.
+function formatNoteTimestamp(iso: string): string {
+  const d = new Date(iso);
+  const day = d.getDate();
+  const month = MONTHS_FR[d.getMonth()];
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${day} ${month} à ${hh}:${mm}`;
+}
+
+function TrashIcon({ color }: { color: string }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m4 5v6m6-6v6"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
 }
 
 function pillVariant(status: CourseStatus, colors: Palette): { bg: string; text: string } {
@@ -43,10 +79,31 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
   const { t } = useTranslation();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const selectedCourse  = useCourseDetailStore((s) => s.selectedCourse);
-  const personalNote    = useCourseDetailStore((s) => s.personalNote);
-  const setPersonalNote = useCourseDetailStore((s) => s.setPersonalNote);
+  const selectedCourse = useCourseDetailStore((s) => s.selectedCourse);
   const scrollRef = useRef<ScrollView>(null);
+
+  const [noteText, setNoteText] = useState('');
+  const [notes, setNotes] = useState<CourseNote[]>([]);
+
+  const course      = selectedCourse;
+  const subjectCode = course?.code ?? null;
+  const dayOfWeek   = course?.dayOfWeek ?? null;
+
+  const refreshNotes = useCallback(async () => {
+    if (subjectCode == null || dayOfWeek == null) {
+      setNotes([]);
+      return;
+    }
+    const rows = await getCourseNotes(subjectCode, dayOfWeek);
+    setNotes(rows);
+  }, [subjectCode, dayOfWeek]);
+
+  // Load notes whenever the sheet opens or targets a different course.
+  useEffect(() => {
+    if (!visible) return;
+    setNoteText('');
+    void refreshNotes();
+  }, [visible, refreshNotes]);
 
   useEffect(() => {
     const sub = Keyboard.addListener('keyboardDidShow', () => {
@@ -55,10 +112,23 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
     return () => sub.remove();
   }, []);
 
-  const course   = selectedCourse;
-  const timeStr  = course ? `${course.start} – ${course.end}` : '';
-  const pill     = course ? pillVariant(course.status, colors) : null;
-  const coefStr  = course ? String(course.coefficient) : '';
+  const handleSave = useCallback(async () => {
+    Keyboard.dismiss();
+    const trimmed = noteText.trim();
+    if (!trimmed || subjectCode == null || dayOfWeek == null) return;
+    await saveCourseNote(subjectCode, dayOfWeek, trimmed);
+    setNoteText('');
+    await refreshNotes();
+  }, [noteText, subjectCode, dayOfWeek, refreshNotes]);
+
+  const handleDelete = useCallback(async (id: string) => {
+    await deleteCourseNote(id);
+    await refreshNotes();
+  }, [refreshNotes]);
+
+  const timeStr = course ? `${course.start} – ${course.end}` : '';
+  const pill    = course ? pillVariant(course.status, colors) : null;
+  const coefStr = course ? String(course.coefficient) : '';
 
   return (
     <Modal
@@ -133,8 +203,8 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
             <TextInput
               style={styles.notesInput}
               multiline
-              value={personalNote}
-              onChangeText={setPersonalNote}
+              value={noteText}
+              onChangeText={setNoteText}
               placeholder={t('course.notes_placeholder')}
               placeholderTextColor={colors.textTertiary}
               textAlignVertical="top"
@@ -143,10 +213,37 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
             {/* Save button */}
             <Pressable
               style={({ pressed }) => [styles.saveBtn, pressed && styles.saveBtnPressed]}
-              onPress={onClose}
+              onPress={handleSave}
             >
               <Text style={styles.saveBtnText}>{t('course.save')}</Text>
             </Pressable>
+
+            {/* Saved notes list */}
+            <View style={styles.notesList}>
+              {notes.length === 0 ? (
+                <Text style={styles.notesEmpty}>{t('course.notes_empty')}</Text>
+              ) : (
+                notes.map((n) => (
+                  <View key={n.id} style={styles.noteCard}>
+                    <Text style={styles.noteText}>{n.note}</Text>
+                    <View style={styles.noteFooter}>
+                      <Text style={styles.noteTimestamp}>
+                        {formatNoteTimestamp(n.createdAt)}
+                      </Text>
+                      <Pressable
+                        onPress={() => handleDelete(n.id)}
+                        hitSlop={14}
+                        accessibilityRole="button"
+                        accessibilityLabel={t('course.notes_delete')}
+                        style={styles.noteDeleteBtn}
+                      >
+                        <TrashIcon color={colors.textTertiary} />
+                      </Pressable>
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
 
             <View style={{ height: 40 }} />
           </ScrollView>
@@ -276,7 +373,6 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   saveBtn: {
     marginHorizontal: spacing.sp20,
     marginTop: spacing.sp16,
-    marginBottom: 28,
     height: 52,
     borderRadius: radius.rLg,
     backgroundColor: colors.jade400,
@@ -291,5 +387,48 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.surface,
+  },
+
+  // ── Saved notes list
+  notesList: {
+    marginTop: spacing.sp16,
+    paddingHorizontal: spacing.sp20,
+  },
+  notesEmpty: {
+    fontSize: 14,
+    fontFamily: fonts.sans,
+    color: colors.textTertiary,
+    textAlign: 'center',
+    paddingVertical: spacing.sp12,
+  },
+  noteCard: {
+    backgroundColor: colors.bgCard,
+    borderRadius: radius.rMd,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.sp12,
+    marginBottom: spacing.sp8,
+  },
+  noteText: {
+    fontSize: 14,
+    fontFamily: fonts.sans,
+    color: colors.textPrimary,
+  },
+  noteFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.sp8,
+  },
+  noteTimestamp: {
+    fontSize: 11,
+    fontFamily: fonts.mono,
+    color: colors.textTertiary,
+  },
+  noteDeleteBtn: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
 });

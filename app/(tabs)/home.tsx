@@ -57,6 +57,7 @@ interface AgendaCardData {
   courseStatus: 'active' | 'past' | 'upcoming';
   code: string;
   coefficient: number;
+  dayOfWeek: number;
 }
 
 function toExtendedCourse(item: AgendaCardData): ExtendedCourse {
@@ -71,6 +72,7 @@ function toExtendedCourse(item: AgendaCardData): ExtendedCourse {
     status: item.courseStatus,
     code: item.code,
     coefficient: item.coefficient,
+    dayOfWeek: item.dayOfWeek,
   };
 }
 
@@ -116,6 +118,7 @@ function scheduleToCard(s: Schedule, nowMins: number, colors: Palette): AgendaCa
     courseStatus,
     code: s.subjectCode,
     coefficient: s.coefficient,
+    dayOfWeek: s.dayOfWeek,
   };
 }
 

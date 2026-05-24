@@ -450,6 +450,8 @@
     "status": "Statut",
     "notes_section": "NOTES PERSONNELLES",
     "notes_placeholder": "Ajouter une note...",
+    "notes_empty": "Aucune note",
+    "notes_delete": "Supprimer la note",
     "save": "Enregistrer",
     "status_active": "En cours",
     "status_past": "Fini",

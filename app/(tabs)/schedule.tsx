@@ -121,6 +121,7 @@ function buildTimelineEntries(
       status: computeStatus(entry.startTime, entry.endTime, selectedDayIndex, weekOffset),
       code: entry.subject.code,
       coefficient: entry.subject.coefficient,
+      dayOfWeek: entry.dayOfWeek,
     });
 
     const next = sorted[i + 1];

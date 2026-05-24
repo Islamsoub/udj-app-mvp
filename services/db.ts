@@ -108,6 +108,14 @@ export async function runMigrations(): Promise<void> {
         created_at TEXT NOT NULL,
         cached_at TEXT NOT NULL
       );
+
+      CREATE TABLE IF NOT EXISTS course_notes (
+        id TEXT PRIMARY KEY,
+        subject_code TEXT NOT NULL,
+        day_of_week INTEGER NOT NULL,
+        note TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      );
     `);
   });
 
@@ -254,6 +262,47 @@ export async function getCachedNotifications(): Promise<CachedNotification[]> {
     'SELECT * FROM notifications ORDER BY created_at DESC',
   );
   return rows.map(rowToNotification);
+}
+
+// --- Course notes (user-authored, not cache — survives clearAllCache) ---
+
+export interface CourseNote {
+  id: string;
+  note: string;
+  createdAt: string;
+}
+
+export async function saveCourseNote(
+  subjectCode: string,
+  dayOfWeek: number,
+  note: string,
+): Promise<void> {
+  const db = await getDb();
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  await db.runAsync(
+    `INSERT INTO course_notes (id, subject_code, day_of_week, note, created_at)
+     VALUES (?, ?, ?, ?, ?)`,
+    [id, subjectCode, dayOfWeek, note, new Date().toISOString()],
+  );
+}
+
+export async function getCourseNotes(
+  subjectCode: string,
+  dayOfWeek: number,
+): Promise<CourseNote[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<{ id: string; note: string; created_at: string }>(
+    `SELECT id, note, created_at FROM course_notes
+     WHERE subject_code = ? AND day_of_week = ?
+     ORDER BY created_at DESC`,
+    [subjectCode, dayOfWeek],
+  );
+  return rows.map((r) => ({ id: r.id, note: r.note, createdAt: r.created_at }));
+}
+
+export async function deleteCourseNote(id: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM course_notes WHERE id = ?', [id]);
 }
 
 // --- Write helpers ---
