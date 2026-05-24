@@ -63,7 +63,8 @@
       "Bash(echo \"EXIT=$?\")",
       "PowerShell(npx tsc --noEmit)",
       "Bash(python -c ' *)",
-      "Bash(echo \"EXIT:$?\")"
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(npx eas *)"
     ]
   }
 }
