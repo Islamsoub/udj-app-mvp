@@ -64,7 +64,8 @@
       "PowerShell(npx tsc --noEmit)",
       "Bash(python -c ' *)",
       "Bash(echo \"EXIT:$?\")",
-      "Bash(npx eas *)"
+      "Bash(npx eas *)",
+      "PowerShell(Remove-Item *)"
     ]
   }
 }
