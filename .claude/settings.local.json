@@ -65,7 +65,9 @@
       "Bash(python -c ' *)",
       "Bash(echo \"EXIT:$?\")",
       "Bash(npx eas *)",
-      "PowerShell(Remove-Item *)"
+      "PowerShell(Remove-Item *)",
+      "Bash(rm assets/icons/adaptive-icon.png)",
+      "Bash(mv assets/icons/adaptive-icon-new.png assets/icons/adaptive-icon.png)"
     ]
   }
 }
