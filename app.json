@@ -18,8 +18,9 @@
       "bundleIdentifier": "dj.univ.udj"
     },
     "android": {
+      "icon": "./assets/icons/icon.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icons/adaptive-icon-432.png",
+        "foregroundImage": "./assets/icons/adaptive-icon.png",
         "backgroundColor": "#0A3D2E"
       },
       "edgeToEdgeEnabled": true,
