@@ -149,7 +149,19 @@ function SearchBar() {
 function LoadedContent() {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<string>('f1');
+
+  const faqs: FAQData[] = [
+    { id: 'f1', question: t('infoCenter.faq_q1'), answer: t('infoCenter.faq_a1') },
+    { id: 'f2', question: t('infoCenter.faq_q2'), answer: t('infoCenter.faq_a2') },
+    { id: 'f3', question: t('infoCenter.faq_q3'), answer: t('infoCenter.faq_a3') },
+  ];
+
+  const pdfs: PDFData[] = [
+    { id: 'p1', name: t('infoCenter.pdf1'), url: '' },
+    { id: 'p2', name: t('infoCenter.pdf2'), url: '' },
+  ];
 
   function handleContactPress(item: ContactData) {
     if (item.type === 'phone') {
@@ -181,7 +193,7 @@ function LoadedContent() {
       ))}
 
       <SectionHeader labelKey="infoCenter.faq" />
-      {MOCK_FAQS.map(item => (
+      {faqs.map(item => (
         <FAQItem
           key={item.id}
           item={item}
@@ -191,7 +203,7 @@ function LoadedContent() {
       ))}
 
       <SectionHeader labelKey="infoCenter.pdfForms" />
-      {MOCK_PDFS.map(item => (
+      {pdfs.map(item => (
         <PDFRow
           key={item.id}
           item={item}

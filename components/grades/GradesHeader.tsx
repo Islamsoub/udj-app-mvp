@@ -31,6 +31,15 @@ const SPEC_HEIGHT: Record<GradesHeaderState, number> = {
   skeleton: 305,
 };
 
+const MENTION_KEY: Record<string, string> = {
+  'Ajourné': 'home.mention.ajourne',
+  'Passable': 'home.mention.passable',
+  'Assez Bien': 'home.mention.assez_bien',
+  'Bien': 'home.mention.bien',
+  'Très Bien': 'home.mention.tres_bien',
+  'Félicitations': 'home.mention.felicitations',
+};
+
 export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterChange, credits, onCalculatorPress, onGpaPress }: GradesHeaderProps) {
   const { t } = useTranslation();
   const { colors } = useColors();
@@ -132,7 +141,9 @@ export function GradesHeader({ state, topInset, gpa, activeSemester, onSemesterC
           <Text style={styles.gpaNumber}>{gpaText}</Text>
           {mention !== null && (
             <View style={[styles.mentionBadge, { backgroundColor: getMentionColor(mention, colors) }]}>
-              <Text style={[styles.mentionText, { color: getMentionTextColor(mention, colors) }]}>{mention}</Text>
+              <Text style={[styles.mentionText, { color: getMentionTextColor(mention, colors) }]}>
+                {MENTION_KEY[mention] ? t(MENTION_KEY[mention]) : mention}
+              </Text>
             </View>
           )}
         </Pressable>

@@ -97,8 +97,8 @@ function ProfileBody({
   const programmeLevel = student?.programmeLevel ?? '';
   const programmeDuration = student?.programmeDurationSemesters ?? 0;
   const programmeCredits = student?.programmeTotalCredits ?? 0;
-  const semesterUnit = isAr ? 'فصل' : 'sem.';
-  const creditsUnit = isAr ? 'وحدة' : 'crédits';
+  const semesterUnit = t('profile.unit.semester');
+  const creditsUnit = t('profile.unit.credits');
   const programmeInfoValue =
     programmeLevel || programmeDuration || programmeCredits
       ? `${programmeLevel} · ${programmeDuration} ${semesterUnit} · ${programmeCredits} ${creditsUnit}`

@@ -38,6 +38,7 @@ import {
   mapNewsToCache,
 } from '@/services/cacheMappers';
 import { getGreeting, isWeekend } from '@/utils/greeting';
+import { formatLocalDate } from '@/utils/dateFormat';
 
 type HomeState = 'loaded' | 'error' | 'empty' | 'skeleton' | 'offline';
 
@@ -77,7 +78,16 @@ function toExtendedCourse(item: AgendaCardData): ExtendedCourse {
   };
 }
 
-function scheduleToCard(s: Schedule, nowMins: number, colors: Palette): AgendaCardData {
+const MENTION_KEY: Record<string, string> = {
+  'Ajourné': 'home.mention.ajourne',
+  'Passable': 'home.mention.passable',
+  'Assez Bien': 'home.mention.assez_bien',
+  'Bien': 'home.mention.bien',
+  'Très Bien': 'home.mention.tres_bien',
+  'Félicitations': 'home.mention.felicitations',
+};
+
+function scheduleToCard(s: Schedule, nowMins: number, colors: Palette, t: (key: string) => string): AgendaCardData {
   const [sh, sm] = s.startTime.split(':').map(Number);
   const [eh, em] = s.endTime.split(':').map(Number);
   const startMins = sh * 60 + sm;
@@ -95,12 +105,12 @@ function scheduleToCard(s: Schedule, nowMins: number, colors: Palette): AgendaCa
 
   if (s.isExam) {
     accentColor = colors.exam;
-    statusLabel = 'Examen';
+    statusLabel = t('schedule.status.exam');
     statusBg = withAlpha(colors.exam, 0.15);
     statusColor = colors.exam;
     statusBorder = colors.exam;
   } else if (isActive) {
-    statusLabel = 'En cours';
+    statusLabel = t('schedule.status.active');
     statusBg = withAlpha(colors.jade400, 0.15);
     statusColor = colors.jade400;
   }
@@ -169,6 +179,7 @@ function AgendaCard({
   isOffline,
   onPress,
 }: AgendaCardProps) {
+  const { t } = useTranslation();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
@@ -184,7 +195,7 @@ function AgendaCard({
         {isOffline && (
           <View style={styles.offlineWarningRow}>
             <Ionicons name="warning-outline" size={12} color={colors.warning} />
-            <Text style={styles.offlineWarningText}>données locales</Text>
+            <Text style={styles.offlineWarningText}>{t('home.offline_data')}</Text>
           </View>
         )}
         <View style={styles.pillRow}>
@@ -322,9 +333,7 @@ function LoadedHeader({
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const today = new Date();
-  const dateStr = today
-    .toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
-    .toUpperCase();
+  const dateStr = formatLocalDate(today);
 
   const displayName = profile?.firstName ?? '—';
   const displayGpa = profile?.gpa != null ? profile.gpa.toFixed(1) : '--';
@@ -348,12 +357,12 @@ function LoadedHeader({
         </Pressable>
       </View>
       <Text style={styles.greeting}>
-        <Text style={styles.greetingBase}>Bonjour, </Text>
+        <Text style={styles.greetingBase}>{t('home.hello')} </Text>
         <Text style={styles.greetingName}>{displayName}</Text>
       </Text>
       {isOffline ? (
         <Text style={styles.subtitleOffline}>
-          <Text style={styles.subtitleOfflineNormal}>Données locales – </Text>
+          <Text style={styles.subtitleOfflineNormal}>{t('home.offline_data')} – </Text>
           <Text style={styles.subtitleOfflineTime}>{t('common.last_sync_short', { time: lastSyncTime ?? 'hier 14h30' })}</Text>
         </Text>
       ) : (
@@ -361,9 +370,9 @@ function LoadedHeader({
       )}
       <View style={styles.divider} />
       <View style={styles.statRow}>
-        <StatCard label="GPA" value={displayGpa} sub={displayMention} onPress={() => router.push('/(tabs)/grades')} />
-        <StatCard label="PRÉSENCE" value={displayAttendance} sub="Limite: 75%" onPress={() => router.push('/attendance')} />
-        <StatCard label="CRÉDITS" value={displayCredits} sub={`/ ${displayCreditsTotal} ce sem.`} onPress={() => router.push('/(tabs)/grades')} />
+        <StatCard label={t('home.stat.gpa')} value={displayGpa} sub={MENTION_KEY[displayMention] ? t(MENTION_KEY[displayMention]) : displayMention} onPress={() => router.push('/(tabs)/grades')} />
+        <StatCard label={t('home.stat.presence')} value={displayAttendance} sub={t('home.stat.attendance_limit')} onPress={() => router.push('/attendance')} />
+        <StatCard label={t('home.stat.credits')} value={displayCredits} sub={t('home.stat.credits_of', { total: displayCreditsTotal })} onPress={() => router.push('/(tabs)/grades')} />
       </View>
     </View>
   );
@@ -385,12 +394,13 @@ function StatCard({ label, value, sub, onPress }: { label: string; value: string
 
 function SimpleHeader({ topInset }: { topInset: number }) {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={[styles.simpleHeader, { paddingTop: topInset + 0 }]}>
       <View style={styles.headerTopRow}>
-        <Text style={styles.simpleHeaderTitle}>Accueil</Text>
+        <Text style={styles.simpleHeaderTitle}>{t('tabs.home')}</Text>
         <Pressable
           style={({ pressed }) => [styles.bellBtn, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.15), borderRadius: 999 }]}
           onPress={() => router.push('/notifications')}
@@ -408,6 +418,7 @@ function SimpleHeader({ topInset }: { topInset: number }) {
 
 function SessionExpiredModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
+  const { t } = useTranslation();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
@@ -417,18 +428,16 @@ function SessionExpiredModal({ onClose }: { onClose: () => void }) {
         <View style={styles.modalIconCircle}>
           <Ionicons name="key-outline" size={36} color={colors.warning} />
         </View>
-        <Text style={styles.modalTitle}>Session expirée</Text>
-        <Text style={styles.modalBody}>
-          Votre session a expiré pour des raisons de sécurité. Reconnectez-vous pour continuer à accéder à vos données.
-        </Text>
+        <Text style={styles.modalTitle}>{t('common.session.title')}</Text>
+        <Text style={styles.modalBody}>{t('common.session.body')}</Text>
         <Pressable
           style={({ pressed }) => [styles.modalPrimaryBtn, pressed && { backgroundColor: colors.jade600 }]}
           onPress={() => router.replace('/(auth)/login')}
         >
-          <Text style={styles.modalPrimaryBtnText}>Se connecter</Text>
+          <Text style={styles.modalPrimaryBtnText}>{t('common.session.login')}</Text>
         </Pressable>
         <Pressable style={({ pressed }) => [styles.modalOutlineBtn, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) }]} onPress={onClose}>
-          <Text style={styles.modalOutlineBtnText}>Continuer en hors-ligne</Text>
+          <Text style={styles.modalOutlineBtnText}>{t('common.session.continue_offline')}</Text>
         </Pressable>
       </View>
     </View>
@@ -505,8 +514,8 @@ export default function HomeScreen() {
     return entries
       .filter((s) => s.dayOfWeek === todayDow)
       .sort((a, b) => a.startTime.localeCompare(b.startTime))
-      .map((s) => scheduleToCard(s, nowMins, colors));
-  }, [scheduleHook.data, todayDow, nowMins, colors]);
+      .map((s) => scheduleToCard(s, nowMins, colors, t));
+  }, [scheduleHook.data, todayDow, nowMins, colors, t]);
 
   const newsCards = useMemo(() => {
     return (newsHook.data ?? []).slice(0, 3);
@@ -583,9 +592,9 @@ export default function HomeScreen() {
           <View style={styles.bodySection}>
             {/* Agenda section */}
             <View style={styles.sectionHeadingRow}>
-              <Text style={styles.sectionHeading}>Agenda du jour</Text>
+              <Text style={styles.sectionHeading}>{t('home.agenda_section')}</Text>
               <Pressable onPress={() => router.push('/(tabs)/schedule')} hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}>
-                <Text style={styles.sectionLink}>Voir tout</Text>
+                <Text style={styles.sectionLink}>{t('home.see_all')}</Text>
               </Pressable>
             </View>
 
@@ -642,7 +651,7 @@ export default function HomeScreen() {
                   <Ionicons name="globe-outline" size={18} color={colors.surface} />
                 </View>
                 <Text style={styles.newsOfflineText}>
-                  Actualités et mises à jour indisponibles hors-ligne. Reconnectez-vous pour synchroniser.
+                  {t('home.news_offline')}
                 </Text>
               </View>
             ) : null}
@@ -654,12 +663,10 @@ export default function HomeScreen() {
             <View style={styles.errorIconCircle}>
               <Ionicons name="wifi-outline" size={42} color={colors.textPrimary} />
             </View>
-            <Text style={styles.stateTitle}>Impossible de charger votre agenda</Text>
-            <Text style={styles.stateBody}>
-              Vérifiez votre connexion internet et réessayez.
-            </Text>
+            <Text style={styles.stateTitle}>{t('home.error.title')}</Text>
+            <Text style={styles.stateBody}>{t('home.error.body')}</Text>
             <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={handleRetry}>
-              <Text style={styles.retryBtnText}>Réessayer</Text>
+              <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
             </Pressable>
           </View>
         )}
@@ -667,10 +674,8 @@ export default function HomeScreen() {
         {homeState === 'empty' && (
           <View style={styles.centerState}>
             <Text style={styles.palmEmoji}>🌴</Text>
-            <Text style={styles.stateTitle}>Aucun cours aujourd'hui</Text>
-            <Text style={styles.stateBody}>
-              Pas de cours programmé. Bon repos !
-            </Text>
+            <Text style={styles.stateTitle}>{t('home.agenda.empty')}</Text>
+            <Text style={styles.stateBody}>{t('home.empty.body')}</Text>
           </View>
         )}
 

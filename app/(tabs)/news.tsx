@@ -25,6 +25,7 @@ import { getNews, NewsItem } from '@/services/api';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getCachedNews, upsertNews, getSavedArticles } from '@/services/db';
 import { mapNewsToCache } from '@/services/cacheMappers';
+import { formatTimestamp, formatReadTime } from '@/utils/dateFormat';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -38,7 +39,7 @@ function newsItemToArticle(item: NewsItem, localReadIds: Set<string>): Article {
     category: item.category as ArticleCategory,
     title: item.title,
     timestamp: formatTimestamp(item.publishedAt),
-    readTime: `${item.readTimeMinutes} min`,
+    readTime: formatReadTime(item.readTimeMinutes),
     isRead: item.read || localReadIds.has(item.id),
     bookmarked: item.bookmarked,
   };
@@ -49,7 +50,7 @@ function newsItemToHero(item: NewsItem) {
     id: item.id,
     title: item.title,
     timestamp: formatTimestamp(item.publishedAt),
-    readTime: `${item.readTimeMinutes} min`,
+    readTime: formatReadTime(item.readTimeMinutes),
   };
 }
 
@@ -60,23 +61,6 @@ const FILTER_CATEGORY: Partial<Record<FilterKey, string>> = {
   youth:     'youth',
   sponsors:  'sponsors',
 };
-
-function formatTimestamp(publishedAt: string): string {
-  const now = new Date();
-  const date = new Date(publishedAt);
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / 86400000);
-  if (diffDays === 0) {
-    const h = date.getHours().toString().padStart(2, '0');
-    const m = date.getMinutes().toString().padStart(2, '0');
-    return `Aujourd'hui à ${h}H${m}`;
-  }
-  if (diffDays === 1) {
-    const h = date.getHours().toString().padStart(2, '0');
-    const m = date.getMinutes().toString().padStart(2, '0');
-    return `Hier à ${h}H${m}`;
-  }
-  return `Il y a ${diffDays}j`;
-}
 
 // ─── Saved articles warning (offline body) ────────────────────────────────────
 

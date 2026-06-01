@@ -36,6 +36,7 @@ import {
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getAttendance as getCachedAttendance, upsertAttendance } from '@/services/db';
 import { mapAttendanceToCache } from '@/services/cacheMappers';
+import { formatAbsenceDate } from '@/utils/dateFormat';
 import { useAuthStore } from '@/stores/authStore';
 
 // ─── Projection helper ────────────────────────────────────────────────────────
@@ -288,10 +289,7 @@ function CardsBody({ data, remainingByCode, onRefresh }: CardsBodyProps) {
                 return (
                   <View key={record.id} style={styles.absenceRow}>
                     <Text style={styles.absenceDate}>
-                      {new Date(record.date).toLocaleDateString('fr-FR', {
-                        day: '2-digit',
-                        month: 'short',
-                      })}
+                      {formatAbsenceDate(new Date(record.date))}
                     </Text>
 
                     <StatusPill status={effectiveStatus} colors={colors} t={t} />

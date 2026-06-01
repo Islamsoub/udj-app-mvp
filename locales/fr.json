@@ -40,7 +40,14 @@
     "biometricSetupMessage": "Utiliser l'empreinte digitale pour te connecter ?",
     "biometricEnable": "Activer",
     "biometricNotAvailable": "Biométrie non disponible sur cet appareil",
-    "biometricFailed": "Échec de l'authentification"
+    "biometricFailed": "Échec de l'authentification",
+    "universityName": "Universite de Djibouti",
+    "subtitle": "Connectez-vous à votre espace étudiant",
+    "or": "ou",
+    "biometric_label": "Empreinte digitale ou Face ID",
+    "network_required": "Une connexion internet est requise pour la première connexion. Activez vos données mobiles ou Wi-Fi.",
+    "session_body": "Votre session de 30 jours a expiré. Reconnectez-vous pour accéder à vos données.",
+    "change_account": "Changer"
   },
   "onboarding": {
     "skip": "Passer",
@@ -71,6 +78,32 @@
       "evening": "Bonne soirée 🌙",
       "weekend": "Bon week-end 😊"
     },
+    "hello": "Bonjour,",
+    "agenda_section": "Agenda du jour",
+    "stat": {
+      "gpa": "GPA",
+      "presence": "PRÉSENCE",
+      "credits": "CRÉDITS",
+      "attendance_limit": "Limite : 75%",
+      "credits_of": "/ {{total}} ce sem."
+    },
+    "mention": {
+      "ajourne": "Ajourné",
+      "passable": "Passable",
+      "assez_bien": "Assez Bien",
+      "bien": "Bien",
+      "tres_bien": "Très Bien",
+      "felicitations": "Félicitations"
+    },
+    "offline_data": "Données locales",
+    "news_offline": "Actualités indisponibles hors-ligne. Reconnectez-vous pour synchroniser.",
+    "error": {
+      "title": "Impossible de charger votre agenda",
+      "body": "Vérifiez votre connexion internet et réessayez."
+    },
+    "empty": {
+      "body": "Pas de cours programmé. Bon repos !"
+    },
     "agenda": {
       "empty": "Aucun cours aujourd'hui",
       "weekend": "Pas de cours aujourd'hui 🎉"
@@ -94,7 +127,8 @@
     "status": {
       "done": "Fini",
       "active": "En cours",
-      "upcoming": "À venir"
+      "upcoming": "À venir",
+      "exam": "Examen"
     },
     "empty": {
       "title": "Aucun cours ce week-end",
@@ -212,6 +246,10 @@
       "active": "Actif",
       "suspended": "Suspendu",
       "graduated": "Diplômé"
+    },
+    "unit": {
+      "semester": "sem.",
+      "credits": "crédits"
     },
     "offline": {
       "banner": "Profil local · QR disponible hors-ligne",
@@ -377,6 +415,10 @@
     },
     "empty_saved": "Aucun article sauvegardé",
     "mark_all_read_error": "Erreur lors de la mise à jour",
+    "time_ago_days": "Il y a {{n}}j",
+    "today_at": "Aujourd'hui à {{time}}",
+    "yesterday_at": "Hier à {{time}}",
+    "read_min": "{{n}} min",
     "error": {
       "title": "Actualités indisponibles",
       "body": "Impossible de récupérer les actualités. Vérifiez votre connexion et réessayez.",
@@ -485,7 +527,15 @@
     "pdfForms": "FORMULAIRES PDF",
     "errorTitle": "Centre d'information indisponible",
     "errorBody": "Vérifiez votre connexion puis réessayez.",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "faq_q1": "Comment réinitialiser mon mot de passe ?",
+    "faq_a1": "Rendez-vous sur l'écran de connexion et touchez « Mot de passe oublié ». Un lien de réinitialisation sera envoyé à votre email étudiant.",
+    "faq_q2": "Où trouver mon relevé de notes ?",
+    "faq_a2": "Allez dans l'onglet Notes, puis appuyez sur « Relevé complet ». Vous pouvez aussi le télécharger en PDF depuis le Centre d'information.",
+    "faq_q3": "Comment justifier une absence ?",
+    "faq_a3": "Allez dans Présence, sélectionnez la matière concernée, puis appuyez sur « Justifier ». Joignez un document et envoyez.",
+    "pdf1": "Formulaire d'inscription",
+    "pdf2": "Demande de bourse"
   },
   "logout": {
     "confirm_title": "Se déconnecter ?",

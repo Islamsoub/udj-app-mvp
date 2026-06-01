@@ -24,11 +24,13 @@ export function ScheduleHeader({
   onNextWeek,
   onToday,
 }: ScheduleHeaderProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const DAYS_FR = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
   const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  const DAYS_AR = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 
   // Date of the currently-selected day in the currently-displayed week.
   const selectedDate = useMemo(() => {
@@ -42,7 +44,10 @@ export function ScheduleHeader({
   }, [selectedDayIndex, weekOffset]);
 
   const isToday = weekOffset === 0 && selectedDayIndex === new Date().getDay();
-  const dateLabel = `${DAYS_FR[selectedDate.getDay()]} ${selectedDate.getDate()} ${MONTHS_FR[selectedDate.getMonth()]}`;
+  const isAr = i18n.language === 'ar';
+  const days = isAr ? DAYS_AR : DAYS_FR;
+  const months = isAr ? MONTHS_AR : MONTHS_FR;
+  const dateLabel = `${days[selectedDate.getDay()]} ${selectedDate.getDate()} ${months[selectedDate.getMonth()]}`;
   const subtitle = isToday ? `${t('schedule.today')} – ${dateLabel}` : dateLabel;
 
   return (

@@ -292,11 +292,9 @@ export default function LoginScreen() {
           ) : (
             <View style={styles.greenContent}>
               <LogoSVG width={63} height={92} />
-              <Text style={styles.greenTitle}>Universite de Djibouti</Text>
+              <Text style={styles.greenTitle}>{t('auth.universityName')}</Text>
               {showSubtitle && (
-                <Text style={styles.greenSubtitle}>
-                  Connectez-vous à votre espace étudiant
-                </Text>
+                <Text style={styles.greenSubtitle}>{t('auth.subtitle')}</Text>
               )}
             </View>
           )}
@@ -348,10 +346,8 @@ export default function LoginScreen() {
                     <View style={styles.sessionRow}>
                       <Ionicons name="key-outline" size={24} color={colors.warning} />
                       <View style={styles.sessionTexts}>
-                        <Text style={styles.sessionTitle}>Session expirée</Text>
-                        <Text style={styles.sessionBody}>
-                          Votre session de 30 jours a expiré. Reconnectez-vous pour accéder à vos données.
-                        </Text>
+                        <Text style={styles.sessionTitle}>{t('common.session.title')}</Text>
+                        <Text style={styles.sessionBody}>{t('auth.session_body')}</Text>
                       </View>
                     </View>
                   </View>
@@ -364,7 +360,7 @@ export default function LoginScreen() {
                       <Text style={styles.savedId}>UDJ-2024-0432</Text>
                     </View>
                     <Pressable onPress={() => setLoginState('default')} hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}>
-                      <Text style={styles.changerText}>Changer ›</Text>
+                      <Text style={styles.changerText}>{t('auth.change_account')}</Text>
                     </Pressable>
                   </View>
                 </>
@@ -373,7 +369,7 @@ export default function LoginScreen() {
               {/* ── STUDENT ID INPUT (all states except locked-out + session-expired) ── */}
               {!isLocked && !isSessionExpired && (
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Numéro étudiant</Text>
+                  <Text style={styles.inputLabel}>{t('auth.studentId')}</Text>
                   <TextInput
                     style={[styles.textInput, styles.monoInput, studentIdInputStyle]}
                     value={studentId}
@@ -390,7 +386,7 @@ export default function LoginScreen() {
               {/* ── LOCKED-OUT: disabled input ── */}
               {isLocked && (
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Mot de passe</Text>
+                  <Text style={styles.inputLabel}>{t('auth.password')}</Text>
                   <TextInput
                     style={[styles.textInput, styles.monoInput, styles.textInputDisabled]}
                     placeholder="UDJ-2024-0432"
@@ -404,10 +400,10 @@ export default function LoginScreen() {
               {!isLocked && !isSessionExpired && (
                 <View style={styles.inputGroup}>
                   <View style={styles.passwordLabelRow}>
-                    <Text style={styles.inputLabel}>Mot de passe</Text>
+                    <Text style={styles.inputLabel}>{t('auth.password')}</Text>
                     {loginState === 'default' && (
                       <Pressable hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}>
-                        <Text style={styles.forgotInline}>Mot de passe oublié ?</Text>
+                        <Text style={styles.forgotInline}>{t('auth.forgotPassword')}</Text>
                       </Pressable>
                     )}
                   </View>
@@ -426,7 +422,7 @@ export default function LoginScreen() {
               {/* ── SESSION-EXPIRED: password input ── */}
               {isSessionExpired && (
                 <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Mot de passe</Text>
+                  <Text style={styles.inputLabel}>{t('auth.password')}</Text>
                   <TextInput
                     style={[styles.textInput, { backgroundColor: colors.surface, borderColor: colors.jade600 }]}
                     value={password}
@@ -479,9 +475,7 @@ export default function LoginScreen() {
                     <View style={styles.globeCircle}>
                       <Ionicons name="globe-outline" size={18} color={colors.surface} />
                     </View>
-                    <Text style={styles.networkCardText}>
-                      Une connexion internet est requise pour la première connexion. Activez vos données mobiles ou Wi-Fi.
-                    </Text>
+                    <Text style={styles.networkCardText}>{t('auth.network_required')}</Text>
                   </View>
                 </View>
               )}
@@ -489,7 +483,7 @@ export default function LoginScreen() {
               {/* ── ERROR: forgot password link below button ── */}
               {isError && (
                 <Pressable hitSlop={8} style={({ pressed }) => [styles.forgotBelow, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }]}>
-                  <Text style={styles.forgotBelowText}>Mot de passe oublié ?</Text>
+                  <Text style={styles.forgotBelowText}>{t('auth.forgotPassword')}</Text>
                 </Pressable>
               )}
 
@@ -505,7 +499,7 @@ export default function LoginScreen() {
                 <>
                   <View style={styles.dividerRow}>
                     <View style={styles.dividerLine} />
-                    <Text style={styles.dividerText}>ou</Text>
+                    <Text style={styles.dividerText}>{t('auth.or')}</Text>
                     <View style={styles.dividerLine} />
                   </View>
                   <View style={styles.biometricContainer}>
@@ -516,7 +510,7 @@ export default function LoginScreen() {
                     >
                       <Ionicons name="scan-outline" size={24} color={colors.warning} />
                     </Pressable>
-                    <Text style={styles.biometricLabel}>Empreinte digitale ou Face ID</Text>
+                    <Text style={styles.biometricLabel}>{t('auth.biometric_label')}</Text>
                   </View>
                 </>
               )}
