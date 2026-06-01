@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/icons/adaptive-icon.png",
+      "image": "./assets/icons/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0A3D2E"
     },
@@ -18,9 +18,9 @@
       "bundleIdentifier": "dj.univ.udj"
     },
     "android": {
-      "icon": "./assets/icons/icon.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/icons/adaptive-icon.png",
+        "foregroundImage": "./assets/icons/adaptive-icon-foreground.png",
+        "backgroundImage": "./assets/icons/adaptive-icon-background.png",
         "backgroundColor": "#0A3D2E"
       },
       "edgeToEdgeEnabled": true,
@@ -43,7 +43,7 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#0A3D2E",
-          "image": "./assets/icons/adaptive-icon.png",
+          "image": "./assets/icons/icon.png",
           "imageWidth": 200
         }
       ],
