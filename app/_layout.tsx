@@ -1,6 +1,6 @@
-import '@/i18n';
+import i18n from '@/i18n';
 import React, { useEffect, useState } from 'react';
-import { StatusBar } from 'react-native';
+import { I18nManager, StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -11,6 +11,7 @@ import * as Notifications from 'expo-notifications';
 import * as Linking from 'expo-linking';
 import { runMigrations } from '@/services/db';
 import { useAuthStore } from '@/stores/authStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 import { useColors } from '@/hooks/useColors';
 import {
   registerForPushNotifications,
@@ -43,6 +44,8 @@ export default function RootLayout() {
   const [migrationsReady, setMigrationsReady] = useState(false);
   const loadAuthFromStorage = useAuthStore((s) => s.loadAuthFromStorage);
   const authLoaded = useAuthStore((s) => s.loaded);
+  const language = useSettingsStore((s) => s.language);
+  const isRTL = useSettingsStore((s) => s.isRTL);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const student = useAuthStore((s) => s.student);
   const router = useRouter();
@@ -60,6 +63,16 @@ export default function RootLayout() {
     'NotoNaskhArabic': require('../assets/fonts/NotoNaskhArabic-Regular.ttf'),
     'NotoNaskhArabic-Bold': require('../assets/fonts/NotoNaskhArabic-Bold.ttf'),
   });
+
+  useEffect(() => {
+    if (language && language !== i18n.language) {
+      i18n.changeLanguage(language);
+    }
+    I18nManager.allowRTL(true);
+    if (I18nManager.isRTL !== isRTL) {
+      I18nManager.forceRTL(isRTL);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     async function prepare() {

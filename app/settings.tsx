@@ -135,10 +135,12 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
   const handleLanguageChange = (lang: 'fr' | 'ar') => {
     setLangueVisible(false);
     if (lang === currentLang) return;
+    const shouldBeRTL = lang === 'ar';
     i18n.changeLanguage(lang);
     useSettingsStore.getState().setLanguage(lang);
-    if ((lang === 'ar') !== I18nManager.isRTL) {
-      I18nManager.forceRTL(lang === 'ar');
+    I18nManager.allowRTL(true);
+    I18nManager.forceRTL(shouldBeRTL);
+    if (I18nManager.isRTL !== shouldBeRTL) {
       Alert.alert(t('settings.restart_title'), t('settings.restart_message'));
     }
   };

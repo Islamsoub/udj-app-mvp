@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
+import { I18nManager, View, Text, Pressable, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -51,6 +51,8 @@ export default function OnboardingScreen() {
     setSelectedLang(lang);
     setLanguage(lang);
     i18n.changeLanguage(lang);
+    I18nManager.allowRTL(true);
+    I18nManager.forceRTL(lang === 'ar');
   };
 
   const handleNext = () => {
