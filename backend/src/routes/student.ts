@@ -200,10 +200,16 @@ router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
 
 // ── GET /student/schedule ─────────────────────────────────────────────────────
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 router.get('/schedule', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const studentId = req.studentId!;
     const querySemesterId = req.query.semesterId as string | undefined;
+
+    if (querySemesterId && !UUID_RE.test(querySemesterId)) {
+      throw new AppError('Invalid semester ID', 400);
+    }
 
     const [student, semester] = await Promise.all([
       prisma.student.findUnique({
@@ -254,6 +260,10 @@ router.get('/grades', async (req: Request, res: Response, next: NextFunction) =>
     const studentId = req.studentId!;
     const querySemesterId = req.query.semesterId as string | undefined;
     const allSemesters = req.query.allSemesters === 'true';
+
+    if (querySemesterId && !UUID_RE.test(querySemesterId)) {
+      throw new AppError('Invalid semester ID', 400);
+    }
 
     const student = await prisma.student.findUnique({
       where: { id: studentId },
@@ -564,7 +574,7 @@ router.patch('/preferences', async (req: Request, res: Response, next: NextFunct
 
 // ── POST /student/push-token ──────────────────────────────────────────────────
 
-const pushTokenSchema = z.object({ token: z.string().min(1) });
+const pushTokenSchema = z.object({ token: z.string().min(1).max(256) });
 
 router.post('/push-token', async (req: Request, res: Response, next: NextFunction) => {
   try {

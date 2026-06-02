@@ -6,11 +6,15 @@ import { AppError } from '../utils/AppError';
 const router = Router();
 router.use(authMiddleware);
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const VALID_CATEGORIES = new Set(['official', 'events', 'scolarite', 'sport', 'youth', 'sponsors']);
+
 // ── GET /news ─────────────────────────────────────────────────────────────────
 
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const category = typeof req.query.category === 'string' ? req.query.category : undefined;
+    const rawCategory = typeof req.query.category === 'string' ? req.query.category.toLowerCase() : undefined;
+    const category = rawCategory && VALID_CATEGORIES.has(rawCategory) ? rawCategory : undefined;
     const limit = Math.min(Math.max(parseInt((req.query.limit as string) || '10', 10), 1), 100);
     const offset = Math.max(parseInt((req.query.offset as string) || '0', 10), 0);
 
@@ -41,7 +45,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 
 router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const id = req.params.id as string;
+    const id = String(req.params.id);
+    if (!UUID_RE.test(id)) throw new AppError('Invalid article ID', 400);
     const article = await prisma.newsArticle.findUnique({
       where: { id },
     });

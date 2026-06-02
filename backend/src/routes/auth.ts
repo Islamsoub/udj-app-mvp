@@ -113,7 +113,7 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
       data: {
         studentId: student.id,
         tokenHash: refreshTokenHash,
-        deviceName: (req.headers['user-agent'] as string) || null,
+        deviceName: ((req.headers['user-agent'] as string) || '').slice(0, 256) || null,
         issuedAt: now,
         expiresAt,
         isRevoked: false,
