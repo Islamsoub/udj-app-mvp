@@ -246,3 +246,23 @@ Languages: French (LTR, default) + Arabic (RTL).
    must have keyboardShouldPersistTaps="handled". Without this,
    tapping the button dismisses the keyboard instead of firing
    the button's onPress.
+
+## Security decisions (v1.0 — documented accepted risks)
+
+### SSL certificate pinning — ACCEPTED RISK
+Standard HTTPS is adequate for beta. JWTs are short-lived (15 min),
+stored in SecureStore, and auto-rotate. Pinning adds operational
+complexity (cert hash rotation locks users out). Plan for v1.1 if
+the app handles more sensitive data.
+
+### SQLite encryption — ACCEPTED RISK
+Android sandbox prevents other apps from reading the DB on non-rooted
+devices. SQLite is a cache of API data, not primary storage. allowBackup
+is set to false to prevent ADB dump. Full SQLCipher encryption planned
+for v1.1.
+
+### Privacy policy — REQUIRED BEFORE PLAY STORE
+Google Play requires a privacy policy URL. Must be created and hosted
+before production submission. Data collected: student profile, grades,
+attendance, FCM push token, course notes (local only). No location,
+no analytics.

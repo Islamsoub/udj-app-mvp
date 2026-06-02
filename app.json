@@ -18,6 +18,7 @@
       "bundleIdentifier": "dj.univ.udj"
     },
     "android": {
+      "allowBackup": false,
       "adaptiveIcon": {
         "foregroundImage": "./assets/icons/adaptive-icon-foreground.png",
         "backgroundImage": "./assets/icons/adaptive-icon-background.png",
