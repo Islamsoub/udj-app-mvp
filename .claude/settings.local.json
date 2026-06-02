@@ -68,7 +68,11 @@
       "PowerShell(Remove-Item *)",
       "Bash(rm assets/icons/adaptive-icon.png)",
       "Bash(mv assets/icons/adaptive-icon-new.png assets/icons/adaptive-icon.png)",
-      "Bash(xargs grep -l \"\\\\.nameFr\\\\|\\\\.titleFr\\\\|\\\\.bodyFr\")"
+      "Bash(xargs grep -l \"\\\\.nameFr\\\\|\\\\.titleFr\\\\|\\\\.bodyFr\")",
+      "Bash(npm audit *)",
+      "Bash(npm update *)",
+      "Bash(npm ls *)",
+      "Bash(npm show *)"
     ]
   }
 }

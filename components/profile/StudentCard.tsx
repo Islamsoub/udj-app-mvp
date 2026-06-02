@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable, Animated, Easing } from 'react-native';
+import * as ScreenCapture from 'expo-screen-capture';
 import QRCode from 'react-native-qrcode-svg';
 import Svg, { Circle } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
@@ -48,6 +49,17 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
     }, 1000);
     return () => clearInterval(intv);
   }, []);
+
+  useEffect(() => {
+    if (expanded) {
+      ScreenCapture.preventScreenCaptureAsync();
+    } else {
+      ScreenCapture.allowScreenCaptureAsync();
+    }
+    return () => {
+      ScreenCapture.allowScreenCaptureAsync();
+    };
+  }, [expanded]);
 
   const toggle = () => {
     const next = !expanded;
