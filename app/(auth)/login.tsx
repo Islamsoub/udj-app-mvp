@@ -426,7 +426,7 @@ export default function LoginScreen() {
                   <Text style={styles.inputLabel}>{t('auth.password')}</Text>
                   <TextInput
                     style={[styles.textInput, styles.monoInput, styles.textInputDisabled]}
-                    placeholder="UDJ-2024-0432"
+                    placeholder="••••••••"
                     placeholderTextColor={colors.textTertiary}
                     editable={false}
                   />
