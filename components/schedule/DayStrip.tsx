@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, lightColors, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 const FR_ABBREVS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
@@ -243,10 +243,10 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     color: colors.textSecondary,
   },
   textSelected: {
-    color: colors.surface,
+    color: lightColors.surface,
   },
   textWeekend: {
-    color: colors.textTertiary,
+    color: colors.textSecondary,
   },
   todayDot: {
     width: 4,

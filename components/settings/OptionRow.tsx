@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, lightColors, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface OptionRowProps {
@@ -40,7 +40,7 @@ export function OptionRow({
       </View>
       <View style={[styles.radio, selected && styles.radioSelected]}>
         {selected ? (
-          <Ionicons name="checkmark" size={14} color={colors.surface} />
+          <Ionicons name="checkmark" size={14} color={lightColors.surface} />
         ) : null}
       </View>
     </Pressable>

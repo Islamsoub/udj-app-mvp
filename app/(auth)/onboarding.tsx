@@ -95,9 +95,9 @@ export default function OnboardingScreen() {
               onPress={() => handleLangSelect('fr')}
             >
               {/* Language names are not translated — they must be readable in their own script */}
-              <Text style={styles.langCardText}>Français</Text>
+              <Text style={[styles.langCardText, selectedLang === 'fr' && styles.langCardSelectedText]}>Français</Text>
               {selectedLang === 'fr' && (
-                <Ionicons name="checkmark-circle" size={24} color={colors.jade400} />
+                <Ionicons name="checkmark-circle" size={24} color={colors.jade600} />
               )}
             </Pressable>
 
@@ -106,9 +106,9 @@ export default function OnboardingScreen() {
               onPress={() => handleLangSelect('ar')}
             >
               {/* Language names are not translated — they must be readable in their own script */}
-              <Text style={styles.langCardText}>العربية</Text>
+              <Text style={[styles.langCardText, selectedLang === 'ar' && styles.langCardSelectedText]}>العربية</Text>
               {selectedLang === 'ar' && (
-                <Ionicons name="checkmark-circle" size={24} color={colors.jade400} />
+                <Ionicons name="checkmark-circle" size={24} color={colors.jade600} />
               )}
             </Pressable>
           </View>
@@ -192,12 +192,16 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   langCardSelected: {
     borderColor: colors.jade400,
-    backgroundColor: '#E8F5F0',
+    backgroundColor: colors.jade50,
   },
   langCardText: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.textPrimary,
+  },
+  langCardSelectedText: {
+    color: colors.jade900,
+    fontWeight: '700',
   },
   title: {
     fontSize: 22,
