@@ -9,10 +9,11 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { fonts, lightColors, radius, spacing, withAlpha, colors, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { restoreSession } from '@/services/auth';
 
 // Splash is a branded jade-green screen — text/iconography always renders in
 // light-palette tones regardless of active theme.
@@ -24,8 +25,6 @@ import { DevSwitcher } from '@/components/ui/DevSwitcher';
 const LogoSVG = (
   require('@/assets/icons/Logo.svg') as { default: React.FC<{ width: number; height: number }> }
 ).default;
-
-const JWT_KEY = 'udj_jwt';
 
 // RGBA variants not expressible as opaque hex tokens in theme.ts
 const WHITE_08 = withAlpha(colors.white, 0.08);
@@ -61,20 +60,6 @@ const STATE_LABELS: Record<SplashState, string> = {
   'first-install': 'first-install',
   'force-update':  'force-update',
 };
-
-function isTokenValid(token: string): boolean {
-  try {
-    const parts = token.split('.');
-    const encodedPayload = parts[1];
-    if (!encodedPayload) return false;
-    const base64 = encodedPayload.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
-    const payload = JSON.parse(atob(padded)) as { exp?: number };
-    return typeof payload.exp === 'number' && payload.exp * 1000 > Date.now();
-  } catch {
-    return false;
-  }
-}
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -115,14 +100,15 @@ export default function SplashScreen() {
 
     const timer = setTimeout(async () => {
       try {
-        const token = await SecureStore.getItemAsync(JWT_KEY);
-        if (token !== null && isTokenValid(token)) {
+        const resumed = await restoreSession();
+        if (resumed) {
           router.replace('/(tabs)/home');
-        } else {
-          router.replace('/(auth)/onboarding');
+          return;
         }
+        const onboarded = await AsyncStorage.getItem('hasOnboarded');
+        router.replace(onboarded ? '/(auth)/login' : '/(auth)/onboarding');
       } catch {
-        router.replace('/(auth)/onboarding');
+        router.replace('/(auth)/login');
       }
     }, 1500);
 

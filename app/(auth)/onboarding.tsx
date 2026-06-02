@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { I18nManager, View, Text, Pressable, StyleSheet, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -59,11 +60,13 @@ export default function OnboardingScreen() {
     if (currentStep < 3) {
       setCurrentStep((prev) => prev + 1);
     } else {
+      void AsyncStorage.setItem('hasOnboarded', 'true');
       router.replace('/(auth)/login');
     }
   };
 
   const handleSkip = () => {
+    void AsyncStorage.setItem('hasOnboarded', 'true');
     router.replace('/(auth)/login');
   };
 
