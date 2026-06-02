@@ -37,6 +37,7 @@ import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getFullSemesterSchedule, upsertSchedules } from '@/services/db';
 import { mapScheduleToCache } from '@/services/cacheMappers';
 import { useAuthStore } from '@/stores/authStore';
+import { localName } from '@/utils/i18nName';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -61,7 +62,7 @@ function scheduleToEntry(s: Schedule): ScheduleEntry {
     subject: {
       id: s.subjectCode,
       nameFr: s.subjectName,
-      nameAr: s.subjectName,
+      nameAr: s.subjectNameAr ?? s.subjectName,
       code: s.subjectCode,
       coefficient: s.coefficient,
     },
@@ -104,6 +105,7 @@ function buildTimelineEntries(
   entries: ScheduleEntry[],
   selectedDayIndex: number,
   weekOffset: number,
+  lang: string,
 ): (ExtendedCourse | PauseEntry)[] {
   const sorted = [...entries].sort((a, b) =>
     a.startTime.localeCompare(b.startTime),
@@ -113,7 +115,7 @@ function buildTimelineEntries(
   sorted.forEach((entry, i) => {
     result.push({
       id: entry.id,
-      subject: entry.subject.nameFr,
+      subject: localName(entry.subject, lang),
       teacher: entry.professorName,
       room: entry.room,
       start: entry.startTime,
@@ -414,6 +416,8 @@ export default function ScheduleScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { i18n } = useTranslation();
+  const lang = i18n.language;
 
   const setSelectedCourse = useCourseDetailStore((s) => s.setSelectedCourse);
   const studentId = useAuthStore.getState().student?.id ?? 'me';
@@ -442,8 +446,9 @@ export default function ScheduleScreen() {
       allEntries.filter((e) => e.dayOfWeek === selectedDay),
       selectedDay,
       weekOffset,
+      lang,
     ),
-    [allEntries, selectedDay, weekOffset],
+    [allEntries, selectedDay, weekOffset, lang],
   );
 
   const offlineDayCourses: Course[] = useMemo(

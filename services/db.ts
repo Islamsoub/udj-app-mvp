@@ -121,28 +121,34 @@ export async function runMigrations(): Promise<void> {
 
   // --- Additive migrations: new columns on existing tables ---
 
-  // schedules: coefficient
+  // schedules: coefficient, subject_name_ar
   await addColumnSafe(db, 'ALTER TABLE schedules ADD COLUMN coefficient REAL NOT NULL DEFAULT 0');
+  await addColumnSafe(db, "ALTER TABLE schedules ADD COLUMN subject_name_ar TEXT NOT NULL DEFAULT ''");
 
-  // grades: subject_name
-  await addColumnSafe(db, 'ALTER TABLE grades ADD COLUMN subject_name TEXT NOT NULL DEFAULT \'\'');
+  // grades: subject_name, subject_name_ar
+  await addColumnSafe(db, "ALTER TABLE grades ADD COLUMN subject_name TEXT NOT NULL DEFAULT ''");
+  await addColumnSafe(db, "ALTER TABLE grades ADD COLUMN subject_name_ar TEXT NOT NULL DEFAULT ''");
 
-  // attendance: subject_name, sessions_remaining, percentage
-  await addColumnSafe(db, 'ALTER TABLE attendance ADD COLUMN subject_name TEXT NOT NULL DEFAULT \'\'');
+  // attendance: subject_name, subject_name_ar, sessions_remaining, percentage
+  await addColumnSafe(db, "ALTER TABLE attendance ADD COLUMN subject_name TEXT NOT NULL DEFAULT ''");
+  await addColumnSafe(db, "ALTER TABLE attendance ADD COLUMN subject_name_ar TEXT NOT NULL DEFAULT ''");
   await addColumnSafe(db, 'ALTER TABLE attendance ADD COLUMN sessions_remaining INTEGER NOT NULL DEFAULT 0');
   await addColumnSafe(db, 'ALTER TABLE attendance ADD COLUMN percentage REAL NOT NULL DEFAULT 0');
 
-  // news_cache: read_time_minutes, is_urgent, image_url
+  // news_cache: read_time_minutes, is_urgent, image_url, title_ar
   await addColumnSafe(db, 'ALTER TABLE news_cache ADD COLUMN read_time_minutes INTEGER NOT NULL DEFAULT 0');
   await addColumnSafe(db, 'ALTER TABLE news_cache ADD COLUMN is_urgent INTEGER NOT NULL DEFAULT 0');
   await addColumnSafe(db, 'ALTER TABLE news_cache ADD COLUMN image_url TEXT');
+  await addColumnSafe(db, "ALTER TABLE news_cache ADD COLUMN title_ar TEXT NOT NULL DEFAULT ''");
 
   // student_profile: extended fields
-  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN first_name TEXT NOT NULL DEFAULT \'\'');
-  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN last_name TEXT NOT NULL DEFAULT \'\'');
-  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN programme_name TEXT NOT NULL DEFAULT \'\'');
-  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN programme_code TEXT NOT NULL DEFAULT \'\'');
-  await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN faculty_name TEXT NOT NULL DEFAULT \'\'');
+  await addColumnSafe(db, "ALTER TABLE student_profile ADD COLUMN first_name TEXT NOT NULL DEFAULT ''");
+  await addColumnSafe(db, "ALTER TABLE student_profile ADD COLUMN last_name TEXT NOT NULL DEFAULT ''");
+  await addColumnSafe(db, "ALTER TABLE student_profile ADD COLUMN programme_name TEXT NOT NULL DEFAULT ''");
+  await addColumnSafe(db, "ALTER TABLE student_profile ADD COLUMN programme_name_ar TEXT NOT NULL DEFAULT ''");
+  await addColumnSafe(db, "ALTER TABLE student_profile ADD COLUMN programme_code TEXT NOT NULL DEFAULT ''");
+  await addColumnSafe(db, "ALTER TABLE student_profile ADD COLUMN faculty_name TEXT NOT NULL DEFAULT ''");
+  await addColumnSafe(db, "ALTER TABLE student_profile ADD COLUMN faculty_name_ar TEXT NOT NULL DEFAULT ''");
   await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN level TEXT NOT NULL DEFAULT \'\'');
   await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN semester INTEGER NOT NULL DEFAULT 0');
   await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN status TEXT NOT NULL DEFAULT \'\'');
@@ -163,6 +169,10 @@ export async function runMigrations(): Promise<void> {
   await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN programme_duration_semesters INTEGER NOT NULL DEFAULT 0');
   await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN programme_total_credits INTEGER NOT NULL DEFAULT 0');
   await addColumnSafe(db, 'ALTER TABLE student_profile ADD COLUMN current_semester INTEGER NOT NULL DEFAULT 0');
+
+  // notifications: title_ar, body_ar
+  await addColumnSafe(db, "ALTER TABLE notifications ADD COLUMN title_ar TEXT NOT NULL DEFAULT ''");
+  await addColumnSafe(db, "ALTER TABLE notifications ADD COLUMN body_ar TEXT NOT NULL DEFAULT ''");
 }
 
 // --- Read helpers ---
@@ -314,13 +324,14 @@ export async function upsertSchedules(items: Schedule[]): Promise<void> {
     for (const item of items) {
       await db.runAsync(
         `INSERT OR REPLACE INTO schedules
-          (id, student_id, subject_name, subject_code, lecturer_name, room,
+          (id, student_id, subject_name, subject_name_ar, subject_code, lecturer_name, room,
            day_of_week, start_time, end_time, semester, is_exam, coefficient, cached_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           item.id,
           item.studentId,
           item.subjectName,
+          item.subjectNameAr ?? '',
           item.subjectCode,
           item.lecturerName,
           item.room,
@@ -343,14 +354,15 @@ export async function upsertGrades(items: Grade[]): Promise<void> {
     for (const item of items) {
       await db.runAsync(
         `INSERT OR REPLACE INTO grades
-          (id, student_id, subject_code, subject_name, semester, cc_score, exam_score,
-           final_score, coefficient, passed, cached_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (id, student_id, subject_code, subject_name, subject_name_ar, semester, cc_score,
+           exam_score, final_score, coefficient, passed, cached_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           item.id,
           item.studentId,
           item.subjectCode,
           item.subjectName,
+          item.subjectNameAr ?? '',
           item.semester,
           item.ccScore,
           item.examScore,
@@ -370,11 +382,12 @@ export async function upsertNews(items: NewsItem[]): Promise<void> {
     for (const item of items) {
       await db.runAsync(
         `INSERT INTO news_cache
-          (id, title, body, category, published_at, read_time_minutes, is_urgent,
+          (id, title, title_ar, body, category, published_at, read_time_minutes, is_urgent,
            image_url, bookmarked, read, cached_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(id) DO UPDATE SET
            title             = excluded.title,
+           title_ar          = excluded.title_ar,
            category          = excluded.category,
            published_at      = excluded.published_at,
            read_time_minutes = excluded.read_time_minutes,
@@ -387,6 +400,7 @@ export async function upsertNews(items: NewsItem[]): Promise<void> {
         [
           item.id,
           item.title,
+          item.titleAr ?? '',
           item.body,
           item.category,
           item.publishedAt,
@@ -407,12 +421,12 @@ export async function upsertProfile(profile: StudentProfileCache): Promise<void>
   await db.runAsync(
     `INSERT OR REPLACE INTO student_profile
       (student_id, first_name, last_name, name, email, programme, programme_name,
-       faculty, faculty_name, faculty_code, faculty_email, faculty_phone,
-       faculty_address, faculty_hours, programme_level, programme_duration_semesters,
-       programme_total_credits, current_semester, level, year, semester, status,
-       photo_url, gpa, mention, attendance_percentage, credits_earned, credits_total,
-       cached_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       programme_name_ar, faculty, faculty_name, faculty_name_ar, faculty_code,
+       faculty_email, faculty_phone, faculty_address, faculty_hours, programme_level,
+       programme_duration_semesters, programme_total_credits, current_semester, level,
+       year, semester, status, photo_url, gpa, mention, attendance_percentage,
+       credits_earned, credits_total, cached_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       profile.studentId,
       profile.firstName,
@@ -421,8 +435,10 @@ export async function upsertProfile(profile: StudentProfileCache): Promise<void>
       profile.email,
       profile.programme,
       profile.programmeName,
+      profile.programmeNameAr ?? '',
       profile.faculty,
       profile.facultyName,
+      profile.facultyNameAr ?? '',
       profile.facultyCode,
       profile.facultyEmail,
       profile.facultyPhone,
@@ -453,14 +469,15 @@ export async function upsertAttendance(items: Attendance[]): Promise<void> {
     for (const item of items) {
       await db.runAsync(
         `INSERT OR REPLACE INTO attendance
-          (id, student_id, subject_code, subject_name, sessions_total, sessions_present,
-           sessions_remaining, percentage, threshold, cached_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (id, student_id, subject_code, subject_name, subject_name_ar, sessions_total,
+           sessions_present, sessions_remaining, percentage, threshold, cached_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           item.id,
           item.studentId,
           item.subjectCode,
           item.subjectName,
+          item.subjectNameAr ?? '',
           item.sessionsTotal,
           item.sessionsPresent,
           item.sessionsRemaining,
@@ -479,12 +496,14 @@ export async function upsertNotifications(items: CachedNotification[]): Promise<
     for (const item of items) {
       await db.runAsync(
         `INSERT INTO notifications
-          (id, type, title_fr, body_fr, is_read, created_at, cached_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)
+          (id, type, title_fr, title_ar, body_fr, body_ar, is_read, created_at, cached_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
          ON CONFLICT(id) DO UPDATE SET
            type       = excluded.type,
            title_fr   = excluded.title_fr,
+           title_ar   = excluded.title_ar,
            body_fr    = excluded.body_fr,
+           body_ar    = excluded.body_ar,
            created_at = excluded.created_at,
            cached_at  = excluded.cached_at
            -- is_read intentionally NOT updated → preserves local read state`,
@@ -492,7 +511,9 @@ export async function upsertNotifications(items: CachedNotification[]): Promise<
           item.id,
           item.type,
           item.titleFr,
+          item.titleAr ?? '',
           item.bodyFr,
+          item.bodyAr ?? '',
           item.isRead ? 1 : 0,
           item.createdAt,
           item.cachedAt,
@@ -579,6 +600,7 @@ function rowToSchedule(row: Record<string, SQLite.SQLiteBindValue>): Schedule {
     id: row.id as string,
     studentId: row.student_id as string,
     subjectName: row.subject_name as string,
+    subjectNameAr: (row.subject_name_ar as string | null) ?? '',
     subjectCode: row.subject_code as string,
     lecturerName: row.lecturer_name as string,
     room: row.room as string,
@@ -598,6 +620,7 @@ function rowToGrade(row: Record<string, SQLite.SQLiteBindValue>): Grade {
     studentId: row.student_id as string,
     subjectCode: row.subject_code as string,
     subjectName: (row.subject_name as string | null) ?? '',
+    subjectNameAr: (row.subject_name_ar as string | null) ?? '',
     semester: row.semester as string,
     ccScore: row.cc_score as number | null,
     examScore: row.exam_score as number | null,
@@ -612,6 +635,7 @@ function rowToNews(row: Record<string, SQLite.SQLiteBindValue>): NewsItem {
   return {
     id: row.id as string,
     title: row.title as string,
+    titleAr: (row.title_ar as string | null) ?? '',
     body: row.body as string,
     category: row.category as string,
     publishedAt: row.published_at as string,
@@ -633,8 +657,10 @@ function rowToProfile(row: Record<string, SQLite.SQLiteBindValue>): StudentProfi
     email: (row.email as string | null) ?? '',
     programme: row.programme as string,
     programmeName: (row.programme_name as string | null) ?? '',
+    programmeNameAr: (row.programme_name_ar as string | null) ?? '',
     faculty: row.faculty as string,
     facultyName: (row.faculty_name as string | null) ?? '',
+    facultyNameAr: (row.faculty_name_ar as string | null) ?? '',
     facultyCode: (row.faculty_code as string | null) ?? '',
     facultyEmail: (row.faculty_email as string | null) ?? '',
     facultyPhone: (row.faculty_phone as string | null) ?? '',
@@ -664,6 +690,7 @@ function rowToAttendance(row: Record<string, SQLite.SQLiteBindValue>): Attendanc
     studentId: row.student_id as string,
     subjectCode: row.subject_code as string,
     subjectName: (row.subject_name as string | null) ?? '',
+    subjectNameAr: (row.subject_name_ar as string | null) ?? '',
     sessionsTotal: row.sessions_total as number,
     sessionsPresent: row.sessions_present as number,
     sessionsRemaining: (row.sessions_remaining as number | null) ?? 0,
@@ -678,7 +705,9 @@ function rowToNotification(row: Record<string, SQLite.SQLiteBindValue>): CachedN
     id: row.id as string,
     type: row.type as string,
     titleFr: row.title_fr as string,
+    titleAr: (row.title_ar as string | null) ?? '',
     bodyFr: row.body_fr as string,
+    bodyAr: (row.body_ar as string | null) ?? '',
     isRead: (row.is_read as number) === 1,
     createdAt: row.created_at as string,
     cachedAt: row.cached_at as string,

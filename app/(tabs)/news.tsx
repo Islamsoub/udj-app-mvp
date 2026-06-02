@@ -26,6 +26,7 @@ import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getCachedNews, upsertNews, getSavedArticles } from '@/services/db';
 import { mapNewsToCache } from '@/services/cacheMappers';
 import { formatTimestamp, formatReadTime } from '@/utils/dateFormat';
+import { localTitle } from '@/utils/i18nName';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,11 +34,11 @@ type NewsState = 'skeleton' | 'loaded' | 'offline' | 'empty' | 'error' | 'sessio
 
 // ─── Convert NewsItem → Article ───────────────────────────────────────────────
 
-function newsItemToArticle(item: NewsItem, localReadIds: Set<string>): Article {
+function newsItemToArticle(item: NewsItem, localReadIds: Set<string>, lang: string): Article {
   return {
     id: item.id,
     category: item.category as ArticleCategory,
-    title: item.title,
+    title: localTitle({ titleFr: item.title, titleAr: item.titleAr }, lang),
     timestamp: formatTimestamp(item.publishedAt),
     readTime: formatReadTime(item.readTimeMinutes),
     isRead: item.read || localReadIds.has(item.id),
@@ -45,10 +46,10 @@ function newsItemToArticle(item: NewsItem, localReadIds: Set<string>): Article {
   };
 }
 
-function newsItemToHero(item: NewsItem) {
+function newsItemToHero(item: NewsItem, lang: string) {
   return {
     id: item.id,
-    title: item.title,
+    title: localTitle({ titleFr: item.title, titleAr: item.titleAr }, lang),
     timestamp: formatTimestamp(item.publishedAt),
     readTime: formatReadTime(item.readTimeMinutes),
   };
@@ -87,14 +88,16 @@ interface LoadedBodyProps {
 function LoadedBody({ heroArticle, listArticles, onArticlePress, localReadIds }: LoadedBodyProps) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { i18n } = useTranslation();
+  const lang = i18n.language;
   return (
     <View style={styles.loadedBody}>
       {heroArticle != null && (
-        <HeroCard article={newsItemToHero(heroArticle)} onPress={() => onArticlePress(heroArticle.id)} />
+        <HeroCard article={newsItemToHero(heroArticle, lang)} onPress={() => onArticlePress(heroArticle.id)} />
       )}
       <View style={styles.loadedArticleList}>
         {listArticles.map((article) => (
-          <ArticleCard key={article.id} article={newsItemToArticle(article, localReadIds)} onPress={() => onArticlePress(article.id)} />
+          <ArticleCard key={article.id} article={newsItemToArticle(article, localReadIds, lang)} onPress={() => onArticlePress(article.id)} />
         ))}
       </View>
     </View>
@@ -112,12 +115,14 @@ interface OfflineBodyProps {
 function OfflineBody({ articles, onArticlePress, localReadIds }: OfflineBodyProps) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { i18n } = useTranslation();
+  const lang = i18n.language;
   return (
     <View style={styles.offlineBody}>
       <SavedArticlesBanner />
       <View style={styles.offlineArticleList}>
         {articles.map((article) => (
-          <ArticleCard key={article.id} article={newsItemToArticle(article, localReadIds)} onPress={() => onArticlePress(article.id)} />
+          <ArticleCard key={article.id} article={newsItemToArticle(article, localReadIds, lang)} onPress={() => onArticlePress(article.id)} />
         ))}
       </View>
     </View>

@@ -13,6 +13,7 @@ import { fonts, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
 import { useAuthStore } from '@/stores/authStore';
+import { localName } from '@/utils/i18nName';
 
 // ─── Info row ─────────────────────────────────────────────────────────────────
 
@@ -89,7 +90,8 @@ const makeInfoStyles = (colors: Palette) => StyleSheet.create({
 export default function AccountInfoScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const infoStyles = useMemo(() => makeInfoStyles(colors), [colors]);
@@ -98,7 +100,7 @@ export default function AccountInfoScreen() {
   const fullName = student ? `${student.firstName} ${student.lastName}` : '—';
   const studentId = student?.studentIdDisplay ?? '—';
   const email = student?.email ?? '—';
-  const filiere = student?.programme.nameFr ?? '—';
+  const filiere = student?.programme ? localName(student.programme, lang) || '—' : '—';
   const niveau = student?.programme.level ?? '—';
   const status = student?.status ?? '—';
 

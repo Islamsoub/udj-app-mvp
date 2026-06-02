@@ -21,6 +21,7 @@ import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { getNewsArticle, NewsArticleDetail } from '@/services/api';
 import { isArticleBookmarked, toggleNewsBookmark } from '@/services/db';
+import { localTitle, localBody } from '@/utils/i18nName';
 import type { ArticleCategory } from '@/components/news/ArticleCard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -51,7 +52,7 @@ const MOCK_ARTICLE: ArticleData = {
 
 // ─── API response → ArticleData mapper ───────────────────────────────────────
 
-function mapArticleDetail(detail: NewsArticleDetail): ArticleData {
+function mapArticleDetail(detail: NewsArticleDetail, lang: string): ArticleData {
   const date = new Date(detail.publishedAt);
   const dateStr = date.toLocaleDateString('fr-FR', {
     day: 'numeric',
@@ -65,10 +66,10 @@ function mapArticleDetail(detail: NewsArticleDetail): ArticleData {
   return {
     id: detail.id,
     category: detail.category as ArticleCategory,
-    title: detail.titleFr,
+    title: localTitle(detail, lang),
     fullDate: `${dateStr} · ${timeStr}`,
     author: detail.author ?? 'Service Communication',
-    body: detail.bodyFr,
+    body: localBody(detail, lang),
   };
 }
 
@@ -282,6 +283,8 @@ const STATE_LABELS: Record<ArticleReaderState, string> = {
 export default function ArticleReaderScreen() {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { i18n } = useTranslation();
+  const lang = i18n.language;
   const [readerState, setReaderState] = useState<ArticleReaderState>('skeleton');
   const [articleData, setArticleData] = useState<ArticleData | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -296,7 +299,7 @@ export default function ArticleReaderScreen() {
         getNewsArticle(articleId),
         isArticleBookmarked(articleId),
       ]);
-      setArticleData(mapArticleDetail(detail));
+      setArticleData(mapArticleDetail(detail, lang));
       setIsBookmarked(bookmarked);
       setReaderState('loaded');
     } catch (err: unknown) {
@@ -307,7 +310,7 @@ export default function ArticleReaderScreen() {
         setReaderState('error');
       }
     }
-  }, []);
+  }, [lang]);
 
   useEffect(() => {
     if (id) {

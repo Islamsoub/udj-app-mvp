@@ -39,6 +39,7 @@ import {
 } from '@/services/cacheMappers';
 import { getGreeting, isWeekend } from '@/utils/greeting';
 import { formatLocalDate } from '@/utils/dateFormat';
+import { localName } from '@/utils/i18nName';
 
 type HomeState = 'loaded' | 'error' | 'empty' | 'skeleton' | 'offline';
 
@@ -87,7 +88,7 @@ const MENTION_KEY: Record<string, string> = {
   'Félicitations': 'home.mention.felicitations',
 };
 
-function scheduleToCard(s: Schedule, nowMins: number, colors: Palette, t: (key: string) => string): AgendaCardData {
+function scheduleToCard(s: Schedule, nowMins: number, colors: Palette, t: (key: string) => string, lang: string): AgendaCardData {
   const [sh, sm] = s.startTime.split(':').map(Number);
   const [eh, em] = s.endTime.split(':').map(Number);
   const startMins = sh * 60 + sm;
@@ -119,7 +120,7 @@ function scheduleToCard(s: Schedule, nowMins: number, colors: Palette, t: (key: 
     id: s.id,
     accentColor,
     time: `${s.startTime} - ${s.endTime}`,
-    course: s.subjectName,
+    course: localName({ nameFr: s.subjectName, nameAr: s.subjectNameAr }, lang),
     teacher: s.lecturerName,
     location: s.room,
     statusLabel,
@@ -463,7 +464,8 @@ export default function HomeScreen() {
   const [courseDetailVisible, setCourseDetailVisible] = useState(false);
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
@@ -514,8 +516,8 @@ export default function HomeScreen() {
     return entries
       .filter((s) => s.dayOfWeek === todayDow)
       .sort((a, b) => a.startTime.localeCompare(b.startTime))
-      .map((s) => scheduleToCard(s, nowMins, colors, t));
-  }, [scheduleHook.data, todayDow, nowMins, colors, t]);
+      .map((s) => scheduleToCard(s, nowMins, colors, t, lang));
+  }, [scheduleHook.data, todayDow, nowMins, colors, t, lang]);
 
   const newsCards = useMemo(() => {
     return (newsHook.data ?? []).slice(0, 3);
@@ -639,7 +641,7 @@ export default function HomeScreen() {
               newsCards.map((article) => (
                 <NewsCard
                   key={article.id}
-                  title={article.title}
+                  title={lang === 'ar' && article.titleAr ? article.titleAr : article.title}
                   category={article.category}
                   imageUrl={article.imageUrl}
                   onPress={() => router.push({ pathname: '/article-reader', params: { id: article.id } })}

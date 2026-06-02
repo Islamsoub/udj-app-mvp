@@ -25,6 +25,7 @@ import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getAllCachedGrades, getGradesForSemester, upsertGrades } from '@/services/db';
 import { mapGradesToCache } from '@/services/cacheMappers';
 import { useAuthStore } from '@/stores/authStore';
+import { localName } from '@/utils/i18nName';
 
 import {
   getGrades,
@@ -132,6 +133,8 @@ const STATE_LABELS: Record<GradesState, string> = {
 export default function GradesScreen() {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { i18n } = useTranslation();
+  const lang = i18n.language;
   const [devState, setDevState] = useState<GradesState | null>(null);
   const [activeSemester, setActiveSemester] = useState<1 | 2>(2);
   const [calculatorVisible, setCalculatorVisible] = useState(false);
@@ -183,13 +186,13 @@ export default function GradesScreen() {
     () =>
       (hook.data ?? []).map((g) => ({
         id: g.id,
-        name: g.subjectName,
+        name: localName({ nameFr: g.subjectName, nameAr: g.subjectNameAr }, lang),
         cc: g.ccScore ?? 0,
         exam: g.examScore ?? 0,
         coef: g.coefficient,
         finale: g.finalScore ?? 0,
       })),
-    [hook.data],
+    [hook.data, lang],
   );
 
   const gpaChartData = useMemo<GPADataPoint[]>(() => {

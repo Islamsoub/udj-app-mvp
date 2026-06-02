@@ -38,6 +38,7 @@ import { getAttendance as getCachedAttendance, upsertAttendance } from '@/servic
 import { mapAttendanceToCache } from '@/services/cacheMappers';
 import { formatAbsenceDate } from '@/utils/dateFormat';
 import { useAuthStore } from '@/stores/authStore';
+import { localName } from '@/utils/i18nName';
 
 // ─── Projection helper ────────────────────────────────────────────────────────
 
@@ -225,7 +226,8 @@ interface CardsBodyProps {
 }
 
 function CardsBody({ data, remainingByCode, onRefresh }: CardsBodyProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [confirmData, setConfirmData] = useState<ConfirmData | null>(null);
@@ -261,7 +263,7 @@ function CardsBody({ data, remainingByCode, onRefresh }: CardsBodyProps) {
       {data.subjects.map((subject) => (
         <AttendanceCard
           key={subject.subject.code}
-          name={subject.subject.nameFr}
+          name={localName(subject.subject, lang)}
           percentage={subject.percentage}
           attended={subject.present}
           total={subject.total}
@@ -279,7 +281,7 @@ function CardsBody({ data, remainingByCode, onRefresh }: CardsBodyProps) {
           {atRiskSubjects.map((subject) => (
             <View key={subject.subject.code} style={styles.absenceSection}>
               <Text style={styles.absenceSubjectName}>
-                {subject.subject.nameFr}
+                {localName(subject.subject, lang)}
               </Text>
 
               {subject.absences.map((record) => {
@@ -300,7 +302,7 @@ function CardsBody({ data, remainingByCode, onRefresh }: CardsBodyProps) {
                           styles.justifyBtn,
                           pressed && { backgroundColor: colors.jade600 },
                         ]}
-                        onPress={() => handleUploadPress(record.id, subject.subject.nameFr, record.date)}
+                        onPress={() => handleUploadPress(record.id, localName(subject.subject, lang), record.date)}
                         hitSlop={8}
                       >
                         <Text style={styles.justifyBtnText}>
@@ -316,7 +318,7 @@ function CardsBody({ data, remainingByCode, onRefresh }: CardsBodyProps) {
                           { backgroundColor: colors.danger },
                           pressed && { backgroundColor: '#DC2626' },
                         ]}
-                        onPress={() => handleUploadPress(record.id, subject.subject.nameFr, record.date)}
+                        onPress={() => handleUploadPress(record.id, localName(subject.subject, lang), record.date)}
                         hitSlop={8}
                       >
                         <Text style={styles.justifyBtnText}>
@@ -438,7 +440,7 @@ export default function AttendanceScreen() {
         subject: {
           id: a.id,
           nameFr: a.subjectName,
-          nameAr: a.subjectName,
+          nameAr: a.subjectNameAr ?? a.subjectName,
           code: a.subjectCode,
         },
         total: a.sessionsTotal,

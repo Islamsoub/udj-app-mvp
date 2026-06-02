@@ -15,8 +15,10 @@ export interface StudentProfileCache {
   email: string;
   programme: string;
   programmeName: string;
+  programmeNameAr?: string;
   faculty: string;
   facultyName: string;
+  facultyNameAr?: string;
   facultyCode: string;
   facultyEmail: string;
   facultyPhone: string;
@@ -49,6 +51,7 @@ export interface Schedule {
   id: string;
   studentId: string;
   subjectName: string;
+  subjectNameAr?: string;
   subjectCode: string;
   lecturerName: string;
   room: string;
@@ -66,6 +69,7 @@ export interface Grade {
   studentId: string;
   subjectCode: string;
   subjectName: string;
+  subjectNameAr?: string;
   semester: string;
   ccScore: number | null;
   examScore: number | null;
@@ -80,6 +84,7 @@ export interface Attendance {
   studentId: string;
   subjectCode: string;
   subjectName: string;
+  subjectNameAr?: string;
   sessionsTotal: number;
   sessionsPresent: number;
   sessionsRemaining: number;
@@ -91,6 +96,7 @@ export interface Attendance {
 export interface NewsItem {
   id: string;
   title: string;
+  titleAr?: string;
   body: string;
   category: string;
   publishedAt: string;
@@ -106,7 +112,9 @@ export interface CachedNotification {
   id: string;
   type: string;
   titleFr: string;
+  titleAr?: string;
   bodyFr: string;
+  bodyAr?: string;
   isRead: boolean;
   createdAt: string;
   cachedAt: string;
@@ -373,7 +381,9 @@ export interface ApiNotification {
   id: string;
   type: string;
   titleFr: string;
+  titleAr?: string;
   bodyFr: string;
+  bodyAr?: string;
   isRead: boolean;
   createdAt: string;
 }

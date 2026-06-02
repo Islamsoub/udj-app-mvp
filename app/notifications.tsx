@@ -29,6 +29,7 @@ import {
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getCachedNotifications, upsertNotifications } from '@/services/db';
 import { mapNotificationsToCache } from '@/services/cacheMappers';
+import { localTitle, localBody } from '@/utils/i18nName';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -64,7 +65,7 @@ function formatTimestamp(date: Date, now: Date): string {
   });
 }
 
-function groupNotificationsByDate(notifications: CachedNotification[]): Section[] {
+function groupNotificationsByDate(notifications: CachedNotification[], lang: string): Section[] {
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterdayStart = new Date(todayStart.getTime() - 86400000);
@@ -81,8 +82,8 @@ function groupNotificationsByDate(notifications: CachedNotification[]): Section[
     const item: NotificationItemData = {
       id: n.id,
       type: mapNotifType(n.type),
-      title: n.titleFr,
-      body: n.bodyFr,
+      title: localTitle({ titleFr: n.titleFr, titleAr: n.titleAr }, lang),
+      body: localBody({ bodyFr: n.bodyFr, bodyAr: n.bodyAr }, lang),
       timestamp: formatTimestamp(date, now),
       isUnread: !n.isRead,
       referenceId: (n as CachedNotification & { referenceId?: string }).referenceId,
@@ -277,6 +278,8 @@ export default function NotificationsScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { i18n } = useTranslation();
+  const lang = i18n.language;
   const [devState, setDevState] = useState<NotificationsState | null>(null);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
 
@@ -301,8 +304,8 @@ export default function NotificationsScreen() {
     const data = (hook.data ?? []).map((n) =>
       readIds.has(n.id) ? { ...n, isRead: true } : n,
     );
-    return groupNotificationsByDate(data);
-  }, [hook.data, readIds]);
+    return groupNotificationsByDate(data, lang);
+  }, [hook.data, readIds, lang]);
 
   // ─── Derive screen state ────────────────────────────────────────────────────
 

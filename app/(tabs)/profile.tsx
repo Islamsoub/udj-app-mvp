@@ -41,11 +41,11 @@ type ProfileState = ProfileHeaderState;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function cacheToHeaderStudent(c: StudentProfileCache): ProfileHeaderStudent {
+function cacheToHeaderStudent(c: StudentProfileCache, lang: string): ProfileHeaderStudent {
   return {
     name: c.name,
     id: c.studentId,
-    filiere: c.programmeName,
+    filiere: lang === 'ar' && c.programmeNameAr ? c.programmeNameAr : c.programmeName,
   };
 }
 
@@ -86,8 +86,12 @@ function ProfileBody({
   const name = student?.name ?? '—';
   const id = student?.studentId ?? '—';
   const programme = student?.programme ?? '—';
-  const filiere = student?.programmeName ?? '—';
-  const facultyName = student?.facultyName ?? '—';
+  const filiere = isAr && student?.programmeNameAr
+    ? student.programmeNameAr
+    : (student?.programmeName ?? '—');
+  const facultyName = isAr && student?.facultyNameAr
+    ? student.facultyNameAr
+    : (student?.facultyName ?? '—');
   const presence = student?.attendancePercentage ?? 0;
   const email = student?.email ?? '—';
 
@@ -250,7 +254,8 @@ const STATE_LABELS: Record<ProfileState, string> = {
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [devState, setDevState] = useState<ProfileState | null>(null);
@@ -326,7 +331,7 @@ export default function ProfileScreen() {
 
   const headerStudent: ProfileHeaderStudent =
     hook.data != null
-      ? cacheToHeaderStudent(hook.data)
+      ? cacheToHeaderStudent(hook.data, lang)
       : { name: '—', id: '—', filiere: '—' };
 
   const showBody =
