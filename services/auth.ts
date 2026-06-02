@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { API_BASE_URL, TIMEOUT } from '@/constants/api';
 import { useAuthStore, REFRESH_KEY, StudentProfile } from '@/stores/authStore';
@@ -55,9 +55,11 @@ export async function restoreSession(): Promise<boolean> {
     useAuthStore.getState().setStudent(student);
 
     return true;
-  } catch {
-    await SecureStore.deleteItemAsync(REFRESH_KEY);
-    useAuthStore.getState().logout();
+  } catch (err) {
+    if (isAxiosError(err) && err.response?.status === 401) {
+      await SecureStore.deleteItemAsync(REFRESH_KEY);
+      useAuthStore.getState().logout();
+    }
     return false;
   }
 }
