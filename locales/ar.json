@@ -47,7 +47,8 @@
     "biometric_label": "بصمة الإصبع أو Face ID",
     "network_required": "يلزم الاتصال بالإنترنت عند تسجيل الدخول لأول مرة. فعّل بيانات الهاتف أو Wi-Fi.",
     "session_body": "انتهت جلستك (30 يوماً). أعد تسجيل الدخول للوصول إلى بياناتك.",
-    "change_account": "تغيير"
+    "change_account": "تغيير",
+    "yourAccount": "حسابك"
   },
   "onboarding": {
     "skip": "تخطي",

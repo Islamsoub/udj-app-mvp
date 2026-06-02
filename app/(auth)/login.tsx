@@ -15,6 +15,8 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fonts, spacing, radius, sizing, withAlpha, colors, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
@@ -84,6 +86,17 @@ export default function LoginScreen() {
   const [countdown, setCountdown] = useState(5 * 60);
   const [attemptsLeft, setAttemptsLeft] = useState<number | null>(null);
   const [biometricVisible, setBiometricVisible] = useState(false);
+  const [lastStudentName, setLastStudentName] = useState<string | null>(null);
+  const [lastStudentId, setLastStudentId] = useState<string | null>(null);
+
+  const savedInitials = useMemo(() => {
+    if (!lastStudentName) return '?';
+    const parts = lastStudentName.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+    return (parts[0]?.[0] ?? '?').toUpperCase();
+  }, [lastStudentName]);
 
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
 
@@ -96,6 +109,24 @@ export default function LoginScreen() {
         isBiometricEnabled(),
       ]);
       if (mounted) setBiometricVisible(available && enabled);
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // Load the last logged-in student's identity for session-expired display.
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const [name, id] = await Promise.all([
+        AsyncStorage.getItem('lastStudentName'),
+        AsyncStorage.getItem('lastStudentId'),
+      ]);
+      if (mounted) {
+        setLastStudentName(name);
+        setLastStudentId(id);
+      }
     })();
     return () => {
       mounted = false;
@@ -237,8 +268,14 @@ export default function LoginScreen() {
     if (restored) {
       router.replace('/(tabs)/home');
     } else {
-      // No valid refresh token / network failure — keep the user on login.
-      setLoginState('network-error');
+      // If the refresh token still exists, restoreSession failed due to a network error.
+      // If it's gone, the server rejected it (401) and deleted it — the session truly expired.
+      const tokenStillExists = await SecureStore.getItemAsync('refreshToken');
+      if (tokenStillExists !== null) {
+        setLoginState('network-error');
+      } else {
+        setLoginState('session-expired');
+      }
     }
   };
 
@@ -353,11 +390,11 @@ export default function LoginScreen() {
                   </View>
                   <View style={styles.savedRow}>
                     <View style={styles.avatarCircle}>
-                      <Text style={styles.avatarText}>AO</Text>
+                      <Text style={styles.avatarText}>{savedInitials}</Text>
                     </View>
                     <View style={styles.savedInfo}>
-                      <Text style={styles.savedName}>Ahmed Omar Said</Text>
-                      <Text style={styles.savedId}>UDJ-2024-0432</Text>
+                      <Text style={styles.savedName}>{lastStudentName ?? t('auth.yourAccount')}</Text>
+                      <Text style={styles.savedId}>{lastStudentId ?? ''}</Text>
                     </View>
                     <Pressable onPress={() => setLoginState('default')} hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}>
                       <Text style={styles.changerText}>{t('auth.change_account')}</Text>
