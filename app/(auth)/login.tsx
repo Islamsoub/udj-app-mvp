@@ -297,9 +297,9 @@ export default function LoginScreen() {
     ? { backgroundColor: DANGER_08, borderColor: colors.danger }
     : { backgroundColor: colors.jade50, borderColor: colors.skeletonBox };
 
-  const buttonBg = isNetworkError || isLocked ? colors.skeletonBox : colors.jade400;
-  const buttonTextGrey = isNetworkError || isLocked;
-  const buttonDisabled = isSubmitting || isNetworkError || isLocked;
+  const buttonBg = isLocked ? colors.skeletonBox : colors.jade400;
+  const buttonTextGrey = isLocked;
+  const buttonDisabled = isSubmitting || isLocked;
 
   return (
     <View style={styles.root}>
@@ -492,7 +492,7 @@ export default function LoginScreen() {
               {/* ── PRIMARY BUTTON ── */}
               <Pressable
                 style={({ pressed }) => [styles.loginButton, { backgroundColor: buttonBg }, pressed && !buttonDisabled && { backgroundColor: colors.jade600 }]}
-                onPress={loginHandler}
+                onPress={isNetworkError ? () => setLoginState('default') : loginHandler}
                 disabled={buttonDisabled}
                 hitSlop={8}
               >
@@ -500,7 +500,7 @@ export default function LoginScreen() {
                   <ActivityIndicator color={colors.surface} />
                 ) : (
                   <Text style={[styles.loginButtonText, buttonTextGrey && styles.loginButtonTextGrey]}>
-                    {isError ? t('common.retry') : t('auth.login')}
+                    {isError || isNetworkError ? t('common.retry') : t('auth.login')}
                   </Text>
                 )}
               </Pressable>
