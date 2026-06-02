@@ -9,6 +9,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
 import * as Linking from 'expo-linking';
+import { isValidUUID } from '@/utils/validate';
 import { runMigrations } from '@/services/db';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -125,7 +126,7 @@ export default function RootLayout() {
     function handleDeepLink(url: string) {
       const { hostname, path } = Linking.parse(url);
       const segments = [hostname, ...(path ? path.split('/') : [])].filter(Boolean);
-      if (segments[0] === 'article' && segments[1]) {
+      if (segments[0] === 'article' && isValidUUID(segments[1])) {
         router.push({ pathname: '/article-reader', params: { id: segments[1] } });
       }
     }

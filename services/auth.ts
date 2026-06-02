@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import { API_BASE_URL, TIMEOUT } from '@/constants/api';
 import { useAuthStore, REFRESH_KEY, StudentProfile } from '@/stores/authStore';
 import api from './api';
+import { clearAllCache } from './db';
 
 export type LoginResponse = {
   accessToken: string;
@@ -31,6 +32,7 @@ export async function logout(): Promise<void> {
     }
   }
   await SecureStore.deleteItemAsync(REFRESH_KEY);
+  await clearAllCache();
   useAuthStore.getState().logout();
 }
 

@@ -20,6 +20,7 @@ import { ArticleReaderHeader } from '@/components/news/ArticleReaderHeader';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { getNewsArticle, NewsArticleDetail } from '@/services/api';
+import { isValidUUID } from '@/utils/validate';
 import { isArticleBookmarked, toggleNewsBookmark } from '@/services/db';
 import { localTitle, localBody } from '@/utils/i18nName';
 import type { ArticleCategory } from '@/components/news/ArticleCard';
@@ -313,10 +314,12 @@ export default function ArticleReaderScreen() {
   }, [lang]);
 
   useEffect(() => {
-    if (id) {
-      fetchArticle(id);
+    if (!isValidUUID(id)) {
+      router.back();
+      return;
     }
-  }, [id, fetchArticle]);
+    fetchArticle(id);
+  }, [id, fetchArticle, router]);
 
   function handleBack() {
     router.back();

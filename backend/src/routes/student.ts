@@ -628,8 +628,8 @@ router.post(
       const studentId = req.studentId!;
       const recordId = String(req.params.recordId ?? '');
 
-      if (!recordId) {
-        throw new AppError('Missing recordId', 400);
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(recordId)) {
+        throw new AppError('Invalid record ID', 400);
       }
       if (!req.file) {
         throw new AppError('Missing file field "justification"', 400);
