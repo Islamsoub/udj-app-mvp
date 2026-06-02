@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   ScrollView,
   Alert,
+  Keyboard,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -205,6 +206,7 @@ export default function LoginScreen() {
   };
 
   const loginHandler = async (): Promise<void> => {
+    Keyboard.dismiss();
     setLoginState('submitting');
     try {
       await login(studentId.trim(), password);
@@ -236,6 +238,7 @@ export default function LoginScreen() {
   };
 
   const biometricHandler = async (): Promise<void> => {
+    Keyboard.dismiss();
     // Guard against a device that lost biometric capability since opt-in.
     const available = await isBiometricAvailable();
     if (!available) {
@@ -532,7 +535,7 @@ export default function LoginScreen() {
               )}
 
               {/* ── DIVIDER + BIOMETRIC (default, hardware available + opted in) ── */}
-              {loginState === 'default' && biometricVisible && (
+              {(loginState === 'default' || loginState === 'session-expired') && biometricVisible && (
                 <>
                   <View style={styles.dividerRow}>
                     <View style={styles.dividerLine} />
