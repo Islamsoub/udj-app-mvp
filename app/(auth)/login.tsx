@@ -23,6 +23,7 @@ import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { login, restoreSession } from '@/services/auth';
+import { REFRESH_KEY } from '@/stores/authStore';
 import {
   isBiometricAvailable,
   isBiometricEnabled,
@@ -101,15 +102,20 @@ export default function LoginScreen() {
 
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
 
-  // Show the biometric button only when the device supports it AND the user opted in.
+  // Show the biometric button only when the device supports it, the user opted in,
+  // AND a refresh token exists to restore the session against.
+  // After logout the preference flag survives but the token is deleted — without this
+  // third check the button would appear but always fail (restoreSession returns false
+  // immediately with no token).
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const [available, enabled] = await Promise.all([
+      const [available, enabled, token] = await Promise.all([
         isBiometricAvailable(),
         isBiometricEnabled(),
+        SecureStore.getItemAsync(REFRESH_KEY),
       ]);
-      if (mounted) setBiometricVisible(available && enabled);
+      if (mounted) setBiometricVisible(available && enabled && token !== null);
     })();
     return () => {
       mounted = false;
@@ -273,7 +279,7 @@ export default function LoginScreen() {
     } else {
       // If the refresh token still exists, restoreSession failed due to a network error.
       // If it's gone, the server rejected it (401) and deleted it — the session truly expired.
-      const tokenStillExists = await SecureStore.getItemAsync('refreshToken');
+      const tokenStillExists = await SecureStore.getItemAsync(REFRESH_KEY);
       if (tokenStillExists !== null) {
         setLoginState('network-error');
       } else {
