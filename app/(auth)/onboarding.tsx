@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { I18nManager, View, Text, Pressable, StyleSheet, Image } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
+import * as Updates from 'expo-updates';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettingsStore } from '@/stores/settingsStore';
 import i18n from '@/i18n';
@@ -48,12 +49,19 @@ export default function OnboardingScreen() {
 
   const isLanguageStep = currentStep === 3;
 
-  const handleLangSelect = (lang: Lang) => {
+  const handleLangSelect = async (lang: Lang) => {
     setSelectedLang(lang);
     setLanguage(lang);
     i18n.changeLanguage(lang);
-    I18nManager.allowRTL(true);
-    I18nManager.forceRTL(lang === 'ar');
+    try {
+      await Updates.reloadAsync();
+    } catch {
+      Alert.alert(
+        t('settings.restart_title'),
+        t('settings.restart_message'),
+        [{ text: t('common.ok') }],
+      );
+    }
   };
 
   const handleNext = () => {

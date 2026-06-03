@@ -7,8 +7,8 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
-  I18nManager,
 } from 'react-native';
+import * as Updates from 'expo-updates';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -132,16 +132,19 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
         .catch(() => {});
     };
 
-  const handleLanguageChange = (lang: 'fr' | 'ar') => {
+  const handleLanguageChange = async (lang: 'fr' | 'ar') => {
     setLangueVisible(false);
     if (lang === currentLang) return;
-    const shouldBeRTL = lang === 'ar';
     i18n.changeLanguage(lang);
     useSettingsStore.getState().setLanguage(lang);
-    I18nManager.allowRTL(true);
-    I18nManager.forceRTL(shouldBeRTL);
-    if (I18nManager.isRTL !== shouldBeRTL) {
-      Alert.alert(t('settings.restart_title'), t('settings.restart_message'));
+    try {
+      await Updates.reloadAsync();
+    } catch {
+      Alert.alert(
+        t('settings.restart_title'),
+        t('settings.restart_message'),
+        [{ text: t('common.ok') }],
+      );
     }
   };
 
