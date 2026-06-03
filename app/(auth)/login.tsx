@@ -11,6 +11,7 @@ import {
   ScrollView,
   Alert,
   Keyboard,
+  AppState,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -100,6 +101,7 @@ export default function LoginScreen() {
     return (parts[0]?.[0] ?? '?').toUpperCase();
   }, [lastStudentName]);
 
+  const lockedUntilRef = useRef<number>(0);
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
 
   // Show the biometric button only when the device supports it, the user opted in,
@@ -140,23 +142,35 @@ export default function LoginScreen() {
     };
   }, []);
 
-  // Locked-out countdown
+  // Locked-out countdown — ticks recalculate from the absolute deadline so
+  // skipped wall-clock time (screen off, app backgrounded) is accounted for.
   useEffect(() => {
     if (loginState !== 'locked-out') {
       setCountdown(5 * 60);
       return;
     }
     const interval = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          setLoginState('default');
-          return 5 * 60;
-        }
-        return prev - 1;
-      });
+      const remaining = Math.max(0, Math.round((lockedUntilRef.current - Date.now()) / 1000));
+      setCountdown(remaining);
+      if (remaining === 0) {
+        clearInterval(interval);
+        setLoginState('default');
+      }
     }, 1000);
     return () => clearInterval(interval);
+  }, [loginState]);
+
+  // Recalculate the countdown immediately when the app returns to the foreground
+  // so a paused screen doesn't show stale time.
+  useEffect(() => {
+    if (loginState !== 'locked-out') return;
+    const sub = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState !== 'active') return;
+      const remaining = Math.max(0, Math.round((lockedUntilRef.current - Date.now()) / 1000));
+      setCountdown(remaining);
+      if (remaining === 0) setLoginState('default');
+    });
+    return () => sub.remove();
   }, [loginState]);
 
   // Skeleton pulse animation
@@ -227,9 +241,10 @@ export default function LoginScreen() {
           setLoginState('error');
         } else if (status === 423) {
           if (data?.lockedUntil) {
+            lockedUntilRef.current = new Date(data.lockedUntil).getTime();
             const secsRemaining = Math.max(
               0,
-              Math.round((new Date(data.lockedUntil).getTime() - Date.now()) / 1000)
+              Math.round((lockedUntilRef.current - Date.now()) / 1000)
             );
             setCountdown(secsRemaining);
           }
