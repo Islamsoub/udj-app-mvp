@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -30,6 +30,13 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
   const [result, setResult] = useState<number | null>(null);
   const [calculated, setCalculated] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => {
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
+    });
+    return () => showSub.remove();
+  }, []);
 
   const subject = subjects.length > 0 ? subjects[selectedIndex % subjects.length] : null;
 
@@ -120,9 +127,6 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
                     setTargetGrade(v);
                     setCalculated(false);
                     setResult(null);
-                  }}
-                  onFocus={() => {
-                    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 400);
                   }}
                   placeholder={t('calculator.target_placeholder')}
                   placeholderTextColor={colors.textTertiary}
