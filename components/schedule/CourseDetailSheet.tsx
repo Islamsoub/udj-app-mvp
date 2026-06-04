@@ -10,6 +10,7 @@ import {
   Keyboard,
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { fonts, radius, spacing, sizing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -78,6 +79,7 @@ function statusI18nKey(status: CourseStatus): string {
 export function CourseDetailSheet({ visible, onClose }: Props) {
   const { t } = useTranslation();
   const { colors } = useColors();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const selectedCourse = useCourseDetailStore((s) => s.selectedCourse);
   const scrollRef = useRef<ScrollView>(null);
@@ -141,7 +143,7 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
         {/* Scrim — sibling behind the sheet */}
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
-        <View style={styles.sheet}>
+        <View style={[styles.sheet, { paddingBottom: insets.bottom }]}>
           {/* Drag handle — outside scroll */}
           <View style={styles.handle} />
 

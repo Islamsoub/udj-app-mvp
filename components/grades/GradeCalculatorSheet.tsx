@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Keyboard,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
@@ -24,6 +25,7 @@ interface Props {
 export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
   const { t } = useTranslation();
   const { colors } = useColors();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [targetGrade, setTargetGrade] = useState('');
@@ -74,7 +76,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
       <View style={styles.container}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
-        <View style={styles.sheet}>
+        <View style={[styles.sheet, { paddingBottom: insets.bottom }]}>
           {/* Drag handle */}
           <View style={styles.handle} />
 

@@ -14,6 +14,7 @@ import {
   AppState,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
@@ -82,6 +83,7 @@ export default function LoginScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { colors } = useColors();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [loginState, setLoginState] = useState<LoginState>('default');
   const [studentId, setStudentId] = useState('');
@@ -331,7 +333,7 @@ export default function LoginScreen() {
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(spacing.sp64, insets.bottom + spacing.sp16) }]}
         keyboardShouldPersistTaps="handled"
         bounces={false}
         showsVerticalScrollIndicator={false}

@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
@@ -15,13 +16,14 @@ export function SessionExpiredModal({ visible, onContinueOffline }: SessionExpir
   const { t } = useTranslation();
   const router = useRouter();
   const { colors } = useColors();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   if (!visible) return null;
 
   return (
     <View style={styles.modalOverlay}>
-      <View style={styles.modalSheet}>
+      <View style={[styles.modalSheet, { paddingBottom: Math.max(40, insets.bottom + 16) }]}>
         <View style={styles.dragHandle} />
         <View style={styles.modalIconCircle}>
           <Ionicons name="key-outline" size={36} color={colors.exam} />
