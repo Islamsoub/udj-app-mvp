@@ -228,24 +228,21 @@ Languages: French (LTR, default) + Arabic (RTL).
 - QR: HMAC-SHA256 signed, 60s expiry, signing key never leaves server
 - Auth lockout: 3 failed attempts, 5-minute countdown, auto-unlock
 
-## Keyboard Handling Rules (learned from beta testing)
+## Keyboard Handling Rules (edge-to-edge era)
 
 1. Every action button in a bottom sheet with a TextInput must
    call Keyboard.dismiss() as the first line of its onPress handler.
 
-2. Never use paddingBottom: keyboardHeight in bottom sheets —
-   it creates huge empty gaps. Instead use a small fixed spacer
-   (40-80px) at the bottom of the ScrollView content +
-   scrollToEnd triggered by a keyboardDidShow listener.
+2. Every ScrollView that contains a TextInput + action button
+   must have keyboardShouldPersistTaps="handled".
 
-3. onFocus alone is unreliable for repeat TextInput interactions.
-   Always use Keyboard.addListener('keyboardDidShow') for scroll
-   behavior — it fires every time, not just first focus.
+3. Any bottom sheet or screen with a TextInput uses
+   KeyboardAwareScrollView from react-native-keyboard-controller.
+   Do NOT hand-roll keyboardDidShow + paddingBottom or scrollToEnd.
 
-4. Every ScrollView that contains a TextInput + action button
-   must have keyboardShouldPersistTaps="handled". Without this,
-   tapping the button dismisses the keyboard instead of firing
-   the button's onPress.
+4. Under edge-to-edge (mandatory on Android 15+), the keyboard is
+   an inset, not a window resize. The keyboard-controller library
+   handles insets natively on the UI thread.
 
 ## Security decisions (v1.0 — documented accepted risks)
 

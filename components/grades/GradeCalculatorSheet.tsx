@@ -1,14 +1,14 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   Modal,
   View,
   Text,
   Pressable,
-  ScrollView,
   TextInput,
   StyleSheet,
   Keyboard,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -31,14 +31,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
   const [targetGrade, setTargetGrade] = useState('');
   const [result, setResult] = useState<number | null>(null);
   const [calculated, setCalculated] = useState(false);
-  const scrollRef = useRef<ScrollView>(null);
-
-  useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => {
-      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
-    });
-    return () => showSub.remove();
-  }, []);
+  const scrollRef = useRef<React.ElementRef<typeof KeyboardAwareScrollView>>(null);
 
   const subject = subjects.length > 0 ? subjects[selectedIndex % subjects.length] : null;
 
@@ -80,8 +73,9 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
           {/* Drag handle */}
           <View style={styles.handle} />
 
-          <ScrollView
+          <KeyboardAwareScrollView
             ref={scrollRef}
+            bottomOffset={20}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
@@ -173,9 +167,8 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
                 </View>
               )}
 
-              <View style={{ height: 80 }} />
             </View>
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </View>
       </View>
     </Modal>

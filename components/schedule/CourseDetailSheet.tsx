@@ -4,11 +4,11 @@ import {
   View,
   Text,
   Pressable,
-  ScrollView,
   TextInput,
   StyleSheet,
   Keyboard,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Svg, { Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -82,7 +82,7 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const selectedCourse = useCourseDetailStore((s) => s.selectedCourse);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<React.ElementRef<typeof KeyboardAwareScrollView>>(null);
 
   const [noteText, setNoteText] = useState('');
   const [notes, setNotes] = useState<CourseNote[]>([]);
@@ -106,13 +106,6 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
     setNoteText('');
     void refreshNotes();
   }, [visible, refreshNotes]);
-
-  useEffect(() => {
-    const sub = Keyboard.addListener('keyboardDidShow', () => {
-      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
-    });
-    return () => sub.remove();
-  }, []);
 
   const handleSave = useCallback(async () => {
     Keyboard.dismiss();
@@ -147,8 +140,9 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
           {/* Drag handle — outside scroll */}
           <View style={styles.handle} />
 
-          <ScrollView
+          <KeyboardAwareScrollView
             ref={scrollRef}
+            bottomOffset={20}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
@@ -247,8 +241,7 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
               )}
             </View>
 
-            <View style={{ height: 40 }} />
-          </ScrollView>
+          </KeyboardAwareScrollView>
         </View>
       </View>
     </Modal>
