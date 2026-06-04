@@ -329,9 +329,7 @@ export default function ArticleReaderScreen() {
     try {
       const deepLink = `unipocket://article/${article.id}`;
       await Share.share({
-        title: article.title,
-        message: `${article.title}\n${deepLink}`,
-        url: deepLink,
+        message: `${article.title}\n\n${deepLink}`,
       });
     } catch {
       // Share dismissed or unavailable — no-op

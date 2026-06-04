@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { fonts, lightColors, radius, spacing, withAlpha, colors, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { restoreSession } from '@/services/auth';
+import api from '@/services/api';
 
 // Splash is a branded jade-green screen — text/iconography always renders in
 // light-palette tones regardless of active theme.
@@ -73,6 +74,9 @@ export default function SplashScreen() {
   const textOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Fire-and-forget — wake Render from cold sleep before the user reaches login
+    api.get('/health', { timeout: 5000 }).catch(() => {});
+
     Animated.sequence([
       Animated.timing(logoOpacity, {
         toValue: 1,

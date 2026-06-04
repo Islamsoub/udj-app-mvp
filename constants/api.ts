@@ -5,5 +5,5 @@
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_URL || 'https://udj-api.onrender.com';
 
-// 30s — Render free-tier cold starts can be slow
-export const TIMEOUT = 30000;
+// 60s — Render free-tier cold starts can take up to 50s
+export const TIMEOUT = 60000;
