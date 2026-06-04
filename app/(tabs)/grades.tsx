@@ -292,7 +292,7 @@ export default function GradesScreen() {
           <ErrorStateBody onRetry={() => hook.refetch()} styles={styles} />
         )}
 
-        <View style={{ height: 120 }} />
+        <View style={{ height: 56 + insets.bottom }} />
       </ScrollView>
 
       <SessionExpiredModal

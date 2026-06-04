@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useColors } from '@/hooks/useColors';
 import { spacing } from '@/constants/theme';
@@ -15,6 +16,7 @@ const ProfileIcon = (require('../../assets/icons/profile.svg') as { default: Rea
 export default function TabsLayout() {
   const { t } = useTranslation();
   const { colors } = useColors();
+  const insets = useSafeAreaInsets();
 
   const tabs = [
     { name: 'home', title: t('tabs.home'), Icon: HomeIcon, iconW: 28, iconH: 28 },
@@ -27,13 +29,13 @@ export default function TabsLayout() {
   const orderedTabs = tabs;
 
   const tabBarStyle = useMemo(() => ({
-    height: 72,
+    height: 56 + insets.bottom,
     backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    paddingBottom: spacing.sp12,
+    paddingBottom: insets.bottom,
     paddingTop: spacing.sp6,
-  }), [colors]);
+  }), [colors, insets.bottom]);
 
   return (
     <Tabs

@@ -687,7 +687,7 @@ export default function HomeScreen() {
           </View>
         )}
 
-        <View style={{ height: spacing.sp64 }} />
+        <View style={{ height: 56 + insets.bottom }} />
       </ScrollView>
 
       {showSessionModal && (

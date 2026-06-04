@@ -74,7 +74,8 @@
       "Bash(npm ls *)",
       "Bash(npm show *)",
       "Bash(findstr /i \"expo\\\\|metro\\\\|terminated\\\\|success\")",
-      "Bash(grep *)"
+      "Bash(grep *)",
+      "Bash(Select-Object -First 30 FullName)"
     ]
   }
 }
