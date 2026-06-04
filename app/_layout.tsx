@@ -14,6 +14,7 @@ import { runMigrations } from '@/services/db';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useColors } from '@/hooks/useColors';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import {
   registerForPushNotifications,
   setupNotificationListeners,
@@ -51,6 +52,7 @@ export default function RootLayout() {
   const student = useAuthStore((s) => s.student);
   const router = useRouter();
   const { isDark } = useColors();
+  useNetworkStatus();
 
   // Font files go here once assets/fonts/ is populated — empty map loads instantly
   const [fontsLoaded] = useFonts({

@@ -13,6 +13,7 @@
     "offlineBanner": "وضع عدم الاتصال · آخر مزامنة : {{time}}",
     "last_sync": "آخر مزامنة: {{time}}",
     "last_sync_short": "تحديث: {{time}}",
+    "never": "لم تتم بعد",
     "sync_value": "أمس في {{time}}",
     "session": {
       "title": "انتهت الجلسة",

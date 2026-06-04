@@ -21,6 +21,7 @@ import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { CourseDetailSheet } from '@/components/schedule/CourseDetailSheet';
 import { useCourseDetailStore, ExtendedCourse } from '@/stores/courseDetailStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useNetworkStore } from '@/stores/networkStore';
 import { getStudentMe, getSchedule, getNews, Schedule, NewsItem } from '@/services/api';
 import type { StudentProfileCache } from '@/services/api';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
@@ -364,7 +365,7 @@ function LoadedHeader({
       {isOffline ? (
         <Text style={styles.subtitleOffline}>
           <Text style={styles.subtitleOfflineNormal}>{t('home.offline_data')} – </Text>
-          <Text style={styles.subtitleOfflineTime}>{t('common.last_sync_short', { time: lastSyncTime ?? 'hier 14h30' })}</Text>
+          <Text style={styles.subtitleOfflineTime}>{t('common.last_sync_short', { time: lastSyncTime })}</Text>
         </Text>
       ) : (
         <Text style={styles.subtitle}>{subtitle}</Text>
@@ -470,6 +471,10 @@ export default function HomeScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const setSelectedCourse = useCourseDetailStore((s) => s.setSelectedCourse);
+  const lastSyncAt = useNetworkStore((s) => s.lastSyncAt);
+  const lastSyncTime = lastSyncAt
+    ? new Date(lastSyncAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : t('common.never');
 
   const studentId = useAuthStore.getState().student?.id ?? 'me';
 
@@ -575,6 +580,7 @@ export default function HomeScreen() {
           isOffline={isOffline}
           topInset={insets.top}
           profile={profileHook.data}
+          lastSyncTime={lastSyncTime}
         />
       ) : (
         <SimpleHeader topInset={insets.top} />

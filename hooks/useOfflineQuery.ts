@@ -40,6 +40,7 @@ export function useOfflineQuery<T>({
   fetchFreshRef.current = fetchFresh;
   updateCacheRef.current = updateCache;
 
+  const isOnline = useNetworkStore((s) => s.isOnline);
   const setLastSyncAt = useNetworkStore((s) => s.setLastSyncAt);
 
   useEffect(() => {
@@ -71,7 +72,6 @@ export function useOfflineQuery<T>({
       }
 
       // Step 2: If device is offline, stop here and surface offline state
-      const isOnline = useNetworkStore.getState().isOnline;
       if (!isOnline) {
         if (cancelled) return;
         if (cachedData !== null) {
@@ -122,7 +122,7 @@ export function useOfflineQuery<T>({
       cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, fetchKey, setLastSyncAt, cacheKey]);
+  }, [enabled, fetchKey, isOnline, setLastSyncAt, cacheKey]);
 
   const refetch = useCallback(() => {
     setFetchKey((k) => k + 1);

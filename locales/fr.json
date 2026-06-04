@@ -13,6 +13,7 @@
     "offlineBanner": "Mode hors-ligne · Dernière sync : {{time}}",
     "last_sync": "Dernière synchro : {{time}}",
     "last_sync_short": "Mise à jour: {{time}}",
+    "never": "jamais",
     "sync_value": "Hier à {{time}}",
     "session": {
       "title": "Session expirée",

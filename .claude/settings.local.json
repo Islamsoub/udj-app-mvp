@@ -73,7 +73,8 @@
       "Bash(npm update *)",
       "Bash(npm ls *)",
       "Bash(npm show *)",
-      "Bash(findstr /i \"expo\\\\|metro\\\\|terminated\\\\|success\")"
+      "Bash(findstr /i \"expo\\\\|metro\\\\|terminated\\\\|success\")",
+      "Bash(grep *)"
     ]
   }
 }
