@@ -925,7 +925,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   changerText: {
     fontFamily: fonts.sans,
     fontSize: 13,
-    color: colors.textSecondary,
+    color: colors.jade400,
   },
 
   // ── Divider ──
