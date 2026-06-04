@@ -72,7 +72,8 @@
       "Bash(npm audit *)",
       "Bash(npm update *)",
       "Bash(npm ls *)",
-      "Bash(npm show *)"
+      "Bash(npm show *)",
+      "Bash(findstr /i \"expo\\\\|metro\\\\|terminated\\\\|success\")"
     ]
   }
 }
