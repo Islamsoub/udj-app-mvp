@@ -142,7 +142,8 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
 
           <KeyboardAwareScrollView
             ref={scrollRef}
-            bottomOffset={20}
+            bottomOffset={90}
+            disableScrollOnKeyboardHide
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >

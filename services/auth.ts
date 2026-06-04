@@ -5,6 +5,7 @@ import { API_BASE_URL, TIMEOUT } from '@/constants/api';
 import { useAuthStore, REFRESH_KEY, StudentProfile } from '@/stores/authStore';
 import api from './api';
 import { clearAllCache } from './db';
+import { isBiometricEnabled } from '@/services/biometric';
 
 export type LoginResponse = {
   accessToken: string;
@@ -26,16 +27,20 @@ export async function login(studentId: string, password: string): Promise<LoginR
 }
 
 export async function logout(): Promise<void> {
-  const refreshToken = await SecureStore.getItemAsync(REFRESH_KEY);
-  if (refreshToken) {
-    try {
-      // Best-effort server-side revocation; local cleanup happens regardless
-      await api.post('/auth/logout', { refreshToken });
-    } catch {
-      // ignore
+  const bioEnabled = await isBiometricEnabled();
+
+  if (!bioEnabled) {
+    const refreshToken = await SecureStore.getItemAsync(REFRESH_KEY);
+    if (refreshToken) {
+      try {
+        await api.post('/auth/logout', { refreshToken });
+      } catch {
+        // ignore
+      }
     }
+    await SecureStore.deleteItemAsync(REFRESH_KEY);
   }
-  await SecureStore.deleteItemAsync(REFRESH_KEY);
+
   await clearAllCache();
   useAuthStore.getState().logout();
 }

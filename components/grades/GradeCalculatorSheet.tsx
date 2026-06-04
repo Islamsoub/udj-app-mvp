@@ -76,6 +76,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
           <KeyboardAwareScrollView
             ref={scrollRef}
             bottomOffset={20}
+            disableScrollOnKeyboardHide
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
