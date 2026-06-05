@@ -32,9 +32,7 @@ export function SettingsHeader({ topInset, onBack, title }: SettingsHeaderProps)
 const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     minHeight: CONTENT_H,
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    backgroundColor: colors.background,
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: spacing.sp16,
@@ -48,9 +46,10 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     gap: spacing.sp4,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 25,
+    fontWeight: '800',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
+    letterSpacing: -0.6,
   },
 });

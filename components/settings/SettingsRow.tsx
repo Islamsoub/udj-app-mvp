@@ -14,6 +14,7 @@ interface SettingsRowProps {
   onPress?: () => void;
   disabled?: boolean;
   showChevron?: boolean;
+  isLast?: boolean;
 }
 
 export function SettingsRow({
@@ -26,6 +27,7 @@ export function SettingsRow({
   onPress,
   disabled = false,
   showChevron = true,
+  isLast = false,
 }: SettingsRowProps) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -33,7 +35,7 @@ export function SettingsRow({
 
   if (isToggle) {
     return (
-      <View style={[styles.row, disabled && styles.rowDisabled]}>
+      <View style={[styles.row, isLast && styles.rowLast, disabled && styles.rowDisabled]}>
         <Text style={[styles.label, { color: labelColor }]} numberOfLines={1}>
           {label}
         </Text>
@@ -51,7 +53,16 @@ export function SettingsRow({
   }
 
   return (
-    <Pressable style={({ pressed }) => [styles.row, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]} onPress={onPress} hitSlop={4} disabled={disabled}>
+    <Pressable
+      style={({ pressed }) => [
+        styles.row,
+        isLast && styles.rowLast,
+        pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) },
+      ]}
+      onPress={onPress}
+      hitSlop={4}
+      disabled={disabled}
+    >
       <Text style={[styles.label, { color: labelColor }]} numberOfLines={1}>
         {label}
       </Text>
@@ -69,25 +80,27 @@ export function SettingsRow({
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
   row: {
-    height: 56,
-    backgroundColor: colors.surface,
+    minHeight: 52,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.hair,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.sp16,
+  },
+  rowLast: {
+    borderBottomWidth: 0,
   },
   rowDisabled: {
     opacity: 0.5,
   },
   label: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15.5,
     fontWeight: '500',
     fontFamily: fonts.sans,
   },
   value: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,

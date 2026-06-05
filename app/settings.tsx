@@ -12,7 +12,7 @@ import * as Updates from 'expo-updates';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { fonts, spacing, radius, type Palette } from '@/constants/theme';
+import { elevation, fonts, spacing, radius, type Palette } from '@/constants/theme';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -181,94 +181,106 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
     <View>
       {/* PRÉFÉRENCES */}
       <Text style={styles.sectionHeader}>{t('settings.section.preferences')}</Text>
-      <SettingsRow
-        label={t('settings.row.language')}
-        value={languageLabel}
-        onPress={() => setLangueVisible(true)}
-      />
-      <SettingsRow
-        label={t('settings.row.theme')}
-        value={themeLabel}
-        onPress={() => setThemeVisible(true)}
-      />
-      <SettingsRow
-        label={t('settings.row.text_size')}
-        value={textSizeLabel}
-        onPress={() => setTextSizeVisible(true)}
-      />
+      <View style={[styles.sectionCard, elevation.card]}>
+        <SettingsRow
+          label={t('settings.row.language')}
+          value={languageLabel}
+          onPress={() => setLangueVisible(true)}
+        />
+        <SettingsRow
+          label={t('settings.row.theme')}
+          value={themeLabel}
+          onPress={() => setThemeVisible(true)}
+        />
+        <SettingsRow
+          label={t('settings.row.text_size')}
+          value={textSizeLabel}
+          onPress={() => setTextSizeVisible(true)}
+          isLast
+        />
+      </View>
 
       {/* NOTIFICATIONS */}
       <Text style={styles.sectionHeader}>{t('settings.section.notifications')}</Text>
-      <SettingsRow
-        label={t('settings.row.notif_grades')}
-        isToggle
-        toggleValue={notifGrades}
-        onToggle={isOffline ? undefined : (v) => {
-          setNotifGrades(v);
-          handleNotifToggle('notifGrades')(v);
-        }}
-        disabled={isOffline}
-      />
-      <SettingsRow
-        label={t('settings.row.notif_courses')}
-        isToggle
-        toggleValue={notifCours}
-        onToggle={isOffline ? undefined : (v) => {
-          setNotifCours(v);
-          handleNotifToggle('notifCourses')(v);
-        }}
-        disabled={isOffline}
-      />
-      <SettingsRow
-        label={t('settings.row.notif_attendance')}
-        isToggle
-        toggleValue={notifPresence}
-        onToggle={isOffline ? undefined : (v) => {
-          setNotifPresence(v);
-          handleNotifToggle('notifAttendance')(v);
-        }}
-        disabled={isOffline}
-      />
-      <SettingsRow
-        label={t('settings.row.quiet_hours')}
-        value={`${String(quietStart).padStart(2, '0')}h – ${String(quietEnd).padStart(2, '0')}h`}
-        onPress={() => setQuietHoursVisible(true)}
-      />
+      <View style={[styles.sectionCard, elevation.card]}>
+        <SettingsRow
+          label={t('settings.row.notif_grades')}
+          isToggle
+          toggleValue={notifGrades}
+          onToggle={isOffline ? undefined : (v) => {
+            setNotifGrades(v);
+            handleNotifToggle('notifGrades')(v);
+          }}
+          disabled={isOffline}
+        />
+        <SettingsRow
+          label={t('settings.row.notif_courses')}
+          isToggle
+          toggleValue={notifCours}
+          onToggle={isOffline ? undefined : (v) => {
+            setNotifCours(v);
+            handleNotifToggle('notifCourses')(v);
+          }}
+          disabled={isOffline}
+        />
+        <SettingsRow
+          label={t('settings.row.notif_attendance')}
+          isToggle
+          toggleValue={notifPresence}
+          onToggle={isOffline ? undefined : (v) => {
+            setNotifPresence(v);
+            handleNotifToggle('notifAttendance')(v);
+          }}
+          disabled={isOffline}
+        />
+        <SettingsRow
+          label={t('settings.row.quiet_hours')}
+          value={`${String(quietStart).padStart(2, '0')}h – ${String(quietEnd).padStart(2, '0')}h`}
+          onPress={() => setQuietHoursVisible(true)}
+          isLast
+        />
+      </View>
 
       {/* DONNÉES & CACHE */}
       <Text style={styles.sectionHeader}>{t('settings.section.data')}</Text>
-      <SettingsRow
-        label={t('settings.row.offline_storage')}
-        value={cacheSize}
-        onPress={() => router.push('/storage-detail')}
-      />
-      <SettingsRow
-        label={t('settings.row.clear_cache')}
-        isDestructive
-        onPress={() => setClearCacheVisible(true)}
-      />
-      <SettingsRow
-        label={t('settings.row.last_sync')}
-        value={lastSync}
-        showChevron={false}
-      />
+      <View style={[styles.sectionCard, elevation.card]}>
+        <SettingsRow
+          label={t('settings.row.offline_storage')}
+          value={cacheSize}
+          onPress={() => router.push('/storage-detail')}
+        />
+        <SettingsRow
+          label={t('settings.row.clear_cache')}
+          isDestructive
+          onPress={() => setClearCacheVisible(true)}
+        />
+        <SettingsRow
+          label={t('settings.row.last_sync')}
+          value={lastSync}
+          showChevron={false}
+          isLast
+        />
+      </View>
 
       {/* COMPTE */}
       <Text style={styles.sectionHeader}>{t('settings.section.account')}</Text>
-      <SettingsRow
-        label={t('settings.row.account_info')}
-        value={studentName}
-        onPress={() => router.push('/account-info')}
-      />
-      <SettingsRow
-        label={t('infoCenter.title')}
-        onPress={() => router.push('/info-center')}
-      />
-      <SettingsRow
-        label={t('settings.row.logout')}
-        isDestructive
-        onPress={() => setLogoutVisible(true)}
-      />
+      <View style={[styles.sectionCard, elevation.card]}>
+        <SettingsRow
+          label={t('settings.row.account_info')}
+          value={studentName}
+          onPress={() => router.push('/account-info')}
+        />
+        <SettingsRow
+          label={t('infoCenter.title')}
+          onPress={() => router.push('/info-center')}
+        />
+        <SettingsRow
+          label={t('settings.row.logout')}
+          isDestructive
+          onPress={() => setLogoutVisible(true)}
+          isLast
+        />
+      </View>
 
       <View style={{ height: 120 }} />
 
@@ -408,15 +420,21 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flexGrow: 1,
   },
   sectionHeader: {
-    paddingVertical: spacing.sp12,
-    paddingHorizontal: spacing.sp16,
-    backgroundColor: colors.background,
-    fontSize: 12,
-    fontWeight: '700',
+    marginTop: 22,
+    marginBottom: 9,
+    marginHorizontal: spacing.sp20,
+    fontSize: 13,
+    fontWeight: '600',
     fontFamily: fonts.sans,
-    color: colors.textPrimary,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
+    color: colors.textSecondary,
+    letterSpacing: 0.3,
+  },
+  sectionCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.rXl,
+    marginHorizontal: spacing.sp16,
+    marginBottom: spacing.sp8,
+    overflow: 'hidden',
   },
 
   // ── Error state

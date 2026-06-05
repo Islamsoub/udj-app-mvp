@@ -282,10 +282,10 @@
   "settings": {
     "title": "Paramètres",
     "section": {
-      "preferences": "PRÉFÉRENCES",
-      "notifications": "NOTIFICATIONS",
-      "data": "DONNÉES & CACHE",
-      "account": "COMPTE"
+      "preferences": "Préférences",
+      "notifications": "Notifications",
+      "data": "Données & cache",
+      "account": "Compte"
     },
     "row": {
       "language": "Langue",
