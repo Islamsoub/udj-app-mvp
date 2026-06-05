@@ -253,7 +253,7 @@ function BottomBar({ bottomInset, isBookmarked, onBookmark, onShare }: BottomBar
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   return (
-    <View style={[styles.bottomBar, { paddingBottom: bottomInset }]}>
+    <View style={[styles.bottomBar, { paddingBottom: bottomInset + 8 }]}>
       <Pressable style={({ pressed }) => [styles.bookmarkBtn, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.15), borderRadius: 999 }]} onPress={onBookmark} hitSlop={8}>
         <Ionicons
           name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
@@ -551,11 +551,11 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Bottom action bar
   bottomBar: {
-    height: 56,
     backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.border,
     paddingHorizontal: spacing.sp16,
+    paddingTop: 8,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

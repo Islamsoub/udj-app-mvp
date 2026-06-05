@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Polyline, Polygon, Circle, Line } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
@@ -46,6 +47,7 @@ function toY(val: number) {
 export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
   const { t } = useTranslation();
   const { colors } = useColors();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   // Build chart geometry from dynamic data
@@ -268,7 +270,7 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
               <Text style={styles.disclaimer}>{t('gpa_history.disclaimer')}</Text>
             )}
 
-            <View style={{ height: 28 }} />
+            <View style={{ height: Math.max(28, insets.bottom + 12) }} />
           </ScrollView>
         </View>
       </View>

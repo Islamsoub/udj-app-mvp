@@ -190,7 +190,7 @@ export default function AccountInfoScreen() {
           infoStyles={infoStyles}
         />
 
-        <View style={{ height: spacing.sp32 }} />
+        <View style={{ height: Math.max(spacing.sp32, insets.bottom + 16) }} />
       </ScrollView>
     </View>
   );

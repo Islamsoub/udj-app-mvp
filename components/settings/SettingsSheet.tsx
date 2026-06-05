@@ -1,5 +1,6 @@
 import React, { ReactNode, useMemo } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
@@ -21,6 +22,7 @@ export function SettingsSheet({
   children,
 }: SettingsSheetProps) {
   const { colors } = useColors();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Modal
@@ -31,7 +33,7 @@ export function SettingsSheet({
     >
       <View style={styles.container}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <View style={[styles.sheet, height ? { minHeight: height } : undefined]}>
+        <View style={[styles.sheet, { paddingBottom: Math.max(28, insets.bottom + 12) }, height ? { minHeight: height } : undefined]}>
           <View style={styles.handle} />
           {title ? <Text style={styles.title}>{title}</Text> : null}
           {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
@@ -52,7 +54,6 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.surface,
     borderTopLeftRadius: radius.r2xl,
     borderTopRightRadius: radius.r2xl,
-    paddingBottom: 28,
   },
   handle: {
     alignSelf: 'center',

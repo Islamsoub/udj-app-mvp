@@ -199,7 +199,7 @@ export default function FacultyDetailScreen() {
           />
         </View>
 
-        <View style={{ height: spacing.sp32 }} />
+        <View style={{ height: Math.max(spacing.sp32, insets.bottom + 16) }} />
       </ScrollView>
     </View>
   );

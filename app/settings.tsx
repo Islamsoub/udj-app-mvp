@@ -340,6 +340,7 @@ export default function SettingsScreen() {
           showsVerticalScrollIndicator={false}
         >
           <SettingsSkeleton />
+          <View style={{ height: insets.bottom + 16 }} />
         </ScrollView>
       )}
 
@@ -350,6 +351,7 @@ export default function SettingsScreen() {
           showsVerticalScrollIndicator={false}
         >
           <SettingsBody isOffline={settingsState === 'offline'} />
+          <View style={{ height: insets.bottom + 16 }} />
         </ScrollView>
       )}
 
