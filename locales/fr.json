@@ -219,12 +219,20 @@
       "annee": "ANNEE",
       "statut": "STATUT",
       "show_qr": "Afficher QR",
-      "collapse_hint": "Appuyer pour réduire"
+      "collapse_hint": "Appuyer pour réduire",
+      "valid_expires": "Valide · expire dans {{seconds}}s",
+      "tap_expand": "Appuyer pour agrandir"
     },
     "section": {
       "academic": "INFORMATIONS ACADEMIQUES",
       "settings": "PARAMETRES"
     },
+    "tile_schedule": "Emploi du temps",
+    "tile_attendance": "Présence",
+    "tile_alerts": "Alertes",
+    "section_academic": "Informations académiques",
+    "section_contact": "Contact & statut",
+    "section_programme": "Programme",
     "row": {
       "filiere": "Filiere",
       "niveau": "Niveau",

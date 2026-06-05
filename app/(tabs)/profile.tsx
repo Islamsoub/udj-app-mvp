@@ -14,18 +14,18 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import {
   ProfileHeader,
-  ProfileHeaderStudent,
   ProfileHeaderState,
 } from '@/components/profile/ProfileHeader';
 import { StudentCard } from '@/components/profile/StudentCard';
 import { InfoRow } from '@/components/profile/InfoRow';
 import { ProfileSkeleton } from '@/components/profile/ProfileSkeleton';
+import { Ionicons } from '@expo/vector-icons';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { useAuthStore } from '@/stores/authStore';
 import { getStudentMe, getQrToken } from '@/services/api';
@@ -41,20 +41,43 @@ type ProfileState = ProfileHeaderState;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function cacheToHeaderStudent(c: StudentProfileCache, lang: string): ProfileHeaderStudent {
-  return {
-    name: c.name,
-    id: c.studentId,
-    filiere: lang === 'ar' && c.programmeNameAr ? c.programmeNameAr : c.programmeName,
-  };
-}
-
 function statusKey(status: string): 'active' | 'suspended' | 'graduated' | null {
   const s = status.toUpperCase();
   if (s === 'ACTIVE') return 'active';
   if (s === 'SUSPENDED') return 'suspended';
   if (s === 'GRADUATED') return 'graduated';
   return null;
+}
+
+// ─── Quick-action tile ────────────────────────────────────────────────────────
+
+type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
+
+function QuickTile({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: IoniconName;
+  label: string;
+  onPress: () => void;
+}) {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeTileStyles(colors), [colors]);
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.tile, pressed && { opacity: 0.75 }]}
+      onPress={onPress}
+      hitSlop={4}
+    >
+      <View style={styles.iconCircle}>
+        <Ionicons name={icon} size={22} color={colors.jade400} />
+      </View>
+      <Text style={styles.tileLabel} numberOfLines={2}>
+        {label}
+      </Text>
+    </Pressable>
+  );
 }
 
 // ─── Loaded / Offline body ────────────────────────────────────────────────────
@@ -81,6 +104,8 @@ function ProfileBody({
   styles,
 }: ProfileBodyProps) {
   const { t, i18n } = useTranslation();
+  const { colors } = useColors();
+  const router = useRouter();
   const isAr = i18n.language === 'ar';
 
   const name = student?.name ?? '—';
@@ -116,46 +141,93 @@ function ProfileBody({
     <View style={styles.body}>
       <StudentCard name={name} id={id} programme={programme} qrToken={qrToken} />
 
-      <Text style={styles.sectionHeader}>{t('profile.section.academic')}</Text>
-      <InfoRow
-        label={t('profile.row.filiere')}
-        value={filiere}
-        onPress={onProgrammePress}
-      />
-      <InfoRow
-        label={t('profile.info.faculty')}
-        value={facultyName}
-        onPress={onFacultyPress}
-      />
-      <InfoRow
-        label={t('profile.row.presence')}
-        value={`${presence}%`}
-        onPress={onPresencePress}
-      />
+      {/* Quick-action tiles */}
+      <View style={styles.tilesRow}>
+        <QuickTile
+          icon="calendar-outline"
+          label={t('profile.tile_schedule')}
+          onPress={() => router.push('/(tabs)/schedule')}
+        />
+        <QuickTile
+          icon="checkmark-circle-outline"
+          label={t('profile.tile_attendance')}
+          onPress={onPresencePress}
+        />
+        <QuickTile
+          icon="notifications-outline"
+          label={t('profile.tile_alerts')}
+          onPress={() => router.push('/notifications')}
+        />
+      </View>
 
-      <InfoRow
-        icon="mail-outline"
-        label={t('profile.info.email')}
-        value={email}
-        onPress={onEmailPress}
-      />
-      <InfoRow
-        icon="checkmark-circle-outline"
-        label={t('profile.info.status')}
-        value={statusValue}
-      />
-      <InfoRow
-        icon="book-outline"
-        label={t('profile.info.programme_info')}
-        value={programmeInfoValue}
-      />
-      <InfoRow
-        icon="calendar-outline"
-        label={t('profile.info.current_semester')}
-        value={currentSemesterValue}
-      />
+      {/* Card 1: Informations académiques */}
+      <Text style={styles.sectionHeader}>{t('profile.section_academic')}</Text>
+      <View style={[styles.sectionCard, elevation.card]}>
+        <InfoRow
+          icon="school-outline"
+          iconColor={colors.jade400}
+          label={t('profile.row.filiere')}
+          value={filiere}
+          onPress={onProgrammePress}
+        />
+        <InfoRow
+          icon="business-outline"
+          iconColor={colors.info}
+          label={t('profile.info.faculty')}
+          value={facultyName}
+          onPress={onFacultyPress}
+        />
+        <InfoRow
+          icon="checkmark-circle-outline"
+          iconColor={colors.warning}
+          label={t('profile.row.presence')}
+          value={`${presence}%`}
+          onPress={onPresencePress}
+          isLast
+        />
+      </View>
 
-      <InfoRow label={t('profile.row.logout')} isLogout onPress={onLogoutPress} />
+      {/* Card 2: Contact & statut */}
+      <Text style={styles.sectionHeader}>{t('profile.section_contact')}</Text>
+      <View style={[styles.sectionCard, elevation.card]}>
+        <InfoRow
+          icon="mail-outline"
+          iconColor={colors.textSecondary}
+          label={t('profile.info.email')}
+          value={email}
+          onPress={onEmailPress}
+        />
+        <InfoRow
+          icon="shield-checkmark-outline"
+          iconColor={colors.jade400}
+          label={t('profile.info.status')}
+          value={statusValue}
+          isLast
+        />
+      </View>
+
+      {/* Card 3: Programme */}
+      <Text style={styles.sectionHeader}>{t('profile.section_programme')}</Text>
+      <View style={[styles.sectionCard, elevation.card]}>
+        <InfoRow
+          icon="book-outline"
+          iconColor={colors.exam}
+          label={t('profile.info.programme_info')}
+          value={programmeInfoValue}
+        />
+        <InfoRow
+          icon="calendar-outline"
+          iconColor={colors.info}
+          label={t('profile.info.current_semester')}
+          value={currentSemesterValue}
+          isLast
+        />
+      </View>
+
+      {/* Logout — standalone, outside cards */}
+      <View style={styles.logoutRow}>
+        <InfoRow label={t('profile.row.logout')} isLogout onPress={onLogoutPress} isLast />
+      </View>
     </View>
   );
 }
@@ -254,8 +326,7 @@ const STATE_LABELS: Record<ProfileState, string> = {
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { t, i18n } = useTranslation();
-  const lang = i18n.language;
+  const { t } = useTranslation();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [devState, setDevState] = useState<ProfileState | null>(null);
@@ -329,11 +400,6 @@ export default function ProfileScreen() {
 
   const profileState = devState ?? hookState;
 
-  const headerStudent: ProfileHeaderStudent =
-    hook.data != null
-      ? cacheToHeaderStudent(hook.data, lang)
-      : { name: '—', id: '—', filiere: '—' };
-
   const showBody =
     profileState === 'loaded' ||
     profileState === 'offline' ||
@@ -346,7 +412,6 @@ export default function ProfileScreen() {
       <ProfileHeader
         state={profileState}
         topInset={insets.top}
-        student={headerStudent}
         onDotsPress={() => router.push('/settings')}
       />
 
@@ -424,17 +489,36 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   body: {
     backgroundColor: colors.background,
     paddingTop: spacing.sp16,
+    paddingBottom: spacing.sp8,
   },
   sectionHeader: {
-    paddingVertical: spacing.sp12,
-    paddingHorizontal: spacing.sp16,
-    backgroundColor: colors.background,
-    fontSize: 12,
-    fontWeight: '700',
+    marginTop: 22,
+    marginBottom: 9,
+    marginHorizontal: spacing.sp20,
+    fontSize: 13,
+    fontWeight: '600',
     fontFamily: fonts.sans,
-    color: colors.textPrimary,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
+    color: colors.textSecondary,
+    letterSpacing: 0.3,
+  },
+  sectionCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.rXl,
+    marginHorizontal: spacing.sp16,
+    overflow: 'hidden',
+  },
+
+  // ── Quick-action tiles
+  tilesRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginHorizontal: spacing.sp16,
+    marginTop: spacing.sp14,
+  },
+
+  // ── Logout standalone row
+  logoutRow: {
+    marginTop: spacing.sp8,
   },
 
   // ── Shared center layout (error)
@@ -565,5 +649,32 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontFamily: fonts.sans,
     color: colors.danger,
     lineHeight: 18,
+  },
+});
+
+const makeTileStyles = (colors: Palette) => StyleSheet.create({
+  tile: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: radius.rXl,
+    padding: 14,
+    alignItems: 'center',
+    ...elevation.card,
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.jadeFaint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tileLabel: {
+    marginTop: spacing.sp8,
+    fontSize: 12.5,
+    fontWeight: '500',
+    fontFamily: fonts.sans,
+    color: colors.textPrimary,
+    textAlign: 'center',
   },
 });

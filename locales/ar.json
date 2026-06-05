@@ -219,12 +219,20 @@
       "annee": "السنة",
       "statut": "الحالة",
       "show_qr": "إظهار QR",
-      "collapse_hint": "اضغط للتصغير"
+      "collapse_hint": "اضغط للتصغير",
+      "valid_expires": "صالح · تنتهي خلال {{seconds}}ث",
+      "tap_expand": "اضغط للتوسيع"
     },
     "section": {
       "academic": "المعلومات الأكاديمية",
       "settings": "الإعدادات"
     },
+    "tile_schedule": "الجدول الدراسي",
+    "tile_attendance": "الحضور",
+    "tile_alerts": "التنبيهات",
+    "section_academic": "المعلومات الأكاديمية",
+    "section_contact": "الاتصال والحالة",
+    "section_programme": "البرنامج",
     "row": {
       "filiere": "التخصص",
       "niveau": "المستوى",

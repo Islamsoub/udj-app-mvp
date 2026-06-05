@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -11,26 +11,38 @@ interface InfoRowProps {
   value?: string;
   onPress?: () => void;
   isLogout?: boolean;
+  isLast?: boolean;
   icon?: IoniconName;
+  iconColor?: string;
 }
 
-export function InfoRow({ label, value, onPress, isLogout = false, icon }: InfoRowProps) {
+export function InfoRow({
+  label,
+  value,
+  onPress,
+  isLogout = false,
+  isLast = false,
+  icon,
+  iconColor,
+}: InfoRowProps) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+
   const labelColor = isLogout ? colors.danger : colors.textPrimary;
   const chevronColor = isLogout ? colors.danger : colors.greyMedium;
-  const iconColor = isLogout ? colors.danger : colors.greyMedium;
-  const showChevron = onPress !== undefined;
+  const showChevron = onPress !== undefined && !isLogout;
 
   const content = (
     <>
-      {icon ? (
-        <Ionicons
-          name={icon}
-          size={20}
-          color={iconColor}
-          style={styles.icon}
-        />
+      {icon && iconColor ? (
+        <View
+          style={[
+            styles.iconChip,
+            { backgroundColor: withAlpha(iconColor, 0.12) },
+          ]}
+        >
+          <Ionicons name={icon} size={17} color={iconColor} />
+        </View>
       ) : null}
       <Text style={[styles.label, { color: labelColor }]} numberOfLines={1}>
         {label}
@@ -51,6 +63,7 @@ export function InfoRow({ label, value, onPress, isLogout = false, icon }: InfoR
       <Pressable
         style={({ pressed }) => [
           styles.row,
+          isLast && styles.rowLast,
           pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) },
         ]}
         onPress={onPress}
@@ -61,7 +74,11 @@ export function InfoRow({ label, value, onPress, isLogout = false, icon }: InfoR
     );
   }
 
-  return <View style={styles.row}>{content}</View>;
+  return (
+    <View style={[styles.row, isLast && styles.rowLast]}>
+      {content}
+    </View>
+  );
 }
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
@@ -69,18 +86,24 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     minHeight: 56,
     backgroundColor: colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.hair,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.sp16,
   },
-  icon: {
-    marginEnd: spacing.sp12,
+  rowLast: {
+    borderBottomWidth: 0,
+  },
+  iconChip: {
+    width: 34,
+    height: 34,
+    borderRadius: radius.rMd,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginEnd: 13,
+    flexShrink: 0,
   },
   label: {
-    // Keep label at its natural width and let it grow to fill free space
-    // (pushing the value to the end), but never shrink — so the value
-    // truncates instead of the label when the value is long (e.g. email).
     flexGrow: 1,
     flexShrink: 0,
     flexBasis: 'auto',
@@ -89,8 +112,6 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontFamily: fonts.sans,
   },
   value: {
-    // Value shrinks and truncates (numberOfLines=1 + ellipsizeMode tail)
-    // when space runs out; marginStart keeps a gap from the label.
     flexShrink: 1,
     flexBasis: 'auto',
     fontSize: 14,
