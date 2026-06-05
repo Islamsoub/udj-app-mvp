@@ -27,10 +27,14 @@ export interface Palette {
 
   background: string;
   surface: string;
+  surface2: string;
   border: string;
+  hair: string;
   textPrimary: string;
   textSecondary: string;
   textTertiary: string;
+  jadeFaint: string;
+  jadeText: string;
 
   dmBgDeep: string;
   dmBgPrimary: string;
@@ -98,12 +102,16 @@ export const lightColors: Palette = {
   success: '#1D9E75',
 
   // Light mode surfaces
-  background: '#F5F7F6',
+  background: '#F2F5F3',
   surface: '#FFFFFF',
+  surface2: '#F4F7F5',
   border: '#E8ECE9',
+  hair: 'rgba(28, 35, 32, 0.07)',
   textPrimary: '#1C2320',
   textSecondary: '#6B7B74',
   textTertiary: '#9EADA7',
+  jadeFaint: 'rgba(29, 158, 117, 0.10)',
+  jadeText: '#1D9E75',
 
   // Dark mode surface raw values (kept for backward compat — still referenced
   // from older code as colors.dmBgDeep etc.)
@@ -153,7 +161,7 @@ export const darkColors: Palette = {
   bgPrimary: '#141E1A',
   bgSurface: '#1C2B26',
   bgCard: '#243328',
-  jadePrimary: '#2ECC96',
+  jadePrimary: '#2BB989',
   borderLight: '#1F2E28',
   skeleton: '#1F3029',
 
@@ -177,12 +185,16 @@ export const darkColors: Palette = {
   success: '#2ECC96',
 
   // Surfaces (dark)
-  background: '#141E1A',
-  surface: '#1C2B26',
+  background: '#0E1512',
+  surface: '#17211D',
+  surface2: '#1E2A25',
   border: '#2A3D36',
-  textPrimary: '#F0F5F3',
-  textSecondary: '#8FA89E',
-  textTertiary: '#627870',
+  hair: 'rgba(255, 255, 255, 0.08)',
+  textPrimary: '#ECF1EE',
+  textSecondary: '#9DB0A8',
+  textTertiary: '#6E847B',
+  jadeFaint: 'rgba(43, 185, 137, 0.16)',
+  jadeText: '#5FD3A6',
 
   // Raw dm tokens — same values whether the active palette is light or dark
   dmBgDeep: '#0D1512',
@@ -265,11 +277,13 @@ export const sizing = {
 } as const;
 
 export const radius = {
-  rSm: 6,
-  rMd: 8,
+  rSm: 8,
+  rMd: 12,
   rLg: 12,
   rXl: 16,
-  r2xl: 20,
+  rTile: 18,
+  rHero: 22,
+  r2xl: 24,
   rFull: 9999,
 } as const;
 
@@ -382,11 +396,45 @@ export const typographyAR = {
   },
 } as const;
 
+export const elevation = {
+  card: {
+    shadowColor: '#1C2320',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  cardLg: {
+    shadowColor: '#1C2320',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 4,
+  },
+  navFloat: {
+    shadowColor: '#0F6E56',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.16,
+    shadowRadius: 22,
+    elevation: 8,
+  },
+  sheet: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: -8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 30,
+    elevation: 12,
+  },
+} as const;
+
+export const scrimColor = 'rgba(16, 22, 20, 0.45)';
+
 export const theme = {
   colors,
   spacing,
   sizing,
   radius,
+  elevation,
   fonts,
   typographyFR,
   typographyAR,
