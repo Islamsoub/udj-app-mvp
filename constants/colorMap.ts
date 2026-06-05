@@ -11,12 +11,32 @@ const SUBJECT_PALETTE: SubjectColorPair[] = [
   { bg: '#E0E7FF', accent: '#6366F1' },
   { bg: '#D1FAE5', accent: '#10B981' },
   { bg: '#FFE4E6', accent: '#F43F5E' },
+  { bg: '#CFFAFE', accent: '#06B6D4' },
+  { bg: '#FFEDD5', accent: '#F97316' },
+  { bg: '#ECFCCB', accent: '#84CC16' },
+  { bg: '#F1F5F9', accent: '#64748B' },
 ];
 
+const subjectColorCache = new Map<string, SubjectColorPair>();
+
+export function buildSubjectColorMap(subjects: { name: string; nameAr?: string | null }[]): void {
+  subjectColorCache.clear();
+  const unique = [...new Map(subjects.map((s) => [s.name, s])).values()]
+    .sort((a, b) => a.name.localeCompare(b.name));
+  unique.forEach(({ name, nameAr }, index) => {
+    const color = SUBJECT_PALETTE[index % SUBJECT_PALETTE.length];
+    subjectColorCache.set(name, color);
+    if (nameAr) subjectColorCache.set(nameAr, color);
+  });
+}
+
 export function getSubjectColor(subjectName: string): SubjectColorPair {
+  const cached = subjectColorCache.get(subjectName);
+  if (cached) return cached;
+
   let hash = 0;
   for (const c of subjectName) hash += c.charCodeAt(0);
-  return SUBJECT_PALETTE[hash % 8];
+  return SUBJECT_PALETTE[hash % SUBJECT_PALETTE.length];
 }
 
 export function getMentionColor(mention: string, colors: Palette): string {

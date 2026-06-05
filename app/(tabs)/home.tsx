@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { fonts, spacing, radius, sizing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
-import { getSubjectColor, getCategoryColor } from '@/constants/colorMap';
+import { buildSubjectColorMap, getSubjectColor, getCategoryColor } from '@/constants/colorMap';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { CourseDetailSheet } from '@/components/schedule/CourseDetailSheet';
@@ -510,6 +510,14 @@ export default function HomeScreen() {
     },
     updateCache: (data) => upsertNews(data),
   });
+
+  // ─── Build subject color map ────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (scheduleHook.data) {
+      buildSubjectColorMap(scheduleHook.data.map((s) => ({ name: s.subjectName, nameAr: s.subjectNameAr })));
+    }
+  }, [scheduleHook.data]);
 
   // ─── Derive today's schedule ────────────────────────────────────────────────
 

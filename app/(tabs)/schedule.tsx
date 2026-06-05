@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -32,6 +32,7 @@ import { Course } from '@/components/schedule/CourseCard';
 import { CourseDetailSheet } from '@/components/schedule/CourseDetailSheet';
 import { useCourseDetailStore, ExtendedCourse } from '@/stores/courseDetailStore';
 import { CourseStatus } from '@/components/schedule/StatusPill';
+import { buildSubjectColorMap } from '@/constants/colorMap';
 import { getSchedule, Schedule } from '@/services/api';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getFullSemesterSchedule, upsertSchedules } from '@/services/db';
@@ -433,6 +434,14 @@ export default function ScheduleScreen() {
     },
     updateCache: (data) => upsertSchedules(data),
   });
+
+  // ─── Build subject color map ────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (hook.data) {
+      buildSubjectColorMap(hook.data.map((s) => ({ name: s.subjectName, nameAr: s.subjectNameAr })));
+    }
+  }, [hook.data]);
 
   // ─── Derive entries ─────────────────────────────────────────────────────────
 
