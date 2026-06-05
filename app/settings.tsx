@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -96,15 +96,6 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
   const [langueVisible, setLangueVisible] = useState(false);
   const [themeVisible, setThemeVisible] = useState(false);
   const [textSizeVisible, setTextSizeVisible] = useState(false);
-
-  const [langAnchor, setLangAnchor] = useState({ y: 0, height: 0 });
-  const [themeAnchor, setThemeAnchor] = useState({ y: 0, height: 0 });
-  const [textSizeAnchor, setTextSizeAnchor] = useState({ y: 0, height: 0 });
-
-  const langRowRef = useRef<View>(null);
-  const themeRowRef = useRef<View>(null);
-  const textSizeRowRef = useRef<View>(null);
-
   const [quietHoursVisible, setQuietHoursVisible] = useState(false);
   const [clearCacheVisible, setClearCacheVisible] = useState(false);
   const [logoutVisible, setLogoutVisible] = useState(false);
@@ -190,42 +181,21 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
     <View>
       {/* PRÉFÉRENCES */}
       <Text style={styles.sectionHeader}>{t('settings.section.preferences')}</Text>
-      <View ref={langRowRef}>
-        <SettingsRow
-          label={t('settings.row.language')}
-          value={languageLabel}
-          onPress={() => {
-            langRowRef.current?.measureInWindow((x, y, w, h) => {
-              setLangAnchor({ y, height: h });
-              setLangueVisible(true);
-            });
-          }}
-        />
-      </View>
-      <View ref={themeRowRef}>
-        <SettingsRow
-          label={t('settings.row.theme')}
-          value={themeLabel}
-          onPress={() => {
-            themeRowRef.current?.measureInWindow((x, y, w, h) => {
-              setThemeAnchor({ y, height: h });
-              setThemeVisible(true);
-            });
-          }}
-        />
-      </View>
-      <View ref={textSizeRowRef}>
-        <SettingsRow
-          label={t('settings.row.text_size')}
-          value={textSizeLabel}
-          onPress={() => {
-            textSizeRowRef.current?.measureInWindow((x, y, w, h) => {
-              setTextSizeAnchor({ y, height: h });
-              setTextSizeVisible(true);
-            });
-          }}
-        />
-      </View>
+      <SettingsRow
+        label={t('settings.row.language')}
+        value={languageLabel}
+        onPress={() => setLangueVisible(true)}
+      />
+      <SettingsRow
+        label={t('settings.row.theme')}
+        value={themeLabel}
+        onPress={() => setThemeVisible(true)}
+      />
+      <SettingsRow
+        label={t('settings.row.text_size')}
+        value={textSizeLabel}
+        onPress={() => setTextSizeVisible(true)}
+      />
 
       {/* NOTIFICATIONS */}
       <Text style={styles.sectionHeader}>{t('settings.section.notifications')}</Text>
@@ -307,24 +277,18 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
         onClose={() => setLangueVisible(false)}
         currentValue={currentLang}
         onSelect={handleLanguageChange}
-        anchorY={langAnchor.y}
-        anchorHeight={langAnchor.height}
       />
       <ThemePicker
         visible={themeVisible}
         onClose={() => setThemeVisible(false)}
         currentValue={themeMode}
         onSelect={(v) => { setThemeMode(v); setThemeVisible(false); }}
-        anchorY={themeAnchor.y}
-        anchorHeight={themeAnchor.height}
       />
       <TextSizePicker
         visible={textSizeVisible}
         onClose={() => setTextSizeVisible(false)}
         currentValue={textSize}
         onSelect={(v) => { setTextSizeStore(v); setTextSizeVisible(false); }}
-        anchorY={textSizeAnchor.y}
-        anchorHeight={textSizeAnchor.height}
       />
       <QuietHoursPicker
         visible={quietHoursVisible}

@@ -11,6 +11,7 @@ interface OptionRowProps {
   onPress: () => void;
   isLast?: boolean;
   preview?: { text: string; size: number };
+  icon?: (selected: boolean) => React.ReactElement;
 }
 
 export function OptionRow({
@@ -20,6 +21,7 @@ export function OptionRow({
   onPress,
   isLast = false,
   preview,
+  icon,
 }: OptionRowProps) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -29,6 +31,7 @@ export function OptionRow({
       onPress={onPress}
       hitSlop={4}
     >
+      {icon ? <View style={styles.iconWrap}>{icon(selected)}</View> : null}
       <View style={styles.left}>
         <Text style={styles.label}>{label}</Text>
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
@@ -83,6 +86,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontWeight: '400',
     color: colors.textSecondary,
     marginTop: spacing.sp4,
+  },
+  iconWrap: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginEnd: spacing.sp12,
   },
   radio: {
     width: 24,
