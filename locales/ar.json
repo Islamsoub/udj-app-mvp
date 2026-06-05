@@ -290,7 +290,6 @@
     "row": {
       "language": "اللغة",
       "theme": "المظهر",
-      "text_size": "حجم النص",
       "notif_grades": "النتائج المتاحة",
       "notif_courses": "تذكير بالدرس",
       "notif_attendance": "تنبيهات الحضور",
@@ -324,13 +323,6 @@
       "quiet_hours_desc": "لن يتم إرسال أي إشعارات خلال هذه الساعات.",
       "quiet_start": "البداية",
       "quiet_end": "النهاية",
-      "size_small": "صغير",
-      "size_small_sub": "نص أكثر إحكاماً",
-      "size_normal": "عادي",
-      "size_normal_sub": "الحجم الافتراضي",
-      "size_large": "كبير",
-      "size_large_sub": "نص أكثر وضوحاً",
-      "preview_text": "معاينة النص",
       "cancel": "إلغاء",
       "save": "حفظ"
     },

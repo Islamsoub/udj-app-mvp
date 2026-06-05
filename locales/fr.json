@@ -290,7 +290,6 @@
     "row": {
       "language": "Langue",
       "theme": "Thème",
-      "text_size": "Taille du texte",
       "notif_grades": "Notes disponibles",
       "notif_courses": "Rappel de cours",
       "notif_attendance": "Alertes présence",
@@ -324,13 +323,6 @@
       "quiet_hours_desc": "Aucune notification ne sera envoyée pendant ces heures.",
       "quiet_start": "Début",
       "quiet_end": "Fin",
-      "size_small": "Petit",
-      "size_small_sub": "Texte plus compact",
-      "size_normal": "Normal",
-      "size_normal_sub": "Taille par défaut",
-      "size_large": "Grand",
-      "size_large_sub": "Texte plus lisible",
-      "preview_text": "Aperçu du texte",
       "cancel": "Annuler",
       "save": "Enregistrer"
     },

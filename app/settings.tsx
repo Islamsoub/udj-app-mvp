@@ -21,7 +21,6 @@ import { SettingsRow } from '@/components/settings/SettingsRow';
 import { SettingsSkeleton } from '@/components/settings/SettingsSkeleton';
 import { LanguePicker } from '@/components/settings/LanguePicker';
 import { ThemePicker } from '@/components/settings/ThemePicker';
-import { TextSizePicker } from '@/components/settings/TextSizePicker';
 import { QuietHoursPicker } from '@/components/settings/QuietHoursPicker';
 import { ClearCacheConfirm } from '@/components/settings/ClearCacheConfirm';
 import { LogoutConfirm } from '@/components/settings/LogoutConfirm';
@@ -69,9 +68,6 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
   const updatePreferences = useAuthStore((s) => s.updatePreferences);
   const themeMode = useThemeStore((s) => s.mode);
   const setThemeMode = useThemeStore((s) => s.setMode);
-  const textSize = useSettingsStore((s) => s.textSize);
-  const setTextSizeStore = useSettingsStore((s) => s.setTextSize);
-
   const currentLang: 'fr' | 'ar' = i18n.language === 'ar' ? 'ar' : 'fr';
 
   const themeLabel = {
@@ -83,19 +79,12 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
   const languageLabel =
     currentLang === 'ar' ? t('settings.picker.lang_ar') : t('settings.picker.lang_fr');
 
-  const textSizeLabel = {
-    small: t('settings.picker.size_small'),
-    normal: t('settings.picker.size_normal'),
-    large: t('settings.picker.size_large'),
-  }[textSize];
-
   const [notifGrades, setNotifGrades] = useState(prefs?.notifGrades ?? true);
   const [notifCours, setNotifCours] = useState(prefs?.notifCourses ?? true);
   const [notifPresence, setNotifPresence] = useState(prefs?.notifAttendance ?? true);
 
   const [langueVisible, setLangueVisible] = useState(false);
   const [themeVisible, setThemeVisible] = useState(false);
-  const [textSizeVisible, setTextSizeVisible] = useState(false);
   const [quietHoursVisible, setQuietHoursVisible] = useState(false);
   const [clearCacheVisible, setClearCacheVisible] = useState(false);
   const [logoutVisible, setLogoutVisible] = useState(false);
@@ -191,11 +180,6 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
           label={t('settings.row.theme')}
           value={themeLabel}
           onPress={() => setThemeVisible(true)}
-        />
-        <SettingsRow
-          label={t('settings.row.text_size')}
-          value={textSizeLabel}
-          onPress={() => setTextSizeVisible(true)}
           isLast
         />
       </View>
@@ -295,12 +279,6 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
         onClose={() => setThemeVisible(false)}
         currentValue={themeMode}
         onSelect={(v) => { setThemeMode(v); setThemeVisible(false); }}
-      />
-      <TextSizePicker
-        visible={textSizeVisible}
-        onClose={() => setTextSizeVisible(false)}
-        currentValue={textSize}
-        onSelect={(v) => { setTextSizeStore(v); setTextSizeVisible(false); }}
       />
       <QuietHoursPicker
         visible={quietHoursVisible}
