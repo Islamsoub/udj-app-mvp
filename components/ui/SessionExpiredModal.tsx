@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, radius, scrimColor, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface SessionExpiredModalProps {
@@ -54,7 +54,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     bottom: 0,
     start: 0,
     end: 0,
-    backgroundColor: withAlpha(colors.black, 0.5),
+    backgroundColor: scrimColor,
     justifyContent: 'flex-end',
   },
   modalSheet: {
@@ -65,10 +65,10 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingBottom: 40,
   },
   dragHandle: {
-    width: 49,
-    height: 9,
-    borderRadius: spacing.sp8,
-    backgroundColor: colors.border,
+    width: 38,
+    height: 5,
+    borderRadius: radius.rFull,
+    backgroundColor: colors.hair,
     alignSelf: 'center',
     marginBottom: spacing.sp24,
   },
@@ -98,8 +98,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   modalPrimaryBtn: {
     width: '100%',
-    height: 56,
-    borderRadius: radius.rLg,
+    height: 50,
+    borderRadius: radius.rBtn,
     backgroundColor: colors.jade400,
     alignItems: 'center',
     justifyContent: 'center',
@@ -113,8 +113,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   modalOutlineBtn: {
     width: '100%',
-    height: 56,
-    borderRadius: radius.rLg,
+    height: 50,
+    borderRadius: radius.rBtn,
     borderWidth: 1,
     borderColor: colors.jade600,
     alignItems: 'center',

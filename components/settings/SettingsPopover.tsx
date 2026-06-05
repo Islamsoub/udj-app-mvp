@@ -35,8 +35,8 @@ const makeStyles = (colors: Palette) =>
       alignItems: 'center',
     },
     cardShadow: {
-      width: '85%',
-      borderRadius: radius.rLg,
+      width: '84%',
+      borderRadius: radius.rTile,
       backgroundColor: colors.surface,
       elevation: 8,
       shadowColor: colors.black,
@@ -45,7 +45,7 @@ const makeStyles = (colors: Palette) =>
       shadowRadius: 12,
     },
     cardClip: {
-      borderRadius: radius.rLg,
+      borderRadius: radius.rTile,
       overflow: 'hidden',
     },
   });

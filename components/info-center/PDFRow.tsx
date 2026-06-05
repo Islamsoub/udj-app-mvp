@@ -13,18 +13,20 @@ export type PDFData = {
 type Props = {
   item: PDFData;
   onDownload?: () => void;
+  isLast?: boolean;
 };
 
-// Not in theme palette — PDF-specific inline constant
-const PDF_BADGE_BG = '#FEE2E2';
-
-export function PDFRow({ item, onDownload }: Props) {
+export function PDFRow({ item, onDownload, isLast = false }: Props) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <Pressable
       android_ripple={{ color: colors.jade50 }}
-      style={({ pressed }) => [styles.row, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
+      style={({ pressed }) => [
+        styles.row,
+        isLast && styles.rowLast,
+        pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) },
+      ]}
     >
       <View style={styles.badge}>
         <Text style={styles.badgeText}>PDF</Text>
@@ -50,14 +52,16 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     height: 64,
     paddingHorizontal: spacing.sp16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
+    borderBottomColor: colors.hair,
+  },
+  rowLast: {
+    borderBottomWidth: 0,
   },
   badge: {
     width: 48,
     height: 48,
     borderRadius: 12,
-    backgroundColor: PDF_BADGE_BG,
+    backgroundColor: colors.dangerLight,
     alignItems: 'center',
     justifyContent: 'center',
   },

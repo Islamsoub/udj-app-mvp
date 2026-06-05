@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import ScrollPicker from 'react-native-wheel-scrollview-picker';
 import { useTranslation } from 'react-i18next';
-import { fonts, spacing, radius, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsSheet } from './SettingsSheet';
 
@@ -61,7 +61,7 @@ export function QuietHoursPicker({
             wrapperHeight={180}
             wrapperBackground="transparent"
             itemHeight={44}
-            highlightColor={colors.border}
+            highlightColor={colors.hair}
             highlightBorderWidth={1}
             renderItem={(data: string, _index: number, isSelected: boolean) => (
               <Text
@@ -88,7 +88,7 @@ export function QuietHoursPicker({
             wrapperHeight={180}
             wrapperBackground="transparent"
             itemHeight={44}
-            highlightColor={colors.border}
+            highlightColor={colors.hair}
             highlightBorderWidth={1}
             renderItem={(data: string, _index: number, isSelected: boolean) => (
               <Text
@@ -189,8 +189,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   btn: {
     flex: 1,
-    height: 48,
-    borderRadius: radius.rLg,
+    height: 50,
+    borderRadius: radius.rBtn,
     alignItems: 'center',
     justifyContent: 'center',
   },

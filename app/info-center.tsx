@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, withAlpha, sizing, type Palette } from '@/constants/theme';
+import { elevation, fonts, radius, spacing, withAlpha, sizing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -116,11 +116,7 @@ function SectionHeader({ labelKey }: { labelKey: string }) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
-  return (
-    <View style={styles.sectionBand}>
-      <Text style={styles.sectionLabel}>{t(labelKey)}</Text>
-    </View>
-  );
+  return <Text style={styles.sectionLabel}>{t(labelKey)}</Text>;
 }
 
 // ─── Search bar ────────────────────────────────────────────────────────────────
@@ -184,32 +180,41 @@ function LoadedContent() {
       <SearchBar />
 
       <SectionHeader labelKey="infoCenter.campusDirectory" />
-      {MOCK_CONTACTS.map(item => (
-        <ContactRow
-          key={item.id}
-          item={item}
-          onPress={() => handleContactPress(item)}
-        />
-      ))}
+      <View style={[styles.sectionCard, elevation.card]}>
+        {MOCK_CONTACTS.map((item, i) => (
+          <ContactRow
+            key={item.id}
+            item={item}
+            onPress={() => handleContactPress(item)}
+            isLast={i === MOCK_CONTACTS.length - 1}
+          />
+        ))}
+      </View>
 
       <SectionHeader labelKey="infoCenter.faq" />
-      {faqs.map(item => (
-        <FAQItem
-          key={item.id}
-          item={item}
-          isExpanded={expandedId === item.id}
-          onToggle={() => handleFAQToggle(item.id)}
-        />
-      ))}
+      <View style={[styles.sectionCard, elevation.card]}>
+        {faqs.map((item, i) => (
+          <FAQItem
+            key={item.id}
+            item={item}
+            isExpanded={expandedId === item.id}
+            onToggle={() => handleFAQToggle(item.id)}
+            isLast={i === faqs.length - 1}
+          />
+        ))}
+      </View>
 
       <SectionHeader labelKey="infoCenter.pdfForms" />
-      {pdfs.map(item => (
-        <PDFRow
-          key={item.id}
-          item={item}
-          onDownload={() => {}}
-        />
-      ))}
+      <View style={[styles.sectionCard, elevation.card]}>
+        {pdfs.map((item, i) => (
+          <PDFRow
+            key={item.id}
+            item={item}
+            onDownload={() => {}}
+            isLast={i === pdfs.length - 1}
+          />
+        ))}
+      </View>
 
       <View style={{ height: spacing.sp64 }} />
     </ScrollView>
@@ -322,9 +327,9 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   offlineBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFEDD5',
+    backgroundColor: colors.offlineBg,
     borderBottomWidth: 1,
-    borderBottomColor: '#FBD38D',
+    borderBottomColor: colors.warningBorder,
     paddingVertical: spacing.sp12,
     paddingHorizontal: spacing.sp16,
   },
@@ -332,30 +337,37 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#F97316',
+    backgroundColor: colors.offline,
     marginEnd: spacing.sp8,
   },
   offlineBannerText: {
     fontSize: 12,
     fontWeight: '500',
     fontFamily: fonts.sans,
-    color: '#9A3412',
+    color: colors.offlineText,
     flex: 1,
   },
 
-  // ── Section band
-  sectionBand: {
-    backgroundColor: colors.background,
-    paddingVertical: spacing.sp12,
-    paddingHorizontal: spacing.sp16,
-  },
+  // ── Section header
+  sectionBand: {},
   sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
+    marginTop: 22,
+    marginBottom: 9,
+    marginHorizontal: spacing.sp20,
+    fontSize: 13,
+    fontWeight: '600',
     fontFamily: fonts.sans,
-    color: colors.textTertiary,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+    color: colors.textSecondary,
+    letterSpacing: 0.3,
+  },
+
+  // ── Section card
+  sectionCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.rXl,
+    marginHorizontal: spacing.sp16,
+    marginBottom: spacing.sp8,
+    overflow: 'hidden',
   },
 
   // ── Search bar
@@ -401,7 +413,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 216,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: colors.dangerLight,
     alignItems: 'center',
     justifyContent: 'center',
   },

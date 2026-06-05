@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, radius, type Palette } from '@/constants/theme';
+import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
 import { getCacheStats, clearAllCache, clearTableCache, type CacheStat } from '@/services/db';
@@ -53,14 +53,15 @@ interface CategoryRowProps {
   size: string;
   rowsLabel: string;
   onClear: () => void;
+  isLast?: boolean;
 }
 
-function CategoryRow({ icon, name, rows, size, rowsLabel, onClear }: CategoryRowProps) {
+function CategoryRow({ icon, name, rows, size, rowsLabel, onClear, isLast = false }: CategoryRowProps) {
   const { colors } = useColors();
   const rowStyles = useMemo(() => makeRowStyles(colors), [colors]);
 
   return (
-    <Pressable style={rowStyles.row} onPress={onClear}>
+    <Pressable style={[rowStyles.row, isLast && rowStyles.rowLast]} onPress={onClear}>
       <View style={rowStyles.iconCircle}>
         <Ionicons name={icon} size={18} color={colors.jade400} />
       </View>
@@ -79,18 +80,20 @@ const makeRowStyles = (colors: Palette) =>
   StyleSheet.create({
     row: {
       minHeight: 56,
-      backgroundColor: colors.surface,
       borderBottomWidth: 1,
-      borderBottomColor: colors.border,
+      borderBottomColor: colors.hair,
       paddingHorizontal: spacing.sp16,
       paddingVertical: spacing.sp12,
       flexDirection: 'row',
       alignItems: 'center',
     },
+    rowLast: {
+      borderBottomWidth: 0,
+    },
     iconCircle: {
       width: 36,
       height: 36,
-      borderRadius: 9,
+      borderRadius: radius.rSm,
       backgroundColor: colors.jade50,
       alignItems: 'center',
       justifyContent: 'center',
@@ -135,7 +138,6 @@ export default function StorageDetailScreen() {
   }, [loadStats]);
 
   const totalBytes = stats.reduce((sum, s) => {
-    // Don't double-count bookmarks (subset of news_cache)
     if (s.key === 'bookmarks') return sum;
     return sum + s.estimatedBytes;
   }, 0);
@@ -194,7 +196,7 @@ export default function StorageDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* ── Total usage ── */}
-        <View style={styles.totalCard}>
+        <View style={[styles.totalCard, elevation.card]}>
           <Text style={styles.totalLabel}>{t('settings.storage.total')}</Text>
           <Text style={styles.totalValue}>{formatBytes(totalBytes)}</Text>
         </View>
@@ -203,21 +205,23 @@ export default function StorageDetailScreen() {
         <Text style={styles.sectionHeader}>
           {t('settings.section.data')}
         </Text>
-
-        {CATEGORIES.map((cat) => {
-          const stat = stats.find((s) => s.key === cat.key);
-          return (
-            <CategoryRow
-              key={cat.key}
-              icon={cat.icon}
-              name={t(`settings.storage.${cat.key}`)}
-              rows={stat?.rows ?? 0}
-              size={formatBytes(stat?.estimatedBytes ?? 0)}
-              rowsLabel={t('settings.storage.rows', { count: stat?.rows ?? 0 })}
-              onClear={() => stat && handleClearCategory(stat)}
-            />
-          );
-        })}
+        <View style={[styles.sectionCard, elevation.card]}>
+          {CATEGORIES.map((cat, i) => {
+            const stat = stats.find((s) => s.key === cat.key);
+            return (
+              <CategoryRow
+                key={cat.key}
+                icon={cat.icon}
+                name={t(`settings.storage.${cat.key}`)}
+                rows={stat?.rows ?? 0}
+                size={formatBytes(stat?.estimatedBytes ?? 0)}
+                rowsLabel={t('settings.storage.rows', { count: stat?.rows ?? 0 })}
+                onClear={() => stat && handleClearCategory(stat)}
+                isLast={i === CATEGORIES.length - 1}
+              />
+            );
+          })}
+        </View>
 
         {/* ── Clear all button ── */}
         <Pressable
@@ -251,21 +255,19 @@ const makeStyles = (colors: Palette) =>
       flexGrow: 1,
     },
 
-    // Total card
     totalCard: {
       marginHorizontal: spacing.sp16,
       marginTop: spacing.sp16,
-      borderRadius: radius.rLg,
+      borderRadius: radius.rXl,
       backgroundColor: colors.surface,
       padding: spacing.sp16,
     },
     totalLabel: {
-      fontSize: 12,
+      fontSize: 13,
       fontWeight: '600',
       fontFamily: fonts.sans,
       color: colors.textSecondary,
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
+      letterSpacing: 0.3,
     },
     totalValue: {
       fontSize: 32,
@@ -275,25 +277,29 @@ const makeStyles = (colors: Palette) =>
       marginTop: spacing.sp4,
     },
 
-    // Section header
     sectionHeader: {
-      paddingVertical: spacing.sp12,
-      paddingHorizontal: spacing.sp16,
-      backgroundColor: colors.background,
-      fontSize: 12,
-      fontWeight: '700',
+      marginTop: 22,
+      marginBottom: 9,
+      marginHorizontal: spacing.sp20,
+      fontSize: 13,
+      fontWeight: '600',
       fontFamily: fonts.sans,
-      color: colors.textPrimary,
-      letterSpacing: 1.2,
-      textTransform: 'uppercase',
+      color: colors.textSecondary,
+      letterSpacing: 0.3,
+    },
+    sectionCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.rXl,
+      marginHorizontal: spacing.sp16,
+      marginBottom: spacing.sp8,
+      overflow: 'hidden',
     },
 
-    // Clear all button
     clearAllBtn: {
       marginHorizontal: spacing.sp16,
       marginTop: spacing.sp24,
-      height: 48,
-      borderRadius: radius.rLg,
+      height: 50,
+      borderRadius: radius.rBtn,
       backgroundColor: colors.danger,
       alignItems: 'center',
       justifyContent: 'center',

@@ -284,6 +284,7 @@ export const radius = {
   rTile: 18,
   rHero: 22,
   r2xl: 24,
+  rBtn: 14,
   rFull: 9999,
 } as const;
 

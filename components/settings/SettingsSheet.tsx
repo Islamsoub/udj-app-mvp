@@ -1,7 +1,7 @@
 import React, { ReactNode, useMemo } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, radius, scrimColor, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface SettingsSheetProps {
@@ -47,7 +47,7 @@ export function SettingsSheet({
 const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: withAlpha(colors.black, 0.45),
+    backgroundColor: scrimColor,
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -57,10 +57,10 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   handle: {
     alignSelf: 'center',
-    width: 36,
-    height: 4,
+    width: 38,
+    height: 5,
     borderRadius: radius.rFull,
-    backgroundColor: colors.skeletonBase,
+    backgroundColor: colors.hair,
     marginTop: spacing.sp12,
     marginBottom: spacing.sp16,
   },

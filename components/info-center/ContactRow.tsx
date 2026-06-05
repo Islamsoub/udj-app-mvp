@@ -16,6 +16,7 @@ export type ContactData = {
 type Props = {
   item: ContactData;
   onPress?: () => void;
+  isLast?: boolean;
 };
 
 const ICON_NAME: Record<ContactType, React.ComponentProps<typeof Ionicons>['name']> = {
@@ -24,7 +25,7 @@ const ICON_NAME: Record<ContactType, React.ComponentProps<typeof Ionicons>['name
   email: 'mail-outline',
 };
 
-export function ContactRow({ item, onPress }: Props) {
+export function ContactRow({ item, onPress, isLast = false }: Props) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const chevron = I18nManager.isRTL ? 'chevron-back' : 'chevron-forward';
@@ -33,7 +34,11 @@ export function ContactRow({ item, onPress }: Props) {
     <Pressable
       onPress={onPress}
       android_ripple={{ color: colors.jade50 }}
-      style={({ pressed }) => [styles.row, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
+      style={({ pressed }) => [
+        styles.row,
+        isLast && styles.rowLast,
+        pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) },
+      ]}
     >
       <Ionicons name={ICON_NAME[item.type]} size={22} color={colors.jade400} />
 
@@ -54,8 +59,10 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     height: 56,
     paddingHorizontal: spacing.sp16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
+    borderBottomColor: colors.hair,
+  },
+  rowLast: {
+    borderBottomWidth: 0,
   },
   name: {
     flex: 1,

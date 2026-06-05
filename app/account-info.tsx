@@ -9,7 +9,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { fonts, spacing, type Palette } from '@/constants/theme';
+import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
 import { useAuthStore } from '@/stores/authStore';
@@ -55,8 +55,7 @@ function InfoRow({
 
 const makeInfoStyles = (colors: Palette) => StyleSheet.create({
   row: {
-    height: 56,
-    backgroundColor: colors.surface,
+    minHeight: 52,
     paddingHorizontal: spacing.sp16,
     flexDirection: 'row',
     alignItems: 'center',
@@ -64,17 +63,17 @@ const makeInfoStyles = (colors: Palette) => StyleSheet.create({
   },
   rowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.hair,
   },
   label: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 15.5,
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
   },
   value: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
@@ -92,7 +91,7 @@ export default function AccountInfoScreen() {
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const infoStyles = useMemo(() => makeInfoStyles(colors), [colors]);
   const student = useAuthStore((s) => s.student);
@@ -110,7 +109,7 @@ export default function AccountInfoScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <SettingsHeader
         topInset={insets.top}
         onBack={() => router.back()}
@@ -131,64 +130,70 @@ export default function AccountInfoScreen() {
 
         {/* ── Personal info ── */}
         <Text style={styles.sectionHeader}>{t('settings.account.section_personal')}</Text>
-        <InfoRow
-          label={t('settings.account.row_name')}
-          value={fullName}
-          infoStyles={infoStyles}
-        />
-        <InfoRow
-          label={t('settings.account.row_student_id')}
-          value={studentId}
-          mono
-          infoStyles={infoStyles}
-        />
-        <InfoRow
-          label={t('settings.account.row_email')}
-          value={email}
-          isLast
-          infoStyles={infoStyles}
-        />
+        <View style={[styles.sectionCard, elevation.card]}>
+          <InfoRow
+            label={t('settings.account.row_name')}
+            value={fullName}
+            infoStyles={infoStyles}
+          />
+          <InfoRow
+            label={t('settings.account.row_student_id')}
+            value={studentId}
+            mono
+            infoStyles={infoStyles}
+          />
+          <InfoRow
+            label={t('settings.account.row_email')}
+            value={email}
+            isLast
+            infoStyles={infoStyles}
+          />
+        </View>
 
         {/* ── Academic info ── */}
         <Text style={styles.sectionHeader}>{t('settings.account.section_academic')}</Text>
-        <InfoRow
-          label={t('settings.account.row_filiere')}
-          value={filiere}
-          infoStyles={infoStyles}
-        />
-        <InfoRow
-          label={t('settings.account.row_niveau')}
-          value={niveau}
-          infoStyles={infoStyles}
-        />
-        <InfoRow
-          label={t('settings.account.row_academic_year')}
-          value={academicYear}
-          mono
-          infoStyles={infoStyles}
-        />
-        <InfoRow
-          label={t('settings.account.row_status')}
-          value={status}
-          valueColor={colors.jade600}
-          isLast
-          infoStyles={infoStyles}
-        />
+        <View style={[styles.sectionCard, elevation.card]}>
+          <InfoRow
+            label={t('settings.account.row_filiere')}
+            value={filiere}
+            infoStyles={infoStyles}
+          />
+          <InfoRow
+            label={t('settings.account.row_niveau')}
+            value={niveau}
+            infoStyles={infoStyles}
+          />
+          <InfoRow
+            label={t('settings.account.row_academic_year')}
+            value={academicYear}
+            mono
+            infoStyles={infoStyles}
+          />
+          <InfoRow
+            label={t('settings.account.row_status')}
+            value={status}
+            valueColor={colors.jade600}
+            isLast
+            infoStyles={infoStyles}
+          />
+        </View>
 
         {/* ── Security ── */}
         <Text style={styles.sectionHeader}>{t('settings.account.section_security')}</Text>
-        <InfoRow
-          label={t('settings.account.row_last_login')}
-          value={t('settings.account.value_last_login')}
-          mono
-          infoStyles={infoStyles}
-        />
-        <InfoRow
-          label={t('settings.account.row_device')}
-          value={t('settings.account.value_device')}
-          isLast
-          infoStyles={infoStyles}
-        />
+        <View style={[styles.sectionCard, elevation.card]}>
+          <InfoRow
+            label={t('settings.account.row_last_login')}
+            value={t('settings.account.value_last_login')}
+            mono
+            infoStyles={infoStyles}
+          />
+          <InfoRow
+            label={t('settings.account.row_device')}
+            value={t('settings.account.value_device')}
+            isLast
+            infoStyles={infoStyles}
+          />
+        </View>
 
         <View style={{ height: Math.max(spacing.sp32, insets.bottom + 16) }} />
       </ScrollView>
@@ -210,7 +215,6 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flexGrow: 1,
   },
 
-  // Avatar
   avatarSection: {
     alignItems: 'center',
     marginTop: spacing.sp24,
@@ -238,16 +242,21 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp4,
   },
 
-  // Section header (mirrors settings.tsx pattern)
   sectionHeader: {
-    paddingVertical: spacing.sp12,
-    paddingHorizontal: spacing.sp16,
-    backgroundColor: colors.background,
-    fontSize: 12,
-    fontWeight: '700',
+    marginTop: 22,
+    marginBottom: 9,
+    marginHorizontal: spacing.sp20,
+    fontSize: 13,
+    fontWeight: '600',
     fontFamily: fonts.sans,
-    color: colors.textPrimary,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
+    color: colors.textSecondary,
+    letterSpacing: 0.3,
+  },
+  sectionCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.rXl,
+    marginHorizontal: spacing.sp16,
+    marginBottom: spacing.sp8,
+    overflow: 'hidden',
   },
 });

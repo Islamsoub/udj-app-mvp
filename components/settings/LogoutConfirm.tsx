@@ -59,8 +59,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     gap: spacing.sp8,
   },
   btn: {
-    height: 48,
-    borderRadius: radius.rLg,
+    height: 50,
+    borderRadius: radius.rBtn,
     alignItems: 'center',
     justifyContent: 'center',
   },

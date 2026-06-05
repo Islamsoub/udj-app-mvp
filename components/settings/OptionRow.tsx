@@ -62,7 +62,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   rowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.hair,
   },
   left: {
     flex: 1,

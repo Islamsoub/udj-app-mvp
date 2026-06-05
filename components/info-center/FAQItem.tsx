@@ -14,9 +14,10 @@ type Props = {
   item: FAQData;
   isExpanded: boolean;
   onToggle: () => void;
+  isLast?: boolean;
 };
 
-export function FAQItem({ item, isExpanded, onToggle }: Props) {
+export function FAQItem({ item, isExpanded, onToggle, isLast = false }: Props) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
@@ -24,7 +25,7 @@ export function FAQItem({ item, isExpanded, onToggle }: Props) {
       <Pressable
         onPress={onToggle}
         android_ripple={{ color: colors.jade50 }}
-        style={styles.questionRow}
+        style={[styles.questionRow, isLast && !isExpanded && styles.borderless]}
       >
         <Text style={styles.question}>{item.question}</Text>
         <Ionicons
@@ -35,7 +36,7 @@ export function FAQItem({ item, isExpanded, onToggle }: Props) {
       </Pressable>
 
       {isExpanded && (
-        <View style={styles.answerContainer}>
+        <View style={[styles.answerContainer, isLast && styles.borderless]}>
           <Text style={styles.answer}>{item.answer}</Text>
         </View>
       )}
@@ -44,9 +45,7 @@ export function FAQItem({ item, isExpanded, onToggle }: Props) {
 }
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
-  container: {
-    backgroundColor: colors.surface,
-  },
+  container: {},
   questionRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -55,7 +54,16 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingHorizontal: spacing.sp16,
     minHeight: 56,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.hair,
+  },
+  answerContainer: {
+    paddingHorizontal: spacing.sp16,
+    paddingBottom: spacing.sp16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.hair,
+  },
+  borderless: {
+    borderBottomWidth: 0,
   },
   question: {
     flex: 1,
@@ -63,12 +71,6 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
-  },
-  answerContainer: {
-    paddingHorizontal: spacing.sp16,
-    paddingBottom: spacing.sp16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   answer: {
     fontSize: 14,
