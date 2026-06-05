@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import { SettingsRow } from '@/components/settings/SettingsRow';
 import { SettingsSkeleton } from '@/components/settings/SettingsSkeleton';
 import { LanguePicker } from '@/components/settings/LanguePicker';
 import { ThemePicker } from '@/components/settings/ThemePicker';
+import { TextSizePicker } from '@/components/settings/TextSizePicker';
 import { QuietHoursPicker } from '@/components/settings/QuietHoursPicker';
 import { ClearCacheConfirm } from '@/components/settings/ClearCacheConfirm';
 import { LogoutConfirm } from '@/components/settings/LogoutConfirm';
@@ -68,6 +69,8 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
   const updatePreferences = useAuthStore((s) => s.updatePreferences);
   const themeMode = useThemeStore((s) => s.mode);
   const setThemeMode = useThemeStore((s) => s.setMode);
+  const textSize = useSettingsStore((s) => s.textSize);
+  const setTextSizeStore = useSettingsStore((s) => s.setTextSize);
 
   const currentLang: 'fr' | 'ar' = i18n.language === 'ar' ? 'ar' : 'fr';
 
@@ -80,12 +83,27 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
   const languageLabel =
     currentLang === 'ar' ? t('settings.picker.lang_ar') : t('settings.picker.lang_fr');
 
+  const textSizeLabel = {
+    small: t('settings.picker.size_small'),
+    normal: t('settings.picker.size_normal'),
+    large: t('settings.picker.size_large'),
+  }[textSize];
+
   const [notifGrades, setNotifGrades] = useState(prefs?.notifGrades ?? true);
   const [notifCours, setNotifCours] = useState(prefs?.notifCourses ?? true);
   const [notifPresence, setNotifPresence] = useState(prefs?.notifAttendance ?? true);
 
   const [langueVisible, setLangueVisible] = useState(false);
   const [themeVisible, setThemeVisible] = useState(false);
+  const [textSizeVisible, setTextSizeVisible] = useState(false);
+
+  const [langAnchor, setLangAnchor] = useState({ y: 0, height: 0 });
+  const [themeAnchor, setThemeAnchor] = useState({ y: 0, height: 0 });
+  const [textSizeAnchor, setTextSizeAnchor] = useState({ y: 0, height: 0 });
+
+  const langRowRef = useRef<View>(null);
+  const themeRowRef = useRef<View>(null);
+  const textSizeRowRef = useRef<View>(null);
 
   const [quietHoursVisible, setQuietHoursVisible] = useState(false);
   const [clearCacheVisible, setClearCacheVisible] = useState(false);
@@ -172,16 +190,42 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
     <View>
       {/* PRÉFÉRENCES */}
       <Text style={styles.sectionHeader}>{t('settings.section.preferences')}</Text>
-      <SettingsRow
-        label={t('settings.row.language')}
-        value={languageLabel}
-        onPress={() => setLangueVisible(true)}
-      />
-      <SettingsRow
-        label={t('settings.row.theme')}
-        value={themeLabel}
-        onPress={() => setThemeVisible(true)}
-      />
+      <View ref={langRowRef}>
+        <SettingsRow
+          label={t('settings.row.language')}
+          value={languageLabel}
+          onPress={() => {
+            langRowRef.current?.measureInWindow((x, y, w, h) => {
+              setLangAnchor({ y, height: h });
+              setLangueVisible(true);
+            });
+          }}
+        />
+      </View>
+      <View ref={themeRowRef}>
+        <SettingsRow
+          label={t('settings.row.theme')}
+          value={themeLabel}
+          onPress={() => {
+            themeRowRef.current?.measureInWindow((x, y, w, h) => {
+              setThemeAnchor({ y, height: h });
+              setThemeVisible(true);
+            });
+          }}
+        />
+      </View>
+      <View ref={textSizeRowRef}>
+        <SettingsRow
+          label={t('settings.row.text_size')}
+          value={textSizeLabel}
+          onPress={() => {
+            textSizeRowRef.current?.measureInWindow((x, y, w, h) => {
+              setTextSizeAnchor({ y, height: h });
+              setTextSizeVisible(true);
+            });
+          }}
+        />
+      </View>
 
       {/* NOTIFICATIONS */}
       <Text style={styles.sectionHeader}>{t('settings.section.notifications')}</Text>
@@ -263,12 +307,24 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
         onClose={() => setLangueVisible(false)}
         currentValue={currentLang}
         onSelect={handleLanguageChange}
+        anchorY={langAnchor.y}
+        anchorHeight={langAnchor.height}
       />
       <ThemePicker
         visible={themeVisible}
         onClose={() => setThemeVisible(false)}
         currentValue={themeMode}
         onSelect={(v) => { setThemeMode(v); setThemeVisible(false); }}
+        anchorY={themeAnchor.y}
+        anchorHeight={themeAnchor.height}
+      />
+      <TextSizePicker
+        visible={textSizeVisible}
+        onClose={() => setTextSizeVisible(false)}
+        currentValue={textSize}
+        onSelect={(v) => { setTextSizeStore(v); setTextSizeVisible(false); }}
+        anchorY={textSizeAnchor.y}
+        anchorHeight={textSizeAnchor.height}
       />
       <QuietHoursPicker
         visible={quietHoursVisible}

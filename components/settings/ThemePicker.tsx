@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { SettingsSheet } from './SettingsSheet';
+import { SettingsPopover } from './SettingsPopover';
 import { OptionRow } from './OptionRow';
 
 type ThemeValue = 'light' | 'dark' | 'system';
@@ -10,6 +10,8 @@ interface ThemePickerProps {
   onClose: () => void;
   currentValue: ThemeValue;
   onSelect: (v: ThemeValue) => void;
+  anchorY: number;
+  anchorHeight: number;
 }
 
 export function ThemePicker({
@@ -17,14 +19,17 @@ export function ThemePicker({
   onClose,
   currentValue,
   onSelect,
+  anchorY,
+  anchorHeight,
 }: ThemePickerProps) {
   const { t } = useTranslation();
 
   return (
-    <SettingsSheet
+    <SettingsPopover
       visible={visible}
       onClose={onClose}
-      title={t('settings.picker.theme')}
+      anchorY={anchorY}
+      anchorHeight={anchorHeight}
     >
       <OptionRow
         label={t('settings.picker.theme_light')}
@@ -45,6 +50,6 @@ export function ThemePicker({
         onPress={() => onSelect('system')}
         isLast
       />
-    </SettingsSheet>
+    </SettingsPopover>
   );
 }

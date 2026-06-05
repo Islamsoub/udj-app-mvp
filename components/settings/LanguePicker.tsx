@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { SettingsSheet } from './SettingsSheet';
+import { SettingsPopover } from './SettingsPopover';
 import { OptionRow } from './OptionRow';
 
 interface LanguePickerProps {
@@ -8,6 +8,8 @@ interface LanguePickerProps {
   onClose: () => void;
   currentValue: 'fr' | 'ar';
   onSelect: (v: 'fr' | 'ar') => void;
+  anchorY: number;
+  anchorHeight: number;
 }
 
 export function LanguePicker({
@@ -15,14 +17,17 @@ export function LanguePicker({
   onClose,
   currentValue,
   onSelect,
+  anchorY,
+  anchorHeight,
 }: LanguePickerProps) {
   const { t } = useTranslation();
 
   return (
-    <SettingsSheet
+    <SettingsPopover
       visible={visible}
       onClose={onClose}
-      title={t('settings.picker.language')}
+      anchorY={anchorY}
+      anchorHeight={anchorHeight}
     >
       <OptionRow
         label={t('settings.picker.lang_fr')}
@@ -37,6 +42,6 @@ export function LanguePicker({
         onPress={() => onSelect('ar')}
         isLast
       />
-    </SettingsSheet>
+    </SettingsPopover>
   );
 }

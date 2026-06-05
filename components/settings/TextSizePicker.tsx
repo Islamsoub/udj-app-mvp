@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { SettingsSheet } from './SettingsSheet';
+import { SettingsPopover } from './SettingsPopover';
 import { OptionRow } from './OptionRow';
 
 type TextSizeValue = 'small' | 'normal' | 'large';
@@ -10,6 +10,8 @@ interface TextSizePickerProps {
   onClose: () => void;
   currentValue: TextSizeValue;
   onSelect: (v: TextSizeValue) => void;
+  anchorY: number;
+  anchorHeight: number;
 }
 
 export function TextSizePicker({
@@ -17,16 +19,18 @@ export function TextSizePicker({
   onClose,
   currentValue,
   onSelect,
+  anchorY,
+  anchorHeight,
 }: TextSizePickerProps) {
   const { t } = useTranslation();
   const previewText = t('settings.picker.preview_text');
 
   return (
-    <SettingsSheet
+    <SettingsPopover
       visible={visible}
       onClose={onClose}
-      title={t('settings.picker.text_size')}
-      subtitle={t('settings.picker.text_size_preview')}
+      anchorY={anchorY}
+      anchorHeight={anchorHeight}
     >
       <OptionRow
         label={t('settings.picker.size_small')}
@@ -47,6 +51,6 @@ export function TextSizePicker({
         preview={{ text: previewText, size: 17 }}
         isLast
       />
-    </SettingsSheet>
+    </SettingsPopover>
   );
 }
