@@ -1,9 +1,10 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, Pressable, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Animated, Easing, I18nManager } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ScreenCapture from 'expo-screen-capture';
 import QRCode from 'react-native-qrcode-svg';
 import Svg, { Circle } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { fonts, lightColors, radius, sizing, spacing, elevation, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -11,17 +12,17 @@ import { useColors } from '@/hooks/useColors';
 // White text/strokes sit on the jade gradient — must stay white in both themes.
 const BRAND_FG = lightColors.surface;
 
-// Diagonal jade gradient matching the Sagal spec
-const GRADIENT_COLORS: [string, string] = ['#1D9E75', '#0F6E56'];
-const GRADIENT_START = { x: 0, y: 0 };
-const GRADIENT_END = { x: 1, y: 1 };
+// Diagonal jade gradient matching the Sagal spec — deeper end stop (≈150°) so
+// the dark green pools toward the bottom and the slab reads with depth.
+const GRADIENT_COLORS: [string, string] = ['#1D9E75', '#0A5C44'];
+const GRADIENT_START = { x: 0.17, y: 0 };
+const GRADIENT_END = { x: 0.83, y: 1 };
 
-const COLLAPSED_HEIGHT = 160;
+const COLLAPSED_HEIGHT = 202;
 const EXPANDED_HEIGHT = 340;
 const CYCLE_SECONDS = 55;
 
-const QR_MINI_SIZE = 52;
-const QR_MINI_BOX = 64;
+const QR_MINI_SIZE = 54;
 const QR_FULL_SIZE = 160;
 const QR_FULL_BOX_PADDING = 12;
 
@@ -49,9 +50,8 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
   const { colors } = useColors();
 
   const cardTextDim = withAlpha(colors.white, 0.7);
-  const cardTextMid = withAlpha(colors.white, 0.8);
   const cardRingTrack = withAlpha(colors.white, 0.25);
-  const countdownDot = withAlpha(colors.white, 0.6);
+  const chevronTint = withAlpha(colors.white, 0.8);
 
   const styles = useMemo(
     () => makeStyles(colors, cardTextDim),
@@ -114,6 +114,9 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
           end={GRADIENT_END}
           style={styles.gradient}
         >
+          {/* Decorative depth circle — breaks the flat gradient slab */}
+          <View pointerEvents="none" style={styles.depthCircle} />
+
           {expanded ? (
             // ── Expanded: large QR centered ──────────────────────────────────
             <View style={styles.expanded}>
@@ -152,34 +155,41 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
               </Text>
             </View>
           ) : (
-            // ── Collapsed: avatar + info left, mini QR + countdown right ────
+            // ── Collapsed: identity row + inset access panel ────────────────
             <View style={styles.collapsed}>
-              {/* Top row: avatar + name/id/programme */}
-              <View style={styles.topRow}>
+              {/* Identity row: avatar + name/id/programme */}
+              <View style={styles.identityRow}>
                 <View style={styles.avatar}>
                   <Text style={styles.avatarInitials}>{initials}</Text>
                 </View>
-                <View style={styles.nameBlock}>
+                <View style={styles.identityText}>
                   <Text style={styles.cardName} numberOfLines={1}>{name}</Text>
                   <Text style={styles.cardStudentId} numberOfLines={1}>{id}</Text>
                   <Text style={styles.cardSubtitle} numberOfLines={1}>{programme}</Text>
                 </View>
               </View>
 
-              {/* Bottom row: mini QR + countdown chip */}
-              <View style={styles.bottomRow}>
+              {/* Access panel: inset QR + valid pill + tap hint */}
+              <View style={styles.accessPanel}>
                 <View style={styles.qrBoxMini}>
                   <QRCode value={qrValue} size={QR_MINI_SIZE} backgroundColor="#FFFFFF" />
                 </View>
-                <View style={styles.countdownChip}>
-                  <View style={[styles.countdownDot, { backgroundColor: countdownDot }]} />
-                  <Text style={[styles.countdownChipText, { color: cardTextMid }]} numberOfLines={2}>
-                    {t('profile.card.valid_expires', { seconds: secondsLeft })}
-                  </Text>
-                  <Text style={[styles.expandHint, { color: cardTextDim }]} numberOfLines={1}>
+                <View style={styles.accessInfo}>
+                  <View style={styles.validPill}>
+                    <View style={styles.validDot} />
+                    <Text style={styles.validPillText} numberOfLines={1}>
+                      {t('profile.card.valid_expires', { seconds: secondsLeft })}
+                    </Text>
+                  </View>
+                  <Text style={styles.tapHint} numberOfLines={1}>
                     {t('profile.card.tap_expand')}
                   </Text>
                 </View>
+                <Ionicons
+                  name={I18nManager.isRTL ? 'chevron-back' : 'chevron-forward'}
+                  size={18}
+                  color={chevronTint}
+                />
               </View>
             </View>
           )}
@@ -203,89 +213,109 @@ const makeStyles = (colors: Palette, cardTextDim: string) => StyleSheet.create({
   gradient: {
     flex: 1,
     borderRadius: radius.rHero,
-    padding: spacing.sp20,
+    padding: 18,
+  },
+  depthCircle: {
+    position: 'absolute',
+    end: -40,
+    bottom: -50,
+    width: 150,
+    height: 150,
+    borderRadius: radius.rFull,
+    backgroundColor: withAlpha(colors.white, 0.07),
   },
 
   // ── Collapsed layout ──────────────────────────────────────────────────────
   collapsed: {
     flex: 1,
-    justifyContent: 'space-between',
   },
-  topRow: {
+  identityRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sp12,
+    alignItems: 'center',
+    gap: 14,
   },
   avatar: {
-    width: 48,
-    height: 48,
+    width: 56,
+    height: 56,
     borderRadius: radius.rFull,
-    backgroundColor: colors.white,
+    backgroundColor: withAlpha(colors.white, 0.18),
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   avatarInitials: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     fontFamily: fonts.sans,
-    color: colors.jade400,
+    color: colors.white,
     includeFontPadding: false,
   },
-  nameBlock: {
+  identityText: {
     flex: 1,
     gap: spacing.sp2,
-    paddingTop: spacing.sp4,
   },
   cardName: {
-    fontSize: 15,
+    fontSize: 18,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.white,
   },
   cardStudentId: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontFamily: fonts.mono,
-    color: cardTextDim,
+    color: withAlpha(colors.white, 0.85),
     includeFontPadding: false,
   },
   cardSubtitle: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontFamily: fonts.sans,
-    color: cardTextDim,
+    color: withAlpha(colors.white, 0.8),
   },
-  bottomRow: {
+  accessPanel: {
+    marginTop: spacing.sp16,
+    minHeight: sizing.touchTarget,
+    backgroundColor: withAlpha(colors.white, 0.12),
+    borderRadius: radius.rBtn,
+    padding: 10,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sp12,
-    marginTop: spacing.sp16,
   },
   qrBoxMini: {
-    width: QR_MINI_BOX,
-    height: QR_MINI_BOX,
-    borderRadius: 10,
     backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 9,
+    padding: 5,
     flexShrink: 0,
   },
-  countdownChip: {
+  accessInfo: {
     flex: 1,
-    gap: spacing.sp4,
+    gap: spacing.sp6,
   },
-  countdownDot: {
-    width: 8,
-    height: 8,
+  validPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: spacing.sp6,
+    backgroundColor: withAlpha(colors.white, 0.18),
     borderRadius: radius.rFull,
+    paddingHorizontal: 10,
+    paddingVertical: spacing.sp4,
   },
-  countdownChipText: {
+  validDot: {
+    width: 6,
+    height: 6,
+    borderRadius: radius.rFull,
+    backgroundColor: colors.jadeDM,
+  },
+  validPillText: {
     fontSize: 11,
     fontFamily: fonts.sans,
-    lineHeight: 15,
+    color: colors.white,
   },
-  expandHint: {
-    fontSize: 10,
+  tapHint: {
+    fontSize: 12,
     fontFamily: fonts.sans,
+    color: withAlpha(colors.white, 0.78),
   },
 
   // ── Expanded layout ───────────────────────────────────────────────────────

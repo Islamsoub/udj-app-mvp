@@ -56,7 +56,6 @@ export function ProfileHeader({ state, topInset, onDotsPress }: ProfileHeaderPro
     <View
       style={[
         styles.whiteArea,
-        styles.whiteAreaBorder,
         { height: HEADER_STRIP_H + topInset, paddingTop: topInset },
       ]}
     >
@@ -68,21 +67,15 @@ export function ProfileHeader({ state, topInset, onDotsPress }: ProfileHeaderPro
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
-  // White area container
+  // White area container — sits flat on the page background, no separator
   whiteArea: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     flexDirection: 'column',
-  },
-  whiteAreaBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: colors.scheduleBorder,
   },
 
   // Header strip
   headerStrip: {
     height: HEADER_STRIP_H,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.newsHeaderBorder,
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
@@ -99,7 +92,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 30,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sp6,

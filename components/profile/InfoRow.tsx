@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, I18nManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -41,7 +41,7 @@ export function InfoRow({
             { backgroundColor: withAlpha(iconColor, 0.12) },
           ]}
         >
-          <Ionicons name={icon} size={17} color={iconColor} />
+          <Ionicons name={icon} size={18} color={iconColor} />
         </View>
       ) : null}
       <Text style={[styles.label, { color: labelColor }]} numberOfLines={1}>
@@ -95,16 +95,15 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderBottomWidth: 0,
   },
   iconChip: {
-    width: 34,
-    height: 34,
-    borderRadius: radius.rMd,
+    width: 36,
+    height: 36,
+    borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
     marginEnd: 13,
     flexShrink: 0,
   },
   label: {
-    flexGrow: 1,
     flexShrink: 0,
     flexBasis: 'auto',
     fontSize: 14,
@@ -112,13 +111,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontFamily: fonts.sans,
   },
   value: {
-    flexShrink: 1,
-    flexBasis: 'auto',
+    flex: 1,
     fontSize: 14,
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
     marginStart: spacing.sp8,
     marginEnd: spacing.sp8,
+    textAlign: I18nManager.isRTL ? 'left' : 'right',
   },
 });

@@ -227,14 +227,14 @@
       "academic": "INFORMATIONS ACADEMIQUES",
       "settings": "PARAMETRES"
     },
-    "tile_schedule": "Emploi du temps",
+    "tile_documents": "Documents",
     "tile_attendance": "Présence",
     "tile_alerts": "Alertes",
     "section_academic": "Informations académiques",
     "section_contact": "Contact & statut",
     "section_programme": "Programme",
     "row": {
-      "filiere": "Filiere",
+      "filiere": "Filière",
       "niveau": "Niveau",
       "langue": "Langue de l'app",
       "annee": "Annee academique",

@@ -71,9 +71,9 @@ function QuickTile({
       hitSlop={4}
     >
       <View style={styles.iconCircle}>
-        <Ionicons name={icon} size={22} color={colors.jade400} />
+        <Ionicons name={icon} size={18} color={colors.jade400} />
       </View>
-      <Text style={styles.tileLabel} numberOfLines={2}>
+      <Text style={styles.tileLabel} numberOfLines={1}>
         {label}
       </Text>
     </Pressable>
@@ -110,7 +110,6 @@ function ProfileBody({
 
   const name = student?.name ?? '—';
   const id = student?.studentId ?? '—';
-  const programme = student?.programme ?? '—';
   const filiere = isAr && student?.programmeNameAr
     ? student.programmeNameAr
     : (student?.programmeName ?? '—');
@@ -139,14 +138,14 @@ function ProfileBody({
 
   return (
     <View style={styles.body}>
-      <StudentCard name={name} id={id} programme={programme} qrToken={qrToken} />
+      <StudentCard name={name} id={id} programme={filiere} qrToken={qrToken} />
 
       {/* Quick-action tiles */}
       <View style={styles.tilesRow}>
         <QuickTile
-          icon="calendar-outline"
-          label={t('profile.tile_schedule')}
-          onPress={() => router.push('/(tabs)/schedule')}
+          icon="document-text-outline"
+          label={t('profile.tile_documents')}
+          onPress={() => router.push('/info-center')}
         />
         <QuickTile
           icon="checkmark-circle-outline"
@@ -662,9 +661,9 @@ const makeTileStyles = (colors: Palette) => StyleSheet.create({
     ...elevation.card,
   },
   iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 11,
     backgroundColor: colors.jadeFaint,
     alignItems: 'center',
     justifyContent: 'center',
