@@ -167,14 +167,14 @@ function ProfileBody({
           iconColor={colors.jade400}
           label={t('profile.row.filiere')}
           value={filiere}
-          onPress={onProgrammePress}
+          onPress={student?.programme ? onProgrammePress : undefined}
         />
         <InfoRow
           icon="business-outline"
           iconColor={colors.info}
           label={t('profile.info.faculty')}
           value={facultyName}
-          onPress={onFacultyPress}
+          onPress={student?.faculty ? onFacultyPress : undefined}
         />
         <InfoRow
           icon="checkmark-circle-outline"
@@ -194,7 +194,7 @@ function ProfileBody({
           iconColor={colors.textSecondary}
           label={t('profile.info.email')}
           value={email}
-          onPress={onEmailPress}
+          onPress={student?.email ? onEmailPress : undefined}
         />
         <InfoRow
           icon="shield-checkmark-outline"
@@ -427,18 +427,12 @@ export default function ProfileScreen() {
             student={hook.data}
             qrToken={qrToken}
             onPresencePress={() => router.push('/attendance')}
-            onFacultyPress={() => {
-              const facultyId = useAuthStore.getState().student?.faculty.id;
-              if (facultyId) {
-                router.push({ pathname: '/faculty-detail', params: { id: facultyId } });
-              }
-            }}
-            onProgrammePress={() => {
-              const programmeId = useAuthStore.getState().student?.programme.id;
-              if (programmeId) {
-                router.push({ pathname: '/programme-detail', params: { id: programmeId } });
-              }
-            }}
+            // Detail screens self-load from the store and treat `id` as an
+            // optional guard, so navigate without it. The cache (hook.data)
+            // carries no programme/faculty UUID — chevrons are gated on the
+            // cached value below so a tap is never a silent no-op.
+            onFacultyPress={() => router.push('/faculty-detail')}
+            onProgrammePress={() => router.push('/programme-detail')}
             onEmailPress={() => {
               const email = hook.data?.email;
               if (email) Linking.openURL(`mailto:${email}`);
