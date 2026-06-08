@@ -12,6 +12,7 @@ import type {
   ApiNotification,
 } from './api';
 import type { StudentProfile } from '@/stores/authStore';
+import { ATTENDANCE_THRESHOLD } from '@/constants/attendance';
 
 const NOW = () => new Date().toISOString();
 
@@ -140,7 +141,7 @@ export function mapAttendanceToCache(
     sessionsPresent: s.present,
     sessionsRemaining: 0,
     percentage: s.percentage,
-    threshold: 0.75,
+    threshold: ATTENDANCE_THRESHOLD,
     cachedAt: NOW(),
   }));
 }

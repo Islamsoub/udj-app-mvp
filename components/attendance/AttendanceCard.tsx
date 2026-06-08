@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { MAX_ABSENCE_RATE, WARN_BUFFER } from '@/constants/attendance';
 
 interface AttendanceCardProps {
   name: string;
@@ -18,9 +19,9 @@ type Level = 'ok' | 'warn' | 'danger';
 function getLevel(attended: number, total: number): Level {
   if (total === 0 || attended === total) return 'ok';
   const absent = total - attended;
-  const maxAbsences = Math.floor(total * 0.15);
+  const maxAbsences = Math.floor(total * MAX_ABSENCE_RATE);
   const remaining = maxAbsences - absent;
-  if (remaining > 2) return 'ok';
+  if (remaining > WARN_BUFFER) return 'ok';
   if (remaining > 0) return 'warn';
   return 'danger';
 }
@@ -34,9 +35,9 @@ function getLevelColor(level: Level, colors: Palette): string {
 function computeProjection(attended: number, total: number, t: TFunction): string {
   if (total === 0 || attended === total) return t('presence.proj_perfect');
   const absent = total - attended;
-  const maxAbsences = Math.floor(total * 0.15);
+  const maxAbsences = Math.floor(total * MAX_ABSENCE_RATE);
   const remaining = maxAbsences - absent;
-  if (remaining > 2) return t('presence.proj_ok', { remaining });
+  if (remaining > WARN_BUFFER) return t('presence.proj_ok', { remaining });
   if (remaining > 0) return t('presence.proj_warn', { remaining });
   return t('presence.proj_danger');
 }

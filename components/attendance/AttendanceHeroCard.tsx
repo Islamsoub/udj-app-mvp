@@ -5,6 +5,7 @@ import Svg, { Circle, Text as SvgText } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { fonts, radius, spacing, withAlpha } from '@/constants/theme';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
+import { BADGE_REGULAR_PCT, BADGE_WARNING_PCT } from '@/constants/attendance';
 
 const RING_SIZE = 96;
 const RING_R = 38;
@@ -19,8 +20,8 @@ interface Props {
 }
 
 function badgeKey(pct: number): string {
-  if (pct >= 85) return 'presence.badge_regular';
-  if (pct >= 75) return 'presence.badge_warning';
+  if (pct >= BADGE_REGULAR_PCT) return 'presence.badge_regular';
+  if (pct >= BADGE_WARNING_PCT) return 'presence.badge_warning';
   return 'presence.badge_critical';
 }
 
@@ -41,7 +42,7 @@ export function AttendanceHeroCard({ percentage, absences, totalSessions, skelet
   return (
     <View style={styles.shadow}>
       <LinearGradient
-        colors={['#1D9E75', '#0B5544']}
+        colors={['#1D9E75', '#0B5544']} // jade400 → deep jade — literals required by LinearGradient
         start={{ x: 0, y: 0 }}
         end={{ x: 0.8, y: 1 }}
         style={styles.card}
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.sp16,
     marginTop: spacing.sp4,
     borderRadius: radius.rHero,
-    shadowColor: '#0F6E56',
+    shadowColor: '#0F6E56', // jade600 — literal for shadow (no colors.* in static StyleSheet)
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.30,
     shadowRadius: 28,
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: radius.rFull,
-    backgroundColor: '#7DF3C4',
+    backgroundColor: '#7DF3C4', // mint accent — on-gradient literal, intentional
   },
   pillText: {
     fontSize: 12.5,
