@@ -476,7 +476,15 @@
     "proj_ok": "Encore {{remaining}} absences possibles",
     "proj_warn": "{{remaining}} absences restantes",
     "proj_danger": "Limite atteinte",
-    "proj_perfect": "Présence parfaite"
+    "proj_perfect": "Présence parfaite",
+    "upload_label": "Soumettre un justificatif",
+    "upload_hint": "PDF, photo ou capture",
+    "sheet_title": "Justificatif d'absence",
+    "sheet_subtitle": "Sélectionnez un fichier à envoyer",
+    "drop_hint": "Glissez ou sélectionnez un fichier",
+    "btn_choose": "Choisir un fichier",
+    "btn_send": "Envoyer",
+    "btn_cancel": "Annuler"
   },
   "attendance": {
     "title": "Présence",

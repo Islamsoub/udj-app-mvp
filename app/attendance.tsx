@@ -11,10 +11,8 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import { fonts, radius, sizing, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { elevation, fonts, radius, sizing, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -33,7 +31,6 @@ import {
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getAttendance as getCachedAttendance, upsertAttendance } from '@/services/db';
 import { mapAttendanceToCache } from '@/services/cacheMappers';
-import { formatAbsenceDate } from '@/utils/dateFormat';
 import { useAuthStore } from '@/stores/authStore';
 import { localName } from '@/utils/i18nName';
 
@@ -76,126 +73,6 @@ function AttendanceOfflineBanner() {
 
 // ─── Cards body ───────────────────────────────────────────────────────────────
 
-// ─── Image picker helper ──────────────────────────────────────────────────────
-
-async function pickImage(
-  source: 'camera' | 'gallery',
-  t: TFunction,
-): Promise<{ uri: string; mimeType: string } | null> {
-  if (source === 'camera') {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(t('attendance.camera_denied'));
-      return null;
-    }
-  }
-
-  const result =
-    source === 'camera'
-      ? await ImagePicker.launchCameraAsync({
-          mediaTypes: 'images',
-          quality: 0.7,
-          allowsEditing: true,
-        })
-      : await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: 'images',
-          quality: 0.7,
-          allowsEditing: true,
-        });
-
-  if (result.canceled || !result.assets?.[0]) return null;
-
-  const asset = result.assets[0];
-  return { uri: asset.uri, mimeType: asset.mimeType || 'image/jpeg' };
-}
-
-interface ConfirmData {
-  recordId: string;
-  imageUri: string;
-  mimeType: string;
-  subjectName: string;
-  absenceDate: string;
-}
-
-function showPickerAlert(
-  recordId: string,
-  subjectName: string,
-  absenceDate: string,
-  t: TFunction,
-  onImageSelected: (data: ConfirmData) => void,
-): void {
-  Alert.alert(
-    t('attendance.section_justification'),
-    undefined,
-    [
-      {
-        text: t('attendance.upload_camera'),
-        onPress: async () => {
-          const img = await pickImage('camera', t);
-          if (img) onImageSelected({ recordId, imageUri: img.uri, mimeType: img.mimeType, subjectName, absenceDate });
-        },
-      },
-      {
-        text: t('attendance.upload_gallery'),
-        onPress: async () => {
-          const img = await pickImage('gallery', t);
-          if (img) onImageSelected({ recordId, imageUri: img.uri, mimeType: img.mimeType, subjectName, absenceDate });
-        },
-      },
-      { text: t('common.cancel'), style: 'cancel' },
-    ],
-  );
-}
-
-// ─── Status pill ──────────────────────────────────────────────────────────────
-
-function StatusPill({
-  status,
-  colors,
-  t,
-}: {
-  status: AbsenceRecord['justificationStatus'] | 'ABSENT';
-  colors: Palette;
-  t: TFunction;
-}) {
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-
-  let bg: string;
-  let fg: string;
-  let label: string;
-
-  switch (status) {
-    case 'PENDING':
-      bg = colors.warningLight;
-      fg = colors.warning;
-      label = t('attendance.status_pending');
-      break;
-    case 'APPROVED':
-      bg = colors.jade50;
-      fg = colors.jade400;
-      label = t('attendance.status_approved');
-      break;
-    case 'REJECTED':
-      bg = colors.dangerLight;
-      fg = colors.danger;
-      label = t('attendance.status_rejected');
-      break;
-    default:
-      bg = colors.dangerLight;
-      fg = colors.danger;
-      label = 'ABSENT';
-      break;
-  }
-
-  return (
-    <View style={[styles.statusPill, { backgroundColor: bg }]}>
-      <Text style={[styles.statusPillText, { color: fg }]}>{label}</Text>
-    </View>
-  );
-}
-
-// ─── Cards body ───────────────────────────────────────────────────────────────
-
 interface CardsBodyProps {
   data: AttendanceApiResponse;
   onRefresh: () => void;
@@ -206,30 +83,26 @@ function CardsBody({ data, onRefresh }: CardsBodyProps) {
   const lang = i18n.language;
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const [confirmData, setConfirmData] = useState<ConfirmData | null>(null);
+  const [uploadSheetOpen, setUploadSheetOpen] = useState(false);
 
-  const handleUploadPress = useCallback(
-    (recordId: string, subjectName: string, absenceDate: string) => {
-      showPickerAlert(recordId, subjectName, absenceDate, t, setConfirmData);
+  const firstAbsentRecordId = useMemo(() => {
+    for (const subject of data.subjects) {
+      for (const record of subject.absences) {
+        if (!record.justificationStatus) return record.id;
+      }
+    }
+    return null;
+  }, [data.subjects]);
+
+  const handleSendJustification = useCallback(
+    async (imageUri: string, mimeType: string) => {
+      if (!firstAbsentRecordId) throw new Error('no_record');
+      await uploadJustification(firstAbsentRecordId, imageUri, mimeType);
+      Alert.alert(t('attendance.upload_success'));
+      setUploadSheetOpen(false);
+      onRefresh();
     },
-    [t],
-  );
-
-  const handleConfirmUpload = useCallback(async () => {
-    if (!confirmData) return;
-    await uploadJustification(confirmData.recordId, confirmData.imageUri, confirmData.mimeType);
-    setConfirmData(null);
-    Alert.alert(t('attendance.upload_success'));
-    onRefresh();
-  }, [confirmData, t, onRefresh]);
-
-  // Subjects below 85% that have absence records
-  const atRiskSubjects = useMemo(
-    () =>
-      data.subjects.filter(
-        (s) => s.percentage < 85 && s.absences && s.absences.length > 0,
-      ),
-    [data.subjects],
+    [firstAbsentRecordId, t, onRefresh],
   );
 
   return (
@@ -248,76 +121,31 @@ function CardsBody({ data, onRefresh }: CardsBodyProps) {
         ))}
       </View>
 
-      {/* ── Unjustified absences list ─────────────────────────────────────── */}
-      {atRiskSubjects.length > 0 && (
-        <>
-          <Text style={[styles.sectionHeader, { marginTop: spacing.sp16 }]}>
-            {t('attendance.unjustified_absences')}
-          </Text>
+      {/* ── Upload row ─────────────────────────────────────────────────────── */}
+      <Text style={styles.uploadSectionLabel}>{t('presence.section_justify')}</Text>
 
-          {atRiskSubjects.map((subject) => (
-            <View key={subject.subject.code} style={styles.absenceSection}>
-              <Text style={styles.absenceSubjectName}>
-                {localName(subject.subject, lang)}
-              </Text>
-
-              {subject.absences.map((record) => {
-                const effectiveStatus: AbsenceRecord['justificationStatus'] | 'ABSENT' =
-                  record.justificationStatus ?? 'ABSENT';
-
-                return (
-                  <View key={record.id} style={styles.absenceRow}>
-                    <Text style={styles.absenceDate}>
-                      {formatAbsenceDate(new Date(record.date))}
-                    </Text>
-
-                    <StatusPill status={effectiveStatus} colors={colors} t={t} />
-
-                    {effectiveStatus === 'ABSENT' && (
-                      <Pressable
-                        style={({ pressed }) => [
-                          styles.justifyBtn,
-                          pressed && { backgroundColor: colors.jade600 },
-                        ]}
-                        onPress={() => handleUploadPress(record.id, localName(subject.subject, lang), record.date)}
-                        hitSlop={8}
-                      >
-                        <Text style={styles.justifyBtnText}>
-                          {t('attendance.justify')}
-                        </Text>
-                      </Pressable>
-                    )}
-
-                    {effectiveStatus === 'REJECTED' && (
-                      <Pressable
-                        style={({ pressed }) => [
-                          styles.justifyBtn,
-                          { backgroundColor: colors.danger },
-                          pressed && { backgroundColor: '#DC2626' },
-                        ]}
-                        onPress={() => handleUploadPress(record.id, localName(subject.subject, lang), record.date)}
-                        hitSlop={8}
-                      >
-                        <Text style={styles.justifyBtnText}>
-                          {t('attendance.justify')}
-                        </Text>
-                      </Pressable>
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-          ))}
-        </>
-      )}
+      <Pressable
+        style={({ pressed }) => [styles.uploadRow, pressed && { opacity: 0.7 }]}
+        onPress={() => setUploadSheetOpen(true)}
+      >
+        <View style={styles.uploadIconChip}>
+          <Ionicons name="cloud-upload-outline" size={17} color={colors.jadeText} />
+        </View>
+        <View style={styles.uploadTextCol}>
+          <Text style={styles.uploadLabel}>{t('presence.upload_label')}</Text>
+          <Text style={styles.uploadHint}>{t('presence.upload_hint')}</Text>
+        </View>
+        <Ionicons
+          name="chevron-forward"
+          size={18}
+          color={colors.textTertiary}
+        />
+      </Pressable>
 
       <JustificationConfirmSheet
-        visible={confirmData !== null}
-        onClose={() => setConfirmData(null)}
-        onConfirm={handleConfirmUpload}
-        imageUri={confirmData?.imageUri ?? ''}
-        subjectName={confirmData?.subjectName ?? ''}
-        absenceDate={confirmData?.absenceDate ?? ''}
+        visible={uploadSheetOpen}
+        onClose={() => setUploadSheetOpen(false)}
+        onSend={handleSendJustification}
       />
     </View>
   );
@@ -584,70 +412,53 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   cardsList: {
     gap: 10,
   },
-  sectionHeader: {
-    paddingVertical: spacing.sp12,
-    paddingHorizontal: spacing.sp16,
-    backgroundColor: colors.background,
-    fontSize: 12,
+
+  // ── Upload row
+  uploadSectionLabel: {
+    fontSize: 12.5,
     fontWeight: '700',
     fontFamily: fonts.sans,
-    color: colors.textPrimary,
-    letterSpacing: 1.2,
+    color: colors.textTertiary,
+    letterSpacing: 0.3,
     textTransform: 'uppercase',
+    marginTop: 22,
+    marginBottom: 10,
+    marginHorizontal: spacing.sp20,
   },
-  // ── Absence list
-  absenceSection: {
-    paddingHorizontal: spacing.sp16,
-    marginBottom: spacing.sp16,
-  },
-  absenceSubjectName: {
-    fontSize: 14,
-    fontWeight: '600',
-    fontFamily: fonts.sans,
-    color: colors.textPrimary,
-    marginBottom: spacing.sp8,
-  },
-  absenceRow: {
+  uploadRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 13,
     backgroundColor: colors.surface,
-    borderRadius: radius.rMd,
-    paddingVertical: spacing.sp12,
+    borderRadius: radius.rXl,
+    paddingVertical: spacing.sp14,
     paddingHorizontal: spacing.sp16,
-    marginBottom: spacing.sp8,
-    gap: spacing.sp12,
+    marginHorizontal: spacing.sp16,
+    ...elevation.card,
   },
-  absenceDate: {
-    flex: 1,
-    fontSize: 13,
-    fontFamily: fonts.mono,
-    fontWeight: '400',
-    color: colors.textPrimary,
-  },
-  statusPill: {
-    paddingHorizontal: spacing.sp8,
-    paddingVertical: spacing.sp4,
-    borderRadius: radius.rFull,
-  },
-  statusPillText: {
-    fontSize: 11,
-    fontWeight: '600',
-    fontFamily: fonts.sans,
-  },
-  justifyBtn: {
-    minWidth: 80,
-    height: 32,
-    borderRadius: radius.rSm,
-    backgroundColor: colors.jade400,
+  uploadIconChip: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.rMd,
+    backgroundColor: colors.jadeFaint,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.sp12,
   },
-  justifyBtnText: {
-    fontSize: 12,
+  uploadTextCol: {
+    flex: 1,
+  },
+  uploadLabel: {
+    fontSize: 14.5,
     fontWeight: '600',
     fontFamily: fonts.sans,
-    color: colors.surface,
+    color: colors.textPrimary,
+  },
+  uploadHint: {
+    fontSize: 12.5,
+    fontWeight: '400',
+    fontFamily: fonts.sans,
+    color: colors.textTertiary,
+    marginTop: 1,
   },
 
   // ── Center states (empty / error)

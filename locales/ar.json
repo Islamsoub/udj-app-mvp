@@ -476,7 +476,15 @@
     "proj_ok": "لا يزال بإمكانك {{remaining}} غيابات",
     "proj_warn": "{{remaining}} غيابات متبقية",
     "proj_danger": "تم بلوغ الحد",
-    "proj_perfect": "حضور مثالي"
+    "proj_perfect": "حضور مثالي",
+    "upload_label": "إرسال مبرر غياب",
+    "upload_hint": "ملف PDF أو صورة",
+    "sheet_title": "مبرر الغياب",
+    "sheet_subtitle": "اختر ملفاً لإرساله",
+    "drop_hint": "اسحب أو اختر ملفاً",
+    "btn_choose": "اختيار ملف",
+    "btn_send": "إرسال",
+    "btn_cancel": "إلغاء"
   },
   "attendance": {
     "title": "الحضور",
