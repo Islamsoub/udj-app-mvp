@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { elevation, fonts, radius, spacing, withAlpha, sizing, type Palette } from '@/constants/theme';
+import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -21,6 +21,7 @@ import { ContactRow, ContactData } from '@/components/info-center/ContactRow';
 import { FAQItem, FAQData } from '@/components/info-center/FAQItem';
 import { PDFRow, PDFData } from '@/components/info-center/PDFRow';
 import { InfoCenterSkeleton } from '@/components/info-center/InfoCenterSkeleton';
+import { SettingsHeader } from '@/components/settings/SettingsHeader';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -69,30 +70,6 @@ const STATE_LABELS: Record<InfoCenterState, string> = {
   offline:  'Offline',
   session:  'Session',
 };
-
-// ─── Header ────────────────────────────────────────────────────────────────────
-
-function Header({ topInset, onBack }: { topInset: number; onBack: () => void }) {
-  const { colors } = useColors();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { t } = useTranslation();
-  return (
-    <View style={[styles.headerContainer, { paddingTop: topInset }]}>
-      <View style={styles.headerRow}>
-        <Pressable
-          onPress={onBack}
-          style={({ pressed }) => [styles.backBtn, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.15), borderRadius: 999 }]}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
-        </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {t('infoCenter.title')}
-        </Text>
-      </View>
-    </View>
-  );
-}
 
 // ─── Offline banner ────────────────────────────────────────────────────────────
 
@@ -246,6 +223,7 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
 export default function InfoCenterScreen() {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { t } = useTranslation();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [screenState, setScreenState] = useState<InfoCenterState>('loaded');
@@ -259,7 +237,7 @@ export default function InfoCenterScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
 
-      <Header topInset={insets.top} onBack={() => router.back()} />
+      <SettingsHeader topInset={insets.top} onBack={() => router.back()} title={t('infoCenter.title')} />
 
       <View style={styles.content}>
         {screenState === 'offline' && <InfoCenterOfflineBanner />}
@@ -295,32 +273,6 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   content: {
     flex: 1,
-  },
-
-  // ── Header
-  headerContainer: {
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sp16,
-    height: 56,
-  },
-  backBtn: {
-    width: sizing.touchTarget,
-    height: sizing.touchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 22,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.textPrimary,
   },
 
   // ── Offline banner

@@ -337,6 +337,7 @@ export default function SettingsScreen() {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       <SettingsHeader
+        big
         topInset={insets.top}
         onBack={() => router.back()}
       />

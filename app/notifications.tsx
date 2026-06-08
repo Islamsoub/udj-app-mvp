@@ -21,6 +21,7 @@ import {
   NotificationType,
 } from '@/components/notifications/NotificationItem';
 import { NotificationSkeleton } from '@/components/notifications/NotificationSkeleton';
+import { SettingsHeader } from '@/components/settings/SettingsHeader';
 import {
   getNotifications,
   markAllNotificationsRead,
@@ -125,37 +126,6 @@ const SECTION_LABEL_KEYS: Record<string, string> = {
   yesterday: 'notifications.yesterday',
   thisWeek:  'notifications.thisWeek',
 };
-
-// ─── Header ───────────────────────────────────────────────────────────────────
-
-type HeaderProps = {
-  topInset: number;
-  onBack: () => void;
-};
-
-function Header({ topInset, onBack }: HeaderProps) {
-  const { colors } = useColors();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { t } = useTranslation();
-
-  return (
-    <View style={[styles.headerContainer, { paddingTop: topInset }]}>
-      <View style={styles.headerRow}>
-        <Pressable
-          onPress={onBack}
-          style={({ pressed }) => [styles.backBtn, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.15), borderRadius: 999 }]}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Ionicons name="chevron-back" size={24} color={colors.textPrimary} />
-        </Pressable>
-
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {t('notifications.title')}
-        </Text>
-      </View>
-    </View>
-  );
-}
 
 // ─── Offline banner ───────────────────────────────────────────────────────────
 
@@ -278,7 +248,7 @@ export default function NotificationsScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const [devState, setDevState] = useState<NotificationsState | null>(null);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
@@ -366,9 +336,10 @@ export default function NotificationsScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
 
-      <Header
+      <SettingsHeader
         topInset={insets.top}
         onBack={() => router.back()}
+        title={t('notifications.title')}
       />
 
       <View style={styles.content}>
@@ -408,31 +379,6 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flex: 1,
   },
 
-  // ── Header
-  headerContainer: {
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sp16,
-    height: 56,
-  },
-  backBtn: {
-    width: sizing.touchTarget,
-    height: sizing.touchTarget,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 22,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.textPrimary,
-  },
   markAllBtn: {
     height: sizing.touchTarget,
     alignItems: 'center',
