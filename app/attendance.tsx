@@ -110,9 +110,9 @@ function CardsBody({ data, onRefresh }: CardsBodyProps) {
       <Text style={styles.subjectSectionLabel}>{t('presence.section_subjects')}</Text>
 
       <View style={styles.cardsList}>
-        {data.subjects.map((subject) => (
+        {data.subjects.map((subject, index) => (
           <AttendanceCard
-            key={subject.subject.code}
+            key={`${subject.subject.code}-${index}`}
             name={localName(subject.subject, lang)}
             percentage={subject.percentage}
             attended={subject.present}

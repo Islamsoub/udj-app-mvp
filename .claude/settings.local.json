@@ -78,7 +78,8 @@
       "Bash(Select-Object -First 30 FullName)",
       "Bash(Select-Object Name)",
       "Bash(Remove-Item *)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Bash(Select-Object FullName)"
     ]
   }
 }
