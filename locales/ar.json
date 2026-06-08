@@ -464,6 +464,20 @@
     "admission": "القبول",
     "disclaimer": "السجل الكامل متاح بعد عدة فصول"
   },
+  "presence": {
+    "rate_label": "معدل الحضور",
+    "badge_regular": "منتظم",
+    "badge_warning": "تحذير",
+    "badge_critical": "حرج",
+    "summary": "{{absent}} غياب من أصل {{total}} حصة",
+    "section_subjects": "حسب المادة",
+    "section_justify": "المبررات",
+    "sessions": "{{present}}/{{total}} حصة",
+    "proj_ok": "لا يزال بإمكانك {{remaining}} غيابات",
+    "proj_warn": "{{remaining}} غيابات متبقية",
+    "proj_danger": "تم بلوغ الحد",
+    "proj_perfect": "حضور مثالي"
+  },
   "attendance": {
     "title": "الحضور",
     "badge_regular": "منتظم",

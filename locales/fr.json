@@ -464,8 +464,22 @@
     "admission": "admission",
     "disclaimer": "Historique complet disponible après plusieurs semestres"
   },
+  "presence": {
+    "rate_label": "Taux de présence",
+    "badge_regular": "Régulier",
+    "badge_warning": "Attention",
+    "badge_critical": "Critique",
+    "summary": "{{absent}} absences sur {{total}} séances",
+    "section_subjects": "Par matière",
+    "section_justify": "Justificatifs",
+    "sessions": "{{present}}/{{total}} séances",
+    "proj_ok": "Encore {{remaining}} absences possibles",
+    "proj_warn": "{{remaining}} absences restantes",
+    "proj_danger": "Limite atteinte",
+    "proj_perfect": "Présence parfaite"
+  },
   "attendance": {
-    "title": "PRÉSENCE",
+    "title": "Présence",
     "badge_regular": "Régulier",
     "badge_warning": "Attention",
     "badge_critical": "Critique",

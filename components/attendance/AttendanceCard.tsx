@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { fonts, spacing, type Palette } from '@/constants/theme';
+import type { TFunction } from 'i18next';
+import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface AttendanceCardProps {
@@ -9,49 +11,75 @@ interface AttendanceCardProps {
   percentage: number;
   attended: number;
   total: number;
-  projection: string;
 }
 
-interface ThresholdColors {
-  text: string;
-  fill: string;
+type Level = 'ok' | 'warn' | 'danger';
+
+function getLevel(attended: number, total: number): Level {
+  if (total === 0 || attended === total) return 'ok';
+  const absent = total - attended;
+  const maxAbsences = Math.floor(total * 0.15);
+  const remaining = maxAbsences - absent;
+  if (remaining > 2) return 'ok';
+  if (remaining > 0) return 'warn';
+  return 'danger';
 }
 
-function getThresholdColors(percentage: number, colors: Palette): ThresholdColors {
-  if (percentage >= 85) {
-    return { text: colors.jade600, fill: colors.jade400 };
-  } else if (percentage >= 75) {
-    return { text: colors.warning, fill: colors.warning };
-  } else {
-    return { text: colors.danger, fill: colors.danger };
-  }
+function getLevelColor(level: Level, colors: Palette): string {
+  if (level === 'ok') return colors.jade400;
+  if (level === 'warn') return colors.warning;
+  return colors.danger;
 }
 
-export function AttendanceCard({ name, percentage, attended, total, projection }: AttendanceCardProps) {
+function computeProjection(attended: number, total: number, t: TFunction): string {
+  if (total === 0 || attended === total) return t('presence.proj_perfect');
+  const absent = total - attended;
+  const maxAbsences = Math.floor(total * 0.15);
+  const remaining = maxAbsences - absent;
+  if (remaining > 2) return t('presence.proj_ok', { remaining });
+  if (remaining > 0) return t('presence.proj_warn', { remaining });
+  return t('presence.proj_danger');
+}
+
+export function AttendanceCard({ name, percentage, attended, total }: AttendanceCardProps) {
   const { t } = useTranslation();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const tc = getThresholdColors(percentage, colors);
+
+  const level = useMemo(() => getLevel(attended, total), [attended, total]);
+  const levelColor = getLevelColor(level, colors);
+  const projection = useMemo(() => computeProjection(attended, total, t), [attended, total, t]);
+  const projWeight: '400' | '600' = level === 'ok' ? '400' : '600';
 
   return (
     <View style={styles.card}>
-      {/* Top row: subject name + percentage */}
+      {/* Top row: dot + name/sessions column + percentage */}
       <View style={styles.topRow}>
-        <Text style={styles.subjectName} numberOfLines={1}>{name}</Text>
-        <Text style={[styles.percentageText, { color: tc.text }]}>{percentage}%</Text>
+        <View style={[styles.dot, { backgroundColor: levelColor }]} />
+        <View style={styles.nameCol}>
+          <Text style={styles.subjectName} numberOfLines={1} ellipsizeMode="tail">
+            {name}
+          </Text>
+          <Text style={styles.sessionsText}>
+            {t('presence.sessions', { present: attended, total })}
+          </Text>
+        </View>
+        <Text style={[styles.percentageText, { color: levelColor }]}>{percentage}%</Text>
       </View>
 
       {/* Progress bar */}
       <View style={styles.progressTrack}>
-        <View style={[styles.progressFill, { width: `${percentage}%`, backgroundColor: tc.fill }]} />
+        <View style={[styles.progressFill, { width: `${percentage}%`, backgroundColor: levelColor }]} />
       </View>
 
-      {/* Bottom row: sessions + projection */}
-      <View style={styles.bottomRow}>
-        <Text style={styles.sessionsText}>
-          {t('attendance.sessions', { attended, total })}
+      {/* Projection row */}
+      <View style={styles.projectionRow}>
+        {level !== 'ok' && (
+          <Ionicons name="warning-outline" size={13} color={levelColor} />
+        )}
+        <Text style={[styles.projectionText, { color: level === 'ok' ? colors.textTertiary : levelColor, fontWeight: projWeight }]}>
+          {projection}
         </Text>
-        <Text style={[styles.projectionText, { color: tc.text }]}>{projection}</Text>
       </View>
     </View>
   );
@@ -60,57 +88,63 @@ export function AttendanceCard({ name, percentage, attended, total, projection }
 const makeStyles = (colors: Palette) => StyleSheet.create({
   card: {
     marginHorizontal: spacing.sp16,
-    marginBottom: spacing.sp12,
-    borderRadius: 14,
+    borderRadius: radius.rXl,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.sp16,
+    padding: spacing.sp14,
+    ...elevation.card,
   },
   topRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  dot: {
+    width: 9,
+    height: 9,
+    borderRadius: radius.rFull,
+    marginTop: 5,
+  },
+  nameCol: {
+    flex: 1,
   },
   subjectName: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 14.5,
+    fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
-    marginEnd: spacing.sp8,
+  },
+  sessionsText: {
+    fontSize: 12.5,
+    fontWeight: '400',
+    fontFamily: fonts.sans,
+    color: colors.textTertiary,
+    marginTop: 1,
   },
   percentageText: {
-    fontSize: 16,
+    fontSize: 17,
     fontFamily: fonts.mono,
-    fontWeight: '700',
+    fontWeight: '500',
     includeFontPadding: false,
   },
   progressTrack: {
-    marginTop: spacing.sp8,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: colors.border,
+    marginTop: 11,
+    height: 6,
+    borderRadius: radius.rFull,
+    backgroundColor: colors.hair,
+    overflow: 'hidden',
   },
   progressFill: {
-    height: 3,
-    borderRadius: 2,
+    height: 6,
+    borderRadius: radius.rFull,
   },
-  bottomRow: {
+  projectionRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: spacing.sp8,
-  },
-  sessionsText: {
-    fontSize: 12,
-    fontWeight: '400',
-    fontFamily: fonts.sans,
-    color: colors.greyMedium,
+    gap: spacing.sp6,
+    marginTop: 9,
   },
   projectionText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 12.5,
     fontFamily: fonts.sans,
   },
 });

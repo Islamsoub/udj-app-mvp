@@ -14,14 +14,11 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, radius, sizing, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
-import {
-  AttendanceHeader,
-  AttendanceState,
-} from '@/components/attendance/AttendanceHeader';
+import { AttendanceHeroCard } from '@/components/attendance/AttendanceHeroCard';
 import { AttendanceCard } from '@/components/attendance/AttendanceCard';
 import { AttendanceSkeleton } from '@/components/attendance/AttendanceSkeleton';
 import { JustificationConfirmSheet } from '@/components/attendance/JustificationConfirmSheet';
@@ -40,29 +37,9 @@ import { formatAbsenceDate } from '@/utils/dateFormat';
 import { useAuthStore } from '@/stores/authStore';
 import { localName } from '@/utils/i18nName';
 
-// ─── Projection helper ────────────────────────────────────────────────────────
+// ─── State type ───────────────────────────────────────────────────────────────
 
-function computeProjection(
-  subject: AttendanceSubject,
-  remaining: number,
-  t: TFunction,
-): string {
-  const threshold = 0.75;
-  const totalWithRemaining = subject.total + remaining;
-  const minRequired = Math.ceil(totalWithRemaining * threshold);
-  const canMiss = remaining - Math.max(0, minRequired - subject.present);
-
-  if (subject.percentage === 100 && remaining === 0) {
-    return t('attendance.projection_perfect');
-  }
-  if (subject.percentage < 75 || canMiss <= 0) {
-    return t('attendance.projection_critical');
-  }
-  if (subject.percentage >= 85) {
-    return t('attendance.projection_safe', { count: canMiss });
-  }
-  return t('attendance.projection_warning', { count: canMiss });
-}
+type AttendanceState = 'skeleton' | 'loaded' | 'empty' | 'error' | 'offline' | 'session';
 
 // ─── DEV switcher ─────────────────────────────────────────────────────────────
 
@@ -221,11 +198,10 @@ function StatusPill({
 
 interface CardsBodyProps {
   data: AttendanceApiResponse;
-  remainingByCode: Record<string, number>;
   onRefresh: () => void;
 }
 
-function CardsBody({ data, remainingByCode, onRefresh }: CardsBodyProps) {
+function CardsBody({ data, onRefresh }: CardsBodyProps) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const { colors } = useColors();
@@ -258,18 +234,19 @@ function CardsBody({ data, remainingByCode, onRefresh }: CardsBodyProps) {
 
   return (
     <View style={styles.cardsBody}>
-      <Text style={styles.sectionHeader}>{t('attendance.section_subjects')}</Text>
+      <Text style={styles.subjectSectionLabel}>{t('presence.section_subjects')}</Text>
 
-      {data.subjects.map((subject) => (
-        <AttendanceCard
-          key={subject.subject.code}
-          name={localName(subject.subject, lang)}
-          percentage={subject.percentage}
-          attended={subject.present}
-          total={subject.total}
-          projection={computeProjection(subject, remainingByCode[subject.subject.code] ?? 0, t)}
-        />
-      ))}
+      <View style={styles.cardsList}>
+        {data.subjects.map((subject) => (
+          <AttendanceCard
+            key={subject.subject.code}
+            name={localName(subject.subject, lang)}
+            percentage={subject.percentage}
+            attended={subject.present}
+            total={subject.total}
+          />
+        ))}
+      </View>
 
       {/* ── Unjustified absences list ─────────────────────────────────────── */}
       {atRiskSubjects.length > 0 && (
@@ -390,6 +367,7 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
 export default function AttendanceScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [devState, setDevState] = useState<AttendanceState | null>(null);
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -474,7 +452,6 @@ export default function AttendanceScreen() {
   const screenState = devState ?? hookState;
 
   const overall = attendanceData?.overall ?? { percentage: 0, absent: 0, total: 0 };
-  const headerState = screenState === 'skeleton' ? 'skeleton' : 'loaded';
 
   const showCards =
     screenState === 'loaded' ||
@@ -483,16 +460,18 @@ export default function AttendanceScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
 
-      <AttendanceHeader
-        topInset={insets.top}
-        onBack={() => router.back()}
-        percentage={overall.percentage}
-        absences={overall.absent}
-        totalSessions={overall.total}
-        state={headerState}
-      />
+      <View style={[styles.compactHeader, { paddingTop: insets.top }]}>
+        <Pressable
+          style={({ pressed }) => [styles.backCircle, pressed && { opacity: 0.7 }]}
+          onPress={() => router.back()}
+          hitSlop={8}
+        >
+          <Ionicons name="chevron-back" size={24} color={colors.jade400} />
+        </Pressable>
+        <Text style={styles.screenTitle}>{t('attendance.title')}</Text>
+      </View>
 
       {screenState === 'offline' && <AttendanceOfflineBanner />}
 
@@ -501,9 +480,17 @@ export default function AttendanceScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {(screenState === 'skeleton' || showCards) && (
+          <AttendanceHeroCard
+            percentage={overall.percentage}
+            absences={overall.absent}
+            totalSessions={overall.total}
+            skeleton={screenState === 'skeleton'}
+          />
+        )}
         {screenState === 'skeleton' && <AttendanceSkeleton />}
         {showCards && attendanceData != null && (
-          <CardsBody data={attendanceData} remainingByCode={remainingByCode} onRefresh={() => hook.refetch()} />
+          <CardsBody data={attendanceData} onRefresh={() => hook.refetch()} />
         )}
         {screenState === 'empty' && <EmptyBody />}
         {screenState === 'error' && (
@@ -535,6 +522,28 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  compactHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sp8,
+    paddingBottom: spacing.sp8,
+    backgroundColor: colors.background,
+    gap: spacing.sp8,
+  },
+  backCircle: {
+    width: sizing.touchTarget,
+    height: sizing.touchTarget,
+    borderRadius: radius.rFull,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  screenTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    fontFamily: fonts.sans,
+    color: colors.textPrimary,
+  },
   scroll: {
     flex: 1,
   },
@@ -561,6 +570,19 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   // ── Cards body
   cardsBody: {
     paddingTop: spacing.sp16,
+  },
+  subjectSectionLabel: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    fontFamily: fonts.sans,
+    color: colors.textTertiary,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+    marginBottom: 10,
+    marginHorizontal: spacing.sp20,
+  },
+  cardsList: {
+    gap: 10,
   },
   sectionHeader: {
     paddingVertical: spacing.sp12,
