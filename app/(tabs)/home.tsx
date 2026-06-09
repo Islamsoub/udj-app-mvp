@@ -8,12 +8,14 @@ import {
   StatusBar,
   Animated,
   Image,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { fonts, spacing, radius, sizing, withAlpha, type Palette } from '@/constants/theme';
+import { elevation, fonts, spacing, radius, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { buildSubjectColorMap, getSubjectColor, getCategoryColor } from '@/constants/colorMap';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
@@ -260,17 +262,17 @@ function NewsCard({
 
 // ─── Skeleton header ──────────────────────────────────────────────────────────
 
-function SkeletonHeader() {
+function SkeletonHeader({ topInset }: { topInset: number }) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <View style={styles.headerSection}>
+    <View style={[styles.headerSection, { paddingTop: topInset + 2 }]}>
       <View style={styles.headerTopRow}>
         <SkeletonBox style={styles.skelBar180} />
-        <SkeletonBox style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: withAlpha(colors.skeletonBox, 0.6) }} />
+        <SkeletonBox style={styles.skelBellCircle} />
       </View>
-      <SkeletonBox style={[styles.skelBar, { width: 240, marginTop: 8 }]} />
-      <SkeletonBox style={[styles.skelBar, { width: 160, marginTop: 8 }]} />
+      <SkeletonBox style={[styles.skelBar, { width: 180, marginTop: 14 }]} />
+      <SkeletonBox style={[styles.skelBar, { width: 140, marginTop: spacing.sp8 }]} />
       <View style={styles.divider} />
       <View style={styles.statRow}>
         {[0, 1, 2].map((i) => (
@@ -303,7 +305,7 @@ function SkeletonBody() {
           </View>
         </View>
       ))}
-      <View style={[styles.sectionHeadingRow, { marginTop: 24 }]}>
+      <View style={[styles.sectionHeadingRow, { marginTop: spacing.sp24 }]}>
         <SkeletonBox style={{ width: 169, height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) }} />
         <SkeletonBox style={{ width: 44, height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) }} />
       </View>
@@ -321,6 +323,7 @@ interface LoadedHeaderProps {
   topInset: number;
   lastSyncTime?: string;
   profile: StudentProfileCache | null;
+  isScrolled: boolean;
 }
 
 function LoadedHeader({
@@ -328,14 +331,14 @@ function LoadedHeader({
   topInset,
   lastSyncTime,
   profile,
+  isScrolled,
 }: LoadedHeaderProps) {
   const { t } = useTranslation();
   const router = useRouter();
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
-  const today = new Date();
-  const dateStr = formatLocalDate(today);
+  const dateStr = formatLocalDate(new Date());
 
   const displayName = profile?.firstName ?? '—';
   const displayGpa = profile?.gpa != null ? profile.gpa.toFixed(1) : '--';
@@ -344,18 +347,23 @@ function LoadedHeader({
   const displayCredits = String(profile?.creditsEarned ?? 0);
   const displayCreditsTotal = profile?.creditsTotal ?? 0;
 
-  const subtitle = t(getGreeting());
+  const showBadge = false; // TODO: wire to notifications unread count
 
   return (
-    <View style={[styles.headerSection, { paddingTop: topInset + 16 }]}>
+    <View style={[
+      styles.headerSection,
+      { paddingTop: topInset + 2 },
+      isScrolled ? elevation.card : (isDark ? styles.headerBorderBottom : null),
+    ]}>
       <View style={styles.headerTopRow}>
         <Text style={styles.dateLabel}>{dateStr}</Text>
         <Pressable
-          style={({ pressed }) => [styles.bellBtn, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.15), borderRadius: 999 }]}
+          style={({ pressed }) => [styles.bellBtn, pressed && { opacity: 0.7 }]}
           onPress={() => router.push('/notifications')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
+          <Ionicons name="notifications-outline" size={19} color={colors.textPrimary} />
+          {showBadge && <View style={styles.bellBadge} />}
         </Pressable>
       </View>
       <Text style={styles.greeting}>
@@ -368,13 +376,28 @@ function LoadedHeader({
           <Text style={styles.subtitleOfflineTime}>{t('common.last_sync_short', { time: lastSyncTime })}</Text>
         </Text>
       ) : (
-        <Text style={styles.subtitle}>{subtitle}</Text>
+        <Text style={styles.subtitle}>{t(getGreeting())}</Text>
       )}
       <View style={styles.divider} />
       <View style={styles.statRow}>
-        <StatCard label={t('home.stat.gpa')} value={displayGpa} sub={MENTION_KEY[displayMention] ? t(MENTION_KEY[displayMention]) : displayMention} onPress={() => router.push('/(tabs)/grades')} />
-        <StatCard label={t('home.stat.presence')} value={displayAttendance} sub={t('home.stat.attendance_limit')} onPress={() => router.push('/attendance')} />
-        <StatCard label={t('home.stat.credits')} value={displayCredits} sub={t('home.stat.credits_of', { total: displayCreditsTotal })} onPress={() => router.push('/(tabs)/grades')} />
+        <StatCard
+          label={t('home.stat.gpa')}
+          value={displayGpa}
+          sub={MENTION_KEY[displayMention] ? t(MENTION_KEY[displayMention]) : displayMention}
+          onPress={() => router.push('/(tabs)/grades')}
+        />
+        <StatCard
+          label={t('home.stat.presence')}
+          value={displayAttendance}
+          sub={t('home.stat.attendance_limit')}
+          onPress={() => router.push('/attendance')}
+        />
+        <StatCard
+          label={t('home.stat.credits')}
+          value={displayCredits}
+          sub={t('home.stat.credits_of', { total: displayCreditsTotal })}
+          onPress={() => router.push('/(tabs)/grades')}
+        />
       </View>
     </View>
   );
@@ -384,31 +407,39 @@ function StatCard({ label, value, sub, onPress }: { label: string; value: string
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <Pressable style={({ pressed }) => [styles.statCard, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 8 }]} onPress={onPress} hitSlop={4}>
+    <Pressable
+      style={({ pressed }) => [styles.statCard, pressed && { opacity: 0.7 }]}
+      onPress={onPress}
+      hitSlop={4}
+    >
       <Text style={styles.statLabel}>{label}</Text>
       <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statSub}>{sub}</Text>
+      <Text style={styles.statSub} numberOfLines={1} ellipsizeMode="tail">{sub}</Text>
     </Pressable>
   );
 }
 
 // ─── Simple header (error / empty / loading) ──────────────────────────────────
 
-function SimpleHeader({ topInset }: { topInset: number }) {
+function SimpleHeader({ topInset, isScrolled }: { topInset: number; isScrolled: boolean }) {
   const router = useRouter();
   const { t } = useTranslation();
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <View style={[styles.simpleHeader, { paddingTop: topInset + 0 }]}>
+    <View style={[
+      styles.simpleHeader,
+      { paddingTop: topInset + 2 },
+      isScrolled ? elevation.card : (isDark ? styles.headerBorderBottom : null),
+    ]}>
       <View style={styles.headerTopRow}>
         <Text style={styles.simpleHeaderTitle}>{t('tabs.home')}</Text>
         <Pressable
-          style={({ pressed }) => [styles.bellBtn, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.15), borderRadius: 999 }]}
+          style={({ pressed }) => [styles.bellBtn, pressed && { opacity: 0.7 }]}
           onPress={() => router.push('/notifications')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Ionicons name="notifications-outline" size={24} color={colors.textPrimary} />
+          <Ionicons name="notifications-outline" size={19} color={colors.textPrimary} />
         </Pressable>
       </View>
       <View style={styles.divider} />
@@ -438,7 +469,10 @@ function SessionExpiredModal({ onClose }: { onClose: () => void }) {
         >
           <Text style={styles.modalPrimaryBtnText}>{t('common.session.login')}</Text>
         </Pressable>
-        <Pressable style={({ pressed }) => [styles.modalOutlineBtn, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) }]} onPress={onClose}>
+        <Pressable
+          style={({ pressed }) => [styles.modalOutlineBtn, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) }]}
+          onPress={onClose}
+        >
           <Text style={styles.modalOutlineBtnText}>{t('common.session.continue_offline')}</Text>
         </Pressable>
       </View>
@@ -463,6 +497,7 @@ export default function HomeScreen() {
   const [devState, setDevState] = useState<HomeState | null>(null);
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [courseDetailVisible, setCourseDetailVisible] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t, i18n } = useTranslation();
@@ -576,22 +611,27 @@ export default function HomeScreen() {
     newsHook.refetch();
   };
 
+  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setIsScrolled(e.nativeEvent.contentOffset.y > 0);
+  };
+
   return (
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
 
       {/* Header — pinned, outside ScrollView */}
       {showSkeleton ? (
-        <View style={{ paddingTop: insets.top }}><SkeletonHeader /></View>
+        <SkeletonHeader topInset={insets.top} />
       ) : showLoadedHeader ? (
         <LoadedHeader
           isOffline={isOffline}
           topInset={insets.top}
           profile={profileHook.data}
           lastSyncTime={lastSyncTime}
+          isScrolled={isScrolled}
         />
       ) : (
-        <SimpleHeader topInset={insets.top} />
+        <SimpleHeader topInset={insets.top} isScrolled={isScrolled} />
       )}
 
       <OfflineBanner />
@@ -600,6 +640,8 @@ export default function HomeScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
       >
         {/* Body */}
         {showSkeleton && <SkeletonBody />}
@@ -609,7 +651,11 @@ export default function HomeScreen() {
             {/* Agenda section */}
             <View style={styles.sectionHeadingRow}>
               <Text style={styles.sectionHeading}>{t('home.agenda_section')}</Text>
-              <Pressable onPress={() => router.push('/(tabs)/schedule')} hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}>
+              <Pressable
+                onPress={() => router.push('/(tabs)/schedule')}
+                hitSlop={8}
+                style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}
+              >
                 <Text style={styles.sectionLink}>{t('home.see_all')}</Text>
               </Pressable>
             </View>
@@ -640,7 +686,7 @@ export default function HomeScreen() {
             )}
 
             {/* News section */}
-            <View style={[styles.sectionHeadingRow, { marginTop: 24 }]}>
+            <View style={[styles.sectionHeadingRow, { marginTop: spacing.sp24 }]}>
               <Text style={styles.sectionHeading}>{t('home.news_section')}</Text>
               <Pressable
                 onPress={() => router.push('/(tabs)/news')}
@@ -681,7 +727,10 @@ export default function HomeScreen() {
             </View>
             <Text style={styles.stateTitle}>{t('home.error.title')}</Text>
             <Text style={styles.stateBody}>{t('home.error.body')}</Text>
-            <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={handleRetry}>
+            <Pressable
+              style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]}
+              onPress={handleRetry}
+            >
               <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
             </Pressable>
           </View>
@@ -727,33 +776,56 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   scrollContent: { flexGrow: 1 },
 
   headerSection: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.sp16,
-    paddingTop: spacing.sp16,
-    paddingBottom: 0,
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.sp20,
+    paddingBottom: spacing.sp16,
+  },
+  headerBorderBottom: {
+    borderBottomWidth: 1,
+    borderBottomColor: colors.hair,
   },
   dateLabel: {
-    fontSize: 11, fontWeight: '600', color: colors.textTertiary,
-    fontFamily: fonts.sans, letterSpacing: 0.5, textTransform: 'uppercase',
+    fontSize: 12.5, fontWeight: '700', color: colors.textTertiary,
+    fontFamily: fonts.sans, letterSpacing: 1.2, textTransform: 'uppercase',
   },
-  greeting: { marginTop: spacing.sp4 },
-  greetingBase: { fontSize: 28, fontWeight: '800', color: colors.textPrimary, fontFamily: fonts.sans },
-  greetingName: { fontSize: 28, fontWeight: '800', color: colors.jade400, fontFamily: fonts.sans },
-  subtitle: { fontSize: 13, color: colors.textSecondary, fontFamily: fonts.sans, marginTop: spacing.sp4 },
-  subtitleOffline: { fontSize: 13, marginTop: spacing.sp4 },
-  subtitleOfflineNormal: { fontSize: 13, color: colors.textSecondary, fontFamily: fonts.sans },
-  subtitleOfflineTime: { fontSize: 13, color: colors.warning, fontFamily: fonts.sans },
-  divider: { height: 1, backgroundColor: colors.border, marginTop: spacing.sp12 },
-  statRow: { flexDirection: 'row', gap: spacing.sp8, marginTop: spacing.sp12, marginBottom: spacing.sp16 },
-  statCard: { flex: 1, backgroundColor: colors.background, borderRadius: radius.rLg, padding: spacing.sp12 },
-  statLabel: { fontSize: 10, fontWeight: '600', color: colors.textTertiary, textTransform: 'uppercase', fontFamily: fonts.sans },
-  statValue: { fontSize: 24, fontWeight: '800', color: colors.jade400, fontFamily: fonts.sans, marginTop: spacing.sp2 },
-  statSub: { fontSize: 11, color: colors.textTertiary, fontFamily: fonts.sans, marginTop: spacing.sp2 },
+  greeting: { marginTop: 14 },
+  greetingBase: { fontSize: 26, fontWeight: '800', color: colors.textPrimary, fontFamily: fonts.sans, letterSpacing: -0.6 },
+  greetingName: { fontSize: 26, fontWeight: '800', color: colors.jade400, fontFamily: fonts.sans, letterSpacing: -0.6 },
+  subtitle: { fontSize: 15, fontWeight: '500', color: colors.textSecondary, fontFamily: fonts.sans, marginTop: 3 },
+  subtitleOffline: { fontSize: 15, marginTop: 3 },
+  subtitleOfflineNormal: { fontSize: 15, color: colors.textSecondary, fontFamily: fonts.sans },
+  subtitleOfflineTime: { fontSize: 15, color: colors.warning, fontFamily: fonts.sans },
+  divider: { height: 1, backgroundColor: colors.hair, marginTop: 16 },
+  statRow: { flexDirection: 'row', gap: 10, marginTop: 16, marginBottom: spacing.sp16 },
+  statCard: {
+    flex: 1, backgroundColor: colors.surface2, borderRadius: radius.rXl,
+    paddingHorizontal: 14, paddingVertical: 13,
+  },
+  statLabel: {
+    fontSize: 11.5, fontWeight: '700', color: colors.textTertiary,
+    textTransform: 'uppercase', fontFamily: fonts.sans, letterSpacing: 0.4,
+  },
+  statValue: { fontSize: 26, fontWeight: '800', color: colors.jade400, fontFamily: fonts.sans, marginTop: 4 },
+  statSub: { fontSize: 12.5, fontWeight: '500', color: colors.textTertiary, fontFamily: fonts.sans, marginTop: 2 },
 
   headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  bellBtn: { width: sizing.touchTarget, height: sizing.touchTarget, alignItems: 'center', justifyContent: 'center' },
+  bellBtn: {
+    width: 38, height: 38, borderRadius: radius.rFull,
+    backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center',
+    ...elevation.card,
+  },
+  bellBadge: {
+    width: 9, height: 9, borderRadius: radius.rFull,
+    backgroundColor: colors.jade400,
+    position: 'absolute', top: -1, right: -1,
+    borderWidth: 1.5, borderColor: colors.surface,
+  },
 
-  simpleHeader: { backgroundColor: colors.surface, paddingHorizontal: spacing.sp16 },
+  simpleHeader: {
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.sp20,
+    paddingBottom: spacing.sp16,
+  },
   simpleHeaderTitle: {
     fontSize: 24, fontWeight: '800', color: colors.textPrimary,
     fontFamily: fonts.sans, paddingTop: spacing.sp16, paddingBottom: spacing.sp16,
@@ -769,15 +841,15 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   agendaCard: {
     flexDirection: 'row', backgroundColor: colors.surface,
-    borderRadius: radius.rLg, marginBottom: 23, minHeight: 91, overflow: 'hidden',
+    borderRadius: radius.rLg, marginBottom: spacing.sp24, minHeight: 91, overflow: 'hidden',
   },
   agendaAccent: { width: 9, borderTopStartRadius: radius.rLg, borderBottomStartRadius: radius.rLg },
   agendaContent: {
     flex: 1, paddingStart: spacing.sp12, paddingEnd: spacing.sp16,
-    paddingTop: 11, paddingBottom: 11, justifyContent: 'center',
+    paddingTop: spacing.sp12, paddingBottom: spacing.sp12, justifyContent: 'center',
   },
   agendaTime: { fontSize: 12, color: colors.textSecondary, fontFamily: fonts.mono },
-  agendaCourse: { fontSize: 14, fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans, marginTop: 1 },
+  agendaCourse: { fontSize: 14, fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans, marginTop: spacing.sp2 },
   agendaTeacher: { fontSize: 12, color: colors.textSecondary, fontFamily: fonts.sans },
   offlineWarningRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sp4, marginTop: spacing.sp2 },
   offlineWarningText: { fontSize: 11, color: colors.warning, fontFamily: fonts.sans },
@@ -789,7 +861,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   emptyAgendaCard: {
     backgroundColor: colors.surface, borderRadius: radius.rLg,
-    padding: spacing.sp16, alignItems: 'center', marginBottom: 23,
+    padding: spacing.sp16, alignItems: 'center', marginBottom: spacing.sp24,
   },
   emptyAgendaText: { fontSize: 14, color: colors.textSecondary, fontFamily: fonts.sans },
 
@@ -840,10 +912,11 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   skelBar180: { width: 180, height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
   skelBar: { height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
-  skelStatCard: { flex: 1, height: 72, borderRadius: radius.rLg, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
+  skelBellCircle: { width: 38, height: 38, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
+  skelStatCard: { flex: 1, height: 80, borderRadius: radius.rXl, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
   skelAgendaCard: {
     flexDirection: 'row', backgroundColor: colors.surface,
-    borderRadius: radius.rLg, marginBottom: 23, height: 91, overflow: 'hidden',
+    borderRadius: radius.rLg, marginBottom: spacing.sp24, height: 91, overflow: 'hidden',
   },
   skelAccent: {
     width: 9, height: 91, backgroundColor: withAlpha(colors.skeletonBox, 0.6),
@@ -851,7 +924,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   skelAgendaInner: {
     flex: 1, paddingStart: spacing.sp12, paddingEnd: spacing.sp16,
-    paddingTop: 11, gap: 0, justifyContent: 'center',
+    paddingTop: spacing.sp12, gap: 0, justifyContent: 'center',
   },
   skelNewsCard: {
     width: '100%', height: 64, borderRadius: radius.rLg,
