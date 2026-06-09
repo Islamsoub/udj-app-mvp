@@ -115,6 +115,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   textCol: {
     flex: 1,
+    paddingEnd: 24,
   },
   title: {
     fontSize: 15,

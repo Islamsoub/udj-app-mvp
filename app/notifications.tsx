@@ -26,10 +26,11 @@ import { SettingsHeader } from '@/components/settings/SettingsHeader';
 import {
   getNotifications,
   markAllNotificationsRead,
+  markNotificationRead,
   CachedNotification,
 } from '@/services/api';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
-import { getCachedNotifications, upsertNotifications } from '@/services/db';
+import { getCachedNotifications, upsertNotifications, markNotificationReadLocal } from '@/services/db';
 import { mapNotificationsToCache } from '@/services/cacheMappers';
 import { localTitle, localBody } from '@/utils/i18nName';
 import type { TFunction } from 'i18next';
@@ -309,6 +310,8 @@ export default function NotificationsScreen() {
   const handleItemPress = useCallback((item: NotificationItemData) => {
     if (item.isUnread) {
       setReadIds((prev) => new Set(prev).add(item.id));
+      markNotificationRead(item.id).catch(() => {});
+      markNotificationReadLocal(item.id).catch(() => {});
     }
     switch (item.type) {
       case 'grades':

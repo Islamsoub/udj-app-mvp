@@ -533,6 +533,37 @@ router.patch(
   }
 );
 
+// ── PATCH /student/notifications/:id/read ────────────────────────────────────
+
+router.patch(
+  '/notifications/:id/read',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const studentId = req.studentId!;
+      const { id } = req.params;
+
+      const notification = await prisma.notification.findFirst({
+        where: { id, studentId },
+        select: { id: true },
+      });
+
+      if (!notification) {
+        res.status(404).json({ error: 'Notification not found' });
+        return;
+      }
+
+      await prisma.notification.update({
+        where: { id },
+        data: { isRead: true },
+      });
+
+      res.status(200).json({ success: true });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 // ── PATCH /student/preferences ────────────────────────────────────────────────
 
 const HH_MM = /^\d{2}:\d{2}$/;

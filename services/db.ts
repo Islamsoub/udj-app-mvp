@@ -490,6 +490,11 @@ export async function upsertAttendance(items: Attendance[]): Promise<void> {
   });
 }
 
+export async function markNotificationReadLocal(id: string): Promise<void> {
+  const db = await getDb();
+  await db.runAsync('UPDATE notifications SET is_read = 1 WHERE id = ?', [id]);
+}
+
 export async function upsertNotifications(items: CachedNotification[]): Promise<void> {
   const db = await getDb();
   await db.withTransactionAsync(async () => {

@@ -400,6 +400,9 @@ export const getNotifications = () =>
 export const markAllNotificationsRead = () =>
   instance.patch('/student/notifications/read-all').then((r) => r.data);
 
+export const markNotificationRead = (id: string) =>
+  instance.patch(`/student/notifications/${id}/read`).then((r) => r.data);
+
 // ── Preferences ───────────────────────────────────────────────────────────────
 
 export interface PreferencesPayload {
