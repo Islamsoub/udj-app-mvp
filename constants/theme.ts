@@ -62,6 +62,8 @@ export interface Palette {
   newsNotifBg: string;
   greyMedium: string;
 
+  sunken: string;
+
   // Base neutrals — only ever used through withAlpha() for overlays/scrims,
   // or as solid fills where a true white/black is required.
   white: string;
@@ -153,6 +155,8 @@ export const lightColors: Palette = {
   newsNotifBg: '#E1F5F0',
   greyMedium: '#757575',
 
+  sunken: '#ECEFEC',
+
   white: '#FFFFFF',
   black: '#000000',
   skeletonBox: '#D9D9D9',
@@ -241,6 +245,8 @@ export const darkColors: Palette = {
   warningBorder: '#FFA629',
   newsNotifBg: '#0D1F18',
   greyMedium: '#8FA89E',
+
+  sunken: '#0A0F0D',
 
   white: '#FFFFFF',
   black: '#000000',

@@ -803,8 +803,9 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   divider: { height: 1, backgroundColor: colors.hair, marginTop: 16 },
   statRow: { flexDirection: 'row', gap: 10, marginTop: 16, marginBottom: spacing.sp16 },
   statCard: {
-    flex: 1, backgroundColor: colors.surface2, borderRadius: radius.rXl,
+    flex: 1, backgroundColor: colors.sunken, borderRadius: radius.rXl,
     paddingHorizontal: 14, paddingVertical: 13,
+    borderWidth: 1, borderColor: colors.hair,
   },
   statLabel: {
     fontSize: 11.5, fontWeight: '700', color: colors.textTertiary,
@@ -937,7 +938,10 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   skelBar180: { width: 180, height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
   skelBar: { height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
   skelBellCircle: { width: 38, height: 38, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
-  skelStatCard: { flex: 1, height: 80, borderRadius: radius.rXl, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
+  skelStatCard: {
+    flex: 1, height: 80, borderRadius: radius.rXl,
+    backgroundColor: colors.sunken, borderWidth: 1, borderColor: colors.hair,
+  },
   skelAgendaCard: {
     backgroundColor: colors.surface,
     borderRadius: radius.rTile, marginBottom: spacing.sp12, height: 96, overflow: 'hidden',
