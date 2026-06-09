@@ -71,6 +71,15 @@ export interface Palette {
   skeletonBox: string;
   errorCircleBg: string;
   examCircleBg: string;
+
+  // Category accent colors + tinted backgrounds
+  blue: string;
+  slate: string;
+  blueBg: string;
+  amberBg: string;
+  examBg: string;
+  slateBg: string;
+  dangerBg: string;
 }
 
 export const lightColors: Palette = {
@@ -149,6 +158,15 @@ export const lightColors: Palette = {
   skeletonBox: '#D9D9D9',
   errorCircleBg: '#F5B4B4',
   examCircleBg: '#E0D3FE',
+
+  // Category accent colors + tinted backgrounds
+  blue: '#2F7DD1',
+  slate: '#5A6B7B',
+  blueBg: 'rgba(47, 125, 209, 0.12)',
+  amberBg: 'rgba(224, 138, 30, 0.12)',
+  examBg: 'rgba(139, 92, 246, 0.12)',
+  slateBg: 'rgba(90, 107, 123, 0.12)',
+  dangerBg: 'rgba(239, 68, 68, 0.10)',
 };
 
 // ─── Dark palette ─────────────────────────────────────────────────────────────
@@ -229,6 +247,15 @@ export const darkColors: Palette = {
   skeletonBox: '#2A3D36',
   errorCircleBg: '#F5B4B4',
   examCircleBg: '#E0D3FE',
+
+  // Category accent colors + tinted backgrounds
+  blue: '#5AA0E6',
+  slate: '#9DB0BE',
+  blueBg: 'rgba(90, 160, 230, 0.18)',
+  amberBg: 'rgba(240, 168, 75, 0.16)',
+  examBg: 'rgba(169, 139, 240, 0.18)',
+  slateBg: 'rgba(157, 176, 190, 0.16)',
+  dangerBg: 'rgba(255, 107, 107, 0.15)',
 };
 
 
