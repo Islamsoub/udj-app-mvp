@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { elevation, fonts, spacing, radius, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
-import { buildSubjectColorMap, getSubjectColor, getCategoryColor } from '@/constants/colorMap';
+import { buildSubjectColorMap, getSubjectColor, getNewsCategoryColors } from '@/constants/colorMap';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { CourseDetailSheet } from '@/components/schedule/CourseDetailSheet';
@@ -162,11 +162,8 @@ interface AgendaCardProps {
   course: string;
   teacher: string;
   location: string;
+  courseStatus: 'active' | 'past' | 'upcoming';
   statusLabel?: string;
-  statusBg?: string;
-  statusColor?: string;
-  statusBorder?: string;
-  isOffline?: boolean;
   onPress?: () => void;
 }
 
@@ -176,47 +173,45 @@ function AgendaCard({
   course,
   teacher,
   location,
+  courseStatus,
   statusLabel,
-  statusBg,
-  statusColor,
-  statusBorder,
-  isOffline,
   onPress,
 }: AgendaCardProps) {
   const { t } = useTranslation();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+
+  const isPast = courseStatus === 'past';
+  const isActive = courseStatus === 'active';
+  const isExam = statusLabel != null;
+
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.agendaCard, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
+      style={({ pressed }) => [styles.agendaCard, pressed && { opacity: 0.85 }]}
     >
-      <View style={[styles.agendaAccent, { backgroundColor: accentColor }]} />
+      <View style={[styles.agendaRail, { backgroundColor: accentColor }]} />
       <View style={styles.agendaContent}>
         <Text style={styles.agendaTime}>{time}</Text>
-        <Text style={styles.agendaCourse}>{course}</Text>
-        <Text style={styles.agendaTeacher}>{teacher}</Text>
-        {isOffline && (
-          <View style={styles.offlineWarningRow}>
-            <Ionicons name="warning-outline" size={12} color={colors.warning} />
-            <Text style={styles.offlineWarningText}>{t('home.offline_data')}</Text>
-          </View>
-        )}
+        <Text style={[styles.agendaCourse, isPast && { opacity: 0.45 }]} numberOfLines={2}>{course}</Text>
+        <Text style={styles.agendaTeacher} numberOfLines={1}>{teacher}</Text>
         <View style={styles.pillRow}>
           <View style={styles.locationPill}>
             <Text style={styles.locationPillText}>{location}</Text>
           </View>
-          {statusLabel != null && (
-            <View
-              style={[
-                styles.statusPill,
-                { backgroundColor: statusBg },
-                statusBorder != null && { borderWidth: 1, borderColor: statusBorder },
-              ]}
-            >
-              <Text style={[styles.statusPillText, { color: statusColor }]}>
-                {statusLabel}
-              </Text>
+          {isExam && (
+            <View style={styles.statusPillExam}>
+              <Text style={styles.statusPillExamText}>{statusLabel}</Text>
+            </View>
+          )}
+          {!isExam && isActive && (
+            <View style={styles.statusPillActive}>
+              <Text style={styles.statusPillActiveText}>{t('schedule.status.active')}</Text>
+            </View>
+          )}
+          {!isExam && isPast && (
+            <View style={styles.statusPillPast}>
+              <Text style={styles.statusPillPastText}>{t('schedule.status.done')}</Text>
             </View>
           )}
         </View>
@@ -240,20 +235,23 @@ function NewsCard({
 }) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { fg, bg } = getNewsCategoryColors(category, colors);
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.newsCard, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
+      style={({ pressed }) => [styles.newsCard, pressed && { opacity: 0.85 }]}
     >
       {imageUrl ? (
         <Image source={{ uri: imageUrl }} style={styles.newsThumbnail} resizeMode="cover" />
       ) : (
-        <View style={styles.newsThumbnail} />
+        <View style={styles.newsThumbnailPlaceholder}>
+          <Ionicons name="image-outline" size={22} color={colors.textTertiary} />
+        </View>
       )}
       <View style={styles.newsText}>
         <Text style={styles.newsTitle} numberOfLines={2}>{title}</Text>
-        <View style={[styles.newsCategoryPill, { backgroundColor: getCategoryColor(category).bg }]}>
-          <Text style={[styles.newsCategoryText, { color: getCategoryColor(category).text }]}>{category}</Text>
+        <View style={[styles.newsCategoryPill, { backgroundColor: bg }]}>
+          <Text style={[styles.newsCategoryText, { color: fg }]}>{category}</Text>
         </View>
       </View>
     </Pressable>
@@ -290,7 +288,7 @@ function SkeletonBody() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.bodySection}>
-      <View style={styles.sectionHeadingRow}>
+      <View style={[styles.sectionHeadingRow, { marginTop: 18 }]}>
         <SkeletonBox style={{ width: 169, height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) }} />
         <SkeletonBox style={{ width: 44, height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) }} />
       </View>
@@ -305,12 +303,18 @@ function SkeletonBody() {
           </View>
         </View>
       ))}
-      <View style={[styles.sectionHeadingRow, { marginTop: spacing.sp24 }]}>
+      <View style={[styles.sectionHeadingRow, { marginTop: 26 }]}>
         <SkeletonBox style={{ width: 169, height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) }} />
         <SkeletonBox style={{ width: 44, height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) }} />
       </View>
       {[0, 1].map((i) => (
-        <SkeletonBox key={i} style={styles.skelNewsCard} />
+        <View key={i} style={styles.skelNewsCard}>
+          <SkeletonBox style={styles.skelNewsThumbnail} />
+          <View style={styles.skelNewsTextBlock}>
+            <SkeletonBox style={[styles.skelBar, { width: '80%' }]} />
+            <SkeletonBox style={[styles.skelBar, { width: '55%', marginTop: spacing.sp8 }]} />
+          </View>
+        </View>
       ))}
     </View>
   );
@@ -649,12 +653,11 @@ export default function HomeScreen() {
         {(homeState === 'loaded' || isOffline) && (
           <View style={styles.bodySection}>
             {/* Agenda section */}
-            <View style={styles.sectionHeadingRow}>
+            <View style={[styles.sectionHeadingRow, { marginTop: 18 }]}>
               <Text style={styles.sectionHeading}>{t('home.agenda_section')}</Text>
               <Pressable
                 onPress={() => router.push('/(tabs)/schedule')}
                 hitSlop={8}
-                style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}
               >
                 <Text style={styles.sectionLink}>{t('home.see_all')}</Text>
               </Pressable>
@@ -669,29 +672,31 @@ export default function HomeScreen() {
                   course={item.course}
                   teacher={item.teacher}
                   location={item.location}
+                  courseStatus={item.courseStatus}
                   statusLabel={item.statusLabel}
-                  statusBg={item.statusBg}
-                  statusColor={item.statusColor}
-                  statusBorder={item.statusBorder}
-                  isOffline={isOffline}
                   onPress={() => handleAgendaPress(item)}
                 />
               ))
             ) : (
               <View style={styles.emptyAgendaCard}>
-                <Text style={styles.emptyAgendaText}>
-                  {t(isWeekend() ? 'home.agenda.weekend' : 'home.agenda.empty')}
-                </Text>
+                <View style={styles.emptyAgendaChip}>
+                  <Ionicons name="calendar-outline" size={17} color={colors.jadeText} />
+                </View>
+                <View>
+                  <Text style={styles.emptyAgendaTitle}>
+                    {t(isWeekend() ? 'home.agenda.weekend' : 'home.agenda.empty')}
+                  </Text>
+                  <Text style={styles.emptyAgendaSub}>{t('home.empty.body')}</Text>
+                </View>
               </View>
             )}
 
             {/* News section */}
-            <View style={[styles.sectionHeadingRow, { marginTop: spacing.sp24 }]}>
+            <View style={[styles.sectionHeadingRow, { marginTop: 26 }]}>
               <Text style={styles.sectionHeading}>{t('home.news_section')}</Text>
               <Pressable
                 onPress={() => router.push('/(tabs)/news')}
                 hitSlop={8}
-                style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}
               >
                 <Text style={styles.sectionLink}>{t('home.see_all')}</Text>
               </Pressable>
@@ -709,8 +714,8 @@ export default function HomeScreen() {
               ))
             ) : isOffline ? (
               <View style={styles.newsOfflineCard}>
-                <View style={styles.newsOfflineIcon}>
-                  <Ionicons name="globe-outline" size={18} color={colors.surface} />
+                <View style={styles.newsOfflineChip}>
+                  <Ionicons name="globe-outline" size={17} color={colors.slate} />
                 </View>
                 <Text style={styles.newsOfflineText}>
                   {t('home.news_offline')}
@@ -834,61 +839,80 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   bodySection: { backgroundColor: colors.background, paddingHorizontal: spacing.sp16 },
   sectionHeadingRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    marginTop: spacing.sp24, marginBottom: spacing.sp12,
+    marginBottom: spacing.sp12,
   },
-  sectionHeading: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans },
-  sectionLink: { fontSize: 13, color: colors.jade400, fontFamily: fonts.sans },
+  sectionHeading: { fontSize: 18, fontWeight: '800', color: colors.textPrimary, fontFamily: fonts.sans, letterSpacing: -0.3 },
+  sectionLink: { fontSize: 14.5, fontWeight: '600', color: colors.jadeText, fontFamily: fonts.sans },
 
   agendaCard: {
-    flexDirection: 'row', backgroundColor: colors.surface,
-    borderRadius: radius.rLg, marginBottom: spacing.sp24, minHeight: 91, overflow: 'hidden',
+    backgroundColor: colors.surface,
+    borderRadius: radius.rTile,
+    marginBottom: spacing.sp12,
+    overflow: 'hidden',
+    ...elevation.card,
   },
-  agendaAccent: { width: 9, borderTopStartRadius: radius.rLg, borderBottomStartRadius: radius.rLg },
+  agendaRail: {
+    position: 'absolute', top: 0, bottom: 0, start: 0, width: 5,
+  },
   agendaContent: {
-    flex: 1, paddingStart: spacing.sp12, paddingEnd: spacing.sp16,
+    flex: 1, paddingStart: spacing.sp16, paddingEnd: spacing.sp16,
     paddingTop: spacing.sp12, paddingBottom: spacing.sp12, justifyContent: 'center',
   },
-  agendaTime: { fontSize: 12, color: colors.textSecondary, fontFamily: fonts.mono },
-  agendaCourse: { fontSize: 14, fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans, marginTop: spacing.sp2 },
-  agendaTeacher: { fontSize: 12, color: colors.textSecondary, fontFamily: fonts.sans },
-  offlineWarningRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sp4, marginTop: spacing.sp2 },
-  offlineWarningText: { fontSize: 11, color: colors.warning, fontFamily: fonts.sans },
-  pillRow: { flexDirection: 'row', gap: spacing.sp8, marginTop: spacing.sp8, alignItems: 'center' },
-  locationPill: { backgroundColor: colors.background, borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
-  locationPillText: { fontSize: 11, color: colors.textPrimary, fontWeight: '500', fontFamily: fonts.sans },
-  statusPill: { borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
-  statusPillText: { fontSize: 11, fontWeight: '500', fontFamily: fonts.sans },
+  agendaTime: { fontSize: 14, fontWeight: '500', color: colors.textSecondary, fontFamily: fonts.mono },
+  agendaCourse: { fontSize: 16.5, fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans, marginTop: spacing.sp2 },
+  agendaTeacher: { fontSize: 14, fontWeight: '500', color: colors.textSecondary, fontFamily: fonts.sans },
+  pillRow: { flexDirection: 'row', gap: 8, marginTop: 11, alignItems: 'center' },
+  locationPill: { backgroundColor: colors.surface2, borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
+  locationPillText: { fontSize: 13, fontWeight: '600', color: colors.textPrimary, fontFamily: fonts.sans },
+  statusPillActive: { backgroundColor: colors.jadeFaint, borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
+  statusPillActiveText: { fontSize: 13, fontWeight: '600', color: colors.jadeText, fontFamily: fonts.sans },
+  statusPillPast: { backgroundColor: colors.slateBg, borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
+  statusPillPastText: { fontSize: 13, fontWeight: '600', color: colors.slate, fontFamily: fonts.sans },
+  statusPillExam: { backgroundColor: colors.examBg, borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
+  statusPillExamText: { fontSize: 13, fontWeight: '600', color: colors.exam, fontFamily: fonts.sans },
 
   emptyAgendaCard: {
-    backgroundColor: colors.surface, borderRadius: radius.rLg,
-    padding: spacing.sp16, alignItems: 'center', marginBottom: spacing.sp24,
+    backgroundColor: colors.surface, borderRadius: radius.rTile,
+    padding: 18, flexDirection: 'row', alignItems: 'center',
+    gap: spacing.sp12, marginBottom: spacing.sp12,
   },
-  emptyAgendaText: { fontSize: 14, color: colors.textSecondary, fontFamily: fonts.sans },
+  emptyAgendaChip: {
+    width: 38, height: 38, borderRadius: 11,
+    backgroundColor: colors.jadeFaint, alignItems: 'center', justifyContent: 'center',
+  },
+  emptyAgendaTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans },
+  emptyAgendaSub: { fontSize: 13, fontWeight: '400', color: colors.textSecondary, fontFamily: fonts.sans, marginTop: spacing.sp2 },
 
   newsCard: {
-    flexDirection: 'row', backgroundColor: colors.surface, borderRadius: radius.rLg,
-    marginBottom: spacing.sp14, minHeight: 64, alignItems: 'center',
-    paddingHorizontal: spacing.sp12, paddingVertical: 10, gap: spacing.sp12,
+    flexDirection: 'row', backgroundColor: colors.surface,
+    borderRadius: radius.rXl, marginBottom: spacing.sp12,
+    padding: spacing.sp12, gap: 13, alignItems: 'center',
+    ...elevation.card,
   },
-  newsThumbnail: { width: 38, height: 37, borderRadius: radius.rMd, backgroundColor: colors.background },
-  newsText: { flex: 1, alignItems: 'flex-start' },
-  newsTitle: { fontSize: 13, fontWeight: '600', color: colors.textPrimary, fontFamily: fonts.sans },
+  newsThumbnail: { width: 52, height: 52, borderRadius: 12 },
+  newsThumbnailPlaceholder: {
+    width: 52, height: 52, borderRadius: 12,
+    backgroundColor: colors.surface2, alignItems: 'center', justifyContent: 'center',
+  },
+  newsText: { flex: 1 },
+  newsTitle: { fontSize: 15, fontWeight: '600', color: colors.textPrimary, fontFamily: fonts.sans, lineHeight: 19.5 },
   newsCategoryPill: {
-    alignSelf: 'flex-start', backgroundColor: colors.background,
-    borderRadius: radius.rFull, paddingHorizontal: spacing.sp8, paddingVertical: spacing.sp2, marginTop: spacing.sp4,
+    alignSelf: 'flex-start',
+    borderRadius: radius.rFull, paddingHorizontal: spacing.sp8, paddingVertical: spacing.sp2, marginTop: spacing.sp6,
   },
-  newsCategoryText: { fontSize: 10, color: colors.textSecondary, fontFamily: fonts.sans, textTransform: 'capitalize' },
+  newsCategoryText: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, fontFamily: fonts.sans },
 
   newsOfflineCard: {
-    flexDirection: 'row', backgroundColor: withAlpha(colors.warning, 0.08),
-    borderWidth: 1, borderColor: colors.warning, borderRadius: radius.rLg,
+    flexDirection: 'row', backgroundColor: colors.surface,
+    borderRadius: radius.rTile,
     padding: spacing.sp16, gap: spacing.sp12, alignItems: 'center',
+    ...elevation.card,
   },
-  newsOfflineIcon: {
-    width: 32, height: 32, borderRadius: 16,
-    backgroundColor: colors.jade400, alignItems: 'center', justifyContent: 'center',
+  newsOfflineChip: {
+    width: 38, height: 38, borderRadius: 11,
+    backgroundColor: colors.slateBg, alignItems: 'center', justifyContent: 'center',
   },
-  newsOfflineText: { flex: 1, fontSize: 13, color: colors.warning, fontFamily: fonts.sans },
+  newsOfflineText: { flex: 1, fontSize: 13, color: colors.textSecondary, fontFamily: fonts.sans },
 
   centerState: { flex: 1, alignItems: 'center', paddingHorizontal: spacing.sp24, paddingTop: 144 },
   errorIconCircle: {
@@ -915,21 +939,26 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   skelBellCircle: { width: 38, height: 38, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
   skelStatCard: { flex: 1, height: 80, borderRadius: radius.rXl, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
   skelAgendaCard: {
-    flexDirection: 'row', backgroundColor: colors.surface,
-    borderRadius: radius.rLg, marginBottom: spacing.sp24, height: 91, overflow: 'hidden',
+    backgroundColor: colors.surface,
+    borderRadius: radius.rTile, marginBottom: spacing.sp12, height: 96, overflow: 'hidden',
+    ...elevation.card,
   },
   skelAccent: {
-    width: 9, height: 91, backgroundColor: withAlpha(colors.skeletonBox, 0.6),
-    borderTopStartRadius: radius.rLg, borderBottomStartRadius: radius.rLg,
+    position: 'absolute', top: 0, bottom: 0, start: 0,
+    width: 5, backgroundColor: withAlpha(colors.skeletonBox, 0.6),
   },
   skelAgendaInner: {
-    flex: 1, paddingStart: spacing.sp12, paddingEnd: spacing.sp16,
-    paddingTop: spacing.sp12, gap: 0, justifyContent: 'center',
+    flex: 1, paddingStart: spacing.sp16, paddingEnd: spacing.sp16,
+    paddingTop: spacing.sp12, justifyContent: 'center',
   },
   skelNewsCard: {
-    width: '100%', height: 64, borderRadius: radius.rLg,
-    backgroundColor: withAlpha(colors.skeletonBox, 0.6), marginBottom: spacing.sp14,
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: colors.surface, borderRadius: radius.rXl,
+    marginBottom: spacing.sp12, padding: spacing.sp12, gap: 13,
+    ...elevation.card,
   },
+  skelNewsThumbnail: { width: 52, height: 52, borderRadius: 12, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
+  skelNewsTextBlock: { flex: 1 },
 
   modalOverlay: {
     position: 'absolute', top: 0, bottom: 0, start: 0, end: 0,

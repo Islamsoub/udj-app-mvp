@@ -265,7 +265,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: radius.rFull,
-    backgroundColor: '#E5E5E5',
+    backgroundColor: colors.hair,
     marginTop: spacing.sp12,
     marginBottom: 20,
   },
