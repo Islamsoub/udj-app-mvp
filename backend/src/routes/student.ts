@@ -540,10 +540,10 @@ router.patch(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const studentId = req.studentId!;
-      const { id } = req.params;
+      const notificationId = req.params.id as string;
 
       const notification = await prisma.notification.findFirst({
-        where: { id, studentId },
+        where: { id: notificationId, studentId },
         select: { id: true },
       });
 
@@ -553,7 +553,7 @@ router.patch(
       }
 
       await prisma.notification.update({
-        where: { id },
+        where: { id: notificationId },
         data: { isRead: true },
       });
 
