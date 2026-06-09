@@ -547,10 +547,21 @@
     "yesterday": "HIER",
     "thisWeek": "CETTE SEMAINE",
     "emptyTitle": "Aucune notification",
-    "emptyBody": "Vous serez notifié dès qu'il y a du nouveau.",
+    "emptyBody": "Vous êtes à jour.",
     "errorTitle": "Impossible de charger les notifications",
     "errorBody": "Vérifiez votre connexion puis réessayez.",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "group_earlier": "Plus tôt",
+    "type_grades": "Notes",
+    "type_schedule": "Agenda",
+    "type_attendance": "Présence",
+    "type_news": "Actualités",
+    "type_general": "Général",
+    "time_just_now": "À l'instant",
+    "time_minutes_ago": "Il y a {{count}} min",
+    "time_hours_ago": "Il y a {{count}}h",
+    "time_yesterday": "Hier",
+    "time_days_ago": "Il y a {{count}} jours"
   },
   "infoCenter": {
     "title": "Centre d'information",

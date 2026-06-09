@@ -547,10 +547,21 @@
     "yesterday": "الأمس",
     "thisWeek": "هذا الأسبوع",
     "emptyTitle": "لا توجد إشعارات",
-    "emptyBody": "سيتم إشعارك فور وجود جديد.",
+    "emptyBody": "أنت مُحدَّث.",
     "errorTitle": "تعذّر تحميل الإشعارات",
     "errorBody": "تحقق من اتصالك ثم أعد المحاولة.",
-    "retry": "إعادة المحاولة"
+    "retry": "إعادة المحاولة",
+    "group_earlier": "سابقاً",
+    "type_grades": "الدرجات",
+    "type_schedule": "الجدول",
+    "type_attendance": "الحضور",
+    "type_news": "الأخبار",
+    "type_general": "عام",
+    "time_just_now": "الآن",
+    "time_minutes_ago": "منذ {{count}} دقيقة",
+    "time_hours_ago": "منذ {{count}} ساعة",
+    "time_yesterday": "أمس",
+    "time_days_ago": "منذ {{count}} أيام"
   },
   "infoCenter": {
     "title": "مركز المعلومات",

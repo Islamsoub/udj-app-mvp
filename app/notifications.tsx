@@ -11,10 +11,11 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, withAlpha, sizing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, elevation, withAlpha, sizing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import {
   NotificationItem,
   NotificationItemData,
@@ -31,6 +32,7 @@ import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getCachedNotifications, upsertNotifications } from '@/services/db';
 import { mapNotificationsToCache } from '@/services/cacheMappers';
 import { localTitle, localBody } from '@/utils/i18nName';
+import type { TFunction } from 'i18next';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -53,20 +55,23 @@ function mapNotifType(type: string): NotificationType {
   }
 }
 
-function formatTimestamp(date: Date, now: Date): string {
+function formatTimestamp(date: Date, now: Date, t: TFunction): string {
   const diffMs = now.getTime() - date.getTime();
   const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 60) return `Il y a ${diffMin} min`;
+  if (diffMin < 1) return t('notifications.time_just_now');
+  if (diffMin < 60) return t('notifications.time_minutes_ago', { count: diffMin });
   const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `Il y a ${diffH} h`;
-  return date.toLocaleDateString('fr-FR', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'short',
-  });
+  if (diffH < 24) return t('notifications.time_hours_ago', { count: diffH });
+  if (diffH < 48) return t('notifications.time_yesterday');
+  const diffDays = Math.floor(diffH / 24);
+  return t('notifications.time_days_ago', { count: diffDays });
 }
 
-function groupNotificationsByDate(notifications: CachedNotification[], lang: string): Section[] {
+function groupNotificationsByDate(
+  notifications: CachedNotification[],
+  lang: string,
+  t: TFunction,
+): Section[] {
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterdayStart = new Date(todayStart.getTime() - 86400000);
@@ -75,6 +80,7 @@ function groupNotificationsByDate(notifications: CachedNotification[], lang: str
   const todayItems: NotificationItemData[] = [];
   const yesterdayItems: NotificationItemData[] = [];
   const thisWeekItems: NotificationItemData[] = [];
+  const earlierItems: NotificationItemData[] = [];
 
   for (const n of notifications) {
     const date = new Date(n.createdAt);
@@ -85,9 +91,8 @@ function groupNotificationsByDate(notifications: CachedNotification[], lang: str
       type: mapNotifType(n.type),
       title: localTitle({ titleFr: n.titleFr, titleAr: n.titleAr }, lang),
       body: localBody({ bodyFr: n.bodyFr, bodyAr: n.bodyAr }, lang),
-      timestamp: formatTimestamp(date, now),
+      timestamp: formatTimestamp(date, now, t),
       isUnread: !n.isRead,
-      referenceId: (n as CachedNotification & { referenceId?: string }).referenceId,
     };
 
     if (dayStart.getTime() === todayStart.getTime()) {
@@ -96,6 +101,8 @@ function groupNotificationsByDate(notifications: CachedNotification[], lang: str
       yesterdayItems.push(item);
     } else if (dayStart.getTime() >= weekAgoStart.getTime()) {
       thisWeekItems.push(item);
+    } else {
+      earlierItems.push(item);
     }
   }
 
@@ -103,6 +110,7 @@ function groupNotificationsByDate(notifications: CachedNotification[], lang: str
   if (todayItems.length > 0) sections.push({ key: 'today', items: todayItems });
   if (yesterdayItems.length > 0) sections.push({ key: 'yesterday', items: yesterdayItems });
   if (thisWeekItems.length > 0) sections.push({ key: 'thisWeek', items: thisWeekItems });
+  if (earlierItems.length > 0) sections.push({ key: 'earlier', items: earlierItems });
   return sections;
 }
 
@@ -125,40 +133,41 @@ const SECTION_LABEL_KEYS: Record<string, string> = {
   today:     'notifications.today',
   yesterday: 'notifications.yesterday',
   thisWeek:  'notifications.thisWeek',
+  earlier:   'notifications.group_earlier',
 };
-
-// ─── Offline banner ───────────────────────────────────────────────────────────
-
-function NotificationsOfflineBanner() {
-  const { colors } = useColors();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { t } = useTranslation();
-  return (
-    <View style={styles.offlineBanner}>
-      <View style={styles.offlineDot} />
-      <Text style={styles.offlineBannerText}>
-        {t('common.offlineBanner', { time: 'hier 14:30' })}
-      </Text>
-    </View>
-  );
-}
 
 // ─── Section header ───────────────────────────────────────────────────────────
 
-function SectionHeader({ labelKey, onMarkAll }: { labelKey: string; onMarkAll?: () => void }) {
+function SectionHeader({
+  labelKey,
+  onMarkAll,
+  isOffline,
+  isFirst,
+}: {
+  labelKey: string;
+  onMarkAll?: () => void;
+  isOffline?: boolean;
+  isFirst?: boolean;
+}) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   return (
-    <View style={styles.sectionBand}>
+    <View style={[styles.sectionBand, isFirst ? styles.sectionBandFirst : styles.sectionBandLater]}>
       <Text style={styles.sectionLabel}>{t(labelKey)}</Text>
       {onMarkAll != null && (
         <Pressable
           onPress={onMarkAll}
-          style={({ pressed }) => [styles.markAllBtn, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }]}
+          disabled={isOffline}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          style={({ pressed }) => [
+            styles.markAllBtn,
+            !isOffline && pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 },
+          ]}
         >
-          <Text style={styles.markAllText}>{t('notifications.markAllRead')}</Text>
+          <Text style={[styles.markAllText, isOffline && styles.markAllTextDisabled]}>
+            {t('notifications.markAllRead')}
+          </Text>
         </Pressable>
       )}
     </View>
@@ -170,13 +179,13 @@ function SectionHeader({ labelKey, onMarkAll }: { labelKey: string; onMarkAll?: 
 type LoadedContentProps = {
   sections: Section[];
   onMarkAll: () => void;
+  isOffline: boolean;
   onItemPress: (item: NotificationItemData) => void;
 };
 
-function LoadedContent({ sections, onMarkAll, onItemPress }: LoadedContentProps) {
+function LoadedContent({ sections, onMarkAll, isOffline, onItemPress }: LoadedContentProps) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { t } = useTranslation();
 
   return (
     <ScrollView
@@ -189,14 +198,19 @@ function LoadedContent({ sections, onMarkAll, onItemPress }: LoadedContentProps)
           <SectionHeader
             labelKey={SECTION_LABEL_KEYS[section.key]}
             onMarkAll={index === 0 ? onMarkAll : undefined}
+            isOffline={isOffline}
+            isFirst={index === 0}
           />
-          {section.items.map((item) => (
-            <NotificationItem
-              key={item.id}
-              item={item}
-              onPress={() => onItemPress(item)}
-            />
-          ))}
+          <View style={styles.card}>
+            {section.items.map((item, itemIndex) => (
+              <NotificationItem
+                key={item.id}
+                item={item}
+                onPress={() => onItemPress(item)}
+                isLast={itemIndex === section.items.length - 1}
+              />
+            ))}
+          </View>
         </View>
       ))}
       <View style={{ height: spacing.sp64 }} />
@@ -213,7 +227,7 @@ function EmptyBody() {
   return (
     <View style={styles.centerBody}>
       <View style={styles.emptyIconCircle}>
-        <Ionicons name="notifications-outline" size={48} color={colors.jade400} />
+        <Ionicons name="notifications-outline" size={28} color={colors.jadeText} />
       </View>
       <Text style={styles.stateTitle}>{t('notifications.emptyTitle')}</Text>
       <Text style={styles.stateBody}>{t('notifications.emptyBody')}</Text>
@@ -234,7 +248,10 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
       </View>
       <Text style={styles.stateTitle}>{t('notifications.errorTitle')}</Text>
       <Text style={styles.stateBody}>{t('notifications.errorBody')}</Text>
-      <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onRetry}>
+      <Pressable
+        style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]}
+        onPress={onRetry}
+      >
         <Text style={styles.retryBtnText}>{t('notifications.retry')}</Text>
       </Pressable>
     </View>
@@ -274,8 +291,8 @@ export default function NotificationsScreen() {
     const data = (hook.data ?? []).map((n) =>
       readIds.has(n.id) ? { ...n, isRead: true } : n,
     );
-    return groupNotificationsByDate(data, lang);
-  }, [hook.data, readIds, lang]);
+    return groupNotificationsByDate(data, lang, t);
+  }, [hook.data, readIds, lang, t]);
 
   // ─── Derive screen state ────────────────────────────────────────────────────
 
@@ -304,11 +321,7 @@ export default function NotificationsScreen() {
         router.push('/attendance');
         break;
       case 'news':
-        if (item.referenceId) {
-          router.push({ pathname: '/article-reader', params: { id: item.referenceId } });
-        } else {
-          router.push('/(tabs)/news');
-        }
+        router.push('/(tabs)/news');
         break;
       case 'general':
       default:
@@ -317,15 +330,16 @@ export default function NotificationsScreen() {
   }, [router]);
 
   const handleMarkAll = useCallback(async () => {
-    if (hook.isOffline) return;
+    const prevReadIds = readIds;
+    const allIds = new Set((hook.data ?? []).map((n) => n.id));
+    setReadIds(allIds);
     try {
       await markAllNotificationsRead();
-      setReadIds(new Set());
       hook.refetch();
     } catch {
-      // ignore — UI stays as-is
+      setReadIds(prevReadIds);
     }
-  }, [hook]);
+  }, [hook, readIds]);
 
   const showContent =
     screenState === 'loaded' ||
@@ -342,11 +356,18 @@ export default function NotificationsScreen() {
         title={t('notifications.title')}
       />
 
-      <View style={styles.content}>
-        {screenState === 'offline' && <NotificationsOfflineBanner />}
+      <OfflineBanner />
 
+      <View style={styles.content}>
         {screenState === 'skeleton' && <NotificationSkeleton />}
-        {showContent && <LoadedContent sections={sections} onMarkAll={handleMarkAll} onItemPress={handleItemPress} />}
+        {showContent && (
+          <LoadedContent
+            sections={sections}
+            onMarkAll={handleMarkAll}
+            isOffline={hook.isOffline}
+            onItemPress={handleItemPress}
+          />
+        )}
         {screenState === 'empty' && <EmptyBody />}
         {screenState === 'error' && (
           <ErrorBody onRetry={() => hook.refetch()} />
@@ -379,59 +400,51 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flex: 1,
   },
 
+  // ── Section band
+  sectionBand: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sp20,
+  },
+  sectionBandFirst: {
+    marginTop: spacing.sp2,
+    marginBottom: spacing.sp8,
+  },
+  sectionBandLater: {
+    marginTop: spacing.sp20,
+    marginBottom: spacing.sp8,
+  },
+  sectionLabel: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    fontFamily: fonts.sans,
+    color: colors.textTertiary,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
   markAllBtn: {
     height: sizing.touchTarget,
     alignItems: 'center',
     justifyContent: 'center',
   },
   markAllText: {
-    fontSize: 14,
+    fontSize: 14.5,
     fontWeight: '600',
     fontFamily: fonts.sans,
-    color: colors.jade400,
+    color: colors.jadeText,
   },
-
-  // ── Offline banner
-  offlineBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFEDD5',
-    borderBottomWidth: 1,
-    borderBottomColor: '#FBD38D',
-    paddingVertical: spacing.sp12,
-    paddingHorizontal: spacing.sp16,
-  },
-  offlineDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#F97316',
-    marginEnd: spacing.sp8,
-  },
-  offlineBannerText: {
-    fontSize: 12,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
-    color: '#9A3412',
-    flex: 1,
-  },
-
-  // ── Section band
-  sectionBand: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    paddingVertical: spacing.sp8,
-    paddingHorizontal: spacing.sp16,
-  },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
+  markAllTextDisabled: {
     color: colors.textTertiary,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
+  },
+
+  // ── Group card
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.rXl,
+    ...elevation.card,
+    marginHorizontal: spacing.sp16,
+    overflow: 'hidden',
   },
 
   // ── Scroll
@@ -451,18 +464,18 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingHorizontal: spacing.sp32,
   },
   emptyIconCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 216,
-    backgroundColor: '#E8F5F0',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.jadeFaint,
     alignItems: 'center',
     justifyContent: 'center',
   },
   errorIconCircle: {
     width: 120,
     height: 120,
-    borderRadius: 216,
-    backgroundColor: '#FEE2E2',
+    borderRadius: 60,
+    backgroundColor: colors.dangerBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
