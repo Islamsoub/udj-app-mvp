@@ -1,14 +1,23 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { getNewsCategoryColors } from '@/constants/colorMap';
+
+// Image area height (design constant)
+const IMAGE_H = 170;
 
 export interface HeroArticle {
   id: string;
   title: string;
   timestamp: string;
   readTime: string;
+  isUrgent?: boolean;
+  imageUrl?: string | null;
+  category?: string;
 }
 
 interface HeroCardProps {
@@ -20,28 +29,61 @@ export function HeroCard({ article, onPress }: HeroCardProps) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
+  const hasImage = !!article.imageUrl;
+  const catColor = (article.category && !article.isUrgent)
+    ? getNewsCategoryColors(article.category, colors)
+    : null;
 
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && { backgroundColor: withAlpha(colors.surface, 0.06) }]}
+      style={({ pressed }) => [styles.card, pressed && { opacity: 0.9 }]}
     >
-      {/* Green image placeholder with urgent pill */}
       <View style={styles.imageArea}>
-        <View style={styles.urgentPill}>
-          <View style={styles.urgentDot} />
-          <Text style={styles.urgentLabel}>{t('news.hero.urgent_label')}</Text>
-        </View>
+        {hasImage ? (
+          <>
+            <Image
+              source={{ uri: article.imageUrl! }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.55)']}
+              style={styles.scrim}
+            />
+            <View style={styles.scrimContent}>
+              {/* on-image literal — white text over dark scrim */}
+              <Text style={styles.titleOnImage} numberOfLines={2}>{article.title}</Text>
+            </View>
+          </>
+        ) : (
+          <View style={styles.imagePlaceholder}>
+            <Ionicons name="image-outline" size={26} color={colors.textTertiary} />
+          </View>
+        )}
+
+        {/* Pill: urgent or category (non-urgent + image only) — top-start, RTL-safe */}
+        {article.isUrgent ? (
+          <View style={styles.urgentPill}>
+            <View style={styles.urgentDot} />
+            <Text style={styles.urgentLabel}>{t('news.urgent_label')}</Text>
+          </View>
+        ) : (catColor && hasImage) ? (
+          <View style={[styles.categoryPill, { backgroundColor: catColor.bg }]}>
+            <Text style={[styles.categoryPillText, { color: catColor.fg }]}>
+              {t(`news.cat.${article.category}`)}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
-      {/* White content area */}
-      <View style={styles.contentArea}>
-        <Text style={styles.title} numberOfLines={2}>{article.title}</Text>
-        <View style={styles.metaRow}>
-          <Text style={styles.meta}>{article.timestamp}</Text>
-          <Text style={styles.meta}> · </Text>
-          <Text style={styles.meta}>{article.readTime}</Text>
-        </View>
+      <View style={styles.footer}>
+        {!hasImage && (
+          <Text style={styles.titleInFooter} numberOfLines={2}>{article.title}</Text>
+        )}
+        <Text style={[styles.meta, !hasImage && styles.metaWithTitle]}>
+          {article.timestamp} · {article.readTime}
+        </Text>
       </View>
     </Pressable>
   );
@@ -49,70 +91,104 @@ export function HeroCard({ article, onPress }: HeroCardProps) {
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
   card: {
-    marginHorizontal: spacing.sp16,
-    height: 229,
-    borderRadius: 18,
-    backgroundColor: colors.jade600,
+    borderRadius: radius.rTile,
+    ...elevation.card,
     overflow: 'hidden',
+    backgroundColor: colors.surface,
   },
 
-  // Green image placeholder (H=137) — bottom-aligned urgent pill
   imageArea: {
-    height: 137,
-    backgroundColor: colors.jade600,
-    justifyContent: 'flex-end',
-    paddingStart: spacing.sp16,
-    paddingBottom: 11, // 137 - 100(pill Y) - 26(pill H) = 11
-    alignItems: 'flex-start',
+    height: IMAGE_H,
   },
+  image: {
+    width: '100%',
+    height: IMAGE_H,
+  },
+  scrim: {
+    position: 'absolute',
+    bottom: 0,
+    start: 0,
+    end: 0,
+    height: IMAGE_H / 2,
+  },
+  scrimContent: {
+    position: 'absolute',
+    bottom: 0,
+    start: 0,
+    end: 0,
+    padding: spacing.sp12,
+  },
+  titleOnImage: {
+    fontSize: 17,
+    fontWeight: '700',
+    fontFamily: fonts.sans,
+    // on-image literal — white text over dark scrim
+    color: '#FFFFFF',
+    lineHeight: 22,
+  },
+  imagePlaceholder: {
+    flex: 1,
+    backgroundColor: colors.surface2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   urgentPill: {
+    position: 'absolute',
+    top: spacing.sp12,
+    start: spacing.sp12,
     flexDirection: 'row',
     alignItems: 'center',
-    height: 26,
-    borderRadius: 16,
-    backgroundColor: colors.urgentPillBg,
-    paddingHorizontal: 10,
-    gap: spacing.sp4,
+    borderRadius: radius.rFull,
+    backgroundColor: colors.dangerBg,
+    paddingVertical: spacing.sp4,
+    paddingHorizontal: spacing.sp8,
+    gap: spacing.sp6,
   },
   urgentDot: {
-    width: 11,
-    height: 11,
+    width: 8,
+    height: 8,
     borderRadius: radius.rFull,
     backgroundColor: colors.danger,
   },
   urgentLabel: {
-    fontSize: 12,
+    fontSize: 12.5,
     fontWeight: '700',
     fontFamily: fonts.sans,
-    color: colors.surface,
+    color: colors.danger,
   },
 
-  // White content area (H=92, flex to fill remaining 229-137=92)
-  contentArea: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: radius.rMd,
-    paddingHorizontal: 18,
-    paddingTop: 10,
-    paddingBottom: spacing.sp12,
-    justifyContent: 'space-between',
+  categoryPill: {
+    position: 'absolute',
+    top: spacing.sp12,
+    start: spacing.sp12,
+    borderRadius: radius.rFull,
+    paddingVertical: spacing.sp4,
+    paddingHorizontal: spacing.sp8,
   },
-  title: {
-    fontSize: 14,
+  categoryPillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    fontFamily: fonts.sans,
+  },
+
+  footer: {
+    padding: spacing.sp12,
+  },
+  titleInFooter: {
+    fontSize: 17,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
-    lineHeight: 20,
-    marginTop: spacing.sp4,
-    marginBottom: spacing.sp4,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    lineHeight: 22,
   },
   meta: {
-    fontSize: 12,
+    fontSize: 13,
+    fontWeight: '500',
     fontFamily: fonts.sans,
-    color: colors.textSecondary,
+    color: colors.textTertiary,
+  },
+  metaWithTitle: {
+    marginTop: spacing.sp8,
   },
 });

@@ -1,44 +1,48 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
-import { radius, spacing, type Palette } from '@/constants/theme';
+import { elevation, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+
+// Matches IMAGE_H in HeroCard
+const HERO_IMAGE_H = 170;
+const HERO_FOOTER_H = 44;
 
 function SkeletonFilterRow({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.filterRow}>
-      <SkeletonBox width={94} height={41} borderRadius={22} />
-      <SkeletonBox width={120} height={41} borderRadius={22} />
-      <SkeletonBox width={90} height={41} borderRadius={22} />
+      <SkeletonBox width={72} height={36} borderRadius={radius.rFull} />
+      <SkeletonBox width={110} height={36} borderRadius={radius.rFull} />
+      <SkeletonBox width={80} height={36} borderRadius={radius.rFull} />
     </View>
   );
 }
 
 function SkeletonHeroCard({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   return (
-    <SkeletonBox
-      width={329}
-      height={229}
-      borderRadius={18}
-      style={styles.heroCard}
-    />
+    <View style={styles.heroCard}>
+      <SkeletonBox width="100%" height={HERO_IMAGE_H} borderRadius={0} />
+      <View style={styles.heroFooter}>
+        <SkeletonBox width="85%" height={16} borderRadius={radius.rMd} />
+        <SkeletonBox width="50%" height={16} borderRadius={radius.rMd} style={{ marginTop: spacing.sp4 }} />
+        <SkeletonBox width={100} height={13} borderRadius={radius.rMd} style={{ marginTop: spacing.sp8 }} />
+      </View>
+    </View>
   );
 }
 
 function SkeletonArticleCard({ styles }: { styles: ReturnType<typeof makeStyles> }) {
   return (
     <View style={styles.articleCard}>
-      <View style={styles.articleThumb}>
-        <SkeletonBox width={37} height={35} borderRadius={radius.rMd} />
-      </View>
+      <SkeletonBox width={56} height={56} borderRadius={radius.rLg} />
       <View style={styles.articleContent}>
         <View style={styles.articleTopRow}>
-          <SkeletonBox width={80} height={19} borderRadius={10} />
-          <SkeletonBox width={37} height={15} borderRadius={6} />
+          <SkeletonBox width={72} height={24} borderRadius={radius.rFull} />
+          <SkeletonBox width={44} height={13} borderRadius={radius.rMd} />
         </View>
-        <SkeletonBox width={160} height={15} borderRadius={6} />
-        <SkeletonBox width={110} height={15} borderRadius={6} />
-        <SkeletonBox width={60} height={15} borderRadius={6} />
+        <SkeletonBox width="90%" height={15} borderRadius={radius.rMd} style={{ marginTop: spacing.sp6 }} />
+        <SkeletonBox width="60%" height={15} borderRadius={radius.rMd} style={{ marginTop: spacing.sp4 }} />
+        <SkeletonBox width={60} height={13} borderRadius={radius.rMd} style={{ marginTop: spacing.sp8 }} />
       </View>
     </View>
   );
@@ -48,10 +52,10 @@ export function NewsSkeleton() {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <View>
+    <View style={styles.root}>
       <SkeletonFilterRow styles={styles} />
-      <SkeletonHeroCard styles={styles} />
-      <View style={styles.articleList}>
+      <View style={styles.cardList}>
+        <SkeletonHeroCard styles={styles} />
         <SkeletonArticleCard styles={styles} />
         <SkeletonArticleCard styles={styles} />
       </View>
@@ -60,43 +64,43 @@ export function NewsSkeleton() {
 }
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
+  root: {
+    paddingTop: spacing.sp20,
+  },
   filterRow: {
-    height: 72,
+    height: 52,
     backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.scheduleBorder,
     flexDirection: 'row',
     alignItems: 'center',
     paddingStart: spacing.sp16,
     gap: spacing.sp8,
+    marginBottom: spacing.sp12,
+  },
+  cardList: {
+    paddingHorizontal: spacing.sp16,
+    gap: 12,
   },
   heroCard: {
-    alignSelf: 'center',
-    marginTop: spacing.sp20,
+    borderRadius: radius.rTile,
+    ...elevation.card,
+    overflow: 'hidden',
+    backgroundColor: colors.surface,
   },
-  articleList: {
-    paddingTop: spacing.sp16,
-    gap: spacing.sp16,
+  heroFooter: {
+    padding: spacing.sp12,
+    minHeight: HERO_FOOTER_H,
   },
   articleCard: {
-    height: 122,
-    borderRadius: 14,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.scheduleBorder,
-    marginHorizontal: 15,
-    overflow: 'hidden',
+    borderRadius: radius.rTile,
+    ...elevation.card,
+    padding: spacing.sp12,
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sp16,
-    paddingVertical: spacing.sp16,
-  },
-  articleThumb: {
-    marginEnd: spacing.sp12,
+    gap: spacing.sp12,
+    alignItems: 'flex-start',
   },
   articleContent: {
     flex: 1,
-    gap: spacing.sp8,
   },
   articleTopRow: {
     flexDirection: 'row',

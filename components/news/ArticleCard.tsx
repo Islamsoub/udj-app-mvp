@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { getNewsCategoryColors } from '@/constants/colorMap';
 import { toggleNewsBookmark } from '@/services/db';
@@ -18,6 +18,7 @@ export interface Article {
   isHero?: boolean;
   isRead?: boolean;
   bookmarked?: boolean;
+  imageUrl?: string | null;
 }
 
 interface ArticleCardProps {
@@ -45,10 +46,26 @@ export function ArticleCard({ article, onPress }: ArticleCardProps) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
+      style={({ pressed }) => [styles.card, pressed && { opacity: 0.9 }]}
     >
-      <View style={styles.thumbnail} />
+      {/* Thumbnail */}
+      <View style={styles.thumbnail}>
+        {article.imageUrl ? (
+          <Image
+            source={{ uri: article.imageUrl }}
+            style={styles.thumbnailImage}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.thumbnailPlaceholder}>
+            <Ionicons name="image-outline" size={22} color={colors.textTertiary} />
+          </View>
+        )}
+      </View>
+
+      {/* Content column */}
       <View style={styles.content}>
+        {/* Top row: category pill + unread dot & timestamp */}
         <View style={styles.topRow}>
           <View style={[styles.categoryPill, { backgroundColor: catColor.bg }]}>
             <Text style={[styles.categoryText, { color: catColor.fg }]}>
@@ -60,14 +77,17 @@ export function ArticleCard({ article, onPress }: ArticleCardProps) {
             <Text style={styles.timestamp}>{article.timestamp}</Text>
           </View>
         </View>
+
         <Text style={styles.title} numberOfLines={2}>{article.title}</Text>
+
         <View style={styles.bottomRow}>
           <Text style={styles.readTime}>{article.readTime}</Text>
-          <Pressable onPress={handleBookmarkPress} hitSlop={8}>
+          {/* Nested Pressable absorbs touch so bookmark does not trigger card navigation */}
+          <Pressable onPress={handleBookmarkPress} hitSlop={12}>
             <Ionicons
               name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
-              size={16}
-              color={isBookmarked ? colors.jade400 : colors.textSecondary}
+              size={20}
+              color={isBookmarked ? colors.jade400 : colors.textTertiary}
             />
           </Pressable>
         </View>
@@ -78,32 +98,35 @@ export function ArticleCard({ article, onPress }: ArticleCardProps) {
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
   card: {
-    height: 122,
-    borderRadius: 14,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.scheduleBorder,
-    marginHorizontal: 15,
-    overflow: 'hidden',
+    borderRadius: radius.rTile,
+    ...elevation.card,
+    padding: spacing.sp12,
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sp16,
+    gap: spacing.sp12,
+    alignItems: 'flex-start',
   },
 
   thumbnail: {
-    width: 37,
-    height: 35,
-    borderRadius: radius.rMd,
-    backgroundColor: colors.scheduleBorder,
-    marginEnd: spacing.sp12,
+    width: 56,
+    height: 56,
+    borderRadius: radius.rLg,
+    overflow: 'hidden',
     flexShrink: 0,
+  },
+  thumbnailImage: {
+    width: 56,
+    height: 56,
+  },
+  thumbnailPlaceholder: {
+    flex: 1,
+    backgroundColor: colors.surface2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   content: {
     flex: 1,
-    justifyContent: 'space-between',
-    alignSelf: 'stretch',
-    paddingVertical: spacing.sp16,
   },
 
   topRow: {
@@ -111,20 +134,18 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-
   categoryPill: {
-    height: 19,
-    borderRadius: 10,
-    paddingHorizontal: spacing.sp12,
+    borderRadius: radius.rFull,
+    paddingVertical: spacing.sp4,
+    paddingHorizontal: spacing.sp8,
     alignItems: 'center',
     justifyContent: 'center',
   },
   categoryText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '600',
     fontFamily: fonts.sans,
   },
-
   timestampRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -133,35 +154,35 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   unreadDot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
+    borderRadius: radius.rFull,
     backgroundColor: colors.jade400,
   },
   timestamp: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '500',
     fontFamily: fonts.sans,
-    color: colors.textSecondary,
+    color: colors.textTertiary,
   },
 
   title: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
-    lineHeight: 18,
-    marginTop: spacing.sp4,
-    marginBottom: spacing.sp4,
+    lineHeight: 21,
+    marginTop: spacing.sp6,
   },
 
   bottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginTop: spacing.sp8,
   },
   readTime: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '500',
     fontFamily: fonts.sans,
-    color: colors.textSecondary,
+    color: colors.textTertiary,
   },
 });

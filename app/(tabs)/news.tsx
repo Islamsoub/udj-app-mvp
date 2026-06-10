@@ -43,6 +43,7 @@ function newsItemToArticle(item: NewsItem, localReadIds: Set<string>, lang: stri
     readTime: formatReadTime(item.readTimeMinutes),
     isRead: item.read || localReadIds.has(item.id),
     bookmarked: item.bookmarked,
+    imageUrl: item.imageUrl,
   };
 }
 
@@ -52,6 +53,9 @@ function newsItemToHero(item: NewsItem, lang: string) {
     title: localTitle({ titleFr: item.title, titleAr: item.titleAr }, lang),
     timestamp: formatTimestamp(item.publishedAt),
     readTime: formatReadTime(item.readTimeMinutes),
+    isUrgent: item.isUrgent,
+    imageUrl: item.imageUrl,
+    category: item.category,
   };
 }
 
@@ -256,7 +260,8 @@ export default function NewsScreen() {
     // On "Tout" this surfaces the urgent article; on a category tab `items` is
     // already filtered to that category, so the hero appears only when the urgent
     // article belongs to the active filter.
-    const hero = items.find((a) => a.isUrgent) ?? null;
+    // Hero only on the "all" tab — hidden when a category filter is active
+    const hero = (!filterCategory && !isSavedTab) ? (items.find((a) => a.isUrgent) ?? null) : null;
     const list = hero ? items.filter((a) => a.id !== hero.id) : items;
     return { heroArticle: hero, listArticles: list };
   }, [hook.data, filterCategory, isSavedTab]);
@@ -369,7 +374,6 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Saved articles warning banner (offline body)
   savedBanner: {
-    marginHorizontal: spacing.sp16,
     height: spacing.sp48,
     borderRadius: radius.rLg,
     backgroundColor: colors.warningLight,
@@ -390,19 +394,21 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   // ── Loaded body
   loadedBody: {
     paddingTop: spacing.sp20,
-    gap: 18,
+    paddingHorizontal: spacing.sp16,
+    gap: 12,
   },
   loadedArticleList: {
-    gap: 18,
+    gap: 12,
   },
 
   // ── Offline body
   offlineBody: {
     paddingTop: spacing.sp20,
-    gap: spacing.sp16,
+    paddingHorizontal: spacing.sp16,
+    gap: 12,
   },
   offlineArticleList: {
-    gap: spacing.sp16,
+    gap: 12,
   },
 
   // ── Shared center layout (empty + error)
