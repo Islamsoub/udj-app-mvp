@@ -12,7 +12,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, scrimColor, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import type { Subject } from './SubjectCard';
 
@@ -31,11 +31,18 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
   const [targetGrade, setTargetGrade] = useState('');
   const [result, setResult] = useState<number | null>(null);
   const [calculated, setCalculated] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const scrollRef = useRef<React.ElementRef<typeof KeyboardAwareScrollView>>(null);
 
   const subject = subjects.length > 0 ? subjects[selectedIndex % subjects.length] : null;
 
-  function cycleSubject() {
+  function prevSubject() {
+    setSelectedIndex((prev) => (prev - 1 + subjects.length) % subjects.length);
+    setResult(null);
+    setCalculated(false);
+  }
+
+  function nextSubject() {
     setSelectedIndex((prev) => (prev + 1) % subjects.length);
     setResult(null);
     setCalculated(false);
@@ -50,14 +57,16 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
     setCalculated(true);
   }
 
-  // Result state thresholds
   const isImpossible = result !== null && result > 20;
+  const isAchieved   = result !== null && result <= 0;
   const isWarning    = result !== null && result > 18 && result <= 20;
   const resultColor  = isImpossible
     ? colors.danger
     : isWarning
     ? colors.warning
     : colors.jade600;
+
+  const canNavigate = subjects.length > 1;
 
   return (
     <Modal
@@ -69,7 +78,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
       <View style={styles.container}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
 
-        <View style={[styles.sheet, { paddingBottom: insets.bottom }]}>
+        <View style={[styles.sheet, { paddingBottom: Math.max(26, insets.bottom + 10) }]}>
           {/* Drag handle */}
           <View style={styles.handle} />
 
@@ -81,8 +90,8 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
             showsVerticalScrollIndicator={false}
           >
             {/* Header */}
-            <Text style={styles.title}>{t('calculator.title')}</Text>
-            <Text style={styles.subtitle}>{t('calculator.subtitle')}</Text>
+            <Text style={styles.title}>{t('grades.calc_title')}</Text>
+            <Text style={styles.subtitle}>{t('grades.calc_subtitle')}</Text>
 
             {/* Divider */}
             <View style={styles.divider} />
@@ -90,19 +99,42 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
             {/* Content */}
             <View style={styles.content}>
               {/* Subject section */}
-              <Text style={styles.sectionLabel}>{t('calculator.subject_label')}</Text>
+              <Text style={styles.sectionLabel}>{t('grades.calc_subject')}</Text>
 
-              {/* Subject selector */}
-              <Pressable style={({ pressed }) => [styles.selector, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 8 }]} onPress={cycleSubject}>
-                <Text style={styles.selectorText} numberOfLines={1}>
+              {/* Subject picker — bidirectional */}
+              <View style={styles.pickerRow}>
+                <Pressable
+                  style={styles.chevronBtn}
+                  onPress={prevSubject}
+                  hitSlop={8}
+                  disabled={!canNavigate}
+                >
+                  <Ionicons
+                    name="chevron-back"
+                    size={18}
+                    color={canNavigate ? colors.textSecondary : colors.textTertiary}
+                  />
+                </Pressable>
+                <Text style={styles.pickerName} numberOfLines={1}>
                   {subject?.name ?? '—'}
                 </Text>
-                <Ionicons name="chevron-down" size={20} color={colors.greyMedium} />
-              </Pressable>
+                <Pressable
+                  style={styles.chevronBtn}
+                  onPress={nextSubject}
+                  hitSlop={8}
+                  disabled={!canNavigate}
+                >
+                  <Ionicons
+                    name="chevron-forward"
+                    size={18}
+                    color={canNavigate ? colors.textSecondary : colors.textTertiary}
+                  />
+                </Pressable>
+              </View>
 
               {/* CC display */}
               <View style={styles.ccRow}>
-                <Text style={styles.ccLabel}>{t('calculator.cc_label')}</Text>
+                <Text style={styles.ccLabel}>{t('grades.calc_current_cc')}</Text>
                 <View style={styles.ccRight}>
                   <Text style={styles.ccValue}>
                     {subject !== null ? subject.cc.toFixed(2) : '—'}
@@ -113,10 +145,10 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
 
               {/* Target grade section */}
               <Text style={[styles.sectionLabel, { marginTop: spacing.sp16 }]}>
-                {t('calculator.target_label')}
+                {t('grades.calc_target')}
               </Text>
 
-              <View style={styles.inputRow}>
+              <View style={[styles.inputRow, isFocused && styles.inputRowFocused]}>
                 <TextInput
                   style={styles.input}
                   value={targetGrade}
@@ -125,6 +157,8 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
                     setCalculated(false);
                     setResult(null);
                   }}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
                   placeholder={t('calculator.target_placeholder')}
                   placeholderTextColor={colors.textTertiary}
                   keyboardType="numeric"
@@ -140,34 +174,34 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
                 ]}
                 onPress={() => { Keyboard.dismiss(); calculate(); }}
               >
-                <Text style={styles.calcBtnText}>{t('calculator.calculate')}</Text>
+                <Text style={styles.calcBtnText}>{t('grades.calc_calculate')}</Text>
               </Pressable>
 
               {/* Result card */}
               {calculated && result !== null && (
                 <View style={styles.resultCard}>
-                  <Text style={styles.resultLabel}>{t('calculator.result_label')}</Text>
-                  <View style={styles.resultRow}>
-                    <Text style={[styles.resultNumber, { color: resultColor }]}>
-                      {isImpossible
-                        ? result.toFixed(2)
-                        : result.toFixed(2)}
-                    </Text>
-                    <Text style={styles.resultSuffix}>/20</Text>
-                  </View>
-                  {isImpossible && (
-                    <Text style={[styles.resultNote, { color: colors.danger }]}>
-                      {t('calculator.impossible')}
-                    </Text>
+                  {!isAchieved && (
+                    <>
+                      <Text style={styles.resultLabel}>{t('calculator.result_label')}</Text>
+                      <View style={styles.resultRow}>
+                        <Text style={[styles.resultNumber, { color: resultColor }]}>
+                          {result.toFixed(2)}
+                        </Text>
+                        <Text style={styles.resultSuffix}>/20</Text>
+                      </View>
+                    </>
                   )}
-                  {isWarning && !isImpossible && (
-                    <Text style={[styles.resultNote, { color: colors.warning }]}>
-                      {t('calculator.warning')}
-                    </Text>
-                  )}
+                  <Text style={[styles.resultVerdict, { color: resultColor }]}>
+                    {isAchieved
+                      ? t('grades.calc_result_achieved')
+                      : isImpossible
+                      ? t('grades.calc_result_impossible')
+                      : t('grades.calc_result_need', { score: result.toFixed(2) })}
+                  </Text>
                 </View>
               )}
 
+              <View style={{ height: spacing.sp16 }} />
             </View>
           </KeyboardAwareScrollView>
         </View>
@@ -179,7 +213,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
 const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: withAlpha(colors.black, 0.45),
+    backgroundColor: scrimColor,
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -189,27 +223,27 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   handle: {
     alignSelf: 'center',
-    width: 36,
-    height: 4,
+    width: 38,
+    height: 5,
     borderRadius: radius.rFull,
-    backgroundColor: '#E5E5E5',
+    backgroundColor: colors.hair,
     marginTop: spacing.sp12,
-    marginBottom: 16,
+    marginBottom: spacing.sp16,
   },
 
   // ── Header
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
     paddingHorizontal: spacing.sp20,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '400',
     fontFamily: fonts.sans,
-    color: colors.greyMedium,
+    color: colors.textSecondary,
     marginTop: spacing.sp4,
     paddingHorizontal: spacing.sp20,
   },
@@ -224,41 +258,43 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingHorizontal: spacing.sp20,
   },
   sectionLabel: {
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '700',
     fontFamily: fonts.sans,
-    color: colors.greyMedium,
-    letterSpacing: 0.6,
+    color: colors.textTertiary,
+    letterSpacing: 0.4,
     textTransform: 'uppercase',
     marginBottom: spacing.sp8,
   },
 
-  // ── Subject selector
-  selector: {
-    height: 56,
-    borderRadius: radius.rLg,
+  // ── Subject picker (bidirectional)
+  pickerRow: {
+    height: 50,
+    backgroundColor: colors.surface2,
+    borderRadius: radius.rMd,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.sp16,
+    borderColor: colors.hair,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    paddingHorizontal: spacing.sp16,
   },
-  selectorText: {
+  chevronBtn: {
+    padding: spacing.sp4,
+  },
+  pickerName: {
     flex: 1,
-    fontSize: 14,
-    fontWeight: '500',
+    textAlign: 'center',
+    fontSize: 15,
+    fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
-    marginEnd: spacing.sp8,
   },
 
   // ── CC display row
   ccRow: {
-    height: 56,
-    borderRadius: radius.rLg,
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface2,
+    borderRadius: radius.rMd,
+    paddingVertical: spacing.sp14,
     paddingHorizontal: spacing.sp16,
     marginTop: spacing.sp12,
     flexDirection: 'row',
@@ -267,9 +303,9 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   ccLabel: {
     fontSize: 14,
-    fontWeight: '400',
+    fontWeight: '500',
     fontFamily: fonts.sans,
-    color: colors.textPrimary,
+    color: colors.textSecondary,
   },
   ccRight: {
     flexDirection: 'row',
@@ -277,32 +313,36 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     gap: spacing.sp2,
   },
   ccValue: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '600',
     fontFamily: fonts.mono,
-    color: colors.jade600,
+    color: colors.jade400,
   },
   ccSuffix: {
     fontSize: 13,
     fontWeight: '400',
     fontFamily: fonts.sans,
-    color: colors.greyMedium,
+    color: colors.textTertiary,
   },
 
   // ── Target grade input
   inputRow: {
-    height: 56,
-    borderRadius: radius.rLg,
+    backgroundColor: colors.surface2,
+    borderRadius: radius.rMd,
     borderWidth: 1,
-    borderColor: colors.jade600,
-    backgroundColor: colors.surface,
+    borderColor: colors.hair,
     paddingHorizontal: spacing.sp16,
+    paddingVertical: spacing.sp14,
     flexDirection: 'row',
     alignItems: 'center',
   },
+  inputRowFocused: {
+    borderColor: colors.jade400,
+  },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 17,
+    fontWeight: '500',
     fontFamily: fonts.mono,
     color: colors.textPrimary,
   },
@@ -310,14 +350,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontSize: 13,
     fontWeight: '400',
     fontFamily: fonts.sans,
-    color: colors.greyMedium,
+    color: colors.textTertiary,
   },
 
   // ── Calculate button
   calcBtn: {
     marginTop: spacing.sp16,
-    height: 52,
-    borderRadius: radius.rLg,
+    height: 50,
+    borderRadius: radius.rBtn,
     backgroundColor: colors.jade400,
     alignItems: 'center',
     justifyContent: 'center',
@@ -326,10 +366,10 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.jade600,
   },
   calcBtnText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     fontFamily: fonts.sans,
-    color: colors.surface,
+    color: colors.white,
   },
 
   // ── Result card
@@ -343,29 +383,29 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontSize: 12,
     fontWeight: '400',
     fontFamily: fonts.sans,
-    color: colors.greyMedium,
+    color: colors.textTertiary,
   },
   resultRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: spacing.sp4,
     marginTop: spacing.sp4,
+    marginBottom: spacing.sp8,
   },
   resultNumber: {
     fontSize: 36,
-    fontWeight: '700',
-    fontFamily: fonts.mono,
+    fontWeight: '800',
+    fontFamily: fonts.sans,
   },
   resultSuffix: {
     fontSize: 14,
     fontWeight: '400',
     fontFamily: fonts.sans,
-    color: colors.greyMedium,
+    color: colors.textTertiary,
   },
-  resultNote: {
+  resultVerdict: {
     fontSize: 13,
-    fontWeight: '400',
+    fontWeight: '500',
     fontFamily: fonts.sans,
-    marginTop: spacing.sp4,
   },
 });

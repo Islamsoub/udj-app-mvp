@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Modal,
   View,
@@ -10,7 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Polyline, Polygon, Circle, Line } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, scrimColor, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export interface GPADataPoint {
@@ -25,8 +25,7 @@ interface Props {
   gpaData: GPADataPoint[];
 }
 
-// Chart geometry constants
-const CHART_W = 300;
+// Chart geometry constants (Y-axis only — width is measured at runtime)
 const CHART_H = 160;
 const Y_MIN   = 0;
 const Y_MAX   = 20;
@@ -34,7 +33,6 @@ const PAD_L   = 28;
 const PAD_R   = 12;
 const PAD_T   = 20;
 const PAD_B   = 24;
-const INNER_W = CHART_W - PAD_L - PAD_R;
 const INNER_H = CHART_H - PAD_T - PAD_B;
 
 const Y_TICKS      = [20, 15, 10, 5, 0];
@@ -49,15 +47,17 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
   const { colors } = useColors();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const [chartWidth, setChartWidth] = useState(0);
 
-  // Build chart geometry from dynamic data
+  const innerW = chartWidth > 0 ? chartWidth - PAD_L - PAD_R : 0;
+
   const data = gpaData.length > 0 ? gpaData : [];
   const hasLine = data.length >= 2;
   const hasEstimates = data.some((d) => d.isEstimate === true);
 
   function toX(index: number) {
-    if (data.length <= 1) return PAD_L + INNER_W / 2;
-    return PAD_L + (index / (data.length - 1)) * INNER_W;
+    if (data.length <= 1 || innerW <= 0) return PAD_L + innerW / 2;
+    return PAD_L + (index / (data.length - 1)) * innerW;
   }
 
   const linePoints = data.map((d, i) => `${toX(i)},${toY(d.value)}`).join(' ');
@@ -97,92 +97,95 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
             scrollEnabled={false}
           >
             {/* Header */}
-            <Text style={styles.title}>{t('gpa_history.title')}</Text>
-            <Text style={styles.subtitle}>{t('gpa_history.subtitle')}</Text>
+            <Text style={styles.title}>{t('grades.history_title')}</Text>
+            <Text style={styles.subtitle}>{t('grades.history_subtitle')}</Text>
 
-            {/* Chart area */}
-            <View style={styles.chartWrapper}>
-              <Svg
-                width="100%"
-                height={CHART_H}
-                viewBox={`0 0 ${CHART_W} ${CHART_H}`}
-                preserveAspectRatio="none"
-              >
-                {/* Horizontal dashed grid lines */}
-                {Y_TICKS.map((tick) => (
+            {/* Chart area — width measured via onLayout */}
+            <View
+              style={styles.chartWrapper}
+              onLayout={(e) => setChartWidth(e.nativeEvent.layout.width)}
+            >
+              {chartWidth > 0 && (
+                <Svg
+                  width="100%"
+                  height={CHART_H}
+                  viewBox={`0 0 ${chartWidth} ${CHART_H}`}
+                >
+                  {/* Horizontal dashed grid lines */}
+                  {Y_TICKS.map((tick) => (
+                    <Line
+                      key={tick}
+                      x1={PAD_L}
+                      y1={toY(tick)}
+                      x2={chartWidth - PAD_R}
+                      y2={toY(tick)}
+                      stroke={colors.hair}
+                      strokeWidth={1}
+                      strokeDasharray="4,4"
+                    />
+                  ))}
+
+                  {/* Admission threshold at 10 */}
                   <Line
-                    key={tick}
                     x1={PAD_L}
-                    y1={toY(tick)}
-                    x2={CHART_W - PAD_R}
-                    y2={toY(tick)}
-                    stroke={colors.border}
+                    y1={ADMISSION_Y}
+                    x2={chartWidth - PAD_R}
+                    y2={ADMISSION_Y}
+                    stroke={withAlpha(colors.jade400, 0.35)}
                     strokeWidth={1}
                     strokeDasharray="4,4"
                   />
-                ))}
 
-                {/* "admission" line at 10 */}
-                <Line
-                  x1={PAD_L}
-                  y1={ADMISSION_Y}
-                  x2={CHART_W - PAD_R}
-                  y2={ADMISSION_Y}
-                  stroke={colors.textTertiary}
-                  strokeWidth={1}
-                  strokeDasharray="4,4"
-                />
+                  {/* Area fill */}
+                  {hasLine && (
+                    <Polygon
+                      points={areaPoints}
+                      fill={colors.jadeFaint}
+                    />
+                  )}
 
-                {/* Area fill */}
-                {hasLine && (
-                  <Polygon
-                    points={areaPoints}
-                    fill={withAlpha(colors.jade400, 0.1)}
-                  />
-                )}
+                  {/* Line */}
+                  {hasLine && (
+                    <Polyline
+                      points={linePoints}
+                      fill="none"
+                      stroke={colors.jade400}
+                      strokeWidth={2.5}
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                      strokeDasharray={hasEstimates ? '5,4' : undefined}
+                    />
+                  )}
 
-                {/* Line */}
-                {hasLine && (
-                  <Polyline
-                    points={linePoints}
-                    fill="none"
-                    stroke={colors.jade400}
-                    strokeWidth={2}
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                    strokeDasharray={hasEstimates ? '5,4' : undefined}
-                  />
-                )}
-
-                {/* Data points */}
-                {data.map((d, i) => {
-                  const cx = toX(i);
-                  const cy = toY(d.value);
-                  const isCurrent = i === data.length - 1;
-                  if (d.isEstimate) {
+                  {/* Data points */}
+                  {data.map((d, i) => {
+                    const cx = toX(i);
+                    const cy = toY(d.value);
+                    if (d.isEstimate) {
+                      return (
+                        <Circle
+                          key={`${d.label}-${i}`}
+                          cx={cx}
+                          cy={cy}
+                          r={6}
+                          fill={colors.jadeFaint}
+                          stroke={colors.jade400}
+                          strokeWidth={1.5}
+                        />
+                      );
+                    }
                     return (
                       <Circle
                         key={`${d.label}-${i}`}
                         cx={cx}
                         cy={cy}
-                        r={5}
-                        fill={colors.surface}
-                        stroke={colors.jade200}
-                        strokeWidth={2}
+                        r={6}
+                        fill={colors.jade400}
                       />
                     );
-                  }
-                  return (
-                    <Circle
-                      key={`${d.label}-${i}`}
-                      cx={cx}
-                      cy={cy}
-                      r={isCurrent ? 7 : 5}
-                      fill={colors.jade400}
-                    />
-                  );
-                })}
-              </Svg>
+                  })}
+                </Svg>
+              )}
 
               {/* Y-axis labels (overlay, left side) */}
               <View style={StyleSheet.absoluteFill} pointerEvents="none">
@@ -249,7 +252,7 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
             {/* Stats below chart */}
             {data.length > 0 && (
               <View style={styles.statsBlock}>
-                <Text style={styles.currentLabel}>{t('gpa_history.current_label')}</Text>
+                <Text style={styles.currentLabel}>{t('grades.history_current')}</Text>
                 <View style={styles.statsRow}>
                   {/* GPA number */}
                   <View style={styles.gpaLeft}>
@@ -281,7 +284,7 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
 const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: withAlpha(colors.black, 0.45),
+    backgroundColor: scrimColor,
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -291,27 +294,27 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   handle: {
     alignSelf: 'center',
-    width: 36,
-    height: 4,
+    width: 38,
+    height: 5,
     borderRadius: radius.rFull,
-    backgroundColor: '#E5E5E5',
+    backgroundColor: colors.hair,
     marginTop: spacing.sp12,
-    marginBottom: 16,
+    marginBottom: spacing.sp16,
   },
 
   // ── Header
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
     paddingHorizontal: spacing.sp20,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '400',
     fontFamily: fonts.sans,
-    color: colors.greyMedium,
+    color: colors.textSecondary,
     marginTop: spacing.sp4,
     paddingHorizontal: spacing.sp20,
   },
@@ -320,14 +323,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   chartWrapper: {
     height: CHART_H,
     marginTop: spacing.sp20,
-    paddingHorizontal: spacing.sp20,
+    marginHorizontal: spacing.sp20,
   },
 
   // ── Axis labels
   yLabel: {
     fontSize: 11,
     fontFamily: fonts.mono,
-    color: colors.greyMedium,
+    color: colors.textTertiary,
     width: 22,
     textAlign: 'right',
   },
@@ -335,7 +338,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontSize: 11,
     fontWeight: '400',
     fontFamily: fonts.sans,
-    color: colors.greyMedium,
+    color: colors.textTertiary,
   },
   xAxis: {
     flexDirection: 'row',
@@ -346,7 +349,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   xLabel: {
     fontSize: 12,
     fontFamily: fonts.mono,
-    color: colors.greyMedium,
+    color: colors.textTertiary,
     flex: 1,
     textAlign: 'center',
   },
@@ -369,7 +372,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     fontFamily: fonts.mono,
-    color: colors.surface,
+    color: colors.white,
   },
 
   // ── Stats block
@@ -378,12 +381,11 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp16,
   },
   currentLabel: {
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '700',
     fontFamily: fonts.sans,
-    color: colors.greyMedium,
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
+    color: colors.textTertiary,
+    letterSpacing: 0.4,
   },
   statsRow: {
     flexDirection: 'row',
@@ -398,15 +400,15 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   gpaNumber: {
     fontSize: 36,
-    fontWeight: '700',
-    fontFamily: fonts.mono,
-    color: colors.jade600,
+    fontWeight: '800',
+    fontFamily: fonts.sans,
+    color: colors.jade400,
   },
   gpaSuffix: {
     fontSize: 14,
     fontWeight: '400',
     fontFamily: fonts.sans,
-    color: colors.greyMedium,
+    color: colors.textTertiary,
   },
   trendText: {
     fontSize: 13,

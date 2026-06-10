@@ -220,7 +220,19 @@
       "body": "انتهت جلستك لأسباب أمنية. أعد تسجيل الدخول للمتابعة.",
       "login": "تسجيل الدخول",
       "continue_offline": "المتابعة بدون اتصال"
-    }
+    },
+    "calc_title": "حاسبة الدرجات",
+    "calc_subtitle": "قدّر درجة الامتحان المطلوبة",
+    "calc_subject": "المادة",
+    "calc_current_cc": "درجة المراقبة المستمرة",
+    "calc_target": "الدرجة النهائية المطلوبة",
+    "calc_calculate": "احسب",
+    "calc_result_need": "تحتاج {{score}}/٢٠ في الامتحان",
+    "calc_result_achieved": "الهدف محقق بالفعل",
+    "calc_result_impossible": "الهدف غير قابل للتحقيق (> ٢٠)",
+    "history_title": "تطور المعدل",
+    "history_subtitle": "التقدم حسب الفصل",
+    "history_current": "المعدل الحالي"
   },
   "profile": {
     "title": "ملفي الشخصي",

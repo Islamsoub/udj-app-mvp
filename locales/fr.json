@@ -220,7 +220,19 @@
       "body": "Votre session a expiré pour des raisons de sécurité. Reconnectez-vous pour continuer.",
       "login": "Se connecter",
       "continue_offline": "Continuer en hors-ligne"
-    }
+    },
+    "calc_title": "Calculateur de notes",
+    "calc_subtitle": "Estimez la note d'examen nécessaire",
+    "calc_subject": "MATIÈRE",
+    "calc_current_cc": "Note CC actuelle",
+    "calc_target": "NOTE FINALE VISÉE",
+    "calc_calculate": "Calculer",
+    "calc_result_need": "Il vous faut {{score}}/20 à l'examen",
+    "calc_result_achieved": "Objectif déjà atteint",
+    "calc_result_impossible": "Objectif inatteignable (> 20)",
+    "history_title": "Évolution de la moyenne",
+    "history_subtitle": "Progression par semestre",
+    "history_current": "Moyenne actuelle"
   },
   "profile": {
     "title": "Mon profil",
