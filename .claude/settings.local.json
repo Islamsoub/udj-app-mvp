@@ -85,7 +85,8 @@
       "PowerShell($lines = Get-Content \"C:\\\\Users\\\\urohe\\\\documents\\\\udj-app-mvp\\\\locales\\\\ar.json\"; $start = \\($lines | Select-String '\"notifications\"' | Select-Object -Last 1\\).LineNumber; $lines[\\($start-1\\)..\\($start+60\\)])",
       "PowerShell($lines = Get-Content \"C:\\\\Users\\\\urohe\\\\documents\\\\udj-app-mvp\\\\locales\\\\fr.json\"; $start = \\($lines | Select-String '\"notifications\"' | Select-Object -Last 1\\).LineNumber; \"start: $start\"; $lines[\\($start-2\\)..\\($start+14\\)])",
       "PowerShell($lines = Get-Content \"C:\\\\Users\\\\urohe\\\\documents\\\\udj-app-mvp\\\\locales\\\\ar.json\"; $start = \\($lines | Select-String '\"notifications\"' | Select-Object -Last 1\\).LineNumber; \"start: $start\"; $lines[\\($start-2\\)..\\($start+14\\)])",
-      "Bash(Write-Output \"deleted\")"
+      "Bash(Write-Output \"deleted\")",
+      "Bash(python3 *)"
     ]
   }
 }

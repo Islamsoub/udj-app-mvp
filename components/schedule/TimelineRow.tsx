@@ -22,7 +22,7 @@ interface TimelineRowProps {
 export function TimelineRow({ entry, isLast, onPress }: TimelineRowProps) {
   const { t } = useTranslation();
   const isRTL = I18nManager.isRTL;
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const isActive = !isPause(entry) && entry.status === 'active';
@@ -53,7 +53,7 @@ export function TimelineRow({ entry, isLast, onPress }: TimelineRowProps) {
   ) : isActive ? (
     <Animated.View style={[styles.dot, { backgroundColor: colors.jade400, opacity: pulseAnim }]} />
   ) : (
-    <View style={[styles.dot, { backgroundColor: getSubjectColor(entry.subject).accent }]} />
+    <View style={[styles.dot, { backgroundColor: getSubjectColor(entry.subject, isDark).accent }]} />
   );
 
   const gutter = (
@@ -104,8 +104,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   gutter: {
     width: 52,
-    paddingEnd: 12,
-    paddingTop: 15,
+    paddingEnd: spacing.sp12,
+    paddingTop: spacing.sp16,
     alignItems: 'flex-end',
   },
   timeLabel: {
@@ -121,7 +121,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: radius.rFull,
-    marginTop: 15,
+    marginTop: spacing.sp16,
   },
   pauseDot: {
     width: 10,
@@ -130,7 +130,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.hair,
     backgroundColor: 'transparent',
-    marginTop: 15,
+    marginTop: spacing.sp16,
   },
   line: {
     width: 2,
@@ -139,7 +139,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   pauseContent: {
     flex: 1,
-    paddingTop: 13,
+    paddingTop: spacing.sp12,
     minHeight: 44,
   },
   pauseText: {

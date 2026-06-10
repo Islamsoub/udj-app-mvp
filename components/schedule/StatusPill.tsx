@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius } from '@/constants/theme';
+import { fonts, radius, spacing } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export type CourseStatus = 'past' | 'active' | 'upcoming';
@@ -32,8 +32,8 @@ export function StatusPill({ status }: StatusPillProps) {
 const styles = StyleSheet.create({
   pill: {
     borderRadius: radius.rFull,
-    paddingVertical: 5,
-    paddingHorizontal: 12,
+    paddingVertical: 5, // design constant: pill padding
+    paddingHorizontal: spacing.sp12,
     alignSelf: 'flex-start',
   },
   text: {

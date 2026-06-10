@@ -1,42 +1,26 @@
 import type { Palette } from './theme';
 
-type SubjectColorPair = { bg: string; accent: string };
+// ─── Subject color lookup (uses COURSE_PALETTE — jade excluded) ───────────────
 
-const SUBJECT_PALETTE: SubjectColorPair[] = [
-  { bg: '#E8F5F0', accent: '#1D9E75' },
-  { bg: '#DBEAFE', accent: '#3B82F6' },
-  { bg: '#F3E8FF', accent: '#8B5CF6' },
-  { bg: '#FEF3C7', accent: '#F59E0B' },
-  { bg: '#FEE2E2', accent: '#EF4444' },
-  { bg: '#E0E7FF', accent: '#6366F1' },
-  { bg: '#D1FAE5', accent: '#10B981' },
-  { bg: '#FFE4E6', accent: '#F43F5E' },
-  { bg: '#CFFAFE', accent: '#06B6D4' },
-  { bg: '#FFEDD5', accent: '#F97316' },
-  { bg: '#ECFCCB', accent: '#84CC16' },
-  { bg: '#F1F5F9', accent: '#64748B' },
-];
-
-const subjectColorCache = new Map<string, SubjectColorPair>();
+const subjectColorCache = new Map<string, number>();
 
 export function buildSubjectColorMap(subjects: { name: string; nameAr?: string | null }[]): void {
   subjectColorCache.clear();
   const unique = [...new Map(subjects.map((s) => [s.name, s])).values()]
     .sort((a, b) => a.name.localeCompare(b.name));
   unique.forEach(({ name, nameAr }, index) => {
-    const color = SUBJECT_PALETTE[index % SUBJECT_PALETTE.length];
-    subjectColorCache.set(name, color);
-    if (nameAr) subjectColorCache.set(nameAr, color);
+    subjectColorCache.set(name, index);
+    if (nameAr) subjectColorCache.set(nameAr, index);
   });
 }
 
-export function getSubjectColor(subjectName: string): SubjectColorPair {
+export function getSubjectColor(subjectName: string, isDark: boolean = false): { accent: string } {
   const cached = subjectColorCache.get(subjectName);
-  if (cached) return cached;
+  if (cached !== undefined) return { accent: getCourseColor(cached, isDark) };
 
   let hash = 0;
   for (const c of subjectName) hash += c.charCodeAt(0);
-  return SUBJECT_PALETTE[hash % SUBJECT_PALETTE.length];
+  return { accent: getCourseColor(hash, isDark) };
 }
 
 export function getMentionColor(mention: string, colors: Palette): string {

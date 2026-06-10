@@ -91,7 +91,7 @@ const MENTION_KEY: Record<string, string> = {
   'Félicitations': 'home.mention.felicitations',
 };
 
-function scheduleToCard(s: Schedule, nowMins: number, colors: Palette, t: (key: string) => string, lang: string): AgendaCardData {
+function scheduleToCard(s: Schedule, nowMins: number, colors: Palette, t: (key: string) => string, lang: string, isDark: boolean = false): AgendaCardData {
   const [sh, sm] = s.startTime.split(':').map(Number);
   const [eh, em] = s.endTime.split(':').map(Number);
   const startMins = sh * 60 + sm;
@@ -101,7 +101,7 @@ function scheduleToCard(s: Schedule, nowMins: number, colors: Palette, t: (key: 
   const isPast = nowMins >= endMins;
   const courseStatus: 'active' | 'past' | 'upcoming' = isPast ? 'past' : isActive ? 'active' : 'upcoming';
 
-  let accentColor: string = getSubjectColor(s.subjectName).accent;
+  let accentColor: string = getSubjectColor(s.subjectName, isDark).accent;
   let statusLabel: string | undefined;
   let statusBg: string | undefined;
   let statusColor: string | undefined;
@@ -506,7 +506,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const setSelectedCourse = useCourseDetailStore((s) => s.setSelectedCourse);
@@ -568,8 +568,8 @@ export default function HomeScreen() {
     return entries
       .filter((s) => s.dayOfWeek === todayDow)
       .sort((a, b) => a.startTime.localeCompare(b.startTime))
-      .map((s) => scheduleToCard(s, nowMins, colors, t, lang));
-  }, [scheduleHook.data, todayDow, nowMins, colors, t, lang]);
+      .map((s) => scheduleToCard(s, nowMins, colors, t, lang, isDark));
+  }, [scheduleHook.data, todayDow, nowMins, colors, t, lang, isDark]);
 
   const newsCards = useMemo(() => {
     return (newsHook.data ?? []).slice(0, 3);

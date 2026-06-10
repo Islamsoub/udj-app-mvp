@@ -21,15 +21,14 @@ interface CourseCardProps {
   onPress?: () => void;
 }
 
-export function getAccentColor(course: Course, colors: Palette): string {
-  if (course.status === 'past') return colors.greyMuted;
+export function getAccentColor(course: Course, colors: Palette, isDark: boolean = false): string {
   if (course.status === 'active') return colors.jade400;
-  return getSubjectColor(course.subject).accent;
+  return getSubjectColor(course.subject, isDark).accent;
 }
 
 export function CourseCard({ course, onPress }: CourseCardProps) {
-  const { colors } = useColors();
-  const accent  = getAccentColor(course, colors);
+  const { colors, isDark } = useColors();
+  const accent  = getAccentColor(course, colors, isDark);
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
@@ -76,9 +75,9 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingTop: 14,
-    paddingBottom: 14,
-    paddingStart: 18,
+    paddingTop: spacing.sp14,
+    paddingBottom: spacing.sp14,
+    paddingStart: spacing.sp16,
     paddingEnd: spacing.sp16,
   },
   subject: {
@@ -91,19 +90,19 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: spacing.sp2,
   },
   pillRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sp8,
-    marginTop: 11,
+    marginTop: spacing.sp12,
   },
   timePill: {
     backgroundColor: colors.surface2,
     borderRadius: radius.rFull,
-    paddingVertical: 5,
-    paddingHorizontal: 12,
+    paddingVertical: 5, // design constant: pill padding
+    paddingHorizontal: spacing.sp12,
   },
   timePillText: {
     fontSize: 13,

@@ -244,7 +244,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     color: colors.textPrimary,
   },
   textSelected: {
-    color: '#FFFFFF',
+    color: colors.surface,
   },
   textWeekend: {
     color: colors.textTertiary,

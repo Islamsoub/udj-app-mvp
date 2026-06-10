@@ -57,7 +57,7 @@ function TrashIcon({ color }: { color: string }) {
 
 export function CourseDetailSheet({ visible, onClose }: Props) {
   const { t, i18n } = useTranslation();
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const selectedCourse = useCourseDetailStore((s) => s.selectedCourse);
@@ -69,7 +69,7 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
   const course      = selectedCourse;
   const subjectCode = course?.code ?? null;
   const dayOfWeek   = course?.dayOfWeek ?? null;
-  const courseColor = course ? getAccentColor(course, colors) : colors.jade400;
+  const courseColor = course ? getAccentColor(course, colors, isDark) : colors.jade400;
 
   const refreshNotes = useCallback(async () => {
     if (subjectCode == null || dayOfWeek == null) {
@@ -247,7 +247,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: radius.rFull,
-    marginTop: 6,
+    marginTop: spacing.sp8,
     marginEnd: spacing.sp8,
     flexShrink: 0,
   },
@@ -266,7 +266,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
-    marginTop: 2,
+    marginTop: spacing.sp2,
   },
   divider: {
     height: 1,
@@ -281,7 +281,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.sp20,
-    paddingVertical: 14,
+    paddingVertical: spacing.sp14,
     borderBottomWidth: 1,
     borderBottomColor: colors.hair,
   },

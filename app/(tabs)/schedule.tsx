@@ -431,10 +431,15 @@ export default function ScheduleScreen() {
   const hookState: ScheduleState = useMemo(() => {
     if (hook.isLoading && !hook.data) return 'skeleton';
     if (hook.isOffline && hook.data) return 'offline';
-    if (hook.data) return dayEntries.length === 0 && !hook.isStale ? 'empty' : 'loaded';
+    if (hook.data) {
+      const isEmpty = dayEntries.length === 0;
+      // Weekends never have classes — always show empty. Weekdays: only when data is confirmed fresh.
+      if (isEmpty && (!hook.isStale || WEEKEND.has(selectedDay))) return 'empty';
+      return 'loaded';
+    }
     if (hook.error) return 'error';
     return 'skeleton';
-  }, [hook.isLoading, hook.data, hook.isOffline, hook.error, hook.isStale, dayEntries.length]);
+  }, [hook.isLoading, hook.data, hook.isOffline, hook.error, hook.isStale, dayEntries.length, selectedDay]);
 
   const schedState = devState ?? hookState;
 
@@ -549,7 +554,7 @@ export default function ScheduleScreen() {
               />
             )}
 
-            <View style={{ height: 56 + insets.bottom }} />
+            <View style={{ height: (__DEV__ ? 100 : 56) + insets.bottom }} />
           </Animated.View>
         </ScrollView>
       </GestureDetector>
@@ -591,6 +596,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   // ── Timeline body (loaded, offline & skeleton)
   timelineBody: {
     paddingTop: spacing.sp16,
+    paddingHorizontal: spacing.sp16,
   },
 
   // ── Skeleton row pieces
@@ -631,7 +637,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   skelCardContent: {
     flex: 1,
-    paddingStart: 18,
+    paddingStart: spacing.sp16,
     paddingEnd: spacing.sp16,
     justifyContent: 'center',
   },
