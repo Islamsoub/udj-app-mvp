@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet, I18nManager } from 'react-native';
-import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { fonts, radius, spacing, elevation, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { StatusPill, CourseStatus } from './StatusPill';
 import { getSubjectColor } from '@/constants/colorMap';
@@ -28,40 +28,32 @@ export function getAccentColor(course: Course, colors: Palette): string {
 }
 
 export function CourseCard({ course, onPress }: CourseCardProps) {
-  const isRTL   = I18nManager.isRTL;
   const { colors } = useColors();
   const accent  = getAccentColor(course, colors);
   const styles = useMemo(() => makeStyles(colors), [colors]);
-
-  const accentBar = (
-    <View
-      style={[
-        styles.accentBar,
-        { backgroundColor: accent },
-        isRTL
-          ? { borderTopEndRadius: radius.rLg, borderBottomEndRadius: radius.rLg }
-          : { borderTopStartRadius: radius.rLg, borderBottomStartRadius: radius.rLg },
-      ]}
-    />
-  );
 
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
     >
-      {!isRTL && accentBar}
+      <View style={[styles.accentBar, { backgroundColor: accent }]} />
       <View style={styles.content}>
-        <Text style={styles.subject} numberOfLines={1}>{course.subject}</Text>
+        <Text
+          style={[styles.subject, { color: course.status === 'past' ? colors.textSecondary : colors.textPrimary }]}
+          numberOfLines={1}
+          ellipsizeMode="tail"
+        >
+          {course.subject}
+        </Text>
         <Text style={styles.subtitle}>{`${course.teacher} · ${course.room}`}</Text>
         <View style={styles.pillRow}>
           <View style={styles.timePill}>
-            <Text style={styles.timePillText}>{`${course.start}–${course.end}`}</Text>
+            <Text style={styles.timePillText}>{`${course.start} – ${course.end}`}</Text>
           </View>
           <StatusPill status={course.status} />
         </View>
       </View>
-      {isRTL && accentBar}
     </Pressable>
   );
 }
@@ -70,53 +62,53 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   card: {
     flexDirection: 'row',
     backgroundColor: colors.surface,
-    borderRadius: radius.rLg,
-    borderWidth: 1,
-    borderColor: colors.scheduleBorder,
+    borderRadius: radius.rTile,
     overflow: 'hidden',
     flex: 1,
+    ...elevation.card,
   },
   accentBar: {
-    width: 9,
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    start: 0,
+    width: 5,
   },
   content: {
     flex: 1,
-    paddingStart: 11,
-    paddingEnd: 11,
-    paddingTop: 11,
-    paddingBottom: 11,
+    paddingTop: 14,
+    paddingBottom: 14,
+    paddingStart: 18,
+    paddingEnd: spacing.sp16,
   },
   subject: {
-    fontSize: 12,
-    fontFamily: 'PlusJakartaSans-Bold',
-    color: colors.textPrimary,
-    marginBottom: 4,
+    fontSize: 15.5,
+    fontWeight: '700',
+    fontFamily: fonts.sans,
   },
   subtitle: {
-    fontSize: 11,
-    fontFamily: 'PlusJakartaSans-Medium',
+    fontSize: 14,
+    fontWeight: '500',
+    fontFamily: fonts.sans,
     color: colors.textSecondary,
-    marginBottom: 7,
+    marginTop: 2,
   },
   pillRow: {
     flexDirection: 'row',
-    gap: spacing.sp14,
     alignItems: 'center',
+    gap: spacing.sp8,
+    marginTop: 11,
   },
   timePill: {
-    height: 20,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 999,
-    paddingHorizontal: spacing.sp14,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: colors.surface2,
+    borderRadius: radius.rFull,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
   },
   timePillText: {
-    fontSize: 11,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
-    color: colors.textPrimary,
+    fontSize: 13,
+    fontFamily: fonts.mono,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
 });

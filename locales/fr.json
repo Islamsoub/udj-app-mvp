@@ -132,7 +132,7 @@
     "weekend_body": "Pas de cours le vendredi et le samedi.",
     "pause_hours": "Pause de {{count}} heures",
     "status": {
-      "done": "Fini",
+      "done": "Terminé",
       "active": "En cours",
       "upcoming": "À venir",
       "exam": "Examen"

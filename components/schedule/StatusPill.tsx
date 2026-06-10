@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts } from '@/constants/theme';
+import { fonts, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export type CourseStatus = 'past' | 'active' | 'upcoming';
@@ -15,9 +15,9 @@ export function StatusPill({ status }: StatusPillProps) {
   const { colors } = useColors();
 
   const variants: Record<CourseStatus, { bg: string; color: string; key: string }> = {
-    past:     { bg: colors.border,     color: colors.textSecondary, key: 'schedule.status.done' },
-    active:   { bg: colors.jade75,     color: colors.jade600,       key: 'schedule.status.active' },
-    upcoming: { bg: colors.infoLight,  color: colors.info,          key: 'schedule.status.upcoming' },
+    past:     { bg: colors.slateBg,   color: colors.slate,     key: 'schedule.status.done' },
+    active:   { bg: colors.jadeFaint, color: colors.jadeText,  key: 'schedule.status.active' },
+    upcoming: { bg: colors.blueBg,    color: colors.blue,      key: 'schedule.status.upcoming' },
   };
 
   const { bg, color, key } = variants[status];
@@ -31,16 +31,14 @@ export function StatusPill({ status }: StatusPillProps) {
 
 const styles = StyleSheet.create({
   pill: {
-    height: 21,
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: radius.rFull,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    alignSelf: 'flex-start',
   },
   text: {
-    fontSize: 12,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '700',
     fontFamily: fonts.sans,
-    lineHeight: 16,
   },
 });

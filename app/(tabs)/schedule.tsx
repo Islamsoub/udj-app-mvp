@@ -132,7 +132,7 @@ function buildTimelineEntries(
       const [eh, em] = entry.endTime.split(':').map(Number);
       const [nh, nm] = next.startTime.split(':').map(Number);
       const gapMinutes = nh * 60 + nm - (eh * 60 + em);
-      if (gapMinutes >= 60) {
+      if (gapMinutes > 30) {
         result.push({
           type: 'pause',
           time: entry.endTime,
@@ -287,7 +287,7 @@ function EmptyStateBody({ onExport, onNextWeek }: EmptyStateProps) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
-    <View style={[styles.centerBody, { paddingTop: 40 }]}>
+    <View style={[styles.centerBody, { paddingTop: spacing.sp48 }]}>
       <Text style={styles.palmEmoji}>🌴</Text>
       <Text style={styles.stateTitle}>{t('schedule.empty.title')}</Text>
       <Text style={styles.stateBody}>{t('schedule.empty.body')}</Text>
@@ -325,7 +325,7 @@ function ErrorStateBody({ onRetry, onViewCache }: ErrorStateProps) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
-    <View style={[styles.centerBody, { paddingTop: 40 }]}>
+    <View style={[styles.centerBody, { paddingTop: spacing.sp48 }]}>
       <View style={styles.errorIconCircle}>
         <Image
           source={require('../../assets/icons/calendar-error.png')}
@@ -653,7 +653,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   // ── Skeleton row pieces
   skelRow: {
     flexDirection: 'row',
-    marginBottom: 24,
+    marginBottom: spacing.sp24,
     alignItems: 'flex-start',
   },
   skelGutter: {
@@ -736,10 +736,9 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.jade75,
     borderWidth: 1,
     borderColor: colors.jade400,
-    paddingTop: 9,
-    paddingBottom: 8,
-    paddingHorizontal: 38,
-    marginTop: 18,
+    paddingVertical: spacing.sp8,
+    paddingHorizontal: spacing.sp32,
+    marginTop: spacing.sp16,
   },
   nextCourseText: {
     fontFamily: fonts.sans,
@@ -753,12 +752,12 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   // ── Empty: buttons — fixed widths 139+151 per Figma
   emptyBtnRow: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 39,
+    gap: spacing.sp8,
+    marginTop: spacing.sp32,
   },
   emptyBtnPrimary: {
     width: 139,
-    height: 55,
+    height: 50,
     borderRadius: radius.rLg,
     backgroundColor: colors.jade400,
     alignItems: 'center',
@@ -772,7 +771,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   emptyBtnOutline: {
     width: 151,
-    height: 55,
+    height: 50,
     borderRadius: radius.rLg,
     backgroundColor: colors.surface,
     borderWidth: 1,
@@ -791,7 +790,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   errorIconCircle: {
     width: 72,
     height: 72,
-    borderRadius: 216,
+    borderRadius: radius.rFull,
     backgroundColor: colors.dangerLight,
     alignItems: 'center',
     justifyContent: 'center',
@@ -804,7 +803,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.jade400,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 48,
+    marginTop: spacing.sp48,
   },
   retryBtnText: {
     fontSize: 15,
