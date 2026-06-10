@@ -210,6 +210,11 @@
       "banner": "Mode hors-ligne / Dernière synchro: hier 14h30",
       "data_notice": "⚠️ Données locales · Mise à jour: 22/03 14:30"
     },
+    "section_subjects": "Par matière",
+    "status_validated": "Validé",
+    "status_borderline": "Limite",
+    "status_at_risk": "À Risque",
+    "at_risk_hint": "Sous la moyenne",
     "session": {
       "title": "Session expirée",
       "body": "Votre session a expiré pour des raisons de sécurité. Reconnectez-vous pour continuer.",

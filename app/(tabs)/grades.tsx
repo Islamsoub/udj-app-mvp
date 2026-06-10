@@ -107,11 +107,15 @@ function ErrorStateBody({ onRetry, styles }: ErrorStateProps) {
 // ─── Cards body ───────────────────────────────────────────────────────────────
 
 function CardsBody({ subjects, styles }: { subjects: Subject[]; styles: ReturnType<typeof makeStyles> }) {
+  const { t } = useTranslation();
   return (
-    <View style={styles.cardsBody}>
-      {subjects.map((subject) => (
-        <SubjectCard key={subject.id} subject={subject} />
-      ))}
+    <View>
+      <Text style={styles.sectionLabel}>{t('grades.section_subjects')}</Text>
+      <View style={styles.cardsBody}>
+        {subjects.map((subject) => (
+          <SubjectCard key={subject.id} subject={subject} />
+        ))}
+      </View>
     </View>
   );
 }
@@ -466,10 +470,23 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flexGrow: 1,
   },
 
+  // ── Section label
+  sectionLabel: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    fontFamily: fonts.sans,
+    color: colors.textTertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    marginTop: spacing.sp16,
+    marginBottom: spacing.sp12,
+    marginHorizontal: spacing.sp20,
+  },
+
   // ── Cards body
   cardsBody: {
-    paddingTop: spacing.sp16,
-    gap: 24,
+    gap: 12,
+    paddingHorizontal: spacing.sp16,
   },
 
   // ── Center states (empty / error)

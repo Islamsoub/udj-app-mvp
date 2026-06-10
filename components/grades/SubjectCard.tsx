@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { fonts, radius, spacing, elevation, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
-import { getSubjectStatus, getProgressFill } from '@/utils/gradesStatus';
 
 export interface Subject {
   id: string;
@@ -14,6 +14,30 @@ export interface Subject {
   finale: number;
 }
 
+type SubjectLevel = 'validated' | 'borderline' | 'atRisk';
+
+function getSubjectLevel(nf: number): SubjectLevel {
+  if (nf >= 10) return 'validated';
+  if (nf >= 8) return 'borderline';
+  return 'atRisk';
+}
+
+function getLevelColor(level: SubjectLevel, colors: Palette): string {
+  switch (level) {
+    case 'validated': return colors.jade400;
+    case 'borderline': return colors.warning;
+    case 'atRisk': return colors.danger;
+  }
+}
+
+function getLevelPill(level: SubjectLevel, colors: Palette): { bg: string; fg: string } {
+  switch (level) {
+    case 'validated': return { bg: colors.jadeFaint, fg: colors.jadeText };
+    case 'borderline': return { bg: colors.amberBg, fg: colors.warning };
+    case 'atRisk': return { bg: colors.dangerBg, fg: colors.danger };
+  }
+}
+
 interface SubjectCardProps {
   subject: Subject;
 }
@@ -22,175 +46,172 @@ export function SubjectCard({ subject }: SubjectCardProps) {
   const { t } = useTranslation();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const status = getSubjectStatus(subject.finale);
-  const isAtRisk = status === 'at-risk';
-  const fillWidth = getProgressFill(subject.finale);
-  const cardHeight = isAtRisk ? 135 : 122;
+  const level = getSubjectLevel(subject.finale);
+  const levelColor = getLevelColor(level, colors);
+  const pill = getLevelPill(level, colors);
+  const isAtRisk = subject.finale < 10;
+
+  const pillLabel =
+    level === 'validated'
+      ? t('grades.status_validated')
+      : level === 'borderline'
+      ? t('grades.status_borderline')
+      : t('grades.status_at_risk');
+
+  const progressWidth = `${Math.min((subject.finale / 20) * 100, 100)}%`;
 
   return (
-    <View style={[styles.card, { height: cardHeight }, isAtRisk && styles.cardAtRisk]}>
-
-      {/* ── Title row (Y=11) ──────────────────────────────────── */}
+    <View style={styles.card}>
+      {/* Top row */}
       <View style={styles.titleRow}>
-        <Text style={styles.subjectName} numberOfLines={1}>
+        <Text style={styles.subjectName} numberOfLines={2}>
           {subject.name}
         </Text>
-        <View style={styles.pill}>
-          <Text style={[styles.pillLabel, isAtRisk ? styles.pillLabelRisk : styles.pillLabelOk]}>
-            {isAtRisk ? t('grades.subject.at_risk') : t('grades.subject.valid')}
+        <View style={[styles.pill, { backgroundColor: pill.bg }]}>
+          <Text style={[styles.pillLabel, { color: pill.fg }]}>{pillLabel}</Text>
+        </View>
+      </View>
+
+      {/* Metric strip */}
+      <View style={styles.metricStrip}>
+        <View style={styles.metricCell}>
+          <Text style={styles.metricLabel}>{t('grades.subject.cc')}</Text>
+          <Text style={styles.metricValue}>{subject.cc.toFixed(2)}</Text>
+        </View>
+        <View style={styles.metricDivider} />
+        <View style={styles.metricCell}>
+          <Text style={styles.metricLabel}>{t('grades.subject.exam')}</Text>
+          <Text style={styles.metricValue}>{subject.exam.toFixed(2)}</Text>
+        </View>
+        <View style={styles.metricDivider} />
+        <View style={styles.metricCell}>
+          <Text style={styles.metricLabel}>{t('grades.subject.coef')}</Text>
+          <Text style={styles.metricValue}>{subject.coef}</Text>
+        </View>
+        <View style={styles.metricDivider} />
+        <View style={styles.metricCell}>
+          <Text style={styles.metricLabel}>{t('grades.subject.finale')}</Text>
+          <Text style={[styles.metricValue, { color: levelColor }]}>
+            {subject.finale.toFixed(2)}
           </Text>
         </View>
       </View>
 
-      {/* ── 4-column grid (Y=35, H=72) ────────────────────────── */}
-      <View style={styles.grid}>
-        {/* CC */}
-        <View style={styles.gridCol}>
-          <Text style={styles.gridLabel}>{t('grades.subject.cc')}</Text>
-          <Text style={styles.gridValue}>{subject.cc.toFixed(2)}</Text>
-        </View>
-        <View style={styles.dividerV} />
-        {/* EXAM */}
-        <View style={styles.gridCol}>
-          <Text style={styles.gridLabel}>{t('grades.subject.exam')}</Text>
-          <Text style={styles.gridValue}>{subject.exam.toFixed(2)}</Text>
-        </View>
-        <View style={styles.dividerV} />
-        {/* COEF */}
-        <View style={styles.gridCol}>
-          <Text style={styles.gridLabel}>{t('grades.subject.coef')}</Text>
-          <Text style={styles.gridValue}>{subject.coef}</Text>
-        </View>
-        <View style={styles.dividerV} />
-        {/* FINALE */}
-        <View style={styles.gridCol}>
-          <Text style={styles.gridLabel}>{t('grades.subject.finale')}</Text>
-          <Text style={styles.gridValue}>{subject.finale.toFixed(2)}</Text>
-        </View>
-      </View>
-
-      {/* ── Progress bar (Y=107, H=3) ─────────────────────────── */}
+      {/* Progress bar */}
       <View style={styles.progressTrack}>
-        <View style={[styles.progressFill, { width: fillWidth }]} />
+        <View
+          style={[
+            styles.progressFill,
+            { width: progressWidth as `${number}%`, backgroundColor: levelColor },
+          ]}
+        />
       </View>
 
-      {/* ── At-risk warning banner (H=25, flush below progress) ── */}
+      {/* At-risk hint */}
       {isAtRisk && (
-        <View style={styles.atRiskBanner}>
-          <Text style={styles.atRiskText}>{t('grades.subject.warning')}</Text>
+        <View style={styles.atRiskRow}>
+          <Ionicons name="alert-circle-outline" size={13} color={colors.danger} />
+          <Text style={styles.atRiskText}>{t('grades.at_risk_hint')}</Text>
         </View>
       )}
     </View>
   );
 }
 
-const makeStyles = (colors: Palette) => StyleSheet.create({
-  card: {
-    marginHorizontal: 15,
-    borderRadius: 14,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.scheduleBorder,
-    overflow: 'hidden',
-    paddingTop: 11,
-    paddingBottom: spacing.sp12,
-  },
-  cardAtRisk: {
-    paddingBottom: 0,
-  },
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    card: {
+      borderRadius: radius.rTile,
+      backgroundColor: colors.surface,
+      ...elevation.card,
+      padding: spacing.sp16,
+      overflow: 'hidden',
+    },
 
-  // ── Title row
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.sp16,
-    height: 18,
-  },
-  subjectName: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.textPrimary,
-    marginEnd: spacing.sp8,
-  },
-  pill: {
-    width: 65,
-    height: 21,
-    borderRadius: radius.rLg,
-    backgroundColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pillLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-  },
-  pillLabelOk: {
-    color: colors.jade600,
-  },
-  pillLabelRisk: {
-    color: colors.danger,
-  },
+    // ── Top row
+    titleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 10,
+    },
+    subjectName: {
+      flex: 1,
+      fontSize: 16,
+      fontWeight: '700',
+      fontFamily: fonts.sans,
+      color: colors.textPrimary,
+    },
+    pill: {
+      paddingVertical: 5,
+      paddingHorizontal: 12,
+      borderRadius: radius.rFull,
+    },
+    pillLabel: {
+      fontSize: 13,
+      fontWeight: '700',
+      fontFamily: fonts.sans,
+    },
 
-  // ── 4-col grid
-  grid: {
-    flexDirection: 'row',
-    height: 72,
-    marginTop: spacing.sp6,
-  },
-  gridCol: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    height: 72,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.textSecondary,
-  },
-  gridLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
-    color: colors.textSecondary,
-  },
-  gridValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    fontFamily: fonts.mono,
-    color: colors.textPrimary,
-  },
-  dividerV: {
-    width: 1,
-    height: 72,
-    backgroundColor: colors.textSecondary,
-  },
-  // ── Progress bar
-  progressTrack: {
-    height: 3,
-    marginHorizontal: spacing.sp16,
-    borderRadius: 2,
-    backgroundColor: colors.scheduleBorder,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: colors.jade400,
-  },
+    // ── Metric strip
+    metricStrip: {
+      flexDirection: 'row',
+      backgroundColor: colors.surface2,
+      borderRadius: radius.rMd,
+      paddingVertical: spacing.sp8,
+      paddingHorizontal: spacing.sp12,
+      marginTop: spacing.sp12,
+    },
+    metricCell: {
+      flex: 1,
+      alignItems: 'center',
+    },
+    metricLabel: {
+      fontSize: 11,
+      fontWeight: '700',
+      fontFamily: fonts.sans,
+      color: colors.textTertiary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
+    },
+    metricValue: {
+      fontSize: 16,
+      fontWeight: '500',
+      fontFamily: fonts.mono,
+      color: colors.textPrimary,
+      marginTop: 3,
+    },
+    metricDivider: {
+      width: 1,
+      height: '60%',
+      backgroundColor: colors.hair,
+      alignSelf: 'center',
+    },
 
-  // ── At-risk banner — flush after progress bar (Y=110 within card)
-  atRiskBanner: {
-    height: 25,
-    backgroundColor: colors.offlineBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  atRiskText: {
-    fontSize: 12,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
-    color: colors.danger,
-  },
-});
+    // ── Progress bar
+    progressTrack: {
+      height: 6,
+      borderRadius: radius.rFull,
+      backgroundColor: colors.sunken,
+      overflow: 'hidden',
+      marginTop: spacing.sp12,
+    },
+    progressFill: {
+      height: 6,
+      borderRadius: radius.rFull,
+    },
+
+    // ── At-risk hint
+    atRiskRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginTop: 9,
+    },
+    atRiskText: {
+      fontSize: 12.5,
+      fontWeight: '600',
+      fontFamily: fonts.sans,
+      color: colors.danger,
+    },
+  });

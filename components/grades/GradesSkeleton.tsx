@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
-import { radius, spacing, type Palette } from '@/constants/theme';
+import { radius, spacing, elevation, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 function SkeletonCard({ styles }: { styles: ReturnType<typeof makeStyles> }) {
@@ -9,26 +9,18 @@ function SkeletonCard({ styles }: { styles: ReturnType<typeof makeStyles> }) {
     <View style={styles.card}>
       {/* Title row */}
       <View style={styles.titleRow}>
-        <SkeletonBox width={176} height={14} borderRadius={6} />
-        <SkeletonBox width={65} height={21} borderRadius={radius.rLg} />
+        <SkeletonBox width={160} height={16} borderRadius={6} />
+        <SkeletonBox width={72} height={26} borderRadius={radius.rFull} />
       </View>
 
-      {/* 4-col grid shimmer */}
-      <View style={styles.grid}>
-        {[0, 1, 2, 3].map((i) => (
-          <React.Fragment key={i}>
-            {i > 0 && <View style={styles.gridDivider} />}
-            <View style={styles.gridCol}>
-              <SkeletonBox width={28} height={11} borderRadius={4} />
-              <SkeletonBox width={22} height={16} borderRadius={4} />
-            </View>
-          </React.Fragment>
-        ))}
+      {/* Metric strip shimmer */}
+      <View style={styles.metricStripWrap}>
+        <SkeletonBox width="100%" height={50} borderRadius={radius.rMd} />
       </View>
 
       {/* Progress bar shimmer */}
       <View style={styles.progressWrap}>
-        <SkeletonBox width="100%" height={3} borderRadius={2} />
+        <SkeletonBox width="100%" height={6} borderRadius={radius.rFull} />
       </View>
     </View>
   );
@@ -46,45 +38,30 @@ export function GradesSkeleton() {
   );
 }
 
-const makeStyles = (colors: Palette) => StyleSheet.create({
-  body: {
-    paddingTop: spacing.sp16,
-    gap: 24,
-  },
-  card: {
-    marginHorizontal: 15,
-    height: 122,
-    borderRadius: 14,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.scheduleBorder,
-    paddingTop: 11,
-    paddingBottom: spacing.sp12,
-    overflow: 'hidden',
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.sp16,
-    height: 18,
-  },
-  grid: {
-    flexDirection: 'row',
-    height: 72,
-    marginTop: spacing.sp6,
-  },
-  gridCol: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'space-around',
-  },
-  gridDivider: {
-    width: 1,
-    height: 72,
-    backgroundColor: colors.border,
-  },
-  progressWrap: {
-    marginHorizontal: spacing.sp16,
-  },
-});
+const makeStyles = (colors: Palette) =>
+  StyleSheet.create({
+    body: {
+      paddingTop: spacing.sp16,
+      paddingHorizontal: spacing.sp16,
+      gap: 12,
+    },
+    card: {
+      borderRadius: radius.rTile,
+      backgroundColor: colors.surface,
+      ...elevation.card,
+      padding: spacing.sp16,
+      overflow: 'hidden',
+    },
+    titleRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 10,
+    },
+    metricStripWrap: {
+      marginTop: spacing.sp12,
+    },
+    progressWrap: {
+      marginTop: spacing.sp12,
+    },
+  });
