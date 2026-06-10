@@ -151,7 +151,7 @@ function SkeletonScheduleHeader({ topInset }: { topInset: number }) {
   const { colors } = useColors();
   const skelStyles = useMemo(() => makeSkelStyles(colors), [colors]);
   return (
-    <View style={[skelStyles.header, { paddingTop: topInset + spacing.sp16 }]}>
+    <View style={[skelStyles.header, { paddingTop: topInset + spacing.sp2 }]}>
       {/* Title row */}
       <View style={skelStyles.titleRow}>
         <SkeletonBox width={169} height={15} borderRadius={8} />
@@ -192,7 +192,7 @@ function SkeletonScheduleHeader({ topInset }: { topInset: number }) {
 
 const makeSkelStyles = (colors: Palette) => StyleSheet.create({
   header: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.background,
     paddingBottom: spacing.sp16,
   },
   titleRow: {
@@ -414,8 +414,9 @@ export default function ScheduleScreen() {
   const [selectedDay, setSelectedDay] = useState(() => new Date().getDay());
   const [weekOffset, setWeekOffset] = useState(0);
   const [courseDetailVisible, setCourseDetailVisible] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const insets = useSafeAreaInsets();
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { i18n } = useTranslation();
   const lang = i18n.language;
@@ -555,7 +556,7 @@ export default function ScheduleScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {schedState === 'skeleton' ? (
         <SkeletonScheduleHeader topInset={insets.top} />
@@ -568,6 +569,7 @@ export default function ScheduleScreen() {
           onPrevWeek={goToPrevWeek}
           onNextWeek={goToNextWeek}
           onToday={goToThisWeek}
+          isScrolled={isScrolled}
         />
       )}
 
@@ -578,6 +580,8 @@ export default function ScheduleScreen() {
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          onScroll={({ nativeEvent }) => setIsScrolled(nativeEvent.contentOffset.y > 0)}
+          scrollEventThrottle={16}
         >
           <Animated.View style={animatedTimelineStyle}>
             {schedState === 'skeleton' && <SkeletonScheduleBody />}

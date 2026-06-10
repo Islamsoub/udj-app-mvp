@@ -3,6 +3,12 @@ import i18n from '@/i18n';
 const MONTHS_FR = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
 
+const AR_DIGITS = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+
+export function toArabicNumerals(n: number): string {
+  return String(n).split('').map((d) => AR_DIGITS[Number(d)] ?? d).join('');
+}
+
 const DAYS_LONG_FR = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
 const DAYS_LONG_AR = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 
@@ -46,5 +52,6 @@ export function formatScheduleDate(date: Date): string {
   const lang = i18n.language;
   const days = lang === 'ar' ? DAYS_LONG_AR : DAYS_LONG_FR;
   const months = lang === 'ar' ? MONTHS_AR : MONTHS_FR;
-  return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
+  const dayNum = lang === 'ar' ? toArabicNumerals(date.getDate()) : String(date.getDate());
+  return `${days[date.getDay()]} ${dayNum} ${months[date.getMonth()]}`;
 }

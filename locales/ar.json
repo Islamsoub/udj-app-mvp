@@ -126,6 +126,10 @@
     "week_of": "أسبوع {{date}}",
     "today": "اليوم",
     "today_prefix": "اليوم – الخميس 20 مارس",
+    "subtitle_today": "اليوم – {{date}}",
+    "break": "استراحة لمدة {{hours}} ساعات",
+    "weekend_title": "عطلة نهاية الأسبوع",
+    "weekend_body": "لا توجد حصص يوم الجمعة والسبت.",
     "pause_hours": "استراحة {{count}} ساعات",
     "status": {
       "done": "انتهى",

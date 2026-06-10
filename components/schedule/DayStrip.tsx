@@ -2,11 +2,13 @@ import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, lightColors, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { toArabicNumerals } from '@/utils/dateFormat';
 
 const FR_ABBREVS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 const AR_ABBREVS = ['أحد', 'اثن', 'ثلا', 'أرب', 'خمي', 'جمع', 'سبت'];
+// Djibouti weekend: Fri+Sat
 const WEEKEND_INDICES = new Set([5, 6]);
 
 const MONTHS_FR = [
@@ -27,11 +29,6 @@ function getWeekDates(weekOffset: number = 0): Date[] {
     d.setDate(startOfWeek.getDate() + i);
     return d;
   });
-}
-
-function toArabicNumerals(n: number): string {
-  const ar = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-  return String(n).split('').map((d) => ar[Number(d)] ?? d).join('');
 }
 
 interface DayStripProps {
@@ -60,7 +57,7 @@ export function DayStrip({
 
   const todayDayIndex = new Date().getDay();
 
-  // Monday-of-week anchors the label (weekDates[1] — Sun=0, Mon=1)
+  // Monday-of-week anchors the week label (weekDates[1] — Sun=0, Mon=1)
   const monday = weekDates[1];
   const monthNames = isAr ? MONTHS_AR : MONTHS_FR;
   const dayNum = isAr ? toArabicNumerals(monday.getDate()) : String(monday.getDate());
@@ -68,13 +65,12 @@ export function DayStrip({
     date: `${dayNum} ${monthNames[monday.getMonth()]}`,
   });
 
-  // RTL: physical arrow direction follows reading direction so prev is always
-  // on the start edge of the row.
+  // RTL: physical arrow direction follows reading direction
   const prevIcon = isAr ? 'chevron-forward' : 'chevron-back';
   const nextIcon = isAr ? 'chevron-back' : 'chevron-forward';
 
   return (
-    <View style={styles.wrapper}>
+    <View>
       {/* Week navigation row */}
       <View style={styles.weekNav}>
         <Pressable
@@ -86,7 +82,7 @@ export function DayStrip({
           hitSlop={8}
           accessibilityRole="button"
         >
-          <Ionicons name={prevIcon} size={18} color={colors.textSecondary} />
+          <Ionicons name={prevIcon} size={20} color={colors.textSecondary} />
         </Pressable>
 
         <Text style={styles.weekLabel} numberOfLines={1}>{weekLabel}</Text>
@@ -100,7 +96,7 @@ export function DayStrip({
           hitSlop={8}
           accessibilityRole="button"
         >
-          <Ionicons name={nextIcon} size={18} color={colors.textSecondary} />
+          <Ionicons name={nextIcon} size={20} color={colors.textSecondary} />
         </Pressable>
 
         {weekOffset !== 0 && (
@@ -108,7 +104,7 @@ export function DayStrip({
             onPress={onToday}
             style={({ pressed }) => [
               styles.todayPill,
-              pressed && { backgroundColor: colors.jade600 },
+              pressed && { backgroundColor: withAlpha(colors.jade400, 0.25) },
             ]}
             hitSlop={6}
             accessibilityRole="button"
@@ -122,8 +118,10 @@ export function DayStrip({
       <View style={styles.strip}>
         {weekDates.map((d, idx) => {
           const isSelected = idx === selectedIndex;
+          // Djibouti weekend: Fri+Sat
           const isWeekend = WEEKEND_INDICES.has(idx);
           const isToday = weekOffset === 0 && idx === todayDayIndex;
+          const dateDisplay = isAr ? toArabicNumerals(d.getDate()) : String(d.getDate());
 
           return (
             <Pressable
@@ -132,9 +130,9 @@ export function DayStrip({
                 styles.cell,
                 isSelected && styles.cellSelected,
                 isWeekend && !isSelected && styles.cellWeekend,
-                pressed && !isWeekend && { backgroundColor: withAlpha(colors.jade400, 0.15) },
+                pressed && !isSelected && { backgroundColor: withAlpha(colors.jade400, 0.12) },
               ]}
-              onPress={() => !isWeekend && onSelect(idx)}
+              onPress={() => onSelect(idx)}
               hitSlop={4}
               accessibilityRole="button"
             >
@@ -150,13 +148,10 @@ export function DayStrip({
                 isSelected && styles.textSelected,
                 isWeekend && !isSelected && styles.textWeekend,
               ]}>
-                {d.getDate()}
+                {dateDisplay}
               </Text>
-              {isToday && (
-                <View style={[
-                  styles.todayDot,
-                  isSelected && styles.todayDotSelected,
-                ]} />
+              {isToday && !isSelected && (
+                <View style={styles.todayDot} />
               )}
             </Pressable>
           );
@@ -167,94 +162,98 @@ export function DayStrip({
 }
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
-  wrapper: {
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.scheduleBorder,
-  },
   weekNav: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.sp16,
-    paddingTop: spacing.sp8,
+    marginTop: spacing.sp14,
     paddingBottom: spacing.sp4,
     gap: spacing.sp8,
   },
   arrowBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 999,
+    // 38×38 design constant: comfortable nav button hit area
+    width: 38,
+    height: 38,
+    borderRadius: radius.rFull,
     alignItems: 'center',
     justifyContent: 'center',
   },
   weekLabel: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 15,
+    fontWeight: '600',
     fontFamily: fonts.sans,
-    color: colors.textSecondary,
+    color: colors.textPrimary,
   },
   todayPill: {
     height: 28,
     paddingHorizontal: spacing.sp12,
-    borderRadius: 14,
-    backgroundColor: colors.jade400,
+    paddingVertical: spacing.sp4,
+    borderRadius: radius.rFull,
+    backgroundColor: colors.jadeFaint,
     alignItems: 'center',
     justifyContent: 'center',
   },
   todayPillText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
     fontFamily: fonts.sans,
-    color: colors.surface,
+    color: colors.jadeText,
   },
   strip: {
     flexDirection: 'row',
     paddingHorizontal: spacing.sp16,
     gap: spacing.sp4,
-    height: 56,
-    alignItems: 'center',
+    marginTop: spacing.sp12,
+    paddingBottom: spacing.sp12,
   },
   cell: {
+    // 62px height: Figma design constant for the day cell
     flex: 1,
-    height: 48,
-    borderRadius: radius.rLg,
+    height: 62,
+    borderRadius: radius.rXl,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sp2,
+    gap: spacing.sp4,
+    paddingVertical: spacing.sp8,
   },
   cellSelected: {
     backgroundColor: colors.jade400,
+    shadowColor: colors.jade400,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
   },
   cellWeekend: {
-    backgroundColor: colors.skeletonBase,
+    backgroundColor: colors.sunken,
   },
   abbrev: {
-    fontSize: 11,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
-    color: colors.textSecondary,
-  },
-  dateNum: {
-    fontSize: 14,
+    // 12.5px: Figma design constant for day-cell label
+    fontSize: 12.5,
     fontWeight: '600',
     fontFamily: fonts.sans,
-    color: colors.textSecondary,
+    color: colors.textTertiary,
+  },
+  dateNum: {
+    // 17px DM Mono: Figma design constant for day-cell date number
+    fontSize: 17,
+    fontWeight: '500',
+    fontFamily: fonts.mono,
+    color: colors.textPrimary,
   },
   textSelected: {
-    color: lightColors.surface,
+    color: '#FFFFFF',
   },
   textWeekend: {
-    color: colors.textSecondary,
+    color: colors.textTertiary,
   },
   todayDot: {
     width: 4,
     height: 4,
-    borderRadius: 2,
+    borderRadius: radius.rFull,
     backgroundColor: colors.jade400,
-  },
-  todayDotSelected: {
-    backgroundColor: colors.surface,
+    marginTop: spacing.sp2,
   },
 });

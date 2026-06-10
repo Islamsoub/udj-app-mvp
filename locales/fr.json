@@ -126,6 +126,10 @@
     "week_of": "Sem. du {{date}}",
     "today": "Aujourd'hui",
     "today_prefix": "Aujourd'hui – Jeudi 20 mars",
+    "subtitle_today": "Aujourd'hui – {{date}}",
+    "break": "Pause de {{hours}} heures",
+    "weekend_title": "Week-end",
+    "weekend_body": "Pas de cours le vendredi et le samedi.",
     "pause_hours": "Pause de {{count}} heures",
     "status": {
       "done": "Fini",
