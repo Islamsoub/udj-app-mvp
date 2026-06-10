@@ -6,13 +6,11 @@ import {
   Pressable,
   StyleSheet,
   StatusBar,
-  Image,
 } from 'react-native';
-import { isAxiosError } from 'axios';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, elevation, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, elevation, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
@@ -44,27 +42,22 @@ type GradesState = 'skeleton' | 'loaded' | 'offline' | 'empty' | 'error' | 'sess
 
 interface EmptyStateProps {
   onRetry: () => void;
-  onContact: () => void;
   styles: ReturnType<typeof makeStyles>;
 }
 
-function EmptyStateBody({ onRetry, onContact, styles }: EmptyStateProps) {
+function EmptyStateBody({ onRetry, styles }: EmptyStateProps) {
   const { t } = useTranslation();
+  const { colors } = useColors();
 
   return (
-    <View style={[styles.centerBody, { paddingTop: 40 }]}>
-      <Image
-        source={require('../../assets/icons/Hourglass.png')}
-        style={{ width: 76, height: 76 }}
-        resizeMode="contain"
-      />
-      <Text style={styles.stateTitle}>{t('grades.empty.title')}</Text>
-      <Text style={styles.stateBody}>{t('grades.empty.body')}</Text>
+    <View style={[styles.centerBody, { paddingTop: spacing.sp48 }]}>
+      <View style={styles.emptyIconCircle}>
+        <Ionicons name="school-outline" size={28} color={colors.jadeText} />
+      </View>
+      <Text style={styles.stateTitle}>{t('grades.empty_title')}</Text>
+      <Text style={styles.stateBody}>{t('grades.empty_body')}</Text>
       <Pressable style={styles.retryBtn} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('grades.empty.retry')}</Text>
-      </Pressable>
-      <Pressable onPress={onContact} hitSlop={8} style={{ marginTop: spacing.sp16 }}>
-        <Text style={styles.contactLink}>{t('grades.empty.contact')}</Text>
       </Pressable>
     </View>
   );
@@ -79,27 +72,18 @@ interface ErrorStateProps {
 
 function ErrorStateBody({ onRetry, styles }: ErrorStateProps) {
   const { t } = useTranslation();
+  const { colors } = useColors();
 
   return (
-    <View style={[styles.centerBody, { paddingTop: 40 }]}>
+    <View style={[styles.centerBody, { paddingTop: spacing.sp48 }]}>
       <View style={styles.errorIconCircle}>
-        <Image
-          source={require('../../assets/icons/calendar-error.png')}
-          style={{ width: 48, height: 48 }}
-          resizeMode="contain"
-        />
+        <Ionicons name="warning-outline" size={28} color={colors.danger} />
       </View>
       <Text style={styles.stateTitle}>{t('grades.error.title')}</Text>
       <Text style={styles.stateBody}>{t('grades.error.body')}</Text>
-
       <Pressable style={styles.retryBtn} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('grades.empty.retry')}</Text>
       </Pressable>
-
-      <View style={styles.notifBanner}>
-        <Text style={styles.notifTitle}>{t('grades.error.notification_title')}</Text>
-        <Text style={styles.notifBody}>{t('grades.error.notification_body')}</Text>
-      </View>
     </View>
   );
 }
@@ -346,7 +330,6 @@ export default function GradesScreen() {
         {gradesState === 'empty' && (
           <EmptyStateBody
             onRetry={() => hook.refetch()}
-            onContact={() => {}}
             styles={styles}
           />
         )}
@@ -517,12 +500,12 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   // ── Shared retry button
   retryBtn: {
     width: 168,
-    height: 56,
-    borderRadius: radius.rLg,
+    height: 48,
+    borderRadius: radius.rBtn,
     backgroundColor: colors.jade400,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 48,
+    marginTop: spacing.sp48,
     alignSelf: 'center',
   },
   retryBtnText: {
@@ -532,49 +515,23 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     color: colors.surface,
   },
 
-  // ── Empty contact link
-  contactLink: {
-    fontSize: 12,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
-    color: colors.jade600,
-    textAlign: 'center',
+  // ── Empty state icon circle
+  emptyIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.rFull,
+    backgroundColor: colors.jadeFaint,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // ── Error icon circle
   errorIconCircle: {
     width: 72,
     height: 72,
-    borderRadius: 216,
-    backgroundColor: colors.dangerLight,
+    borderRadius: radius.rFull,
+    backgroundColor: colors.dangerBg,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-
-  // ── Error notification banner
-  notifBanner: {
-    marginTop: spacing.sp24,
-    marginHorizontal: spacing.sp16,
-    minHeight: 64,
-    borderRadius: radius.rMd,
-    backgroundColor: colors.jade50,
-    borderWidth: 1,
-    borderColor: colors.jade400,
-    paddingHorizontal: spacing.sp16,
-    paddingVertical: spacing.sp12,
-    alignItems: 'flex-start',
-  },
-  notifTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.jade600,
-  },
-  notifBody: {
-    fontSize: 12,
-    fontWeight: '500',
-    fontFamily: fonts.sans,
-    color: colors.jade600,
-    marginTop: spacing.sp4,
   },
 });

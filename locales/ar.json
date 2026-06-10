@@ -181,6 +181,8 @@
     "hero_label": "المعدل العام · الفصل {{semester}}",
     "hero_credits": "الأرصدة : {{earned}}/{{total}}",
     "mention_not_calculated": "غير محسوبة",
+    "empty_title": "لم تُنشر أي درجات",
+    "empty_body": "ستظهر درجات هذا الفصل هنا.",
     "header": {
       "unavailable": "البيانات غير متاحة",
       "no_results": "لا توجد نتائج منشورة"

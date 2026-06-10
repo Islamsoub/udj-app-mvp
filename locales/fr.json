@@ -181,6 +181,8 @@
     "hero_label": "MOYENNE GÉNÉRALE · SEMESTRE {{semester}}",
     "hero_credits": "Crédits : {{earned}}/{{total}}",
     "mention_not_calculated": "Non calculée",
+    "empty_title": "Aucune note publiée",
+    "empty_body": "Les notes de ce semestre apparaîtront ici.",
     "header": {
       "unavailable": "Données indisponibles",
       "no_results": "Aucun résultat publié"
