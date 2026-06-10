@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export type ProfileHeaderState =
@@ -16,87 +16,56 @@ export type ProfileHeaderState =
 interface ProfileHeaderProps {
   state: ProfileHeaderState;
   topInset: number;
+  isScrolled?: boolean;
   onDotsPress?: () => void;
 }
 
-// Header strip height (content area; topInset added at render)
-const HEADER_STRIP_H = 93;
+export function ProfileHeader({ state, topInset, isScrolled = false, onDotsPress }: ProfileHeaderProps) {
+  const { t, i18n } = useTranslation();
+  const { colors, isDark } = useColors();
+  const isAr = i18n.language === 'ar';
+  const styles = useMemo(() => makeStyles(colors, isAr), [colors, isAr]);
 
-// ── Header strip inner ────────────────────────────────────────────────────────
+  const scrolledStyle = isScrolled
+    ? isDark
+      ? { borderBottomWidth: 1 as const, borderBottomColor: colors.hair }
+      : elevation.card
+    : {};
 
-function HeaderStrip({
-  t,
-  onDotsPress,
-  styles,
-  colors,
-}: {
-  t: ReturnType<typeof useTranslation>['t'];
-  onDotsPress?: () => void;
-  styles: ReturnType<typeof makeStyles>;
-  colors: Palette;
-}) {
   return (
-    <View style={styles.headerStrip}>
-      <Text style={styles.headerTitle}>{t('profile.title')}</Text>
-      <Pressable style={({ pressed }) => [styles.dotsButton, pressed && { backgroundColor: withAlpha(colors.greyMedium, 0.15), borderRadius: 999 }]} hitSlop={8} onPress={onDotsPress}>
-        <Ionicons name="settings-outline" size={18} color={colors.greyMedium} />
+    <View style={[styles.container, { paddingTop: topInset + spacing.sp2 }, scrolledStyle]}>
+      <Text style={styles.title}>{t('profile.title')}</Text>
+      <Pressable style={styles.gearChip} hitSlop={8} onPress={onDotsPress}>
+        <Ionicons name="settings-outline" size={19} color={colors.textPrimary} />
       </Pressable>
     </View>
   );
 }
 
-// ── Main export ───────────────────────────────────────────────────────────────
-
-export function ProfileHeader({ state, topInset, onDotsPress }: ProfileHeaderProps) {
-  const { t } = useTranslation();
-  const { colors } = useColors();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-
-  return (
-    <View
-      style={[
-        styles.whiteArea,
-        { height: HEADER_STRIP_H + topInset, paddingTop: topInset },
-      ]}
-    >
-      <HeaderStrip t={t} onDotsPress={onDotsPress} styles={styles} colors={colors} />
-    </View>
-  );
-}
-
-// ── Styles ────────────────────────────────────────────────────────────────────
-
-const makeStyles = (colors: Palette) => StyleSheet.create({
-  // White area container — sits flat on the page background, no separator
-  whiteArea: {
+const makeStyles = (colors: Palette, isAr: boolean) => StyleSheet.create({
+  container: {
+    minHeight: 69,
     backgroundColor: colors.background,
-    flexDirection: 'column',
-  },
-
-  // Header strip
-  headerStrip: {
-    height: HEADER_STRIP_H,
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.sp16,
-    paddingBottom: spacing.sp14,
+    paddingHorizontal: spacing.sp20,
+    paddingBottom: spacing.sp12,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
+  title: {
+    fontSize: isAr ? 26 : 24,
+    fontWeight: '800',
+    fontFamily: isAr ? fonts.arabic : fonts.sans,
     color: colors.textPrimary,
+    letterSpacing: isAr ? 0 : -0.5,
   },
-  dotsButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 30,
+  gearChip: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.rFull,
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: spacing.sp6,
+    ...elevation.card,
   },
-
 });
-

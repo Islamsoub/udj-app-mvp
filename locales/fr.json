@@ -237,7 +237,7 @@
     "history_current": "Moyenne actuelle"
   },
   "profile": {
-    "title": "Mon profil",
+    "title": "Profil",
     "menu": "Menu",
     "gpa": "GPA",
     "credits": "CREDITS",
@@ -464,6 +464,8 @@
       "notification": "Vous serez notifié dès la publication d'un nouvel article.",
       "see_all": "Voir toutes les catégories pour plus d'articles"
     },
+    "empty_title": "Aucune actualité",
+    "empty_body": "Revenez plus tard pour les dernières nouvelles.",
     "empty_saved": "Aucun article sauvegardé",
     "mark_all_read_error": "Erreur lors de la mise à jour",
     "time_ago_days": "Il y a {{n}}j",

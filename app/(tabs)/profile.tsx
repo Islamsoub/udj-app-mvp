@@ -326,9 +326,10 @@ const STATE_LABELS: Record<ProfileState, string> = {
 export default function ProfileScreen() {
   const router = useRouter();
   const { t } = useTranslation();
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [devState, setDevState] = useState<ProfileState | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const insets = useSafeAreaInsets();
 
   const [qrToken, setQrToken] = useState<string | null>(null);
@@ -406,11 +407,12 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       <ProfileHeader
         state={profileState}
         topInset={insets.top}
+        isScrolled={isScrolled}
         onDotsPress={() => router.push('/settings')}
       />
 
@@ -420,6 +422,8 @@ export default function ProfileScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScroll={(e) => setIsScrolled(e.nativeEvent.contentOffset.y > 2)}
+        scrollEventThrottle={16}
       >
         {profileState === 'skeleton' && <ProfileSkeleton />}
         {showBody && (

@@ -78,7 +78,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   cardList: {
     paddingHorizontal: spacing.sp16,
-    gap: 12,
+    gap: spacing.sp12,
   },
   heroCard: {
     borderRadius: radius.rTile,
