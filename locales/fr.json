@@ -130,6 +130,8 @@
     "break": "Pause de {{hours}} heures",
     "weekend_title": "Week-end",
     "weekend_body": "Pas de cours le vendredi et le samedi.",
+    "empty_title": "Aucun cours ce jour",
+    "empty_body": "Profitez de votre journée.",
     "pause_hours": "Pause de {{count}} heures",
     "status": {
       "done": "Terminé",

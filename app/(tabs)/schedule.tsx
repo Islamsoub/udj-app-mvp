@@ -6,7 +6,6 @@ import {
   Pressable,
   StyleSheet,
   StatusBar,
-  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -18,7 +17,8 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { fonts, radius, spacing, elevation, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
@@ -26,9 +26,6 @@ import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { ScheduleHeader } from '@/components/schedule/ScheduleHeader';
 import { TimelineRow, PauseEntry } from '@/components/schedule/TimelineRow';
-import { CacheBanner } from '@/components/schedule/CacheBanner';
-import { OfflineCourseCard } from '@/components/schedule/OfflineCourseCard';
-import { Course } from '@/components/schedule/CourseCard';
 import { CourseDetailSheet } from '@/components/schedule/CourseDetailSheet';
 import { useCourseDetailStore, ExtendedCourse } from '@/stores/courseDetailStore';
 import { CourseStatus } from '@/components/schedule/StatusPill';
@@ -242,31 +239,33 @@ function SkeletonScheduleBody() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.timelineBody}>
-      {[0, 1, 2, 3].map((i) => (
+      {[0, 1, 2].map((i) => (
         <View key={i} style={styles.skelRow}>
-          {/* Gutter */}
+          {/* Gutter — DM Mono pill shimmer */}
           <View style={styles.skelGutter}>
-            <SkeletonBox width={40} height={12} borderRadius={6} />
+            <SkeletonBox width={36} height={13} borderRadius={6} />
           </View>
-          {/* Connector */}
+          {/* Connector dot — static, no shimmer */}
           <View style={styles.skelConnector}>
             <View style={styles.skelDot} />
           </View>
-          {/* Card placeholder */}
-          <View style={styles.skelCardWrapper}>
-            <SkeletonBox width={180} height={14} borderRadius={6} />
+          {/* Card: surface bg + elevation + 5px rail shimmer + 2 text shimmers */}
+          <View style={styles.skelCard}>
             <SkeletonBox
-              width={140}
-              height={10}
-              borderRadius={6}
-              style={{ marginTop: spacing.sp8 }}
+              width={5}
+              height={96}
+              borderRadius={0}
+              style={styles.skelRail}
             />
-            <SkeletonBox
-              width={80}
-              height={10}
-              borderRadius={6}
-              style={{ marginTop: spacing.sp8 }}
-            />
+            <View style={styles.skelCardContent}>
+              <SkeletonBox width="70%" height={14} borderRadius={6} />
+              <SkeletonBox
+                width="50%"
+                height={10}
+                borderRadius={6}
+                style={{ marginTop: spacing.sp8 }}
+              />
+            </View>
           </View>
         </View>
       ))}
@@ -276,38 +275,29 @@ function SkeletonScheduleBody() {
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
 
-interface EmptyStateProps {
-  onExport: () => void;
-  onNextWeek: () => void;
-}
-
-function EmptyStateBody({ onExport, onNextWeek }: EmptyStateProps) {
+function EmptyStateBody({ isWeekend }: { isWeekend: boolean }) {
   const { t } = useTranslation();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
+  const iconBg    = isWeekend ? colors.surface2    : colors.jadeFaint;
+  const iconColor = isWeekend ? colors.textTertiary : colors.jadeText;
+
   return (
     <View style={[styles.centerBody, { paddingTop: spacing.sp48 }]}>
-      <Text style={styles.palmEmoji}>🌴</Text>
-      <Text style={styles.stateTitle}>{t('schedule.empty.title')}</Text>
-      <Text style={styles.stateBody}>{t('schedule.empty.body')}</Text>
-
-      {/* Next course card — 250×71 per Figma */}
-      <View style={styles.nextCourseCard}>
-        <Text style={styles.nextCourseText}>
-          {`${t('schedule.empty.next_course_label')}\n${t('schedule.empty.next_course_time')}\n${t('schedule.empty.next_course_name')}`}
-        </Text>
+      <View style={[styles.emptyIconChip, { backgroundColor: iconBg }]}>
+        {isWeekend ? (
+          <Ionicons name="cafe-outline" size={28} color={iconColor} />
+        ) : (
+          <Ionicons name="calendar-outline" size={28} color={iconColor} />
+        )}
       </View>
-
-      {/* Action buttons — fixed widths 139+151 per Figma */}
-      <View style={styles.emptyBtnRow}>
-        <Pressable style={[styles.emptyBtnPrimary]} onPress={onExport}>
-          <Text style={styles.emptyBtnPrimaryText}>{t('schedule.empty.export')}</Text>
-        </Pressable>
-        <Pressable style={[styles.emptyBtnOutline]} onPress={onNextWeek}>
-          <Text style={styles.emptyBtnOutlineText}>{t('schedule.empty.next_week')}</Text>
-        </Pressable>
-      </View>
+      <Text style={styles.stateTitle}>
+        {isWeekend ? t('schedule.weekend_title') : t('schedule.empty_title')}
+      </Text>
+      <Text style={styles.stateBody}>
+        {isWeekend ? t('schedule.weekend_body') : t('schedule.empty_body')}
+      </Text>
     </View>
   );
 }
@@ -327,11 +317,7 @@ function ErrorStateBody({ onRetry, onViewCache }: ErrorStateProps) {
   return (
     <View style={[styles.centerBody, { paddingTop: spacing.sp48 }]}>
       <View style={styles.errorIconCircle}>
-        <Image
-          source={require('../../assets/icons/calendar-error.png')}
-          style={{ width: 48, height: 48 }}
-          resizeMode="contain"
-        />
+        <Ionicons name="warning-outline" size={28} color={colors.danger} />
       </View>
       <Text style={styles.stateTitle}>{t('schedule.error.title')}</Text>
       <Text style={styles.stateBody}>{t('schedule.error.body')}</Text>
@@ -370,27 +356,6 @@ function LoadedTimeline({ entries, onCoursePress }: LoadedTimelineProps) {
           <TimelineRow key={entry.id} entry={entry} isLast={isLast} onPress={() => onCoursePress(entry)} />
         );
       })}
-    </View>
-  );
-}
-
-// ─── Offline body ──────────────────────────────────────────────────────────────
-
-function OfflineBody({ courses }: { courses: Course[] }) {
-  const { colors } = useColors();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-  return (
-    <View style={styles.offlineBody}>
-      <CacheBanner />
-      {courses.length > 0 ? (
-        courses.map((course) => (
-          <OfflineCourseCard key={course.id} course={course} />
-        ))
-      ) : (
-        <View style={styles.offlineEmpty}>
-          <Text style={styles.offlineEmptyText}>Aucun cours en cache pour ce jour</Text>
-        </View>
-      )}
     </View>
   );
 }
@@ -459,23 +424,6 @@ export default function ScheduleScreen() {
       lang,
     ),
     [allEntries, selectedDay, weekOffset, lang],
-  );
-
-  const offlineDayCourses: Course[] = useMemo(
-    () =>
-      (hook.data ?? [])
-        .filter((s) => s.dayOfWeek === selectedDay)
-        .sort((a, b) => a.startTime.localeCompare(b.startTime))
-        .map((s) => ({
-          id: s.id,
-          subject: s.subjectName,
-          teacher: s.lecturerName,
-          room: s.room,
-          start: s.startTime,
-          end: s.endTime,
-          status: computeStatus(s.startTime, s.endTime, selectedDay, weekOffset),
-        })),
-    [hook.data, selectedDay, weekOffset],
   );
 
   // ─── Derive screen state ────────────────────────────────────────────────────
@@ -586,17 +534,12 @@ export default function ScheduleScreen() {
           <Animated.View style={animatedTimelineStyle}>
             {schedState === 'skeleton' && <SkeletonScheduleBody />}
 
-            {(schedState === 'loaded' || schedState === 'session') && (
+            {(schedState === 'loaded' || schedState === 'session' || schedState === 'offline') && (
               <LoadedTimeline entries={dayEntries} onCoursePress={handleCoursePress} />
             )}
 
-            {schedState === 'offline' && <OfflineBody courses={offlineDayCourses} />}
-
             {schedState === 'empty' && (
-              <EmptyStateBody
-                onExport={() => {}}
-                onNextWeek={goToNextWeek}
-              />
+              <EmptyStateBody isWeekend={WEEKEND.has(selectedDay)} />
             )}
 
             {schedState === 'error' && (
@@ -645,7 +588,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flexGrow: 1,
   },
 
-  // ── Timeline body (loaded & skeleton)
+  // ── Timeline body (loaded, offline & skeleton)
   timelineBody: {
     paddingTop: spacing.sp16,
   },
@@ -653,7 +596,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   // ── Skeleton row pieces
   skelRow: {
     flexDirection: 'row',
-    marginBottom: spacing.sp24,
+    marginBottom: spacing.sp16,
     alignItems: 'flex-start',
   },
   skelGutter: {
@@ -668,35 +611,29 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingTop: spacing.sp6,
   },
   skelDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.border,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.hair,
   },
-  skelCardWrapper: {
+  skelCard: {
     flex: 1,
-    minHeight: 87,
-    borderRadius: radius.rLg,
+    height: 96,
+    borderRadius: radius.rTile,
     backgroundColor: colors.surface,
-    padding: spacing.sp12,
+    overflow: 'hidden',
+    ...elevation.card,
+  },
+  skelRail: {
+    position: 'absolute',
+    start: 0,
+    top: 0,
+  },
+  skelCardContent: {
+    flex: 1,
+    paddingStart: 18,
+    paddingEnd: spacing.sp16,
     justifyContent: 'center',
-    gap: 0,
-  },
-
-  // ── Offline body — 14px gap between cache banner and cards per Figma
-  offlineBody: {
-    paddingHorizontal: spacing.sp16,
-    paddingTop: spacing.sp14,
-    gap: spacing.sp14,
-  },
-  offlineEmpty: {
-    padding: spacing.sp16,
-    alignItems: 'center',
-  },
-  offlineEmptyText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    fontFamily: fonts.sans,
   },
 
   // ── Center states (empty / error) — paddingTop set per-state in component
@@ -705,12 +642,15 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.sp24,
   },
-  palmEmoji: {
-    fontSize: 80,
-    textAlign: 'center',
+  emptyIconChip: {
+    width: 64,
+    height: 64,
+    borderRadius: radius.rFull,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   stateTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -728,78 +668,20 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp8,
   },
 
-  // ── Empty: next course card — 250px wide per Figma
-  nextCourseCard: {
-    width: 250,
-    alignSelf: 'center',
-    borderRadius: radius.rMd,
-    backgroundColor: colors.jade75,
-    borderWidth: 1,
-    borderColor: colors.jade400,
-    paddingVertical: spacing.sp8,
-    paddingHorizontal: spacing.sp32,
-    marginTop: spacing.sp16,
-  },
-  nextCourseText: {
-    fontFamily: fonts.sans,
-    fontWeight: '700',
-    fontSize: 12,
-    color: colors.jade600,
-    textAlign: 'center',
-    lineHeight: 18,
-  },
-
-  // ── Empty: buttons — fixed widths 139+151 per Figma
-  emptyBtnRow: {
-    flexDirection: 'row',
-    gap: spacing.sp8,
-    marginTop: spacing.sp32,
-  },
-  emptyBtnPrimary: {
-    width: 139,
-    height: 50,
-    borderRadius: radius.rLg,
-    backgroundColor: colors.jade400,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyBtnPrimaryText: {
-    fontSize: 12,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.surface,
-  },
-  emptyBtnOutline: {
-    width: 151,
-    height: 50,
-    borderRadius: radius.rLg,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.jade600,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyBtnOutlineText: {
-    fontSize: 12,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.jade600,
-  },
-
-  // ── Error state — 72×72 circle per Figma
+  // ── Error state
   errorIconCircle: {
     width: 72,
     height: 72,
     borderRadius: radius.rFull,
-    backgroundColor: colors.dangerLight,
+    backgroundColor: colors.dangerBg,
     alignItems: 'center',
     justifyContent: 'center',
   },
   retryBtn: {
     alignSelf: 'center',
     width: 168,
-    height: 56,
-    borderRadius: radius.rLg,
+    height: 48,
+    borderRadius: radius.rBtn,
     backgroundColor: colors.jade400,
     alignItems: 'center',
     justifyContent: 'center',
@@ -819,5 +701,4 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp24,
     textAlign: 'center',
   },
-
 });

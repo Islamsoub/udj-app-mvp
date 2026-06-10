@@ -130,6 +130,8 @@
     "break": "استراحة لمدة {{hours}} ساعات",
     "weekend_title": "عطلة نهاية الأسبوع",
     "weekend_body": "لا توجد حصص يوم الجمعة والسبت.",
+    "empty_title": "لا توجد حصص اليوم",
+    "empty_body": "استمتع بيومك.",
     "pause_hours": "استراحة {{count}} ساعات",
     "status": {
       "done": "انتهى",
