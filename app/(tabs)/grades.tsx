@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,11 +11,12 @@ import {
 import { isAxiosError } from 'axios';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { fonts, radius, spacing, elevation, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
-import { GradesHeader } from '@/components/grades/GradesHeader';
+import { GpaHeroCard } from '@/components/grades/GpaHeroCard';
 import { SubjectCard, Subject } from '@/components/grades/SubjectCard';
 import { GradesSkeleton } from '@/components/grades/GradesSkeleton';
 import { GradeCalculatorSheet } from '@/components/grades/GradeCalculatorSheet';
@@ -95,7 +96,6 @@ function ErrorStateBody({ onRetry, styles }: ErrorStateProps) {
         <Text style={styles.retryBtnText}>{t('grades.empty.retry')}</Text>
       </Pressable>
 
-      {/* Notification banner */}
       <View style={styles.notifBanner}>
         <Text style={styles.notifTitle}>{t('grades.error.notification_title')}</Text>
         <Text style={styles.notifBody}>{t('grades.error.notification_body')}</Text>
@@ -104,7 +104,7 @@ function ErrorStateBody({ onRetry, styles }: ErrorStateProps) {
   );
 }
 
-// ─── Loaded / Offline cards body ──────────────────────────────────────────────
+// ─── Cards body ───────────────────────────────────────────────────────────────
 
 function CardsBody({ subjects, styles }: { subjects: Subject[]; styles: ReturnType<typeof makeStyles> }) {
   return (
@@ -131,14 +131,16 @@ const STATE_LABELS: Record<GradesState, string> = {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function GradesScreen() {
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language;
+  const isAR = lang === 'ar';
   const [devState, setDevState] = useState<GradesState | null>(null);
   const [activeSemester, setActiveSemester] = useState<1 | 2>(2);
   const [calculatorVisible, setCalculatorVisible] = useState(false);
   const [gpaHistoryVisible, setGpaHistoryVisible] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [gradesData, setGradesData] = useState<GradesResponse | null>(null);
   const [allSemesterData, setAllSemesterData] = useState<SemesterSummary[]>([]);
   const [semesterTabIds, setSemesterTabIds] = useState<[string | null, string | null]>([null, null]);
@@ -160,7 +162,6 @@ export default function GradesScreen() {
       const res = await getGrades(activeSemesterId);
       setGradesData(res);
 
-      // On first load, also fetch all semesters summary
       if (!activeSemesterId) {
         getGradesAllSemesters()
           .catch(() => ({ semesters: [] as SemesterSummary[] }))
@@ -215,7 +216,7 @@ export default function GradesScreen() {
     ];
   }, [allSemesterData, gradesData]);
 
-  // ─── Semester tab switch ────────────────────────────────────────────────────
+  // ─── Semester switch ────────────────────────────────────────────────────────
 
   const handleSemesterChange = useCallback(
     (s: 1 | 2) => {
@@ -252,20 +253,57 @@ export default function GradesScreen() {
       ? (gradesData?.credits ?? null)
       : null;
 
+  // ─── Scroll shadow ──────────────────────────────────────────────────────────
+
+  const scrollShadow = isScrolled
+    ? {
+        ...elevation.card,
+        borderBottomWidth: isDark ? StyleSheet.hairlineWidth : 0,
+        borderBottomColor: colors.hair,
+      }
+    : undefined;
+
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-      <GradesHeader
-        state={gradesState === 'session' ? 'loaded' : gradesState}
-        topInset={insets.top}
-        gpa={headerGpa}
-        activeSemester={activeSemester}
-        onSemesterChange={handleSemesterChange}
-        credits={headerCredits}
-        onCalculatorPress={() => setCalculatorVisible(true)}
-        onGpaPress={() => setGpaHistoryVisible(true)}
-      />
+      {/* Pinned header */}
+      <View style={[styles.pinnedHeader, { paddingTop: insets.top + 2 }, scrollShadow]}>
+        <View style={styles.headerRow}>
+          <Text style={[styles.headerTitle, isAR && styles.headerTitleAR]}>
+            {t('grades.title')}
+          </Text>
+          <Pressable
+            style={styles.calcBtn}
+            onPress={() => setCalculatorVisible(true)}
+            hitSlop={8}
+          >
+            <Ionicons name="calculator-outline" size={19} color={colors.textPrimary} />
+          </Pressable>
+        </View>
+      </View>
+
+      {/* Segmented semester control */}
+      {gradesState !== 'error' && (
+        <View style={styles.semControl}>
+          <Pressable
+            style={[styles.semSeg, activeSemester === 1 && styles.semSegActive]}
+            onPress={() => handleSemesterChange(1)}
+          >
+            <Text style={[styles.semLabel, activeSemester === 1 && styles.semLabelActive]}>
+              {t('grades.semester_1')}
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[styles.semSeg, activeSemester === 2 && styles.semSegActive]}
+            onPress={() => handleSemesterChange(2)}
+          >
+            <Text style={[styles.semLabel, activeSemester === 2 && styles.semLabelActive]}>
+              {t('grades.semester_2')}
+            </Text>
+          </Pressable>
+        </View>
+      )}
 
       <OfflineBanner />
 
@@ -273,7 +311,28 @@ export default function GradesScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScroll={(e) => setIsScrolled(e.nativeEvent.contentOffset.y > 2)}
+        scrollEventThrottle={16}
       >
+        {/* Hero card */}
+        {gradesState === 'skeleton' && (
+          <GpaHeroCard
+            gpa={null}
+            credits={null}
+            activeSemester={activeSemester}
+            onPress={() => {}}
+            skeleton
+          />
+        )}
+        {(gradesState === 'loaded' || gradesState === 'offline' || gradesState === 'session' || gradesState === 'empty') && (
+          <GpaHeroCard
+            gpa={headerGpa}
+            credits={headerCredits}
+            activeSemester={activeSemester}
+            onPress={() => setGpaHistoryVisible(true)}
+          />
+        )}
+
         {gradesState === 'skeleton' && <GradesSkeleton />}
 
         {(gradesState === 'loaded' || gradesState === 'session' || gradesState === 'offline') && (
@@ -329,6 +388,77 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+
+  // ── Pinned header
+  pinnedHeader: {
+    backgroundColor: colors.background,
+    paddingHorizontal: spacing.sp20,
+    paddingBottom: spacing.sp12,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing.sp4,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    fontFamily: fonts.sans,
+    color: colors.textPrimary,
+    letterSpacing: -0.5,
+  },
+  headerTitleAR: {
+    fontSize: 26,
+    fontWeight: '700',
+    letterSpacing: 0,
+  },
+  calcBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: radius.rFull,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#1C2320',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+
+  // ── Segmented semester control
+  semControl: {
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: colors.sunken,
+    padding: 3,
+    marginHorizontal: spacing.sp20,
+    marginTop: spacing.sp4,
+    flexDirection: 'row',
+    marginBottom: spacing.sp4,
+  },
+  semSeg: {
+    flex: 1,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  semSegActive: {
+    backgroundColor: colors.jade400,
+  },
+  semLabel: {
+    fontSize: 13.5,
+    fontWeight: '600',
+    fontFamily: fonts.sans,
+    color: colors.textSecondary,
+  },
+  semLabelActive: {
+    fontWeight: '700',
+    color: '#FFFFFF', // on-jade — active segment literal
+  },
+
+  // ── Scroll
   scroll: {
     flex: 1,
   },
@@ -367,7 +497,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp8,
   },
 
-  // ── Shared retry button (empty + error)
+  // ── Shared retry button
   retryBtn: {
     width: 168,
     height: 56,
@@ -430,5 +560,4 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     color: colors.jade600,
     marginTop: spacing.sp4,
   },
-
 });

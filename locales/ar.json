@@ -176,6 +176,11 @@
     "credits_format": "الوحدات: {{earned}}/{{total}}",
     "semester1": "الفصل 1",
     "semester2": "الفصل 2",
+    "semester_1": "الفصل ١",
+    "semester_2": "الفصل ٢",
+    "hero_label": "المعدل العام · الفصل {{semester}}",
+    "hero_credits": "الأرصدة : {{earned}}/{{total}}",
+    "mention_not_calculated": "غير محسوبة",
     "header": {
       "unavailable": "البيانات غير متاحة",
       "no_results": "لا توجد نتائج منشورة"

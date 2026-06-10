@@ -1,5 +1,3 @@
-import type { Palette } from './theme';
-
 // ─── Subject color lookup (uses COURSE_PALETTE — jade excluded) ───────────────
 
 const subjectColorCache = new Map<string, number>();
@@ -21,28 +19,6 @@ export function getSubjectColor(subjectName: string, isDark: boolean = false): {
   let hash = 0;
   for (const c of subjectName) hash += c.charCodeAt(0);
   return { accent: getCourseColor(hash, isDark) };
-}
-
-export function getMentionColor(mention: string, colors: Palette): string {
-  switch (mention) {
-    case 'Très Bien':   return '#D1FAE5';
-    case 'Bien':        return '#DBEAFE';
-    case 'Assez Bien':  return '#FEF3C7';
-    case 'Passable':    return '#FED7AA';
-    case 'Insuffisant': return '#FEE2E2';
-    default:            return colors.border;
-  }
-}
-
-export function getMentionTextColor(mention: string, colors: Palette): string {
-  switch (mention) {
-    case 'Très Bien':   return '#059669';
-    case 'Bien':        return '#2563EB';
-    case 'Assez Bien':  return '#D97706';
-    case 'Passable':    return '#EA580C';
-    case 'Insuffisant': return '#DC2626';
-    default:            return colors.textSecondary;
-  }
 }
 
 export function getCategoryColor(category: string): { bg: string; text: string } {

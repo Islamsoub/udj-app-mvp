@@ -176,6 +176,11 @@
     "credits_format": "Crédits: {{earned}}/{{total}}",
     "semester1": "Semestre 1",
     "semester2": "Semestre 2",
+    "semester_1": "Semestre 1",
+    "semester_2": "Semestre 2",
+    "hero_label": "MOYENNE GÉNÉRALE · SEMESTRE {{semester}}",
+    "hero_credits": "Crédits : {{earned}}/{{total}}",
+    "mention_not_calculated": "Non calculée",
     "header": {
       "unavailable": "Données indisponibles",
       "no_results": "Aucun résultat publié"
