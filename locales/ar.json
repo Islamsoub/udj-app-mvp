@@ -438,6 +438,15 @@
       "sponsors": "الرعاة",
       "saved": "المفضلة"
     },
+    "cat": {
+      "official": "رسمي",
+      "events": "فعاليات",
+      "scolarite": "الدراسة",
+      "sport": "رياضة",
+      "youth": "شباب",
+      "sponsors": "شركاء",
+      "general": "عام"
+    },
     "hero": {
       "urgent_label": "رسمي – عاجل"
     },

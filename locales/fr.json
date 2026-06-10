@@ -438,6 +438,15 @@
       "sponsors": "Sponsors",
       "saved": "Mes favoris"
     },
+    "cat": {
+      "official": "Officiel",
+      "events": "Événements",
+      "scolarite": "Scolarité",
+      "sport": "Sport",
+      "youth": "Jeunesse",
+      "sponsors": "Sponsors",
+      "general": "Général"
+    },
     "hero": {
       "urgent_label": "Officiel – Urgent"
     },

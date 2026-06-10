@@ -21,32 +21,6 @@ export function getSubjectColor(subjectName: string, isDark: boolean = false): {
   return { accent: getCourseColor(hash, isDark) };
 }
 
-export function getCategoryColor(category: string): { bg: string; text: string } {
-  switch (category) {
-    case 'official':
-    case 'GRADES':
-      return { bg: '#D1FAE5', text: '#059669' };
-    case 'events':
-    case 'Evenement':
-    case 'SCHEDULE':
-      return { bg: '#DBEAFE', text: '#2563EB' };
-    case 'scolarite':
-    case 'Scolarite':
-    case 'ATTENDANCE':
-      return { bg: '#FEF3C7', text: '#D97706' };
-    case 'sport':
-    case 'Sport':
-      return { bg: '#FFE4E6', text: '#F43F5E' };
-    case 'youth':
-      return { bg: '#F3E8FF', text: '#8B5CF6' };
-    case 'sponsors':
-      return { bg: '#E0E7FF', text: '#6366F1' };
-    case 'GENERAL':
-    default:
-      return { bg: '#F3F4F6', text: '#6B7280' };
-  }
-}
-
 // ─── Course color palette ─────────────────────────────────────────────────────
 // 12 named hues with light + dark variants. Jade is intentionally excluded so
 // course accent rails never read as the "live/active" brand color.
@@ -95,9 +69,18 @@ export function getNewsCategoryColors(
   category: string,
   colors: any,
 ): { fg: string; bg: string } {
-  const lower = category.toLowerCase();
-  if (lower.includes('officiel') || lower.includes('official'))  return { fg: colors.jadeText, bg: colors.jadeFaint };
-  if (lower.includes('event') || lower.includes('événement'))    return { fg: colors.blue,     bg: colors.blueBg };
-  if (lower.includes('scolarité') || lower.includes('académique')) return { fg: colors.warning, bg: colors.amberBg };
-  return { fg: colors.exam, bg: colors.examBg };
+  const lower = (category || '').toLowerCase();
+  if (lower === 'official' || lower.includes('officiel') || lower === 'رسمي')
+    return { fg: colors.jadeText, bg: colors.jadeFaint };
+  if (lower === 'events' || lower.includes('événement') || lower.includes('event') || lower === 'فعاليات')
+    return { fg: colors.blue, bg: colors.blueBg };
+  if (lower === 'scolarite' || lower.includes('scolarité') || lower.includes('académique') || lower === 'الدراسة')
+    return { fg: colors.warning, bg: colors.amberBg };
+  if (lower.includes('sport') || lower === 'رياضة')
+    return { fg: colors.exam, bg: colors.examBg };
+  if (lower === 'youth' || lower.includes('jeunesse') || lower === 'شباب')
+    return { fg: colors.slate, bg: colors.slateBg };
+  if (lower.includes('sponsor') || lower === 'شركاء')
+    return { fg: colors.slate, bg: colors.slateBg };
+  return { fg: colors.slate, bg: colors.slateBg };
 }

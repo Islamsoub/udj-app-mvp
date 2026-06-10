@@ -15,7 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { fonts, radius, spacing, withAlpha, sizing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
-import { getCategoryColor } from '@/constants/colorMap';
+import { getNewsCategoryColors } from '@/constants/colorMap';
 import { ArticleReaderHeader } from '@/components/news/ArticleReaderHeader';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -108,16 +108,12 @@ interface LoadedBodyProps {
   bottomInset: number;
 }
 
-function capitalizeFirst(s: string): string {
-  if (!s) return s;
-  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-}
-
 function LoadedBody({ article, bottomInset }: LoadedBodyProps) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { t } = useTranslation();
   const paragraphs = article.body.split('\n\n');
-  const catColor = getCategoryColor(article.category);
+  const catColor = getNewsCategoryColors(article.category, colors);
 
   return (
     <ScrollView
@@ -129,8 +125,8 @@ function LoadedBody({ article, bottomInset }: LoadedBodyProps) {
 
       <View style={styles.bodyContent}>
         <View style={[styles.categoryPill, { backgroundColor: catColor.bg }]}>
-          <Text style={[styles.categoryText, { color: catColor.text }]}>
-            {capitalizeFirst(article.category)}
+          <Text style={[styles.categoryText, { color: catColor.fg }]}>
+            {t(`news.cat.${article.category}`)}
           </Text>
         </View>
 

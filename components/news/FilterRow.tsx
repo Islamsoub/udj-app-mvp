@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts, lightColors, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export type FilterKey = 'all' | 'events' | 'scolarite' | 'sport' | 'youth' | 'sponsors' | 'saved';
@@ -57,10 +57,8 @@ export function FilterRow({ activeFilter, onFilterChange }: FilterRowProps) {
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
   container: {
-    height: 72,
+    height: 52,
     backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.scheduleBorder,
     justifyContent: 'center',
   },
   content: {
@@ -70,14 +68,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     alignItems: 'center',
   },
   pill: {
-    height: 41,
-    borderRadius: 22,
+    height: 36,
+    borderRadius: radius.rFull,
     paddingHorizontal: spacing.sp16,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.greyMedium,
+    borderColor: colors.hair,
   },
   pillActive: {
     backgroundColor: colors.jade400,
@@ -85,11 +83,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   pillText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     fontFamily: fonts.sans,
-    color: colors.textPrimary,
+    color: colors.textSecondary,
   },
   pillTextActive: {
-    color: lightColors.surface,
+    // White on jade — do not use a theme token here; jade400 bg requires pure white
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
 });

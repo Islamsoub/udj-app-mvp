@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts, spacing, type Palette } from '@/constants/theme';
+import { elevation, fonts, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 
@@ -10,18 +10,26 @@ export type NewsHeaderState = 'skeleton' | 'loaded' | 'offline' | 'empty' | 'err
 interface NewsHeaderProps {
   state: NewsHeaderState;
   topInset: number;
+  scrolled?: boolean;
 }
 
-// Content height below safe area (93 spec total − 24 Figma Android status bar)
+// Minimum content height below safe area
 const CONTENT_H = 69;
 
-export function NewsHeader({ state, topInset }: NewsHeaderProps) {
-  const { colors } = useColors();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { t } = useTranslation();
+export function NewsHeader({ state, topInset, scrolled = false }: NewsHeaderProps) {
+  const { colors, isDark } = useColors();
+  const { t, i18n } = useTranslation();
+  const isAr = i18n.language === 'ar';
+  const styles = useMemo(() => makeStyles(colors, isAr), [colors, isAr]);
+
+  const scrolledStyle = scrolled
+    ? isDark
+      ? { borderBottomWidth: 1 as const, borderBottomColor: colors.hair }
+      : elevation.card
+    : {};
 
   return (
-    <View style={[styles.container, { paddingTop: topInset }]}>
+    <View style={[styles.container, { paddingTop: topInset + spacing.sp2 }, scrolledStyle]}>
       {state === 'skeleton' ? (
         <SkeletonBox width={120} height={15} borderRadius={8} />
       ) : (
@@ -31,22 +39,21 @@ export function NewsHeader({ state, topInset }: NewsHeaderProps) {
   );
 }
 
-const makeStyles = (colors: Palette) => StyleSheet.create({
+const makeStyles = (colors: Palette, isAr: boolean) => StyleSheet.create({
   container: {
     minHeight: CONTENT_H,
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.newsHeaderBorder,
+    backgroundColor: colors.background,
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.sp16,
+    paddingHorizontal: spacing.sp20,
     paddingBottom: spacing.sp12,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '700',
-    fontFamily: fonts.sans,
+    fontSize: isAr ? 26 : 24,
+    fontWeight: '800',
+    fontFamily: isAr ? fonts.arabic : fonts.sans,
     color: colors.textPrimary,
+    letterSpacing: isAr ? 0 : -0.5,
   },
 });

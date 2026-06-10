@@ -216,11 +216,12 @@ const STATE_LABELS: Record<NewsState, string> = {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function NewsScreen() {
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [devState, setDevState] = useState<NewsState | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
   const [filterCategory, setFilterCategory] = useState<string | undefined>(undefined);
+  const [scrolled, setScrolled] = useState(false);
   const localReadIds = useMemo(() => new Set<string>(), []);
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -288,11 +289,12 @@ export default function NewsScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       <NewsHeader
         state={newsState === 'session' ? 'loaded' : newsState}
         topInset={insets.top}
+        scrolled={scrolled}
       />
 
       <OfflineBanner />
@@ -301,6 +303,8 @@ export default function NewsScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        onScroll={(e) => setScrolled(e.nativeEvent.contentOffset.y > 8)}
+        scrollEventThrottle={16}
       >
         {showFilterRow && (
           <FilterRow activeFilter={activeFilter} onFilterChange={handleFilterChange} />
