@@ -19,6 +19,7 @@ export interface Palette {
   jadeDM: string;
 
   warning: string;
+  warningDeep: string;
   danger: string;
   info: string;
   exam: string;
@@ -106,6 +107,7 @@ export const lightColors: Palette = {
 
   // Semantic
   warning: '#F59E0B',
+  warningDeep: '#92400E',
   danger: '#EF4444',
   info: '#3B82F6',
   exam: '#8B5CF6',
@@ -200,6 +202,7 @@ export const darkColors: Palette = {
 
   // Semantic — same hues; light variants get dark backgrounds below
   warning: '#F59E0B',
+  warningDeep: '#F0A84B',
   danger: '#EF4444',
   info: '#3B82F6',
   exam: '#8B5CF6',

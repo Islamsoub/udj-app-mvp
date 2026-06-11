@@ -8,11 +8,12 @@ import {
   StatusBar,
   Animated,
   ActivityIndicator,
-  ScrollView,
+  Linking,
   Alert,
   Keyboard,
   AppState,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -105,6 +106,7 @@ export default function LoginScreen() {
 
   const lockedUntilRef = useRef<number>(0);
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
+  const passwordRef = useRef<TextInput>(null);
 
   // Show the biometric button only when the device supports it, the user opted in,
   // AND a refresh token exists to restore the session against.
@@ -331,10 +333,11 @@ export default function LoginScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={colors.jade600} translucent={false} />
 
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scroll}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(spacing.sp64, insets.bottom + spacing.sp16) }]}
         keyboardShouldPersistTaps="handled"
+        bottomOffset={20}
         bounces={false}
         showsVerticalScrollIndicator={false}
       >
@@ -441,6 +444,8 @@ export default function LoginScreen() {
                     placeholderTextColor={colors.textTertiary}
                     keyboardType="default"
                     autoCapitalize="characters"
+                    returnKeyType="next"
+                    onSubmitEditing={() => passwordRef.current?.focus()}
                     editable={inputsEditable}
                   />
                 </View>
@@ -462,21 +467,17 @@ export default function LoginScreen() {
               {/* ── PASSWORD INPUT (default / submitting / network-error / error) ── */}
               {!isLocked && !isSessionExpired && (
                 <View style={styles.inputGroup}>
-                  <View style={styles.passwordLabelRow}>
-                    <Text style={styles.inputLabel}>{t('auth.password')}</Text>
-                    {loginState === 'default' && (
-                      <Pressable hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}>
-                        <Text style={styles.forgotInline}>{t('auth.forgotPassword')}</Text>
-                      </Pressable>
-                    )}
-                  </View>
+                  <Text style={styles.inputLabel}>{t('auth.password')}</Text>
                   <TextInput
+                    ref={passwordRef}
                     style={[styles.textInput, passwordInputStyle]}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry
                     placeholder="••••••••"
                     placeholderTextColor={colors.textTertiary}
+                    returnKeyType="go"
+                    onSubmitEditing={loginHandler}
                     editable={inputsEditable}
                   />
                 </View>
@@ -487,12 +488,15 @@ export default function LoginScreen() {
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>{t('auth.password')}</Text>
                   <TextInput
+                    ref={passwordRef}
                     style={[styles.textInput, { backgroundColor: colors.surface, borderColor: colors.jade600 }]}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry
                     placeholder="••••••••"
                     placeholderTextColor={colors.textTertiary}
+                    returnKeyType="go"
+                    onSubmitEditing={loginHandler}
                     editable
                   />
                 </View>
@@ -543,16 +547,13 @@ export default function LoginScreen() {
                 </View>
               )}
 
-              {/* ── ERROR: forgot password link below button ── */}
-              {isError && (
-                <Pressable hitSlop={8} style={({ pressed }) => [styles.forgotBelow, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }]}>
-                  <Text style={styles.forgotBelowText}>{t('auth.forgotPassword')}</Text>
-                </Pressable>
-              )}
-
               {/* ── LOCKED-OUT: help link ── */}
               {isLocked && (
-                <Pressable hitSlop={8} style={({ pressed }) => [styles.helpLink, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }]}>
+                <Pressable
+                  hitSlop={8}
+                  style={({ pressed }) => [styles.helpLink, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }]}
+                  onPress={() => void Linking.openURL('mailto:support@univ-djibouti.dj?subject=Compte%20verrouill%C3%A9')}
+                >
                   <Text style={styles.helpLinkText}>{t('auth.helpContact')}</Text>
                 </Pressable>
               )}
@@ -580,7 +581,7 @@ export default function LoginScreen() {
             </>
           )}
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <DevSwitcher
         states={ALL_STATES}
@@ -650,19 +651,19 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontWeight: '700',
     color: colors.surface,
     textAlign: 'center',
-    marginTop: 12,
+    marginTop: spacing.sp12,
   },
   greenSubtitle: {
     fontFamily: fonts.sans,
     fontSize: 13,
     color: WHITE_80,
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: spacing.sp4,
   },
 
   // ── Body ──
   body: {
-    paddingHorizontal: spacing.sp16,
+    paddingHorizontal: spacing.sp20,
     paddingTop: spacing.sp24,
   },
 
@@ -693,22 +694,10 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.skeletonBox,
     borderColor: colors.skeletonBox,
   },
-  passwordLabelRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sp6,
-  },
-  forgotInline: {
-    fontFamily: fonts.sans,
-    fontSize: 14,
-    color: colors.jade600,
-  },
-
   // ── Login button ──
   loginButton: {
-    height: 56,
-    borderRadius: radius.rLg,
+    height: 50,
+    borderRadius: radius.rBtn,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.sp8,
@@ -716,8 +705,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   loginButtonText: {
     fontFamily: fonts.sans,
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '600',
     color: colors.surface,
   },
   loginButtonTextGrey: {
@@ -755,19 +744,6 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     lineHeight: 18,
   },
 
-  // ── Forgot password (error state) ──
-  forgotBelow: {
-    alignItems: 'center',
-    marginTop: spacing.sp16,
-    minHeight: sizing.touchTarget,
-    justifyContent: 'center',
-  },
-  forgotBelowText: {
-    fontFamily: fonts.sans,
-    fontSize: 14,
-    color: colors.jade600,
-  },
-
   // ── Network card ──
   networkCard: {
     borderRadius: radius.rLg,
@@ -800,7 +776,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: WARNING_15,
     borderWidth: 1,
     borderColor: colors.warning,
-    padding: 20,
+    padding: spacing.sp20,
     marginTop: spacing.sp24,
     marginBottom: spacing.sp24,
     alignItems: 'center',
@@ -809,14 +785,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontFamily: fonts.sans,
     fontSize: 14,
     fontWeight: '700',
-    color: '#92400E',
+    color: colors.warningDeep,
     textAlign: 'center',
     marginTop: spacing.sp8,
   },
   lockoutSubtitle: {
     fontFamily: fonts.sans,
     fontSize: 13,
-    color: '#92400E',
+    color: colors.warningDeep,
     textAlign: 'center',
     marginTop: spacing.sp4,
   },
@@ -824,7 +800,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontFamily: fonts.mono,
     fontSize: 48,
     fontWeight: '800',
-    color: '#92400E',
+    color: colors.warningDeep,
     textAlign: 'center',
     lineHeight: 56,
     marginTop: spacing.sp8,
@@ -832,7 +808,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   lockoutMinutes: {
     fontFamily: fonts.sans,
     fontSize: 12,
-    color: '#92400E',
+    color: colors.warningDeep,
     textAlign: 'center',
   },
 
@@ -890,7 +866,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderColor: colors.border,
     marginTop: spacing.sp16,
     marginBottom: spacing.sp16,
-    paddingHorizontal: 15,
+    paddingHorizontal: spacing.sp16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sp12,
@@ -898,7 +874,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   avatarCircle: {
     width: 32,
     height: 32,
-    borderRadius: 66,
+    borderRadius: radius.rFull,
     backgroundColor: colors.jade400,
     alignItems: 'center',
     justifyContent: 'center',
