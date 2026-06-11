@@ -139,7 +139,8 @@ const styles = StyleSheet.create({
   pill: {
     width: 46,
     height: 46,
-    borderRadius: 15,
+    borderRadius: 16,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,
