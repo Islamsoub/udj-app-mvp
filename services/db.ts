@@ -321,9 +321,10 @@ export async function deleteCourseNote(id: string): Promise<void> {
 export async function upsertSchedules(items: Schedule[]): Promise<void> {
   const db = await getDb();
   await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM schedules');
     for (const item of items) {
       await db.runAsync(
-        `INSERT OR REPLACE INTO schedules
+        `INSERT INTO schedules
           (id, student_id, subject_name, subject_name_ar, subject_code, lecturer_name, room,
            day_of_week, start_time, end_time, semester, is_exam, coefficient, cached_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -349,11 +350,14 @@ export async function upsertSchedules(items: Schedule[]): Promise<void> {
 }
 
 export async function upsertGrades(items: Grade[]): Promise<void> {
+  if (items.length === 0) return;
+  const { studentId, semester } = items[0];
   const db = await getDb();
   await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM grades WHERE student_id = ? AND semester = ?', [studentId, semester]);
     for (const item of items) {
       await db.runAsync(
-        `INSERT OR REPLACE INTO grades
+        `INSERT INTO grades
           (id, student_id, subject_code, subject_name, subject_name_ar, semester, cc_score,
            exam_score, final_score, coefficient, passed, cached_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -377,8 +381,12 @@ export async function upsertGrades(items: Grade[]): Promise<void> {
 }
 
 export async function upsertNews(items: NewsItem[]): Promise<void> {
+  if (items.length === 0) return;
   const db = await getDb();
+  const freshIds = items.map((n) => n.id);
+  const placeholders = freshIds.map(() => '?').join(',');
   await db.withTransactionAsync(async () => {
+    await db.runAsync(`DELETE FROM news_cache WHERE id NOT IN (${placeholders})`, freshIds);
     for (const item of items) {
       await db.runAsync(
         `INSERT INTO news_cache
@@ -466,9 +474,10 @@ export async function upsertProfile(profile: StudentProfileCache): Promise<void>
 export async function upsertAttendance(items: Attendance[]): Promise<void> {
   const db = await getDb();
   await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM attendance');
     for (const item of items) {
       await db.runAsync(
-        `INSERT OR REPLACE INTO attendance
+        `INSERT INTO attendance
           (id, student_id, subject_code, subject_name, subject_name_ar, sessions_total,
            sessions_present, sessions_remaining, percentage, threshold, cached_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -496,8 +505,12 @@ export async function markNotificationReadLocal(id: string): Promise<void> {
 }
 
 export async function upsertNotifications(items: CachedNotification[]): Promise<void> {
+  if (items.length === 0) return;
   const db = await getDb();
+  const freshIds = items.map((n) => n.id);
+  const placeholders = freshIds.map(() => '?').join(',');
   await db.withTransactionAsync(async () => {
+    await db.runAsync(`DELETE FROM notifications WHERE id NOT IN (${placeholders})`, freshIds);
     for (const item of items) {
       await db.runAsync(
         `INSERT INTO notifications
