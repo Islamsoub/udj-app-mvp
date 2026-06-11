@@ -78,9 +78,6 @@ const WHITE_78 = withAlpha('#FFFFFF', 0.78); // tagline on jade hero
 const WHITE_15 = withAlpha(colors.white, 0.15);
 const WHITE_40 = withAlpha(colors.white, 0.4);
 const WHITE_60 = withAlpha(colors.white, 0.6);
-const WARNING_15 = withAlpha(colors.warning, 0.15);
-const WARNING_12 = withAlpha(colors.warning, 0.12);
-const EXAM_12 = withAlpha(colors.exam, 0.12);
 const SKELETON_BG = withAlpha(colors.skeletonBox, 0.6);
 
 export default function LoginScreen() {
@@ -423,7 +420,7 @@ export default function LoginScreen() {
               {/* ── LOCKOUT CARD ── */}
               {isLocked && (
                 <View style={styles.lockoutCard}>
-                  <Ionicons name="warning-outline" size={28} color={colors.warning} />
+                  <Ionicons name="alert-circle" size={34} color={colors.warning} />
                   <Text style={styles.lockoutTitle}>{t('auth.lockedTitle')}</Text>
                   <Text style={styles.lockoutSubtitle}>{t('auth.lockedSubtitle')}</Text>
                   <Text style={styles.lockoutTimer}>{formatCountdown(countdown)}</Text>
@@ -436,7 +433,9 @@ export default function LoginScreen() {
                 <>
                   <View style={styles.sessionCard}>
                     <View style={styles.sessionRow}>
-                      <Ionicons name="key-outline" size={24} color={colors.warning} />
+                      <View style={styles.keyChip}>
+                        <Ionicons name="key-outline" size={22} color={colors.jadeText} />
+                      </View>
                       <View style={styles.sessionTexts}>
                         <Text style={styles.sessionTitle}>{t('common.session.title')}</Text>
                         <Text style={styles.sessionBody}>{t('auth.session_body')}</Text>
@@ -538,7 +537,7 @@ export default function LoginScreen() {
               {isError && (
                 <View style={styles.errorCard}>
                   <View style={styles.cardRow}>
-                    <Ionicons name="warning-outline" size={24} color={colors.warning} />
+                    <Ionicons name="alert-circle-outline" size={22} color={colors.warning} />
                     <View style={styles.cardTexts}>
                       <Text style={styles.errorCardTitle}>{t('auth.wrongCredentials')}</Text>
                       {attemptsLeft !== null && (
@@ -576,9 +575,7 @@ export default function LoginScreen() {
               {isNetworkError && (
                 <View style={styles.networkCard}>
                   <View style={styles.cardRow}>
-                    <View style={styles.globeCircle}>
-                      <Ionicons name="globe-outline" size={18} color={colors.surface} />
-                    </View>
+                    <Ionicons name="globe-outline" size={22} color={colors.slate} />
                     <Text style={styles.networkCardText}>{t('auth.network_required')}</Text>
                   </View>
                 </View>
@@ -605,11 +602,11 @@ export default function LoginScreen() {
                   </View>
                   <View style={styles.biometricContainer}>
                     <Pressable
-                      style={({ pressed }) => [styles.biometricCircle, pressed && { backgroundColor: withAlpha(colors.warning, 0.15), borderRadius: 999 }]}
+                      style={({ pressed }) => [styles.biometricCircle, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 999 }]}
                       onPress={biometricHandler}
                       hitSlop={8}
                     >
-                      <Ionicons name="scan-outline" size={24} color={colors.warning} />
+                      <Ionicons name="finger-print" size={26} color={colors.jadeText} />
                     </Pressable>
                     <Text style={styles.biometricLabel}>{t('auth.biometric_label')}</Text>
                   </View>
@@ -777,11 +774,12 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Error card ──
   errorCard: {
-    borderRadius: radius.rLg,
-    backgroundColor: WARNING_12,
+    borderRadius: radius.rBtn,
+    backgroundColor: colors.amberBg,
     borderWidth: 1,
     borderColor: colors.warning,
-    padding: spacing.sp16,
+    paddingVertical: spacing.sp14,
+    paddingHorizontal: spacing.sp16,
     marginBottom: spacing.sp16,
   },
   cardRow: {
@@ -794,48 +792,41 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   errorCardTitle: {
     fontFamily: fonts.sans,
-    fontSize: 13,
+    fontSize: 14.5,
     fontWeight: '700',
     color: colors.danger,
     marginBottom: spacing.sp4,
   },
   errorCardBody: {
     fontFamily: fonts.sans,
-    fontSize: 13,
-    color: colors.warning,
+    fontSize: 12.5,
+    color: colors.textSecondary,
     lineHeight: 18,
   },
 
   // ── Network card ──
   networkCard: {
-    borderRadius: radius.rLg,
-    backgroundColor: WARNING_12,
+    borderRadius: radius.rBtn,
+    backgroundColor: colors.slateBg,
     borderWidth: 1,
-    borderColor: colors.warning,
-    padding: spacing.sp16,
+    borderColor: colors.slate,
+    paddingVertical: spacing.sp14,
+    paddingHorizontal: spacing.sp16,
     marginTop: spacing.sp12,
-  },
-  globeCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.jade400,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
   },
   networkCardText: {
     fontFamily: fonts.sans,
-    fontSize: 13,
-    color: colors.warning,
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.textSecondary,
     flex: 1,
-    lineHeight: 18,
+    lineHeight: 20,
   },
 
   // ── Lockout card ──
   lockoutCard: {
-    borderRadius: radius.rLg,
-    backgroundColor: WARNING_15,
+    borderRadius: radius.rTile,
+    backgroundColor: colors.amberBg,
     borderWidth: 1,
     borderColor: colors.warning,
     padding: spacing.sp20,
@@ -845,7 +836,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   lockoutTitle: {
     fontFamily: fonts.sans,
-    fontSize: 14,
+    fontSize: 17,
     fontWeight: '700',
     color: colors.warningDeep,
     textAlign: 'center',
@@ -860,11 +851,11 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   lockoutTimer: {
     fontFamily: fonts.mono,
-    fontSize: 48,
-    fontWeight: '800',
+    fontSize: 46,
+    fontWeight: '500',
     color: colors.warningDeep,
     textAlign: 'center',
-    lineHeight: 56,
+    lineHeight: 54,
     marginTop: spacing.sp8,
   },
   lockoutMinutes: {
@@ -890,16 +881,26 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Session-expired card ──
   sessionCard: {
-    borderRadius: radius.rLg,
-    backgroundColor: EXAM_12,
+    borderRadius: radius.rBtn,
+    backgroundColor: colors.jadeFaint,
     borderWidth: 1,
-    borderColor: colors.exam,
-    padding: spacing.sp16,
+    borderColor: withAlpha(colors.jade400, 0.20),
+    paddingVertical: spacing.sp14,
+    paddingHorizontal: spacing.sp16,
     marginTop: spacing.sp24,
+  },
+  keyChip: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   sessionRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: spacing.sp12,
   },
   sessionTexts: {
@@ -907,46 +908,46 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   sessionTitle: {
     fontFamily: fonts.sans,
-    fontSize: 13,
+    fontSize: 14.5,
     fontWeight: '700',
-    color: colors.exam,
+    color: colors.jadeText,
     marginBottom: spacing.sp4,
   },
   sessionBody: {
     fontFamily: fonts.sans,
-    fontSize: 13,
-    color: colors.exam,
+    fontSize: 12.5,
+    color: colors.textSecondary,
     lineHeight: 18,
   },
 
   // ── Saved account row ──
   savedRow: {
-    height: 67,
-    borderRadius: radius.rLg,
-    backgroundColor: colors.background,
+    borderRadius: radius.rXl,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
-    marginTop: spacing.sp16,
+    borderColor: colors.hair,
+    marginTop: spacing.sp14,
     marginBottom: spacing.sp16,
+    paddingVertical: spacing.sp14,
     paddingHorizontal: spacing.sp16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sp12,
   },
   avatarCircle: {
-    width: 32,
-    height: 32,
+    width: 44,
+    height: 44,
     borderRadius: radius.rFull,
-    backgroundColor: colors.jade400,
+    backgroundColor: colors.jadeFaint,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   avatarText: {
     fontFamily: fonts.sans,
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: '700',
-    color: colors.surface,
+    color: colors.jadeText,
   },
   savedInfo: {
     flex: 1,
@@ -965,14 +966,15 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   changerText: {
     fontFamily: fonts.sans,
     fontSize: 13,
-    color: colors.jade400,
+    fontWeight: '600',
+    color: colors.jadeText,
   },
 
   // ── Divider ──
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: spacing.sp24,
+    marginTop: spacing.sp20,
     gap: spacing.sp8,
   },
   dividerLine: {
@@ -992,19 +994,20 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp16,
   },
   biometricCircle: {
-    width: sizing.touchTarget,
-    height: sizing.touchTarget,
+    width: 56,
+    height: 56,
     borderRadius: radius.rFull,
-    backgroundColor: colors.border,
+    backgroundColor: colors.jadeFaint,
     alignItems: 'center',
     justifyContent: 'center',
   },
   biometricLabel: {
     fontFamily: fonts.sans,
-    fontSize: 11,
+    fontSize: 12.5,
+    fontWeight: '500',
     color: colors.textTertiary,
     textAlign: 'center',
-    marginTop: spacing.sp6,
+    marginTop: spacing.sp8,
   },
 
   // ── Skeleton ──
