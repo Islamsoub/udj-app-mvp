@@ -107,7 +107,7 @@ export const lightColors: Palette = {
 
   // Semantic
   warning: '#F59E0B',
-  warningDeep: '#92400E',
+  warningDeep: '#8A5512',
   danger: '#EF4444',
   info: '#3B82F6',
   exam: '#8B5CF6',

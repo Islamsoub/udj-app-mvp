@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
 import { fonts, spacing, radius, sizing, withAlpha, colors, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
@@ -69,14 +70,16 @@ const STATE_LABELS: Record<LoginState, string> = {
 };
 
 // One-off RGBA values not expressible as opaque hex tokens in theme.ts
-const WHITE_12 = withAlpha(colors.white, 0.12);
-const WHITE_80 = withAlpha(colors.white, 0.8);
+// On-gradient: white blobs layered over jade hero gradient (#FFFFFF literal)
+const BLOB_1 = withAlpha('#FFFFFF', 0.07);
+const BLOB_2 = withAlpha('#FFFFFF', 0.06);
+const BLOB_3 = withAlpha('#FFFFFF', 0.05);
+const WHITE_78 = withAlpha('#FFFFFF', 0.78); // tagline on jade hero
 const WHITE_15 = withAlpha(colors.white, 0.15);
 const WHITE_40 = withAlpha(colors.white, 0.4);
 const WHITE_60 = withAlpha(colors.white, 0.6);
 const WARNING_15 = withAlpha(colors.warning, 0.15);
 const WARNING_12 = withAlpha(colors.warning, 0.12);
-const DANGER_08 = withAlpha(colors.danger, 0.08);
 const EXAM_12 = withAlpha(colors.exam, 0.12);
 const SKELETON_BG = withAlpha(colors.skeletonBox, 0.6);
 
@@ -94,6 +97,8 @@ export default function LoginScreen() {
   const [biometricVisible, setBiometricVisible] = useState(false);
   const [lastStudentName, setLastStudentName] = useState<string | null>(null);
   const [lastStudentId, setLastStudentId] = useState<string | null>(null);
+  const [studentIdFocused, setStudentIdFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const savedInitials = useMemo(() => {
     if (!lastStudentName) return '?';
@@ -317,21 +322,37 @@ export default function LoginScreen() {
   const showSubtitle = loginState === 'default';
   const inputsEditable = !isSubmitting && !isLocked && !isNetworkError;
 
-  const studentIdInputStyle = isError
-    ? { backgroundColor: DANGER_08, borderColor: colors.danger }
-    : { backgroundColor: colors.surface, borderColor: colors.jade600 };
+  const idleInputStyle = { backgroundColor: colors.surface, borderColor: colors.hair };
+  const focusedInputStyle = {
+    backgroundColor: colors.surface,
+    borderColor: colors.jade400,
+    shadowColor: colors.jade400,
+    shadowOffset: { width: 0, height: 0 },
+    shadowRadius: 4,
+    shadowOpacity: 0.15,
+    elevation: 2,
+  };
+  const errorInputStyle = { backgroundColor: colors.dangerBg, borderColor: colors.danger };
+  const disabledInputStyle = { backgroundColor: colors.sunken, borderColor: colors.hair };
 
-  const passwordInputStyle = isError
-    ? { backgroundColor: DANGER_08, borderColor: colors.danger }
-    : { backgroundColor: colors.jade50, borderColor: colors.skeletonBox };
+  const getInputStyle = (isFocused: boolean, editable = inputsEditable) => {
+    if (isError) return errorInputStyle;
+    if (!editable) return disabledInputStyle;
+    if (isFocused) return focusedInputStyle;
+    return idleInputStyle;
+  };
 
-  const buttonBg = isLocked ? colors.skeletonBox : colors.jade400;
-  const buttonTextGrey = isLocked;
+  const studentIdInputStyle = getInputStyle(studentIdFocused);
+  const passwordInputStyle = getInputStyle(passwordFocused);
+
   const buttonDisabled = isSubmitting || isLocked;
+  const buttonBg = isLocked ? colors.sunken : colors.jade400;
+  const showButtonShadow = !buttonDisabled;
+  const buttonTextGrey = isLocked;
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={colors.jade600} translucent={false} />
+      <StatusBar barStyle="light-content" backgroundColor={colors.jade400} translucent={false} />
 
       <KeyboardAwareScrollView
         style={styles.scroll}
@@ -341,8 +362,13 @@ export default function LoginScreen() {
         bounces={false}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── GREEN TOP BLOCK ── */}
-        <View style={styles.greenBlock}>
+        {/* ── HERO GRADIENT — #1D9E75 → #0B5544 at ~155° ── */}
+        <LinearGradient
+          colors={['#1D9E75', '#0B5544']}
+          start={{ x: 0.71, y: 0.05 }}
+          end={{ x: 0.29, y: 0.95 }}
+          style={styles.greenBlock}
+        >
           <View style={StyleSheet.absoluteFill}>
             <View style={styles.blob1} />
             <View style={styles.blob2} />
@@ -350,27 +376,27 @@ export default function LoginScreen() {
           </View>
 
           {isSkeleton ? (
-            <Animated.View style={[styles.greenContent, { opacity: pulseAnim }]}>
+            <Animated.View style={[styles.greenContent, { opacity: pulseAnim, paddingTop: insets.top + 26, paddingBottom: 56 }]}>
               <View style={[styles.skeletonBox, { width: 87, height: 81, borderRadius: 14 }]} />
               <View style={[styles.skeletonBox, { width: 158, height: 20, borderRadius: 18, marginTop: 12 }]} />
               <View style={[styles.skeletonBox, { width: 207, height: 20, borderRadius: 18, marginTop: 8 }]} />
             </Animated.View>
           ) : (
-            <View style={styles.greenContent}>
+            <View style={[styles.greenContent, { paddingTop: insets.top + 26, paddingBottom: 56 }]}>
               <LogoSVG width={63} height={92} />
-              <Text style={styles.greenTitle}>{t('auth.universityName')}</Text>
+              <Text style={styles.greenTitle} numberOfLines={1}>{t('auth.universityName')}</Text>
               {showSubtitle && (
                 <Text style={styles.greenSubtitle}>{t('auth.subtitle')}</Text>
               )}
             </View>
           )}
-        </View>
+        </LinearGradient>
 
         {/* ── OFFLINE BANNER (network-error only) ── */}
         <OfflineBanner />
 
-        {/* ── WHITE BODY ── */}
-        <View style={styles.body}>
+        {/* ── FORM SHEET ── */}
+        <View style={[styles.body, { paddingBottom: Math.max(96, insets.bottom + 48) }]}>
 
           {/* ── SKELETON BODY ── */}
           {isSkeleton && (
@@ -446,6 +472,8 @@ export default function LoginScreen() {
                     autoCapitalize="characters"
                     returnKeyType="next"
                     onSubmitEditing={() => passwordRef.current?.focus()}
+                    onFocus={() => setStudentIdFocused(true)}
+                    onBlur={() => setStudentIdFocused(false)}
                     editable={inputsEditable}
                   />
                 </View>
@@ -456,7 +484,7 @@ export default function LoginScreen() {
                 <View style={styles.inputGroup}>
                   <Text style={styles.inputLabel}>{t('auth.password')}</Text>
                   <TextInput
-                    style={[styles.textInput, styles.monoInput, styles.textInputDisabled]}
+                    style={[styles.textInput, styles.passwordInput, styles.textInputDisabled]}
                     placeholder="••••••••"
                     placeholderTextColor={colors.textTertiary}
                     editable={false}
@@ -470,7 +498,7 @@ export default function LoginScreen() {
                   <Text style={styles.inputLabel}>{t('auth.password')}</Text>
                   <TextInput
                     ref={passwordRef}
-                    style={[styles.textInput, passwordInputStyle]}
+                    style={[styles.textInput, styles.passwordInput, passwordInputStyle]}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry
@@ -478,6 +506,8 @@ export default function LoginScreen() {
                     placeholderTextColor={colors.textTertiary}
                     returnKeyType="go"
                     onSubmitEditing={loginHandler}
+                    onFocus={() => setPasswordFocused(true)}
+                    onBlur={() => setPasswordFocused(false)}
                     editable={inputsEditable}
                   />
                 </View>
@@ -489,7 +519,7 @@ export default function LoginScreen() {
                   <Text style={styles.inputLabel}>{t('auth.password')}</Text>
                   <TextInput
                     ref={passwordRef}
-                    style={[styles.textInput, { backgroundColor: colors.surface, borderColor: colors.jade600 }]}
+                    style={[styles.textInput, styles.passwordInput, getInputStyle(passwordFocused, true)]}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry
@@ -497,6 +527,8 @@ export default function LoginScreen() {
                     placeholderTextColor={colors.textTertiary}
                     returnKeyType="go"
                     onSubmitEditing={loginHandler}
+                    onFocus={() => setPasswordFocused(true)}
+                    onBlur={() => setPasswordFocused(false)}
                     editable
                   />
                 </View>
@@ -521,13 +553,18 @@ export default function LoginScreen() {
 
               {/* ── PRIMARY BUTTON ── */}
               <Pressable
-                style={({ pressed }) => [styles.loginButton, { backgroundColor: buttonBg }, pressed && !buttonDisabled && { backgroundColor: colors.jade600 }]}
+                style={({ pressed }) => [
+                  styles.loginButton,
+                  { backgroundColor: buttonBg },
+                  showButtonShadow && styles.loginButtonShadow,
+                  pressed && !buttonDisabled && { backgroundColor: colors.jade600 },
+                ]}
                 onPress={isNetworkError ? () => setLoginState('default') : loginHandler}
                 disabled={buttonDisabled}
                 hitSlop={8}
               >
                 {isSubmitting ? (
-                  <ActivityIndicator color={colors.surface} />
+                  <ActivityIndicator size={22} color={colors.surface} />
                 ) : (
                   <Text style={[styles.loginButtonText, buttonTextGrey && styles.loginButtonTextGrey]}>
                     {isError || isNetworkError ? t('common.retry') : t('auth.login')}
@@ -606,12 +643,9 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingBottom: spacing.sp64,
   },
 
-  // ── Green block ──
+  // ── Hero gradient block ──
   greenBlock: {
-    height: 277,
-    backgroundColor: colors.jade600,
     overflow: 'hidden',
-    justifyContent: 'center',
     alignItems: 'center',
   },
   blob1: {
@@ -619,7 +653,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: WHITE_12,
+    backgroundColor: BLOB_1,
     top: -40,
     start: -40,
   },
@@ -628,7 +662,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 220,
     height: 220,
     borderRadius: 110,
-    backgroundColor: WHITE_12,
+    backgroundColor: BLOB_2,
     top: -60,
     end: -50,
   },
@@ -637,7 +671,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: WHITE_12,
+    backgroundColor: BLOB_3,
     bottom: -40,
     start: 60,
   },
@@ -647,24 +681,38 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   greenTitle: {
     fontFamily: fonts.sans,
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.surface,
+    fontSize: 21,
+    fontWeight: '800',
+    color: '#FFFFFF', // on-gradient literal
+    letterSpacing: -0.4,
     textAlign: 'center',
-    marginTop: spacing.sp12,
+    marginTop: 18,
   },
   greenSubtitle: {
     fontFamily: fonts.sans,
-    fontSize: 13,
-    color: WHITE_80,
+    fontSize: 14,
+    fontWeight: '500',
+    color: WHITE_78,
     textAlign: 'center',
-    marginTop: spacing.sp4,
+    marginTop: spacing.sp6,
   },
 
-  // ── Body ──
+  // ── Form sheet ──
   body: {
-    paddingHorizontal: spacing.sp20,
-    paddingTop: spacing.sp24,
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: 30, // design constant: login sheet radius
+    borderTopRightRadius: 30, // design constant: login sheet radius
+    marginTop: -28,
+    // upward lift shadow
+    shadowColor: '#101614',
+    shadowOffset: { width: 0, height: -10 },
+    shadowRadius: 30,
+    shadowOpacity: 0.07,
+    elevation: 8,
+    paddingHorizontal: 22,
+    paddingTop: 28,
+    flex: 1,
+    minHeight: 400,
   },
 
   // ── Inputs ──
@@ -679,34 +727,48 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginBottom: spacing.sp6,
   },
   textInput: {
-    height: spacing.sp48,
-    borderRadius: radius.rLg,
-    borderWidth: 1,
+    height: 54, // design constant: input height
+    borderRadius: radius.rBtn, // 14
+    borderWidth: 1.5,
     paddingHorizontal: spacing.sp16,
     fontFamily: fonts.sans,
-    fontSize: 14,
+    fontSize: 15,
     color: colors.textPrimary,
   },
   monoInput: {
     fontFamily: fonts.mono,
+    fontSize: 15,
+    letterSpacing: 0.5,
+  },
+  passwordInput: {
+    fontSize: 15.5,
+    letterSpacing: 3,
   },
   textInputDisabled: {
-    backgroundColor: colors.skeletonBox,
-    borderColor: colors.skeletonBox,
+    backgroundColor: colors.sunken,
+    borderColor: colors.hair,
+    color: colors.textTertiary,
   },
   // ── Login button ──
   loginButton: {
-    height: 50,
-    borderRadius: radius.rBtn,
+    height: 56,
+    borderRadius: 16, // login CTA radius
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.sp8,
-    minHeight: sizing.touchTarget,
+  },
+  loginButtonShadow: {
+    // jade glow — login CTA only
+    shadowColor: '#0F6E56',
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 20,
+    shadowOpacity: 0.28,
+    elevation: 6,
   },
   loginButtonText: {
     fontFamily: fonts.sans,
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: colors.surface,
   },
   loginButtonTextGrey: {
@@ -956,8 +1018,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginBottom: spacing.sp6,
   },
   skeletonInput: {
-    height: spacing.sp48,
-    borderRadius: radius.rLg,
+    height: 54,
+    borderRadius: radius.rBtn,
     marginBottom: spacing.sp4,
   },
   skeletonButton: {
