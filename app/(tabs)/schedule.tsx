@@ -554,7 +554,7 @@ export default function ScheduleScreen() {
               />
             )}
 
-            <View style={{ height: (__DEV__ ? 100 : 56) + insets.bottom }} />
+            <View style={{ height: (__DEV__ ? 132 : 88) + insets.bottom }} />
           </Animated.View>
         </ScrollView>
       </GestureDetector>

@@ -450,7 +450,7 @@ export default function ProfileScreen() {
         )}
         {profileState === 'incomplete' && <IncompleteBody styles={styles} />}
 
-        <View style={{ height: 56 + insets.bottom }} />
+        <View style={{ height: 88 + insets.bottom }} />
       </ScrollView>
 
       <SessionExpiredModal

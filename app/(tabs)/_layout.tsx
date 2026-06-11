@@ -1,93 +1,146 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, Pressable, StyleSheet, I18nManager } from 'react-native';
 import { Tabs } from 'expo-router';
-import { useTranslation } from 'react-i18next';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { Ionicons } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
-import { spacing } from '@/constants/theme';
+import { radius, elevation, spacing, withAlpha } from '@/constants/theme';
 
-const HomeIcon = (require('../../assets/icons/home.svg') as { default: React.FC<{ width: number; height: number; color?: string }> }).default;
-const AgendaIcon = (require('../../assets/icons/agenda.svg') as { default: React.FC<{ width: number; height: number; color?: string }> }).default;
-const NotesIcon = (require('../../assets/icons/notes.svg') as { default: React.FC<{ width: number; height: number; color?: string }> }).default;
-const ActusIcon = (require('../../assets/icons/actus.svg') as { default: React.FC<{ width: number; height: number; color?: string }> }).default;
-const ProfileIcon = (require('../../assets/icons/profile.svg') as { default: React.FC<{ width: number; height: number; color?: string }> }).default;
+type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
-export default function TabsLayout() {
-  const { t } = useTranslation();
-  const { colors } = useColors();
+const TAB_CONFIG: Record<string, { inactive: IoniconName; active: IoniconName }> = {
+  home:     { inactive: 'home-outline',      active: 'home' },
+  schedule: { inactive: 'calendar-outline',  active: 'calendar' },
+  grades:   { inactive: 'reader-outline',    active: 'reader' },
+  news:     { inactive: 'newspaper-outline', active: 'newspaper' },
+  profile:  { inactive: 'person-outline',    active: 'person' },
+};
+
+function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useColors();
 
-  const tabs = [
-    { name: 'home', title: t('tabs.home'), Icon: HomeIcon, iconW: 28, iconH: 28 },
-    { name: 'schedule', title: t('tabs.schedule'), Icon: AgendaIcon, iconW: 24, iconH: 24 },
-    { name: 'grades', title: t('tabs.grades'), Icon: NotesIcon, iconW: 28, iconH: 28 },
-    { name: 'news', title: t('tabs.news'), Icon: ActusIcon, iconW: 24, iconH: 24 },
-    { name: 'profile', title: t('tabs.profile'), Icon: ProfileIcon, iconW: 24, iconH: 24 },
-  ];
-
-  const orderedTabs = tabs;
-
-  const tabBarStyle = useMemo(() => ({
-    height: 56 + insets.bottom,
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    paddingBottom: insets.bottom,
-    paddingTop: spacing.sp6,
-  }), [colors, insets.bottom]);
+  const shadowStyle = isDark
+    ? {
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.55,
+        shadowRadius: 24,
+        elevation: 8,
+        borderWidth: 1,
+        borderColor: colors.hair,
+      }
+    : elevation.navFloat; // navShadow
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle,
-        tabBarActiveTintColor: colors.jadePrimary,
-        tabBarInactiveTintColor: colors.textSecondary,
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontFamily: 'PlusJakartaSans',
-          fontWeight: '500',
-          marginTop: 0,
+    <View
+      style={[
+        styles.bar,
+        {
+          bottom: spacing.sp14 + insets.bottom,
+          backgroundColor: colors.surface,
         },
-      }}
+        shadowStyle,
+      ]}
     >
-      {orderedTabs.map((tab) => (
-        <Tabs.Screen
-          key={tab.name}
-          name={tab.name}
-          options={{
-            title: tab.title,
-            tabBarLabel: ({ focused }) => (
-              <Text
+      {state.routes.map((route, index) => {
+        const isFocused = state.index === index;
+        const config = TAB_CONFIG[route.name];
+        if (!config) return null;
+
+        const onPress = () => {
+          const event = navigation.emit({
+            type: 'tabPress',
+            target: route.key,
+            canPreventDefault: true,
+          });
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name as never);
+          }
+        };
+
+        return (
+          <Pressable
+            key={route.key}
+            onPress={onPress}
+            style={styles.cell}
+            accessibilityRole="button"
+            accessibilityState={isFocused ? { selected: true } : {}}
+          >
+            <View
+              style={[
+                styles.pill,
+                isFocused && { backgroundColor: colors.jade400 },
+              ]}
+            >
+              <Ionicons
+                name={isFocused ? config.active : config.inactive}
+                size={22}
+                // on-jade white for active; textSecondary for inactive
+                color={isFocused ? '#FFFFFF' : colors.textSecondary}
+              />
+              {/* 4px dot — invisible spacer when inactive, keeps icon vertically centered */}
+              <View
                 style={[
-                  styles.tabLabel,
-                  { color: focused ? colors.jadePrimary : colors.textSecondary },
-                  focused && styles.tabLabelActive,
+                  styles.dot,
+                  {
+                    backgroundColor: isFocused
+                      ? withAlpha('#FFFFFF', 0.9) // on-jade white dot
+                      : 'transparent',
+                  },
                 ]}
-              >
-                {tab.title}
-              </Text>
-            ),
-            tabBarIcon: ({ color }) => (
-              <View style={{ width: tab.iconW, height: tab.iconH, overflow: 'hidden' }}>
-                <tab.Icon width={tab.iconW} height={tab.iconH} color={color} />
-              </View>
-            ),
-          }}
-        />
-      ))}
+              />
+            </View>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+export default function TabsLayout() {
+  return (
+    <Tabs
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <FloatingTabBar {...props} />}
+    >
+      <Tabs.Screen name="home" />
+      <Tabs.Screen name="schedule" />
+      <Tabs.Screen name="grades" />
+      <Tabs.Screen name="news" />
+      <Tabs.Screen name="profile" />
     </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
-  tabLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    marginTop: spacing.sp2,
+  bar: {
+    position: 'absolute',
+    left: spacing.sp14,
+    right: spacing.sp14,
+    height: 60,
+    borderRadius: radius.rHero, // 22
+    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    alignItems: 'center',
   },
-  tabLabelActive: {
-    fontWeight: '700',
+  cell: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 60,
+  },
+  pill: {
+    width: 46,
+    height: 46,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: radius.rFull,
   },
 });

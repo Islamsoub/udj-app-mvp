@@ -297,7 +297,7 @@ export default function NewsScreen() {
           <ErrorBody onRetry={() => hook.refetch()} />
         )}
 
-        <View style={{ height: 56 + insets.bottom }} />
+        <View style={{ height: 88 + insets.bottom }} />
       </ScrollView>
 
       <SessionExpiredModal
