@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
-import { MAX_ABSENCE_RATE, WARN_BUFFER } from '@/constants/attendance';
+import { BADGE_REGULAR_PCT, BADGE_WARNING_PCT, MAX_ABSENCE_RATE, WARN_BUFFER } from '@/constants/attendance';
 
 interface AttendanceCardProps {
   name: string;
@@ -16,13 +16,9 @@ interface AttendanceCardProps {
 
 type Level = 'ok' | 'warn' | 'danger';
 
-function getLevel(attended: number, total: number): Level {
-  if (total === 0 || attended === total) return 'ok';
-  const absent = total - attended;
-  const maxAbsences = Math.floor(total * MAX_ABSENCE_RATE);
-  const remaining = maxAbsences - absent;
-  if (remaining > WARN_BUFFER) return 'ok';
-  if (remaining > 0) return 'warn';
+function getLevel(percentage: number): Level {
+  if (percentage >= BADGE_REGULAR_PCT) return 'ok';
+  if (percentage >= BADGE_WARNING_PCT) return 'warn';
   return 'danger';
 }
 
@@ -32,14 +28,16 @@ function getLevelColor(level: Level, colors: Palette): string {
   return colors.danger;
 }
 
-function computeProjection(attended: number, total: number, t: TFunction): string {
-  if (total === 0 || attended === total) return t('presence.proj_perfect');
+function computeProjection(attended: number, total: number, percentage: number, t: TFunction): { text: string; level: Level } {
   const absent = total - attended;
   const maxAbsences = Math.floor(total * MAX_ABSENCE_RATE);
   const remaining = maxAbsences - absent;
-  if (remaining > WARN_BUFFER) return t('presence.proj_ok', { remaining });
-  if (remaining > 0) return t('presence.proj_warn', { remaining });
-  return t('presence.proj_danger');
+  const level = getLevel(percentage);
+
+  if (attended === total) return { text: t('presence.proj_perfect'), level: 'ok' };
+  if (remaining > WARN_BUFFER) return { text: t('presence.proj_ok', { remaining }), level };
+  if (remaining > 0) return { text: t('presence.proj_warn', { remaining }), level };
+  return { text: t('presence.proj_danger'), level };
 }
 
 export function AttendanceCard({ name, percentage, attended, total }: AttendanceCardProps) {
@@ -47,10 +45,10 @@ export function AttendanceCard({ name, percentage, attended, total }: Attendance
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
-  const level = useMemo(() => getLevel(attended, total), [attended, total]);
+  const level = useMemo(() => getLevel(percentage), [percentage]);
   const levelColor = getLevelColor(level, colors);
-  const projection = useMemo(() => computeProjection(attended, total, t), [attended, total, t]);
-  const projWeight: '400' | '600' = level === 'ok' ? '400' : '600';
+  const projection = useMemo(() => computeProjection(attended, total, percentage, t), [attended, total, percentage, t]);
+  const projWeight: '400' | '600' = projection.level === 'ok' ? '400' : '600';
 
   return (
     <View style={styles.card}>
@@ -79,7 +77,7 @@ export function AttendanceCard({ name, percentage, attended, total }: Attendance
           <Ionicons name="warning-outline" size={13} color={levelColor} />
         )}
         <Text style={[styles.projectionText, { color: level === 'ok' ? colors.textTertiary : levelColor, fontWeight: projWeight }]}>
-          {projection}
+          {projection.text}
         </Text>
       </View>
     </View>

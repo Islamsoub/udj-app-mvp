@@ -95,7 +95,7 @@ export async function runMigrations(): Promise<void> {
         subject_code TEXT NOT NULL,
         sessions_total INTEGER NOT NULL,
         sessions_present INTEGER NOT NULL,
-        threshold REAL NOT NULL DEFAULT 0.75,
+        threshold REAL NOT NULL DEFAULT 0.85,
         cached_at TEXT NOT NULL
       );
 
