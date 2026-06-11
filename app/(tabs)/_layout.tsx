@@ -3,18 +3,23 @@ import { View, Pressable, StyleSheet, I18nManager } from 'react-native';
 import { Tabs } from 'expo-router';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import type { SvgProps } from 'react-native-svg';
 import { useColors } from '@/hooks/useColors';
 import { radius, elevation, spacing, withAlpha } from '@/constants/theme';
+import TabHome from '@/assets/icons/tab-home.svg';
+import TabAgenda from '@/assets/icons/tab-agenda.svg';
+import TabNotes from '@/assets/icons/tab-notes.svg';
+import TabActus from '@/assets/icons/tab-actus.svg';
+import TabProfile from '@/assets/icons/tab-profile.svg';
 
-type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
+type TabName = 'home' | 'schedule' | 'grades' | 'news' | 'profile';
 
-const TAB_CONFIG: Record<string, { inactive: IoniconName; active: IoniconName }> = {
-  home:     { inactive: 'home-outline',      active: 'home' },
-  schedule: { inactive: 'calendar-outline',  active: 'calendar' },
-  grades:   { inactive: 'reader-outline',    active: 'reader' },
-  news:     { inactive: 'newspaper-outline', active: 'newspaper' },
-  profile:  { inactive: 'person-outline',    active: 'person' },
+const SVG_CONFIG: Record<TabName, React.FC<SvgProps>> = {
+  home:     TabHome,
+  schedule: TabAgenda,
+  grades:   TabNotes,
+  news:     TabActus,
+  profile:  TabProfile,
 };
 
 function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
@@ -31,7 +36,7 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
         borderWidth: 1,
         borderColor: colors.hair,
       }
-    : elevation.navFloat; // navShadow
+    : elevation.navFloat;
 
   return (
     <View
@@ -46,8 +51,10 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
     >
       {state.routes.map((route, index) => {
         const isFocused = state.index === index;
-        const config = TAB_CONFIG[route.name];
+        const config = SVG_CONFIG[route.name as TabName];
         if (!config) return null;
+
+        const Component = config;
 
         const onPress = () => {
           const event = navigation.emit({
@@ -74,10 +81,9 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
                 isFocused && { backgroundColor: colors.jade400 },
               ]}
             >
-              <Ionicons
-                name={isFocused ? config.active : config.inactive}
-                size={22}
-                // on-jade white for active; textSecondary for inactive
+              <Component
+                width={24}
+                height={24}
                 color={isFocused ? '#FFFFFF' : colors.textSecondary}
               />
               {/* 4px dot — invisible spacer when inactive, keeps icon vertically centered */}
