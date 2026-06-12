@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, lightColors, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, lightColors, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface OptionRowProps {
@@ -69,13 +69,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginEnd: spacing.sp12,
   },
   label: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,

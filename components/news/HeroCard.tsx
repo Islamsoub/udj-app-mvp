@@ -3,7 +3,7 @@ import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { elevation, fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { getNewsCategoryColors } from '@/constants/colorMap';
 
@@ -119,12 +119,12 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     padding: spacing.sp12,
   },
   titleOnImage: {
-    fontSize: 17,
+    fontSize: fz(17),
     fontWeight: '700',
     fontFamily: fonts.sans,
     // on-image literal — white text over dark scrim
     color: '#FFFFFF',
-    lineHeight: 22,
+    lineHeight: fz(22),
   },
   imagePlaceholder: {
     flex: 1,
@@ -152,7 +152,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.danger,
   },
   urgentLabel: {
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.danger,
@@ -167,7 +167,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingHorizontal: spacing.sp8,
   },
   categoryPillText: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '600',
     fontFamily: fonts.sans,
   },
@@ -176,14 +176,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     padding: spacing.sp12,
   },
   titleInFooter: {
-    fontSize: 17,
+    fontSize: fz(17),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
-    lineHeight: 22,
+    lineHeight: fz(22),
   },
   meta: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textTertiary,

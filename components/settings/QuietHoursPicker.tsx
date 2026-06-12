@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import ScrollPicker from 'react-native-wheel-scrollview-picker';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsSheet } from './SettingsSheet';
 
@@ -131,7 +131,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   columnLabel: {
     flex: 1,
-    fontSize: 11,
+    fontSize: fz(11),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.greyMedium,
@@ -159,7 +159,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'center',
   },
   separator: {
-    fontSize: 24,
+    fontSize: fz(24),
     fontFamily: fonts.mono,
     color: colors.greyMedium,
   },
@@ -169,13 +169,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     textAlign: 'center',
   },
   wheelItemSelected: {
-    fontSize: 20,
+    fontSize: fz(20),
     fontWeight: '700',
     color: colors.textPrimary,
     opacity: 1,
   },
   wheelItemUnselected: {
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '400',
     color: colors.greyMedium,
     opacity: 0.4,
@@ -199,7 +199,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderColor: colors.border,
   },
   btnOutlineText: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -208,7 +208,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.jade400,
   },
   btnPrimaryText: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.surface,

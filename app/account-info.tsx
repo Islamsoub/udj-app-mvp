@@ -9,7 +9,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { elevation, fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
 import { useAuthStore } from '@/stores/authStore';
@@ -67,13 +67,13 @@ const makeInfoStyles = (colors: Palette) => StyleSheet.create({
   },
   label: {
     flex: 1,
-    fontSize: 15.5,
+    fontSize: fz(15.5),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
   },
   value: {
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
@@ -226,7 +226,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.scheduleBorder,
   },
   name: {
-    fontSize: 18,
+    fontSize: fz(18),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -234,7 +234,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp12,
   },
   studentId: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400',
     fontFamily: fonts.mono,
     color: colors.textSecondary,
@@ -246,7 +246,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: 22,
     marginBottom: 9,
     marginHorizontal: spacing.sp20,
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textSecondary,

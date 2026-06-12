@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { elevation, fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
 import { getCacheStats, clearAllCache, clearTableCache, type CacheStat } from '@/services/db';
@@ -103,13 +103,13 @@ const makeRowStyles = (colors: Palette) =>
       marginStart: spacing.sp12,
     },
     name: {
-      fontSize: 14,
+      fontSize: fz(14),
       fontWeight: '500',
       fontFamily: fonts.sans,
       color: colors.textPrimary,
     },
     meta: {
-      fontSize: 12,
+      fontSize: fz(12),
       fontFamily: fonts.mono,
       fontWeight: '400',
       color: colors.textSecondary,
@@ -263,14 +263,14 @@ const makeStyles = (colors: Palette) =>
       padding: spacing.sp16,
     },
     totalLabel: {
-      fontSize: 13,
+      fontSize: fz(13),
       fontWeight: '600',
       fontFamily: fonts.sans,
       color: colors.textSecondary,
       letterSpacing: 0.3,
     },
     totalValue: {
-      fontSize: 32,
+      fontSize: fz(32),
       fontWeight: '700',
       fontFamily: fonts.mono,
       color: colors.textPrimary,
@@ -281,7 +281,7 @@ const makeStyles = (colors: Palette) =>
       marginTop: 22,
       marginBottom: 9,
       marginHorizontal: spacing.sp20,
-      fontSize: 13,
+      fontSize: fz(13),
       fontWeight: '600',
       fontFamily: fonts.sans,
       color: colors.textSecondary,
@@ -305,7 +305,7 @@ const makeStyles = (colors: Palette) =>
       justifyContent: 'center',
     },
     clearAllText: {
-      fontSize: 14,
+      fontSize: fz(14),
       fontWeight: '700',
       fontFamily: fonts.sans,
       color: colors.surface,

@@ -14,7 +14,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { elevation, fonts, radius, spacing, fz, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
@@ -492,7 +492,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: 22,
     marginBottom: 9,
     marginHorizontal: spacing.sp20,
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
@@ -527,7 +527,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingBottom: 40,
   },
   stateTitle: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -535,12 +535,12 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp24,
   },
   stateBody: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontFamily: fonts.sans,
     color: colors.textPrimary,
     textAlign: 'center',
     maxWidth: 218,
-    lineHeight: 22,
+    lineHeight: fz(22),
     marginTop: spacing.sp16,
   },
 
@@ -564,7 +564,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     alignSelf: 'center',
   },
   retryBtnText: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.surface,
@@ -582,14 +582,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     gap: spacing.sp4,
   },
   qrBannerTitle: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.jade600,
     textAlign: 'center',
   },
   qrBannerSubtitle: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontFamily: fonts.sans,
     color: colors.jade600,
     textAlign: 'center',
@@ -621,7 +621,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingHorizontal: spacing.sp16,
   },
   validatedBannerText: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.jade600,
@@ -642,10 +642,10 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   pendingBannerText: {
     flex: 1,
-    fontSize: 12,
+    fontSize: fz(12),
     fontFamily: fonts.sans,
     color: colors.danger,
-    lineHeight: 18,
+    lineHeight: fz(18),
   },
 });
 
@@ -668,7 +668,7 @@ const makeTileStyles = (colors: Palette) => StyleSheet.create({
   },
   tileLabel: {
     marginTop: spacing.sp8,
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textPrimary,

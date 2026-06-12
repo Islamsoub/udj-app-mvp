@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { toArabicNumerals } from '@/utils/dateFormat';
 
@@ -181,7 +181,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   weekLabel: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -196,7 +196,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'center',
   },
   todayPillText: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.jadeText,
@@ -231,14 +231,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   abbrev: {
     // 12.5px: Figma design constant for day-cell label
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textTertiary,
   },
   dateNum: {
     // 17px DM Mono: Figma design constant for day-cell date number
-    fontSize: 17,
+    fontSize: fz(17),
     fontWeight: '500',
     fontFamily: fonts.mono,
     color: colors.textPrimary,

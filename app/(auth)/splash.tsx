@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, lightColors, radius, spacing, withAlpha, colors, type Palette } from '@/constants/theme';
+import { fonts, lightColors, radius, spacing, withAlpha, colors, fz, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { restoreSession } from '@/services/auth';
 import api from '@/services/api';
@@ -277,7 +277,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   logoText: {
     fontFamily: fonts.sans,
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '600',
     color: BRAND_FG,
     marginTop: -18,
@@ -293,7 +293,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   stateBoldText: {
     color: BRAND_FG,
     fontFamily: fonts.sans,
-    fontSize: 18,
+    fontSize: fz(18),
     fontWeight: '700',
     marginTop: spacing.sp20,
     textAlign: 'center',
@@ -301,8 +301,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   stateBodyText: {
     color: WHITE_70,
     fontFamily: fonts.sans,
-    fontSize: 14,
-    lineHeight: 22,
+    fontSize: fz(14),
+    lineHeight: fz(22),
     textAlign: 'center',
     marginTop: spacing.sp8,
   },
@@ -339,7 +339,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   primaryButtonText: {
     color: BRAND_FG,
     fontFamily: fonts.sans,
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '700',
   },
   // Outline button (maintenance)
@@ -357,14 +357,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   outlineButtonText: {
     color: BRAND_FG,
     fontFamily: fonts.sans,
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '700',
   },
   // First install
   welcomeHeading: {
     color: BRAND_FG,
     fontFamily: fonts.sans,
-    fontSize: 26,
+    fontSize: fz(26),
     fontWeight: '800',
     marginTop: spacing.sp32,
     textAlign: 'center',
@@ -372,8 +372,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   welcomeSubtitle: {
     color: WHITE_80,
     fontFamily: fonts.sans,
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: fz(15),
+    lineHeight: fz(22),
     textAlign: 'center',
     marginTop: spacing.sp8,
   },
@@ -393,7 +393,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   featureText: {
     color: BRAND_FG,
     fontFamily: fonts.sans,
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '500',
     flex: 1,
   },
@@ -403,7 +403,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   firstInstallCaption: {
     color: WHITE_40,
     fontFamily: fonts.sans,
-    fontSize: 11,
+    fontSize: fz(11),
     marginTop: spacing.sp8,
     textAlign: 'center',
   },
@@ -433,20 +433,20 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   versionBoxLabel: {
     color: WHITE_60,
     fontFamily: fonts.mono,
-    fontSize: 9,
+    fontSize: fz(9),
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
   versionBoxNumber: {
     color: BRAND_FG,
     fontFamily: fonts.mono,
-    fontSize: 18,
+    fontSize: fz(18),
     fontWeight: '700',
     marginTop: spacing.sp4,
   },
   versionArrow: {
     color: BRAND_FG,
-    fontSize: 20,
+    fontSize: fz(20),
   },
   updateButton: {
     marginTop: spacing.sp24,
@@ -472,7 +472,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     top: 705,
     alignSelf: 'center',
     fontFamily: fonts.sans,
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '600',
     color: WHITE_60,
   },
@@ -483,6 +483,6 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     end: spacing.sp16,
     color: WHITE_60,
     fontFamily: fonts.mono,
-    fontSize: 10,
+    fontSize: fz(10),
   },
 });

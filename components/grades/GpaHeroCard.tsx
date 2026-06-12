@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, withAlpha } from '@/constants/theme';
+import { fonts, fz, radius, spacing, withAlpha } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { getMention, mentionColor } from '@/utils/gradesMention';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     end: 18,
   },
   heroLabel: {
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: withAlpha('#FFFFFF', 0.78), // on-gradient literal
@@ -137,16 +137,16 @@ const styles = StyleSheet.create({
     gap: spacing.sp4,
   },
   gpaValue: {
-    fontSize: 42,
+    fontSize: fz(42),
     fontFamily: fonts.mono,
     color: '#FFFFFF', // on-gradient literal
-    lineHeight: 46,
+    lineHeight: fz(46),
   },
   gpaSuffix: {
-    fontSize: 17,
+    fontSize: fz(17),
     fontFamily: fonts.mono,
     color: withAlpha('#FFFFFF', 0.70), // on-gradient literal
-    lineHeight: 22,
+    lineHeight: fz(22),
     marginBottom: 6,
   },
   mentionBadge: {
@@ -166,13 +166,13 @@ const styles = StyleSheet.create({
     borderRadius: radius.rFull,
   },
   mentionText: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: '#FFFFFF', // on-gradient literal
   },
   creditsLabel: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: withAlpha('#FFFFFF', 0.85), // on-gradient literal

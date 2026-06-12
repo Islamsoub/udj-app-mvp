@@ -12,7 +12,7 @@ import * as Updates from 'expo-updates';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { elevation, fonts, spacing, radius, type Palette } from '@/constants/theme';
+import { elevation, fonts, fz, spacing, radius, type Palette } from '@/constants/theme';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -402,7 +402,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: 22,
     marginBottom: 9,
     marginHorizontal: spacing.sp20,
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
@@ -424,7 +424,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingHorizontal: spacing.sp24,
   },
   errorTitle: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -440,7 +440,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: 48,
   },
   retryBtnText: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.surface,

@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, withAlpha, sizing, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, spacing, withAlpha, sizing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { getNewsCategoryColors } from '@/constants/colorMap';
 import { ArticleReaderHeader } from '@/components/news/ArticleReaderHeader';
@@ -402,7 +402,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingHorizontal: spacing.sp16,
   },
   offlineBannerText: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontFamily: fonts.sans,
     color: colors.danger,
   },
@@ -424,7 +424,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   heroLabelText: {
     color: colors.surface,
-    fontSize: 11,
+    fontSize: fz(11),
     fontWeight: '600',
     fontFamily: fonts.sans,
   },
@@ -451,27 +451,27 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp16,
   },
   categoryText: {
-    fontSize: 11,
+    fontSize: fz(11),
     fontWeight: '700',
     fontFamily: fonts.sans,
     letterSpacing: 0.5,
   },
   date: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontFamily: fonts.mono,
     color: colors.greyMedium,
     marginTop: spacing.sp8,
   },
   title: {
-    fontSize: 22,
+    fontSize: fz(22),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
-    lineHeight: 30,
+    lineHeight: fz(30),
     marginTop: spacing.sp12,
   },
   author: {
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.greyMedium,
@@ -483,11 +483,11 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginVertical: spacing.sp20,
   },
   bodyParagraph: {
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
-    lineHeight: 24,
+    lineHeight: fz(24),
     marginBottom: spacing.sp16,
   },
 
@@ -512,7 +512,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'center',
   },
   errorTitle: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -520,13 +520,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp24,
   },
   errorBodyText: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
     textAlign: 'center',
     maxWidth: 240,
-    lineHeight: 22,
+    lineHeight: fz(22),
     marginTop: spacing.sp16,
   },
   retryBtn: {
@@ -539,7 +539,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: 48,
   },
   retryBtnText: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.surface,
@@ -572,7 +572,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     gap: spacing.sp8,
   },
   shareBtnText: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.surface,

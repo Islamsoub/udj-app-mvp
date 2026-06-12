@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet, I18nManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -106,13 +106,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   label: {
     flexShrink: 0,
     flexBasis: 'auto',
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '500',
     fontFamily: fonts.sans,
   },
   value: {
     flex: 1,
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textSecondary,

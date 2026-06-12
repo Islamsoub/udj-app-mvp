@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { elevation, fonts, radius, spacing, HEADER_PAD, type Palette } from '@/constants/theme';
+import { elevation, fonts, fz, radius, spacing, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export type ProfileHeaderState =
@@ -53,7 +53,7 @@ const makeStyles = (colors: Palette, isAr: boolean) => StyleSheet.create({
     paddingBottom: spacing.sp12,
   },
   title: {
-    fontSize: isAr ? 26 : 24,
+    fontSize: isAr ? fz(26) : fz(24),
     fontWeight: '800',
     fontFamily: isAr ? fonts.arabic : fonts.sans,
     color: colors.textPrimary,

@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { elevation, fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { getNewsCategoryColors } from '@/constants/colorMap';
 import { toggleNewsBookmark } from '@/services/db';
@@ -142,7 +142,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'center',
   },
   categoryText: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '600',
     fontFamily: fonts.sans,
   },
@@ -158,18 +158,18 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.jade400,
   },
   timestamp: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textTertiary,
   },
 
   title: {
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
-    lineHeight: 21,
+    lineHeight: fz(21),
     marginTop: spacing.sp6,
   },
 
@@ -180,7 +180,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp8,
   },
   readTime: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textTertiary,

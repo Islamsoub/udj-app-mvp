@@ -6,7 +6,7 @@ import QRCode from 'react-native-qrcode-svg';
 import Svg, { Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { fonts, lightColors, radius, sizing, spacing, elevation, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, lightColors, radius, sizing, spacing, elevation, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 // White text/strokes sit on the jade gradient — must stay white in both themes.
@@ -244,7 +244,7 @@ const makeStyles = (colors: Palette, cardTextDim: string) => StyleSheet.create({
     flexShrink: 0,
   },
   avatarInitials: {
-    fontSize: 20,
+    fontSize: fz(20),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.white,
@@ -255,19 +255,19 @@ const makeStyles = (colors: Palette, cardTextDim: string) => StyleSheet.create({
     gap: spacing.sp2,
   },
   cardName: {
-    fontSize: 18,
+    fontSize: fz(18),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.white,
   },
   cardStudentId: {
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontFamily: fonts.mono,
     color: withAlpha(colors.white, 0.85),
     includeFontPadding: false,
   },
   cardSubtitle: {
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontFamily: fonts.sans,
     color: withAlpha(colors.white, 0.8),
   },
@@ -308,12 +308,12 @@ const makeStyles = (colors: Palette, cardTextDim: string) => StyleSheet.create({
     backgroundColor: colors.jadeDM,
   },
   validPillText: {
-    fontSize: 11,
+    fontSize: fz(11),
     fontFamily: fonts.sans,
     color: colors.white,
   },
   tapHint: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontFamily: fonts.sans,
     color: withAlpha(colors.white, 0.78),
   },
@@ -335,13 +335,13 @@ const makeStyles = (colors: Palette, cardTextDim: string) => StyleSheet.create({
     gap: spacing.sp8,
   },
   countdownMono: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontFamily: fonts.mono,
     color: colors.white,
     includeFontPadding: false,
   },
   collapseHint: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontFamily: fonts.sans,
     color: cardTextDim,
   },

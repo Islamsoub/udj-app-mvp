@@ -285,6 +285,12 @@ export function withAlpha(color: string, alpha: number): string {
   return color + hex;
 }
 
+/** Global type-scale multiplier — 0.90–0.93 is the usable range */
+export const TYPE_SCALE = 0.92;
+
+/** Wrap every fontSize value in this — rounds to 1 decimal place */
+export const fz = (n: number): number => Math.round(n * TYPE_SCALE * 10) / 10;
+
 export const spacing = {
   sp2: 2,
   sp4: 4,
@@ -338,106 +344,106 @@ export const fonts = {
 
 export const typographyFR = {
   h1: {
-    fontSize: 28,
+    fontSize: fz(28),
     fontWeight: '800' as const,
-    lineHeight: 32,
+    lineHeight: fz(32),
     letterSpacing: -0.02 * 28,
   },
   h2: {
-    fontSize: 22,
+    fontSize: fz(22),
     fontWeight: '700' as const,
-    lineHeight: 26,
+    lineHeight: fz(26),
   },
   h3: {
-    fontSize: 18,
+    fontSize: fz(18),
     fontWeight: '600' as const,
-    lineHeight: 23,
+    lineHeight: fz(23),
   },
   body: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400' as const,
-    lineHeight: 22,
+    lineHeight: fz(22),
   },
   bodySm: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '400' as const,
-    lineHeight: 19,
+    lineHeight: fz(19),
   },
   caption: {
-    fontSize: 11,
+    fontSize: fz(11),
     fontWeight: '500' as const,
     letterSpacing: 0.02 * 11,
   },
   label: {
-    fontSize: 10,
+    fontSize: fz(10),
     fontWeight: '600' as const,
     letterSpacing: 0.1 * 10,
     textTransform: 'uppercase' as const,
   },
   numberGpa: {
-    fontSize: 36,
+    fontSize: fz(36),
     fontWeight: '800' as const,
-    lineHeight: 36,
+    lineHeight: fz(36),
     letterSpacing: -0.03 * 36,
     fontFamily: 'PlusJakartaSans-ExtraBold',
   },
   mono: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '400' as const,
     fontFamily: 'DMmono',
   },
-} as const;
+};
 
 export const typographyAR = {
   h1: {
-    fontSize: 30,
+    fontSize: fz(30),
     fontWeight: '700' as const,
-    lineHeight: 39,
+    lineHeight: fz(39),
     letterSpacing: -0.02 * 30,
   },
   h2: {
-    fontSize: 24,
+    fontSize: fz(24),
     fontWeight: '700' as const,
-    lineHeight: 32,
+    lineHeight: fz(32),
   },
   h3: {
-    fontSize: 19,
+    fontSize: fz(19),
     fontWeight: '600' as const,
-    lineHeight: 27,
+    lineHeight: fz(27),
   },
   body: {
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '400' as const,
-    lineHeight: 27,
+    lineHeight: fz(27),
   },
   bodySm: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '400' as const,
-    lineHeight: 22,
+    lineHeight: fz(22),
   },
   caption: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '400' as const,
-    lineHeight: 22,
+    lineHeight: fz(22),
   },
   label: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '400' as const,
-    lineHeight: 22,
+    lineHeight: fz(22),
   },
   numberGpa: {
-    fontSize: 36,
+    fontSize: fz(36),
     fontWeight: '800' as const,
-    lineHeight: 36,
+    lineHeight: fz(36),
     letterSpacing: -0.03 * 36,
     fontFamily: 'PlusJakartaSans-ExtraBold',
   },
   mono: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '400' as const,
     fontFamily: 'DMmono',
   },
-} as const;
+};
 
 export const elevation = {
   card: {

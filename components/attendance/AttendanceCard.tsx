@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { elevation, fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { BADGE_REGULAR_PCT, BADGE_WARNING_PCT, MAX_ABSENCE_RATE, WARN_BUFFER } from '@/constants/attendance';
 
@@ -107,20 +107,20 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flex: 1,
   },
   subjectName: {
-    fontSize: 14.5,
+    fontSize: fz(14.5),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
   },
   sessionsText: {
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textTertiary,
     marginTop: 1,
   },
   percentageText: {
-    fontSize: 17,
+    fontSize: fz(17),
     fontFamily: fonts.mono,
     fontWeight: '500',
     includeFontPadding: false,
@@ -143,7 +143,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: 9,
   },
   projectionText: {
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontFamily: fonts.sans,
   },
 });

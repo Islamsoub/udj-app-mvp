@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export type FilterKey = 'all' | 'events' | 'scolarite' | 'sport' | 'youth' | 'sponsors' | 'saved';
@@ -82,7 +82,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderColor: colors.jade400,
   },
   pillText: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textSecondary,

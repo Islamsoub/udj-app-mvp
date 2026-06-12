@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { elevation, fonts, spacing, radius, withAlpha, HEADER_PAD, type Palette } from '@/constants/theme';
+import { elevation, fonts, spacing, radius, withAlpha, HEADER_PAD, fz, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { buildSubjectColorMap, getSubjectColor, getNewsCategoryColors } from '@/constants/colorMap';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
@@ -790,16 +790,16 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderBottomColor: colors.hair,
   },
   dateLabel: {
-    fontSize: 12.5, fontWeight: '700', color: colors.textTertiary,
+    fontSize: fz(12.5), fontWeight: '700', color: colors.textTertiary,
     fontFamily: fonts.sans, letterSpacing: 1.2, textTransform: 'uppercase',
   },
   greeting: { marginTop: 14 },
-  greetingBase: { fontSize: 26, fontWeight: '800', color: colors.textPrimary, fontFamily: fonts.sans, letterSpacing: -0.6 },
-  greetingName: { fontSize: 26, fontWeight: '800', color: colors.jade400, fontFamily: fonts.sans, letterSpacing: -0.6 },
-  subtitle: { fontSize: 15, fontWeight: '500', color: colors.textSecondary, fontFamily: fonts.sans, marginTop: 3 },
-  subtitleOffline: { fontSize: 15, marginTop: 3 },
-  subtitleOfflineNormal: { fontSize: 15, color: colors.textSecondary, fontFamily: fonts.sans },
-  subtitleOfflineTime: { fontSize: 15, color: colors.warning, fontFamily: fonts.sans },
+  greetingBase: { fontSize: fz(26), fontWeight: '800', color: colors.textPrimary, fontFamily: fonts.sans, letterSpacing: -0.6 },
+  greetingName: { fontSize: fz(26), fontWeight: '800', color: colors.jade400, fontFamily: fonts.sans, letterSpacing: -0.6 },
+  subtitle: { fontSize: fz(15), fontWeight: '500', color: colors.textSecondary, fontFamily: fonts.sans, marginTop: 3 },
+  subtitleOffline: { fontSize: fz(15), marginTop: 3 },
+  subtitleOfflineNormal: { fontSize: fz(15), color: colors.textSecondary, fontFamily: fonts.sans },
+  subtitleOfflineTime: { fontSize: fz(15), color: colors.warning, fontFamily: fonts.sans },
   divider: { height: 1, backgroundColor: colors.hair, marginTop: 16 },
   statRow: { flexDirection: 'row', gap: 10, marginTop: 16, marginBottom: spacing.sp16 },
   statCard: {
@@ -808,11 +808,11 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderWidth: 1, borderColor: colors.hair,
   },
   statLabel: {
-    fontSize: 11.5, fontWeight: '700', color: colors.textTertiary,
+    fontSize: fz(11.5), fontWeight: '700', color: colors.textTertiary,
     textTransform: 'uppercase', fontFamily: fonts.sans, letterSpacing: 0.4,
   },
-  statValue: { fontSize: 26, fontWeight: '800', color: colors.jade400, fontFamily: fonts.sans, marginTop: 4 },
-  statSub: { fontSize: 12.5, fontWeight: '500', color: colors.textTertiary, fontFamily: fonts.sans, marginTop: 2 },
+  statValue: { fontSize: fz(26), fontWeight: '800', color: colors.jade400, fontFamily: fonts.sans, marginTop: 4 },
+  statSub: { fontSize: fz(12.5), fontWeight: '500', color: colors.textTertiary, fontFamily: fonts.sans, marginTop: 2 },
 
   headerTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   bellBtn: {
@@ -833,7 +833,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingBottom: spacing.sp16,
   },
   simpleHeaderTitle: {
-    fontSize: 24, fontWeight: '800', color: colors.textPrimary,
+    fontSize: fz(24), fontWeight: '800', color: colors.textPrimary,
     fontFamily: fonts.sans, paddingTop: spacing.sp16, paddingBottom: spacing.sp16,
   },
 
@@ -842,8 +842,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     marginBottom: spacing.sp12,
   },
-  sectionHeading: { fontSize: 18, fontWeight: '800', color: colors.textPrimary, fontFamily: fonts.sans, letterSpacing: -0.3 },
-  sectionLink: { fontSize: 14.5, fontWeight: '600', color: colors.jadeText, fontFamily: fonts.sans },
+  sectionHeading: { fontSize: fz(18), fontWeight: '800', color: colors.textPrimary, fontFamily: fonts.sans, letterSpacing: -0.3 },
+  sectionLink: { fontSize: fz(14.5), fontWeight: '600', color: colors.jadeText, fontFamily: fonts.sans },
 
   agendaCard: {
     backgroundColor: colors.surface,
@@ -859,18 +859,18 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flex: 1, paddingStart: spacing.sp16, paddingEnd: spacing.sp16,
     paddingTop: spacing.sp12, paddingBottom: spacing.sp12, justifyContent: 'center',
   },
-  agendaTime: { fontSize: 14, fontWeight: '500', color: colors.textSecondary, fontFamily: fonts.mono },
-  agendaCourse: { fontSize: 16.5, fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans, marginTop: spacing.sp2 },
-  agendaTeacher: { fontSize: 14, fontWeight: '500', color: colors.textSecondary, fontFamily: fonts.sans },
+  agendaTime: { fontSize: fz(14), fontWeight: '500', color: colors.textSecondary, fontFamily: fonts.mono },
+  agendaCourse: { fontSize: fz(16.5), fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans, marginTop: spacing.sp2 },
+  agendaTeacher: { fontSize: fz(14), fontWeight: '500', color: colors.textSecondary, fontFamily: fonts.sans },
   pillRow: { flexDirection: 'row', gap: 8, marginTop: 11, alignItems: 'center' },
   locationPill: { backgroundColor: colors.surface2, borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
-  locationPillText: { fontSize: 13, fontWeight: '600', color: colors.textPrimary, fontFamily: fonts.sans },
+  locationPillText: { fontSize: fz(13), fontWeight: '600', color: colors.textPrimary, fontFamily: fonts.sans },
   statusPillActive: { backgroundColor: colors.jadeFaint, borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
-  statusPillActiveText: { fontSize: 13, fontWeight: '600', color: colors.jadeText, fontFamily: fonts.sans },
+  statusPillActiveText: { fontSize: fz(13), fontWeight: '600', color: colors.jadeText, fontFamily: fonts.sans },
   statusPillPast: { backgroundColor: colors.slateBg, borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
-  statusPillPastText: { fontSize: 13, fontWeight: '600', color: colors.slate, fontFamily: fonts.sans },
+  statusPillPastText: { fontSize: fz(13), fontWeight: '600', color: colors.slate, fontFamily: fonts.sans },
   statusPillExam: { backgroundColor: colors.examBg, borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
-  statusPillExamText: { fontSize: 13, fontWeight: '600', color: colors.exam, fontFamily: fonts.sans },
+  statusPillExamText: { fontSize: fz(13), fontWeight: '600', color: colors.exam, fontFamily: fonts.sans },
 
   emptyAgendaCard: {
     backgroundColor: colors.surface, borderRadius: radius.rTile,
@@ -881,8 +881,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 38, height: 38, borderRadius: 11,
     backgroundColor: colors.jadeFaint, alignItems: 'center', justifyContent: 'center',
   },
-  emptyAgendaTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans },
-  emptyAgendaSub: { fontSize: 13, fontWeight: '400', color: colors.textSecondary, fontFamily: fonts.sans, marginTop: spacing.sp2 },
+  emptyAgendaTitle: { fontSize: fz(15), fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans },
+  emptyAgendaSub: { fontSize: fz(13), fontWeight: '400', color: colors.textSecondary, fontFamily: fonts.sans, marginTop: spacing.sp2 },
 
   newsCard: {
     flexDirection: 'row', backgroundColor: colors.surface,
@@ -896,12 +896,12 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.surface2, alignItems: 'center', justifyContent: 'center',
   },
   newsText: { flex: 1 },
-  newsTitle: { fontSize: 15, fontWeight: '600', color: colors.textPrimary, fontFamily: fonts.sans, lineHeight: 19.5 },
+  newsTitle: { fontSize: fz(15), fontWeight: '600', color: colors.textPrimary, fontFamily: fonts.sans, lineHeight: fz(19.5) },
   newsCategoryPill: {
     alignSelf: 'flex-start',
     borderRadius: radius.rFull, paddingHorizontal: spacing.sp8, paddingVertical: spacing.sp2, marginTop: spacing.sp6,
   },
-  newsCategoryText: { fontSize: 12, fontWeight: '600', color: colors.textSecondary, fontFamily: fonts.sans },
+  newsCategoryText: { fontSize: fz(12), fontWeight: '600', color: colors.textSecondary, fontFamily: fonts.sans },
 
   newsOfflineCard: {
     flexDirection: 'row', backgroundColor: colors.surface,
@@ -913,7 +913,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 38, height: 38, borderRadius: 11,
     backgroundColor: colors.slateBg, alignItems: 'center', justifyContent: 'center',
   },
-  newsOfflineText: { flex: 1, fontSize: 13, color: colors.textSecondary, fontFamily: fonts.sans },
+  newsOfflineText: { flex: 1, fontSize: fz(13), color: colors.textSecondary, fontFamily: fonts.sans },
 
   centerState: { flex: 1, alignItems: 'center', paddingHorizontal: spacing.sp24, paddingTop: 144 },
   errorIconCircle: {
@@ -921,19 +921,19 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.errorCircleBg, alignItems: 'center', justifyContent: 'center',
   },
   stateTitle: {
-    fontSize: 16, fontWeight: '700', color: colors.textPrimary,
+    fontSize: fz(16), fontWeight: '700', color: colors.textPrimary,
     textAlign: 'center', marginTop: spacing.sp16, fontFamily: fonts.sans,
   },
   stateBody: {
-    fontSize: 14, color: colors.textSecondary,
+    fontSize: fz(14), color: colors.textSecondary,
     textAlign: 'center', marginTop: spacing.sp8, fontFamily: fonts.sans,
   },
   retryBtn: {
     width: 168, height: 56, borderRadius: radius.rLg,
     backgroundColor: colors.jade400, alignItems: 'center', justifyContent: 'center', marginTop: spacing.sp24,
   },
-  retryBtnText: { fontSize: 15, fontWeight: '700', color: colors.surface, fontFamily: fonts.sans },
-  palmEmoji: { fontSize: 80, textAlign: 'center' },
+  retryBtnText: { fontSize: fz(15), fontWeight: '700', color: colors.surface, fontFamily: fonts.sans },
+  palmEmoji: { fontSize: fz(80), textAlign: 'center' },
 
   skelBar180: { width: 180, height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
   skelBar: { height: 15, borderRadius: radius.rFull, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
@@ -981,21 +981,21 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     alignSelf: 'center', alignItems: 'center', justifyContent: 'center',
   },
   modalTitle: {
-    fontSize: 16, fontWeight: '700', color: colors.textPrimary,
+    fontSize: fz(16), fontWeight: '700', color: colors.textPrimary,
     textAlign: 'center', marginTop: spacing.sp16, fontFamily: fonts.sans,
   },
   modalBody: {
-    fontSize: 14, color: colors.textSecondary,
+    fontSize: fz(14), color: colors.textSecondary,
     textAlign: 'center', marginTop: spacing.sp8, fontFamily: fonts.sans,
   },
   modalPrimaryBtn: {
     width: '100%', height: 56, borderRadius: radius.rLg,
     backgroundColor: colors.jade400, alignItems: 'center', justifyContent: 'center', marginTop: spacing.sp24,
   },
-  modalPrimaryBtnText: { fontSize: 15, fontWeight: '700', color: colors.surface, fontFamily: fonts.sans },
+  modalPrimaryBtnText: { fontSize: fz(15), fontWeight: '700', color: colors.surface, fontFamily: fonts.sans },
   modalOutlineBtn: {
     width: '100%', height: 56, borderRadius: radius.rLg,
     borderWidth: 1, borderColor: colors.jade400, alignItems: 'center', justifyContent: 'center', marginTop: spacing.sp12,
   },
-  modalOutlineBtnText: { fontSize: 15, fontWeight: '600', color: colors.jade400, fontFamily: fonts.sans },
+  modalOutlineBtnText: { fontSize: fz(15), fontWeight: '600', color: colors.jade400, fontFamily: fonts.sans },
 });

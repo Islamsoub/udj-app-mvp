@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, Animated, Easing, AccessibilityInfo, StyleSheet, ViewStyle } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing } from '@/constants/theme';
+import { fonts, fz, radius, spacing } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export type CourseStatus = 'past' | 'active' | 'upcoming';
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     marginEnd: spacing.sp6,
   },
   text: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '700',
     fontFamily: fonts.sans,
   },

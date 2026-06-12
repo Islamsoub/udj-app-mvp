@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { fonts, radius, spacing, scrimColor, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, spacing, scrimColor, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface Props {
@@ -213,13 +213,13 @@ const makeStyles = (colors: Palette) =>
       marginBottom: spacing.sp20,
     },
     title: {
-      fontSize: 17,
+      fontSize: fz(17),
       fontWeight: '700',
       fontFamily: fonts.sans,
       color: colors.textPrimary,
     },
     subtitle: {
-      fontSize: 13,
+      fontSize: fz(13),
       fontWeight: '400',
       fontFamily: fonts.sans,
       color: colors.textSecondary,
@@ -246,7 +246,7 @@ const makeStyles = (colors: Palette) =>
       justifyContent: 'center',
     },
     dropHint: {
-      fontSize: 13,
+      fontSize: fz(13),
       fontWeight: '400',
       fontFamily: fonts.sans,
       color: colors.textSecondary,
@@ -263,13 +263,13 @@ const makeStyles = (colors: Palette) =>
     },
     fileName: {
       flex: 1,
-      fontSize: 13,
+      fontSize: fz(13),
       fontWeight: '500',
       fontFamily: fonts.sans,
       color: colors.textPrimary,
     },
     fileSize: {
-      fontSize: 12,
+      fontSize: fz(12),
       fontWeight: '400',
       fontFamily: fonts.sans,
       color: colors.textTertiary,
@@ -283,7 +283,7 @@ const makeStyles = (colors: Palette) =>
       marginTop: 20,
     },
     primaryBtnText: {
-      fontSize: 15,
+      fontSize: fz(15),
       fontWeight: '600',
       fontFamily: fonts.sans,
       color: colors.surface,
@@ -298,7 +298,7 @@ const makeStyles = (colors: Palette) =>
       marginTop: 10,
     },
     cancelBtnText: {
-      fontSize: 15,
+      fontSize: fz(15),
       fontWeight: '600',
       fontFamily: fonts.sans,
       color: colors.textPrimary,

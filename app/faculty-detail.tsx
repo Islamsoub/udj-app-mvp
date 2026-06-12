@@ -4,7 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
 import { useAuthStore } from '@/stores/authStore';
@@ -101,13 +101,13 @@ const makeRowStyles = (colors: Palette) => StyleSheet.create({
     gap: spacing.sp4,
   },
   label: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
   },
   value: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textPrimary,

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { fonts, lightColors, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, lightColors, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface DevSwitcherProps<T extends string> {
@@ -82,7 +82,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.exam,
   },
   btnText: {
-    fontSize: 11,
+    fontSize: fz(11),
     // Buttons sit on a dark semi-transparent overlay in both themes, so the
     // label always renders against the light-palette surface tone.
     color: lightColors.surface,

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, type Palette } from '@/constants/theme';
+import { fonts, fz, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export type FAQData = {
@@ -67,16 +67,16 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   question: {
     flex: 1,
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
   },
   answer: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
-    lineHeight: 22,
+    lineHeight: fz(22),
   },
 });

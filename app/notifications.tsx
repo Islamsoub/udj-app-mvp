@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, elevation, withAlpha, sizing, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, spacing, elevation, withAlpha, sizing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -419,7 +419,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginBottom: spacing.sp8,
   },
   sectionLabel: {
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textTertiary,
@@ -432,7 +432,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'center',
   },
   markAllText: {
-    fontSize: 14.5,
+    fontSize: fz(14.5),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.jadeText,
@@ -483,7 +483,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'center',
   },
   stateTitle: {
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -491,12 +491,12 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp16,
   },
   stateBody: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: fz(22),
     marginTop: spacing.sp8,
   },
   retryBtn: {
@@ -509,7 +509,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp24,
   },
   retryBtnText: {
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.surface,

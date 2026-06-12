@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts, spacing, radius, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, spacing, radius, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsSheet } from './SettingsSheet';
 
@@ -47,7 +47,7 @@ export function ClearCacheConfirm({
 
 const makeStyles = (colors: Palette) => StyleSheet.create({
   body: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
@@ -69,7 +69,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderColor: colors.border,
   },
   btnOutlineText: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -78,7 +78,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.danger,
   },
   btnDestructiveText: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.surface,

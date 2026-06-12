@@ -22,7 +22,7 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
-import { fonts, spacing, radius, sizing, withAlpha, colors, HERO_PAD, type Palette } from '@/constants/theme';
+import { fonts, spacing, radius, sizing, withAlpha, colors, HERO_PAD, fz, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -678,7 +678,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   greenTitle: {
     fontFamily: fonts.sans,
-    fontSize: 21,
+    fontSize: fz(21),
     fontWeight: '800',
     color: '#FFFFFF', // on-gradient literal
     letterSpacing: -0.4,
@@ -687,7 +687,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   greenSubtitle: {
     fontFamily: fonts.sans,
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '500',
     color: WHITE_78,
     textAlign: 'center',
@@ -718,7 +718,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   inputLabel: {
     fontFamily: fonts.sans,
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '600',
     color: colors.textPrimary,
     marginBottom: spacing.sp6,
@@ -729,16 +729,16 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderWidth: 1.5,
     paddingHorizontal: spacing.sp16,
     fontFamily: fonts.sans,
-    fontSize: 15,
+    fontSize: fz(15),
     color: colors.textPrimary,
   },
   monoInput: {
     fontFamily: fonts.mono,
-    fontSize: 15,
+    fontSize: fz(15),
     letterSpacing: 0.5,
   },
   passwordInput: {
-    fontSize: 15.5,
+    fontSize: fz(15.5),
     letterSpacing: 3,
   },
   textInputDisabled: {
@@ -764,7 +764,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   loginButtonText: {
     fontFamily: fonts.sans,
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '700',
     color: colors.surface,
   },
@@ -792,16 +792,16 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   errorCardTitle: {
     fontFamily: fonts.sans,
-    fontSize: 14.5,
+    fontSize: fz(14.5),
     fontWeight: '700',
     color: colors.danger,
     marginBottom: spacing.sp4,
   },
   errorCardBody: {
     fontFamily: fonts.sans,
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     color: colors.textSecondary,
-    lineHeight: 18,
+    lineHeight: fz(18),
   },
 
   // ── Network card ──
@@ -816,11 +816,11 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   networkCardText: {
     fontFamily: fonts.sans,
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '500',
     color: colors.textSecondary,
     flex: 1,
-    lineHeight: 20,
+    lineHeight: fz(20),
   },
 
   // ── Lockout card ──
@@ -836,7 +836,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   lockoutTitle: {
     fontFamily: fonts.sans,
-    fontSize: 17,
+    fontSize: fz(17),
     fontWeight: '700',
     color: colors.warningDeep,
     textAlign: 'center',
@@ -844,23 +844,23 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   lockoutSubtitle: {
     fontFamily: fonts.sans,
-    fontSize: 13,
+    fontSize: fz(13),
     color: colors.warningDeep,
     textAlign: 'center',
     marginTop: spacing.sp4,
   },
   lockoutTimer: {
     fontFamily: fonts.mono,
-    fontSize: 46,
+    fontSize: fz(46),
     fontWeight: '500',
     color: colors.warningDeep,
     textAlign: 'center',
-    lineHeight: 54,
+    lineHeight: fz(54),
     marginTop: spacing.sp8,
   },
   lockoutMinutes: {
     fontFamily: fonts.sans,
-    fontSize: 12,
+    fontSize: fz(12),
     color: colors.warningDeep,
     textAlign: 'center',
   },
@@ -874,7 +874,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   helpLinkText: {
     fontFamily: fonts.sans,
-    fontSize: 14,
+    fontSize: fz(14),
     color: colors.textSecondary,
     textAlign: 'center',
   },
@@ -908,16 +908,16 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   sessionTitle: {
     fontFamily: fonts.sans,
-    fontSize: 14.5,
+    fontSize: fz(14.5),
     fontWeight: '700',
     color: colors.jadeText,
     marginBottom: spacing.sp4,
   },
   sessionBody: {
     fontFamily: fonts.sans,
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     color: colors.textSecondary,
-    lineHeight: 18,
+    lineHeight: fz(18),
   },
 
   // ── Saved account row ──
@@ -945,7 +945,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   avatarText: {
     fontFamily: fonts.sans,
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '700',
     color: colors.jadeText,
   },
@@ -954,18 +954,18 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   savedName: {
     fontFamily: fonts.sans,
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '600',
     color: colors.textPrimary,
   },
   savedId: {
     fontFamily: fonts.mono,
-    fontSize: 12,
+    fontSize: fz(12),
     color: colors.textSecondary,
   },
   changerText: {
     fontFamily: fonts.sans,
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '600',
     color: colors.jadeText,
   },
@@ -984,7 +984,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   dividerText: {
     fontFamily: fonts.sans,
-    fontSize: 14,
+    fontSize: fz(14),
     color: colors.textTertiary,
   },
 
@@ -1003,7 +1003,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   biometricLabel: {
     fontFamily: fonts.sans,
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontWeight: '500',
     color: colors.textTertiary,
     textAlign: 'center',

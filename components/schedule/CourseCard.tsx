@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { fonts, radius, spacing, elevation, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, spacing, elevation, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { StatusPill, CourseStatus } from './StatusPill';
 import { getSubjectColor } from '@/constants/colorMap';
@@ -80,13 +80,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingEnd: spacing.sp16,
   },
   subject: {
-    fontSize: 15.5,
+    fontSize: fz(15.5),
     fontWeight: '700',
     fontFamily: fonts.sans,
     flexShrink: 1,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
@@ -106,7 +106,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flexShrink: 0,
   },
   timePillText: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontFamily: fonts.mono,
     fontWeight: '600',
     color: colors.textSecondary,

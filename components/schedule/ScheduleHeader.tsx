@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { elevation, fonts, spacing, HEADER_PAD, type Palette } from '@/constants/theme';
+import { elevation, fonts, fz, spacing, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { DayStrip } from './DayStrip';
 import { formatScheduleDate } from '@/utils/dateFormat';
@@ -88,18 +88,18 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingBottom: spacing.sp14,
   },
   title: {
-    fontSize: 22,
+    fontSize: fz(22),
     fontWeight: '800',
     fontFamily: fonts.sans,
     letterSpacing: -0.5,
     color: colors.textPrimary,
   },
   titleAr: {
-    fontSize: 26,
+    fontSize: fz(26),
     letterSpacing: 0,
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.jadeText,

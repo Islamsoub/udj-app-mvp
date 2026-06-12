@@ -12,7 +12,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, scrimColor, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, spacing, scrimColor, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import type { Subject } from './SubjectCard';
 
@@ -233,14 +233,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Header
   title: {
-    fontSize: 17,
+    fontSize: fz(17),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
     paddingHorizontal: spacing.sp20,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
@@ -258,7 +258,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingHorizontal: spacing.sp20,
   },
   sectionLabel: {
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textTertiary,
@@ -284,7 +284,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   pickerName: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -302,7 +302,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'space-between',
   },
   ccLabel: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
@@ -313,13 +313,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     gap: spacing.sp2,
   },
   ccValue: {
-    fontSize: 17,
+    fontSize: fz(17),
     fontWeight: '600',
     fontFamily: fonts.mono,
     color: colors.jade400,
   },
   ccSuffix: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textTertiary,
@@ -341,13 +341,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 17,
+    fontSize: fz(17),
     fontWeight: '500',
     fontFamily: fonts.mono,
     color: colors.textPrimary,
   },
   inputSuffix: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textTertiary,
@@ -366,7 +366,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.jade600,
   },
   calcBtnText: {
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.white,
@@ -380,7 +380,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     padding: spacing.sp16,
   },
   resultLabel: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textTertiary,
@@ -393,18 +393,18 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginBottom: spacing.sp8,
   },
   resultNumber: {
-    fontSize: 36,
+    fontSize: fz(36),
     fontWeight: '800',
     fontFamily: fonts.sans,
   },
   resultSuffix: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textTertiary,
   },
   resultVerdict: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '500',
     fontFamily: fonts.sans,
   },

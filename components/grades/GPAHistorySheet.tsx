@@ -10,7 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Polyline, Polygon, Circle, Line } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, scrimColor, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, spacing, scrimColor, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export interface GPADataPoint {
@@ -304,14 +304,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Header
   title: {
-    fontSize: 17,
+    fontSize: fz(17),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
     paddingHorizontal: spacing.sp20,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
@@ -328,14 +328,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Axis labels
   yLabel: {
-    fontSize: 11,
+    fontSize: fz(11),
     fontFamily: fonts.mono,
     color: colors.textTertiary,
     width: 22,
     textAlign: 'right',
   },
   admissionLabel: {
-    fontSize: 11,
+    fontSize: fz(11),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textTertiary,
@@ -347,7 +347,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp8,
   },
   xLabel: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontFamily: fonts.mono,
     color: colors.textTertiary,
     flex: 1,
@@ -369,7 +369,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingVertical: spacing.sp4,
   },
   tooltipText: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '700',
     fontFamily: fonts.mono,
     color: colors.white,
@@ -381,7 +381,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp16,
   },
   currentLabel: {
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textTertiary,
@@ -399,24 +399,24 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     gap: spacing.sp4,
   },
   gpaNumber: {
-    fontSize: 36,
+    fontSize: fz(36),
     fontWeight: '800',
     fontFamily: fonts.sans,
     color: colors.jade400,
   },
   gpaSuffix: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textTertiary,
   },
   trendText: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '400',
     fontFamily: fonts.sans,
   },
   disclaimer: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textTertiary,

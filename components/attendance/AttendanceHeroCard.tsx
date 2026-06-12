@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Text as SvgText } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, withAlpha } from '@/constants/theme';
+import { fonts, fz, radius, spacing, withAlpha } from '@/constants/theme';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import { BADGE_REGULAR_PCT, BADGE_WARNING_PCT } from '@/constants/attendance';
 
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   rateLabel: {
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: withAlpha('#FFFFFF', 0.78),
@@ -163,13 +163,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#7DF3C4', // mint accent — on-gradient literal, intentional
   },
   pillText: {
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: '#FFFFFF',
   },
   summary: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: withAlpha('#FFFFFF', 0.85),

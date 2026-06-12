@@ -3,7 +3,7 @@ import { View, Text, ScrollView, StyleSheet, StatusBar } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { fonts, spacing, type Palette } from '@/constants/theme';
+import { fonts, fz, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
 import { useAuthStore } from '@/stores/authStore';
@@ -48,14 +48,14 @@ const makeRowStyles = (colors: Palette) => StyleSheet.create({
   },
   label: {
     flex: 1,
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
   },
   value: {
     flex: 1,
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,

@@ -10,7 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, elevation, HEADER_PAD, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, elevation, HEADER_PAD, fz, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
@@ -389,14 +389,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp4,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: fz(24),
     fontWeight: '800',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
     letterSpacing: -0.5,
   },
   headerTitleAR: {
-    fontSize: 26,
+    fontSize: fz(26),
     fontWeight: '700',
     letterSpacing: 0,
   },
@@ -435,7 +435,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.jade400,
   },
   semLabel: {
-    fontSize: 13.5,
+    fontSize: fz(13.5),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
@@ -455,7 +455,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Section label
   sectionLabel: {
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textTertiary,
@@ -479,7 +479,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingHorizontal: spacing.sp24,
   },
   stateTitle: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -487,13 +487,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp16,
   },
   stateBody: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
     textAlign: 'center',
     maxWidth: 245,
-    lineHeight: 22,
+    lineHeight: fz(22),
     marginTop: spacing.sp8,
   },
 
@@ -509,7 +509,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     alignSelf: 'center',
   },
   retryBtnText: {
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.surface,

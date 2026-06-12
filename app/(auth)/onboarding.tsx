@@ -8,7 +8,7 @@ import * as Updates from 'expo-updates';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettingsStore } from '@/stores/settingsStore';
 import i18n from '@/i18n';
-import { lightColors, spacing, sizing, radius, type Palette } from '@/constants/theme';
+import { lightColors, spacing, sizing, radius, fz, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 // Onboarding CTAs sit on a jade-tinted brand background — button label is always
@@ -164,7 +164,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'center',
   },
   skipText: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '600',
     color: colors.jade600,
   },
@@ -206,7 +206,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.jade50,
   },
   langCardText: {
-    fontSize: 18,
+    fontSize: fz(18),
     fontWeight: '600',
     color: colors.textPrimary,
   },
@@ -215,19 +215,19 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontWeight: '700',
   },
   title: {
-    fontSize: 22,
+    fontSize: fz(22),
     fontWeight: '700',
     color: colors.textPrimary,
     textAlign: 'center',
     marginTop: spacing.sp24,
   },
   body: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400',
     color: colors.textSecondary,
     textAlign: 'center',
     maxWidth: 280,
-    lineHeight: 24,
+    lineHeight: fz(24),
     marginTop: spacing.sp8,
   },
   dotsRow: {
@@ -258,7 +258,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'center',
   },
   primaryButtonText: {
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '700',
     color: BRAND_FG,
   },

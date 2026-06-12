@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, elevation, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, spacing, elevation, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export interface Subject {
@@ -137,7 +137,7 @@ const makeStyles = (colors: Palette) =>
     },
     subjectName: {
       flex: 1,
-      fontSize: 16,
+      fontSize: fz(16),
       fontWeight: '700',
       fontFamily: fonts.sans,
       color: colors.textPrimary,
@@ -148,7 +148,7 @@ const makeStyles = (colors: Palette) =>
       borderRadius: radius.rFull,
     },
     pillLabel: {
-      fontSize: 13,
+      fontSize: fz(13),
       fontWeight: '700',
       fontFamily: fonts.sans,
     },
@@ -167,7 +167,7 @@ const makeStyles = (colors: Palette) =>
       alignItems: 'center',
     },
     metricLabel: {
-      fontSize: 11,
+      fontSize: fz(11),
       fontWeight: '700',
       fontFamily: fonts.sans,
       color: colors.textTertiary,
@@ -175,7 +175,7 @@ const makeStyles = (colors: Palette) =>
       letterSpacing: 0.4,
     },
     metricValue: {
-      fontSize: 16,
+      fontSize: fz(16),
       fontWeight: '500',
       fontFamily: fonts.mono,
       color: colors.textPrimary,
@@ -209,7 +209,7 @@ const makeStyles = (colors: Palette) =>
       marginTop: 9,
     },
     atRiskText: {
-      fontSize: 12.5,
+      fontSize: fz(12.5),
       fontWeight: '600',
       fontFamily: fonts.sans,
       color: colors.danger,

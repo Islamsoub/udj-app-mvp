@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, View, Text, StyleSheet, I18nManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export type ContactType = 'phone' | 'location' | 'email';
@@ -67,7 +67,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   name: {
     flex: 1,
     marginStart: spacing.sp12,
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -78,7 +78,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     gap: spacing.sp8,
   },
   detail: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400',
     fontFamily: fonts.mono,
     color: colors.textSecondary,

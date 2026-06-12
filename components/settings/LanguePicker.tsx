@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts } from '@/constants/theme';
+import { fonts, fz } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsPopover } from './SettingsPopover';
 import { OptionRow } from './OptionRow';
@@ -27,7 +27,7 @@ export function LanguePicker({ visible, onClose, currentValue, onSelect }: Langu
         icon={(sel) => (
           <Text
             style={{
-              fontSize: 11,
+              fontSize: fz(11),
               fontWeight: '700',
               fontFamily: fonts.sans,
               color: sel ? colors.jade400 : colors.textSecondary,
@@ -46,7 +46,7 @@ export function LanguePicker({ visible, onClose, currentValue, onSelect }: Langu
         icon={(sel) => (
           <Text
             style={{
-              fontSize: 11,
+              fontSize: fz(11),
               fontWeight: '700',
               fontFamily: fonts.sans,
               color: sel ? colors.jade400 : colors.textSecondary,

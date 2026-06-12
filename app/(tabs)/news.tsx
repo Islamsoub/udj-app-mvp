@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, fz, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
@@ -358,7 +358,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingBottom: spacing.sp48,
   },
   stateTitle: {
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -366,13 +366,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp16,
   },
   stateBody: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
     textAlign: 'center',
     maxWidth: 220,
-    lineHeight: 22,
+    lineHeight: fz(22),
     marginTop: spacing.sp4,
   },
 
@@ -406,7 +406,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     alignSelf: 'center',
   },
   retryBtnText: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.surface,

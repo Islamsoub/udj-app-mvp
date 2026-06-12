@@ -12,7 +12,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Svg, { Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, sizing, scrimColor, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, spacing, sizing, scrimColor, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { useCourseDetailStore } from '@/stores/courseDetailStore';
 import {
@@ -255,14 +255,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flex: 1,
   },
   subject: {
-    fontSize: 22,
+    fontSize: fz(22),
     fontWeight: '800',
     fontFamily: fonts.sans,
     letterSpacing: -0.4,
     color: colors.textPrimary,
   },
   teacher: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
@@ -289,19 +289,19 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderBottomWidth: 0,
   },
   rowLabel: {
-    fontSize: 14.5,
+    fontSize: fz(14.5),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
   },
   rowValue: {
-    fontSize: 14.5,
+    fontSize: fz(14.5),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
   },
   rowValueMono: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '500',
     fontFamily: fonts.mono,
     color: colors.textPrimary,
@@ -309,7 +309,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Notes section
   notesHeader: {
-    fontSize: 12.5,
+    fontSize: fz(12.5),
     fontWeight: '700',
     fontFamily: fonts.sans,
     letterSpacing: 0.6,
@@ -328,7 +328,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingHorizontal: spacing.sp14,
     paddingVertical: spacing.sp12,
     marginHorizontal: spacing.sp20,
-    fontSize: 14.5,
+    fontSize: fz(14.5),
     fontFamily: fonts.sans,
     color: colors.textPrimary,
   },
@@ -347,7 +347,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.jade600,
   },
   saveBtnText: {
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.surface,
@@ -368,7 +368,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginBottom: spacing.sp8,
   },
   noteText: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -380,7 +380,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp8,
   },
   noteTimestamp: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontFamily: fonts.mono,
     color: colors.textTertiary,
   },

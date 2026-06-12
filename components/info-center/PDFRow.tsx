@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, spacing, sizing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, spacing, sizing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export type PDFData = {
@@ -66,7 +66,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'center',
   },
   badgeText: {
-    fontSize: 11,
+    fontSize: fz(11),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.danger,
@@ -74,7 +74,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   name: {
     flex: 1,
     marginStart: spacing.sp12,
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textPrimary,

@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { elevation, fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -293,7 +293,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginEnd: spacing.sp8,
   },
   offlineBannerText: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.offlineText,
@@ -306,7 +306,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: 22,
     marginBottom: 9,
     marginHorizontal: spacing.sp20,
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
@@ -339,7 +339,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   searchInput: {
     flex: 1,
     marginStart: spacing.sp8,
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -370,7 +370,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'center',
   },
   stateTitle: {
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -378,12 +378,12 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp16,
   },
   stateBody: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: fz(22),
     marginTop: spacing.sp8,
   },
   retryBtn: {
@@ -396,7 +396,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp24,
   },
   retryBtnText: {
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.surface,

@@ -1,7 +1,7 @@
 import React, { ReactNode, useMemo } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { fonts, radius, scrimColor, spacing, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, scrimColor, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface SettingsSheetProps {
@@ -65,14 +65,14 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginBottom: spacing.sp16,
   },
   title: {
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
     paddingHorizontal: spacing.sp20,
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: fz(13),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.greyMedium,

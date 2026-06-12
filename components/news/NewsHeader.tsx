@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { elevation, fonts, spacing, HEADER_PAD, type Palette } from '@/constants/theme';
+import { elevation, fonts, fz, spacing, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 
@@ -50,7 +50,7 @@ const makeStyles = (colors: Palette, isAr: boolean) => StyleSheet.create({
     paddingBottom: spacing.sp12,
   },
   title: {
-    fontSize: isAr ? 26 : 24,
+    fontSize: isAr ? fz(26) : fz(24),
     fontWeight: '800',
     fontFamily: isAr ? fonts.arabic : fonts.sans,
     color: colors.textPrimary,

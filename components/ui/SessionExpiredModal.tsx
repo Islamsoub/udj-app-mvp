@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, scrimColor, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, scrimColor, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface SessionExpiredModalProps {
@@ -82,7 +82,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'center',
   },
   modalTitle: {
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -90,7 +90,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp16,
   },
   modalBody: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontFamily: fonts.sans,
     color: colors.textSecondary,
     textAlign: 'center',
@@ -106,7 +106,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp24,
   },
   modalPrimaryBtnText: {
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.surface,
@@ -122,7 +122,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp12,
   },
   modalOutlineBtnText: {
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.jade400,

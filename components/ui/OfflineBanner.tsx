@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNetworkStore } from '@/stores/networkStore';
 import { useColors } from '@/hooks/useColors';
-import { spacing } from '@/constants/theme';
+import { fz, spacing } from '@/constants/theme';
 
 function formatTimestamp(ts: number | null): string {
   if (!ts) return '--';
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     marginEnd: spacing.sp8,
   },
   text: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '500',
     flexShrink: 1,
   },

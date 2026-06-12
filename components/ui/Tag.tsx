@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, StyleProp, ViewStyle } from 'react-native';
-import { spacing, radius } from '@/constants/theme';
+import { fz, spacing, radius } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface TagProps {
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.rFull,
   },
   label: {
-    fontSize: 10,
+    fontSize: fz(10),
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.1 * 10,

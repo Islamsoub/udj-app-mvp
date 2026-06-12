@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, I18nManager, Animated, Easing, AccessibilityInfo } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { CourseCard, Course } from './CourseCard';
 import { getSubjectColor } from '@/constants/colorMap';
@@ -185,7 +185,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     minHeight: 44,
   },
   pauseText: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.textTertiary,

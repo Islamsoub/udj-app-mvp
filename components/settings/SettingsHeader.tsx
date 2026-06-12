@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet, I18nManager } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { elevation, fonts, radius, spacing, sizing, HEADER_PAD, type Palette } from '@/constants/theme';
+import { elevation, fonts, fz, radius, spacing, sizing, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 interface SettingsHeaderProps {
@@ -77,7 +77,7 @@ const makeStyles = (colors: Palette) =>
       gap: spacing.sp4,
     },
     bigTitle: {
-      fontSize: 25,
+      fontSize: fz(25),
       fontWeight: '800',
       fontFamily: fonts.sans,
       color: colors.textPrimary,
@@ -105,7 +105,7 @@ const makeStyles = (colors: Palette) =>
     },
     compactTitle: {
       flex: 1,
-      fontSize: 20,
+      fontSize: fz(20),
       fontWeight: '800',
       fontFamily: fonts.sans,
       color: colors.textPrimary,

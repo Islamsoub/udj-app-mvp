@@ -18,7 +18,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, elevation, HEADER_PAD, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, elevation, HEADER_PAD, fz, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
@@ -647,7 +647,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     justifyContent: 'center',
   },
   stateTitle: {
-    fontSize: 16,
+    fontSize: fz(16),
     fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
@@ -655,13 +655,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp16,
   },
   stateBody: {
-    fontSize: 14,
+    fontSize: fz(14),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
     textAlign: 'center',
     maxWidth: 245,
-    lineHeight: 22,
+    lineHeight: fz(22),
     marginTop: spacing.sp8,
   },
 
@@ -685,13 +685,13 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: spacing.sp48,
   },
   retryBtnText: {
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.surface,
   },
   viewCacheLink: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '500',
     fontFamily: fonts.sans,
     color: colors.jade600,

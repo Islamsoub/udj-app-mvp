@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { useTranslation } from 'react-i18next';
 import { getCategoryColors, type NotifCategory } from '@/constants/colorMap';
@@ -118,21 +118,21 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingEnd: 24,
   },
   title: {
-    fontSize: 15,
+    fontSize: fz(15),
     fontWeight: '600',
     fontFamily: fonts.sans,
     color: colors.textPrimary,
-    lineHeight: 19.5,
+    lineHeight: fz(19.5),
   },
   titleUnread: {
     fontWeight: '700',
   },
   body: {
-    fontSize: 13.5,
+    fontSize: fz(13.5),
     fontWeight: '400',
     fontFamily: fonts.sans,
     color: colors.textSecondary,
-    lineHeight: 19,
+    lineHeight: fz(19),
     marginTop: 3,
   },
   metaRow: {
@@ -142,7 +142,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginTop: 9,
   },
   timestamp: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '400',
     fontFamily: fonts.mono,
     color: colors.textTertiary,
@@ -153,7 +153,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     paddingHorizontal: 10,
   },
   typePillText: {
-    fontSize: 12,
+    fontSize: fz(12),
     fontWeight: '600',
     fontFamily: fonts.sans,
   },
