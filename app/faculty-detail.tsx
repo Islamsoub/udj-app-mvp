@@ -118,7 +118,7 @@ export default function FacultyDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { t, i18n } = useTranslation();
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const rowStyles = useMemo(() => makeRowStyles(colors), [colors]);
   const params = useLocalSearchParams<{ id?: string }>();
@@ -137,7 +137,7 @@ export default function FacultyDetailScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <SettingsHeader
         topInset={insets.top}
         onBack={() => router.back()}

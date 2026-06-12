@@ -197,7 +197,7 @@ export default function AttendanceScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const [devState, setDevState] = useState<AttendanceState | null>(null);
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const studentId = useAuthStore.getState().student?.id ?? 'me';
@@ -288,7 +288,7 @@ export default function AttendanceScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       <View style={[styles.compactHeader, { paddingTop: insets.top + HEADER_PAD }]}>
         <Pressable

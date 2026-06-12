@@ -221,7 +221,7 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
 // ─── Main screen ───────────────────────────────────────────────────────────────
 
 export default function InfoCenterScreen() {
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const router = useRouter();
@@ -235,7 +235,7 @@ export default function InfoCenterScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       <SettingsHeader topInset={insets.top} onBack={() => router.back()} title={t('infoCenter.title')} />
 

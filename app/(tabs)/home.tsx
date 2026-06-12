@@ -621,7 +621,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* Header — pinned, outside ScrollView */}
       {showSkeleton ? (

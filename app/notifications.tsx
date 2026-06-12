@@ -262,7 +262,7 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function NotificationsScreen() {
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -351,7 +351,7 @@ export default function NotificationsScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       <SettingsHeader
         topInset={insets.top}

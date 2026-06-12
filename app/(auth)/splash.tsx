@@ -459,7 +459,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     width: 37,
     height: 3,
     borderRadius: 12,
-    backgroundColor: '#6B7B74',
+    backgroundColor: colors.textSecondary,
   },
   pillFill: {
     width: 24,

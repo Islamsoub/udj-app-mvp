@@ -278,7 +278,7 @@ const STATE_LABELS: Record<ArticleReaderState, string> = {
 // ─── Main screen ──────────────────────────────────────────────────────────────
 
 export default function ArticleReaderScreen() {
-  const { colors } = useColors();
+  const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { i18n } = useTranslation();
   const lang = i18n.language;
@@ -347,7 +347,7 @@ export default function ArticleReaderScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       <ArticleReaderHeader
         topInset={insets.top}

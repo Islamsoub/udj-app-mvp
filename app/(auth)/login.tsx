@@ -701,7 +701,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderTopRightRadius: 30, // design constant: login sheet radius
     marginTop: -28,
     // upward lift shadow
-    shadowColor: '#101614',
+    shadowColor: colors.textPrimary, // form sheet upward shadow
     shadowOffset: { width: 0, height: -10 },
     shadowRadius: 30,
     shadowOpacity: 0.07,

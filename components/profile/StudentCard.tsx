@@ -282,7 +282,7 @@ const makeStyles = (colors: Palette, cardTextDim: string) => StyleSheet.create({
     gap: spacing.sp12,
   },
   qrBoxMini: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white, // always white — QR code requires white background for readability
     borderRadius: 9,
     padding: 5,
     flexShrink: 0,
@@ -327,7 +327,7 @@ const makeStyles = (colors: Palette, cardTextDim: string) => StyleSheet.create({
   qrBoxFull: {
     padding: QR_FULL_BOX_PADDING,
     borderRadius: radius.rBtn,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white, // always white — QR code requires white background for readability
   },
   countdownRow: {
     flexDirection: 'row',

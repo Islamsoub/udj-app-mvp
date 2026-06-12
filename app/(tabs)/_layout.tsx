@@ -84,7 +84,7 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
               <Component
                 width={28}
                 height={28}
-                color={isFocused ? '#FFFFFF' : colors.textSecondary}
+                color={isFocused ? '#FFFFFF' : colors.textSecondary} // on-jade literal — white icon on jade pill
               />
               {/* 4px dot — invisible spacer when inactive, keeps icon vertically centered */}
               <View
