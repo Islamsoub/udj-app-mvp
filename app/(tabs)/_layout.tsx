@@ -82,8 +82,8 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
               ]}
             >
               <Component
-                width={24}
-                height={24}
+                width={28}
+                height={28}
                 color={isFocused ? '#FFFFFF' : colors.textSecondary}
               />
               {/* 4px dot — invisible spacer when inactive, keeps icon vertically centered */}
