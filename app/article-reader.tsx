@@ -2,12 +2,14 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
+  Image,
   ScrollView,
   Pressable,
   StyleSheet,
   StatusBar,
   Share,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { isAxiosError } from 'axios';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -36,6 +38,7 @@ interface ArticleData {
   fullDate: string;
   author: string;
   body: string;
+  heroImageUrl?: string | null;
   url?: string;
 }
 
@@ -71,6 +74,7 @@ function mapArticleDetail(detail: NewsArticleDetail, lang: string): ArticleData 
     fullDate: `${dateStr} · ${timeStr}`,
     author: detail.author ?? 'Service Communication',
     body: localBody(detail, lang),
+    heroImageUrl: detail.heroImageUrl,
   };
 }
 
@@ -89,9 +93,22 @@ function ArticleOfflineBanner() {
 
 // ─── Hero section ─────────────────────────────────────────────────────────────
 
-function ArticleHero() {
+function ArticleHero({ imageUrl }: { imageUrl?: string | null }) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+
+  if (imageUrl) {
+    return (
+      <View style={styles.heroImageContainer}>
+        <Image source={{ uri: imageUrl }} style={styles.heroImage} resizeMode="cover" />
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.45)']}
+          style={styles.heroScrim}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.hero}>
       <View style={styles.heroLabelPill}>
@@ -121,7 +138,7 @@ function LoadedBody({ article, bottomInset }: LoadedBodyProps) {
       contentContainerStyle={{ paddingBottom: bottomInset + 56 + spacing.sp32 }}
       showsVerticalScrollIndicator={false}
     >
-      <ArticleHero />
+      <ArticleHero imageUrl={article.heroImageUrl} />
 
       <View style={styles.bodyContent}>
         <View style={[styles.categoryPill, { backgroundColor: catColor.bg }]}>
@@ -407,7 +424,24 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     color: colors.danger,
   },
 
-  // ── Hero image placeholder
+  // ── Hero — real image path
+  heroImageContainer: {
+    height: 280,
+    overflow: 'hidden',
+  },
+  heroImage: {
+    width: '100%',
+    height: 280,
+  },
+  heroScrim: {
+    position: 'absolute',
+    bottom: 0,
+    start: 0,
+    end: 0,
+    height: 140,
+  },
+
+  // ── Hero — placeholder path (no image)
   hero: {
     height: 280,
     backgroundColor: colors.jade600,
