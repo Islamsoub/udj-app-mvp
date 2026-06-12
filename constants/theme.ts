@@ -300,6 +300,12 @@ export const spacing = {
   sp64: 64,
 } as const;
 
+/** Vertical gap between safe-area top and header content — all pinned headers */
+export const HEADER_PAD = 12;
+
+/** Vertical gap between safe-area top and login hero content — inside scroll */
+export const HERO_PAD = 20;
+
 // Fixed component dimensions that recur across screens. touchTarget is the
 // 44x44 minimum tappable size mandated by the design system.
 export const sizing = {

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { elevation, fonts, spacing, type Palette } from '@/constants/theme';
+import { elevation, fonts, spacing, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 
@@ -29,7 +29,7 @@ export function NewsHeader({ state, topInset, scrolled = false }: NewsHeaderProp
     : {};
 
   return (
-    <View style={[styles.container, { paddingTop: topInset + spacing.sp2 }, scrolledStyle]}>
+    <View style={[styles.container, { paddingTop: topInset + HEADER_PAD }, scrolledStyle]}>
       {state === 'skeleton' ? (
         <SkeletonBox width={120} height={15} borderRadius={8} />
       ) : (

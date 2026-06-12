@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { elevation, fonts, radius, spacing, type Palette } from '@/constants/theme';
+import { elevation, fonts, radius, spacing, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 
 export type ProfileHeaderState =
@@ -33,7 +33,7 @@ export function ProfileHeader({ state, topInset, isScrolled = false, onDotsPress
     : {};
 
   return (
-    <View style={[styles.container, { paddingTop: topInset + spacing.sp2 }, scrolledStyle]}>
+    <View style={[styles.container, { paddingTop: topInset + HEADER_PAD }, scrolledStyle]}>
       <Text style={styles.title}>{t('profile.title')}</Text>
       <Pressable style={styles.gearChip} hitSlop={8} onPress={onDotsPress}>
         <Ionicons name="settings-outline" size={19} color={colors.textPrimary} />

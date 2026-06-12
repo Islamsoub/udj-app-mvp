@@ -15,7 +15,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { elevation, fonts, spacing, radius, withAlpha, type Palette } from '@/constants/theme';
+import { elevation, fonts, spacing, radius, withAlpha, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { buildSubjectColorMap, getSubjectColor, getNewsCategoryColors } from '@/constants/colorMap';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
@@ -264,7 +264,7 @@ function SkeletonHeader({ topInset }: { topInset: number }) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <View style={[styles.headerSection, { paddingTop: topInset + 2 }]}>
+    <View style={[styles.headerSection, { paddingTop: topInset + HEADER_PAD }]}>
       <View style={styles.headerTopRow}>
         <SkeletonBox style={styles.skelBar180} />
         <SkeletonBox style={styles.skelBellCircle} />
@@ -356,7 +356,7 @@ function LoadedHeader({
   return (
     <View style={[
       styles.headerSection,
-      { paddingTop: topInset + 2 },
+      { paddingTop: topInset + HEADER_PAD },
       isScrolled ? elevation.card : (isDark ? styles.headerBorderBottom : null),
     ]}>
       <View style={styles.headerTopRow}>
@@ -433,7 +433,7 @@ function SimpleHeader({ topInset, isScrolled }: { topInset: number; isScrolled: 
   return (
     <View style={[
       styles.simpleHeader,
-      { paddingTop: topInset + 2 },
+      { paddingTop: topInset + HEADER_PAD },
       isScrolled ? elevation.card : (isDark ? styles.headerBorderBottom : null),
     ]}>
       <View style={styles.headerTopRow}>

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { elevation, fonts, spacing, type Palette } from '@/constants/theme';
+import { elevation, fonts, spacing, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { DayStrip } from './DayStrip';
 import { formatScheduleDate } from '@/utils/dateFormat';
@@ -55,7 +55,7 @@ export function ScheduleHeader({
 
   return (
     <View style={[styles.header, scrolledStyle]}>
-      <View style={[styles.titleRow, { paddingTop: topInset + spacing.sp2 }]}>
+      <View style={[styles.titleRow, { paddingTop: topInset + HEADER_PAD }]}>
         <Text style={[styles.title, isAr && styles.titleAr]}>
           {t('schedule.title')}
         </Text>

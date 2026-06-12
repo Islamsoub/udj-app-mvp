@@ -10,7 +10,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, elevation, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, elevation, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
@@ -256,7 +256,7 @@ export default function GradesScreen() {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* Pinned header */}
-      <View style={[styles.pinnedHeader, { paddingTop: insets.top + 2 }, scrollShadow]}>
+      <View style={[styles.pinnedHeader, { paddingTop: insets.top + HEADER_PAD }, scrollShadow]}>
         <View style={styles.headerRow}>
           <Text style={[styles.headerTitle, isAR && styles.headerTitleAR]}>
             {t('grades.title')}

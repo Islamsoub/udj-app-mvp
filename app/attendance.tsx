@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { elevation, fonts, radius, sizing, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { elevation, fonts, radius, sizing, spacing, withAlpha, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -290,7 +290,7 @@ export default function AttendanceScreen() {
     <View style={styles.root}>
       <StatusBar barStyle="dark-content" />
 
-      <View style={[styles.compactHeader, { paddingTop: insets.top }]}>
+      <View style={[styles.compactHeader, { paddingTop: insets.top + HEADER_PAD }]}>
         <Pressable
           style={({ pressed }) => [styles.backCircle, pressed && { opacity: 0.7 }]}
           onPress={() => router.back()}

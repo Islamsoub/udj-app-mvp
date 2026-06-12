@@ -18,7 +18,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, radius, spacing, elevation, type Palette } from '@/constants/theme';
+import { fonts, radius, spacing, elevation, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
@@ -148,7 +148,7 @@ function SkeletonScheduleHeader({ topInset }: { topInset: number }) {
   const { colors } = useColors();
   const skelStyles = useMemo(() => makeSkelStyles(colors), [colors]);
   return (
-    <View style={[skelStyles.header, { paddingTop: topInset + spacing.sp2 }]}>
+    <View style={[skelStyles.header, { paddingTop: topInset + HEADER_PAD }]}>
       {/* Title row */}
       <View style={skelStyles.titleRow}>
         <SkeletonBox width={169} height={15} borderRadius={8} />

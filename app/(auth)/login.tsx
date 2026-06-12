@@ -22,7 +22,7 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
-import { fonts, spacing, radius, sizing, withAlpha, colors, type Palette } from '@/constants/theme';
+import { fonts, spacing, radius, sizing, withAlpha, colors, HERO_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -373,13 +373,13 @@ export default function LoginScreen() {
           </View>
 
           {isSkeleton ? (
-            <Animated.View style={[styles.greenContent, { opacity: pulseAnim, paddingTop: insets.top + 26, paddingBottom: 56 }]}>
+            <Animated.View style={[styles.greenContent, { opacity: pulseAnim, paddingTop: insets.top + HERO_PAD, paddingBottom: 56 }]}>
               <View style={[styles.skeletonBox, { width: 87, height: 81, borderRadius: 14 }]} />
               <View style={[styles.skeletonBox, { width: 158, height: 20, borderRadius: 18, marginTop: 12 }]} />
               <View style={[styles.skeletonBox, { width: 207, height: 20, borderRadius: 18, marginTop: 8 }]} />
             </Animated.View>
           ) : (
-            <View style={[styles.greenContent, { paddingTop: insets.top + 26, paddingBottom: 56 }]}>
+            <View style={[styles.greenContent, { paddingTop: insets.top + HERO_PAD, paddingBottom: 56 }]}>
               <LogoSVG width={63} height={92} />
               <Text style={styles.greenTitle} numberOfLines={1}>{t('auth.universityName')}</Text>
               {showSubtitle && (
