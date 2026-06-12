@@ -327,7 +327,7 @@ export default function LoginScreen() {
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 4,
     shadowOpacity: 0.15,
-    elevation: 2,
+    elevation: 2, // skeleton card subtle lift
   };
   const errorInputStyle = { backgroundColor: colors.dangerBg, borderColor: colors.danger };
   const disabledInputStyle = { backgroundColor: colors.sunken, borderColor: colors.hair };
@@ -683,7 +683,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     color: '#FFFFFF', // on-gradient literal
     letterSpacing: -0.4,
     textAlign: 'center',
-    marginTop: 18,
+    marginTop: spacing.sp20,
   },
   greenSubtitle: {
     fontFamily: fonts.sans,
@@ -705,7 +705,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     shadowOffset: { width: 0, height: -10 },
     shadowRadius: 30,
     shadowOpacity: 0.07,
-    elevation: 8,
+    elevation: 8, // form sheet lift — between card and modal
     paddingHorizontal: 22,
     paddingTop: 28,
     flex: 1,
@@ -760,7 +760,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 20,
     shadowOpacity: 0.28,
-    elevation: 6,
+    elevation: 6, // CTA jade glow — bespoke shadow
   },
   loginButtonText: {
     fontFamily: fonts.sans,

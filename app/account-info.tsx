@@ -244,7 +244,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   sectionHeader: {
     marginTop: 22,
-    marginBottom: 9,
+    marginBottom: spacing.sp8,
     marginHorizontal: spacing.sp20,
     fontSize: fz(13),
     fontWeight: '600',

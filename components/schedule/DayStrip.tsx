@@ -224,7 +224,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 8,
-    elevation: 4,
+    elevation: 4, // selected day glow — bespoke shadow
   },
   cellWeekend: {
     backgroundColor: colors.sunken,

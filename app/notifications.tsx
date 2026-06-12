@@ -469,7 +469,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   emptyIconCircle: {
     width: 64,
     height: 64,
-    borderRadius: 32,
+    borderRadius: radius.rFull,
     backgroundColor: colors.jadeFaint,
     alignItems: 'center',
     justifyContent: 'center',

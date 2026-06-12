@@ -206,7 +206,7 @@ const makeSkelStyles = (colors: Palette) => StyleSheet.create({
   circle: {
     width: 34,
     height: 34,
-    borderRadius: 17,
+    borderRadius: radius.rTile,
     backgroundColor: colors.border,
   },
   weekNavSkel: {

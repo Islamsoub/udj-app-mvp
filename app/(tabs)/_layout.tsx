@@ -32,7 +32,7 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.55,
         shadowRadius: 24,
-        elevation: 8,
+        elevation: 8, // nav bar float — bespoke jade glow shadow
         borderWidth: 1,
         borderColor: colors.hair,
       }

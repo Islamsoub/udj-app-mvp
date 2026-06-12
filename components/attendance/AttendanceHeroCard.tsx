@@ -115,11 +115,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.30,
     shadowRadius: 28,
-    elevation: 8,
+    elevation: 8, // hero brand glow — bespoke shadow
   },
   card: {
     borderRadius: radius.rHero,
-    padding: 18,
+    padding: spacing.sp20,
     overflow: 'hidden',
   },
   depthCircle: {
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   innerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 18,
+    gap: spacing.sp20,
   },
   rightCol: {
     flex: 1,

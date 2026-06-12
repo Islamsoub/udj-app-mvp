@@ -213,7 +213,7 @@ const makeStyles = (colors: Palette, cardTextDim: string) => StyleSheet.create({
   gradient: {
     flex: 1,
     borderRadius: radius.rHero,
-    padding: 18,
+    padding: spacing.sp20,
   },
   depthCircle: {
     position: 'absolute',

@@ -38,7 +38,7 @@ const makeStyles = (colors: Palette) =>
       width: '84%',
       borderRadius: radius.rTile,
       backgroundColor: colors.surface,
-      elevation: 8,
+      elevation: 8, // popover float — bespoke shadow
       shadowColor: colors.black,
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.15,

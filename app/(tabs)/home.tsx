@@ -804,7 +804,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   statRow: { flexDirection: 'row', gap: 10, marginTop: 16, marginBottom: spacing.sp16 },
   statCard: {
     flex: 1, backgroundColor: colors.sunken, borderRadius: radius.rXl,
-    paddingHorizontal: 14, paddingVertical: 13,
+    paddingHorizontal: spacing.sp12, paddingVertical: spacing.sp12,
     borderWidth: 1, borderColor: colors.hair,
   },
   statLabel: {
@@ -862,7 +862,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   agendaTime: { fontSize: fz(14), fontWeight: '500', color: colors.textSecondary, fontFamily: fonts.mono },
   agendaCourse: { fontSize: fz(16.5), fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans, marginTop: spacing.sp2 },
   agendaTeacher: { fontSize: fz(14), fontWeight: '500', color: colors.textSecondary, fontFamily: fonts.sans },
-  pillRow: { flexDirection: 'row', gap: 8, marginTop: 11, alignItems: 'center' },
+  pillRow: { flexDirection: 'row', gap: 8, marginTop: spacing.sp12, alignItems: 'center' },
   locationPill: { backgroundColor: colors.surface2, borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
   locationPillText: { fontSize: fz(13), fontWeight: '600', color: colors.textPrimary, fontFamily: fonts.sans },
   statusPillActive: { backgroundColor: colors.jadeFaint, borderRadius: radius.rFull, paddingHorizontal: 10, paddingVertical: 4 },
@@ -878,7 +878,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     gap: spacing.sp12, marginBottom: spacing.sp12,
   },
   emptyAgendaChip: {
-    width: 38, height: 38, borderRadius: 11,
+    width: 38, height: 38, borderRadius: radius.rMd,
     backgroundColor: colors.jadeFaint, alignItems: 'center', justifyContent: 'center',
   },
   emptyAgendaTitle: { fontSize: fz(15), fontWeight: '700', color: colors.textPrimary, fontFamily: fonts.sans },
@@ -887,7 +887,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   newsCard: {
     flexDirection: 'row', backgroundColor: colors.surface,
     borderRadius: radius.rXl, marginBottom: spacing.sp12,
-    padding: spacing.sp12, gap: 13, alignItems: 'center',
+    padding: spacing.sp12, gap: spacing.sp12, alignItems: 'center',
     ...elevation.card,
   },
   newsThumbnail: { width: 52, height: 52, borderRadius: 12 },
@@ -910,7 +910,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     ...elevation.card,
   },
   newsOfflineChip: {
-    width: 38, height: 38, borderRadius: 11,
+    width: 38, height: 38, borderRadius: radius.rMd,
     backgroundColor: colors.slateBg, alignItems: 'center', justifyContent: 'center',
   },
   newsOfflineText: { flex: 1, fontSize: fz(13), color: colors.textSecondary, fontFamily: fonts.sans },
@@ -958,7 +958,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   skelNewsCard: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: colors.surface, borderRadius: radius.rXl,
-    marginBottom: spacing.sp12, padding: spacing.sp12, gap: 13,
+    marginBottom: spacing.sp12, padding: spacing.sp12, gap: spacing.sp12,
     ...elevation.card,
   },
   skelNewsThumbnail: { width: 52, height: 52, borderRadius: 12, backgroundColor: withAlpha(colors.skeletonBox, 0.6) },
