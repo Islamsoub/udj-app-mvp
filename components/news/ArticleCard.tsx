@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -31,6 +31,11 @@ export function ArticleCard({ article, onPress }: ArticleCardProps) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
   const [isBookmarked, setIsBookmarked] = useState(article.bookmarked ?? false);
+
+  useEffect(() => {
+    setIsBookmarked(article.bookmarked ?? false);
+  }, [article.bookmarked]);
+
   const catColor = getNewsCategoryColors(article.category, colors);
 
   async function handleBookmarkPress() {

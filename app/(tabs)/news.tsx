@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { fonts, radius, spacing, fz, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -205,6 +205,13 @@ export default function NewsScreen() {
     },
     updateCache: () => Promise.resolve(),
   });
+
+  // Re-read SQLite on focus to pick up bookmark changes made in the article reader
+  useFocusEffect(
+    useCallback(() => {
+      hook.refetch();
+    }, [hook.refetch])
+  );
 
   // ─── Derive hero/list articles ──────────────────────────────────────────────
 
