@@ -241,10 +241,6 @@ function SkeletonScheduleBody() {
     <View style={styles.timelineBody}>
       {[0, 1, 2].map((i) => (
         <View key={i} style={styles.skelRow}>
-          {/* Gutter — DM Mono pill shimmer */}
-          <View style={styles.skelGutter}>
-            <SkeletonBox width={36} height={13} borderRadius={6} />
-          </View>
           {/* Connector dot — static, no shimmer */}
           <View style={styles.skelConnector}>
             <View style={styles.skelDot} />
@@ -604,17 +600,12 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flexDirection: 'row',
     marginBottom: spacing.sp16,
     alignItems: 'flex-start',
-  },
-  skelGutter: {
-    width: 44,
-    paddingTop: spacing.sp6,
-    alignItems: 'flex-end',
-    paddingEnd: spacing.sp8,
+    gap: spacing.sp16,
   },
   skelConnector: {
-    width: 20,
+    width: 24,
     alignItems: 'center',
-    paddingTop: spacing.sp6,
+    paddingTop: spacing.sp16,
   },
   skelDot: {
     width: 12,

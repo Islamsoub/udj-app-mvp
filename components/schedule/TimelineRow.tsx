@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, I18nManager, Animated } from 'react-native';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, I18nManager, Animated, Easing, AccessibilityInfo } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { fonts, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -26,45 +26,60 @@ export function TimelineRow({ entry, isLast, onPress }: TimelineRowProps) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   const isActive = !isPause(entry) && entry.status === 'active';
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
-    if (!isActive) {
-      pulseAnim.setValue(1);
+    AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
+    return () => sub.remove();
+  }, []);
+
+  const ringScale   = useRef(new Animated.Value(0.85)).current;
+  const ringOpacity = useRef(new Animated.Value(0.85)).current;
+
+  useEffect(() => {
+    if (!isActive || reduceMotion) {
+      ringScale.setValue(0.85);
+      ringOpacity.setValue(0.85);
       return;
     }
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 0.4, duration: 750, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1,   duration: 750, useNativeDriver: true }),
+        Animated.parallel([
+          Animated.timing(ringScale,   { toValue: 2.0,  duration: 1900, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+          Animated.timing(ringOpacity, { toValue: 0,    duration: 1900, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+        ]),
+        // Instant reset before next cycle
+        Animated.parallel([
+          Animated.timing(ringScale,   { toValue: 0.85, duration: 1, useNativeDriver: true }),
+          Animated.timing(ringOpacity, { toValue: 0.85, duration: 1, useNativeDriver: true }),
+        ]),
       ]),
     );
     loop.start();
     return () => loop.stop();
-  }, [isActive, pulseAnim]);
-
-  const timeLabel = isPause(entry) ? entry.time : (entry.gutter ?? entry.start);
-  const timeColor = isPause(entry) || (!isPause(entry) && entry.status === 'past')
-    ? colors.textTertiary
-    : colors.textSecondary;
+  }, [isActive, reduceMotion, ringScale, ringOpacity]);
 
   const dot = isPause(entry) ? (
     <View style={styles.pauseDot} />
   ) : isActive ? (
-    <Animated.View style={[styles.dot, { backgroundColor: colors.jade400, opacity: pulseAnim }]} />
+    <View style={styles.dotWrap}>
+      {/* Static halo ring — visible between animation pulses */}
+      <View style={[styles.haloStatic, { borderColor: colors.jade400 }]} />
+      {/* Pulsing ring — hidden when reduce motion is on */}
+      {!reduceMotion && (
+        <Animated.View
+          style={[
+            styles.haloAnim,
+            { borderColor: colors.jade400, opacity: ringOpacity, transform: [{ scale: ringScale }] },
+          ]}
+        />
+      )}
+      {/* Solid jade dot — rendered last so it sits on top */}
+      <View style={[styles.dotSolid, { backgroundColor: colors.jade400 }]} />
+    </View>
   ) : (
     <View style={[styles.dot, { backgroundColor: getSubjectColor(entry.subject, isDark).accent }]} />
-  );
-
-  const gutter = (
-    <View style={styles.gutter}>
-      <Text
-        style={[styles.timeLabel, { color: timeColor, textAlign: isRTL ? 'left' : 'right' }]}
-        numberOfLines={1}
-      >
-        {timeLabel}
-      </Text>
-    </View>
   );
 
   const connector = (
@@ -89,8 +104,8 @@ export function TimelineRow({ entry, isLast, onPress }: TimelineRowProps) {
   return (
     <View style={styles.row}>
       {isRTL
-        ? <>{content}{connector}{gutter}</>
-        : <>{gutter}{connector}{content}</>}
+        ? <>{content}{connector}</>
+        : <>{connector}{content}</>}
     </View>
   );
 }
@@ -102,21 +117,48 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     gap: spacing.sp16,
     marginBottom: spacing.sp16,
   },
-  gutter: {
-    width: 52,
-    paddingEnd: spacing.sp12,
-    paddingTop: spacing.sp16,
-    alignItems: 'flex-end',
-  },
-  timeLabel: {
-    fontSize: 13,
-    fontFamily: fonts.mono,
-    fontWeight: '500',
-  },
   connectorCol: {
     width: 24,
     alignItems: 'center',
   },
+  // Active dot: 24×24 wrapper so absolute rings have a defined frame
+  dotWrap: {
+    width: 24,
+    height: 24,
+    marginTop: spacing.sp16,
+  },
+  // Static halo ring — always rendered for active status
+  haloStatic: {
+    position: 'absolute',
+    top: 3,
+    left: 3,
+    width: 18,
+    height: 18,
+    borderRadius: radius.rFull,
+    borderWidth: 2,
+    backgroundColor: 'transparent',
+  },
+  // Animated pulsing ring — same geometry as haloStatic
+  haloAnim: {
+    position: 'absolute',
+    top: 3,
+    left: 3,
+    width: 18,
+    height: 18,
+    borderRadius: radius.rFull,
+    borderWidth: 2,
+    backgroundColor: 'transparent',
+  },
+  // Solid jade dot inside the wrapper
+  dotSolid: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    width: 12,
+    height: 12,
+    borderRadius: radius.rFull,
+  },
+  // Non-active dot
   dot: {
     width: 12,
     height: 12,

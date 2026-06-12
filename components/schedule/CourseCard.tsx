@@ -10,7 +10,6 @@ export interface Course {
   subject: string;
   teacher: string;
   room: string;
-  gutter?: string;
   start: string;
   end: string;
   status: CourseStatus;
@@ -40,7 +39,7 @@ export function CourseCard({ course, onPress }: CourseCardProps) {
       <View style={styles.content}>
         <Text
           style={[styles.subject, { color: course.status === 'past' ? colors.textSecondary : colors.textPrimary }]}
-          numberOfLines={1}
+          numberOfLines={2}
           ellipsizeMode="tail"
         >
           {course.subject}
@@ -48,9 +47,9 @@ export function CourseCard({ course, onPress }: CourseCardProps) {
         <Text style={styles.subtitle}>{`${course.teacher} · ${course.room}`}</Text>
         <View style={styles.pillRow}>
           <View style={styles.timePill}>
-            <Text style={styles.timePillText}>{`${course.start} – ${course.end}`}</Text>
+            <Text style={styles.timePillText} numberOfLines={1}>{`${course.start} – ${course.end}`}</Text>
           </View>
-          <StatusPill status={course.status} />
+          <StatusPill status={course.status} style={styles.statusPill} />
         </View>
       </View>
     </Pressable>
@@ -84,6 +83,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontSize: 15.5,
     fontWeight: '700',
     fontFamily: fonts.sans,
+    flexShrink: 1,
   },
   subtitle: {
     fontSize: 14,
@@ -103,11 +103,15 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderRadius: radius.rFull,
     paddingVertical: 5, // design constant: pill padding
     paddingHorizontal: spacing.sp12,
+    flexShrink: 0,
   },
   timePillText: {
     fontSize: 13,
     fontFamily: fonts.mono,
     fontWeight: '600',
     color: colors.textSecondary,
+  },
+  statusPill: {
+    flexShrink: 0,
   },
 });
