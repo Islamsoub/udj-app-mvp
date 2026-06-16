@@ -51,7 +51,9 @@
     "network_required": "Une connexion internet est requise pour la première connexion. Activez vos données mobiles ou Wi-Fi.",
     "session_body": "Votre session de 30 jours a expiré. Reconnectez-vous pour accéder à vos données.",
     "change_account": "Changer",
-    "yourAccount": "Votre compte"
+    "yourAccount": "Votre compte",
+    "privacy_notice": "En vous connectant, vous acceptez notre",
+    "privacy_link": "politique de confidentialité"
   },
   "onboarding": {
     "skip": "Passer",
@@ -338,6 +340,7 @@
       "last_sync": "Dernière synchronisation",
       "account_info": "Informations du compte",
       "account_info_value": "Ahmed Omar",
+      "privacy": "Politique de confidentialité",
       "logout": "Déconnexion"
     },
     "restart_title": "Redémarrage requis",

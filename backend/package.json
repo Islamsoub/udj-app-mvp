@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc",
+    "build": "tsc && cp -r public dist/",
     "start": "node dist/index.js",
     "seed": "tsx prisma/seed.ts",
     "test:prod": "tsx tests/api-prod-test.ts",

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  Linking,
 } from 'react-native';
 import * as Updates from 'expo-updates';
 import { useRouter } from 'expo-router';
@@ -257,6 +258,10 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
         <SettingsRow
           label={t('infoCenter.title')}
           onPress={() => router.push('/info-center')}
+        />
+        <SettingsRow
+          label={t('settings.row.privacy')}
+          onPress={() => void Linking.openURL('https://udj-api.onrender.com/public/privacy-policy.html')}
         />
         <SettingsRow
           label={t('settings.row.logout')}

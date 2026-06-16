@@ -51,7 +51,9 @@
     "network_required": "يلزم الاتصال بالإنترنت عند تسجيل الدخول لأول مرة. فعّل بيانات الهاتف أو Wi-Fi.",
     "session_body": "انتهت جلستك (30 يوماً). أعد تسجيل الدخول للوصول إلى بياناتك.",
     "change_account": "تغيير",
-    "yourAccount": "حسابك"
+    "yourAccount": "حسابك",
+    "privacy_notice": "بتسجيل الدخول، أنت توافق على",
+    "privacy_link": "سياسة الخصوصية"
   },
   "onboarding": {
     "skip": "تخطي",
@@ -338,6 +340,7 @@
       "last_sync": "آخر مزامنة",
       "account_info": "معلومات الحساب",
       "account_info_value": "أحمد عمر",
+      "privacy": "سياسة الخصوصية",
       "logout": "تسجيل الخروج"
     },
     "restart_title": "يجب إعادة التشغيل",

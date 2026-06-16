@@ -1,4 +1,5 @@
 import { env } from './utils/env';
+import path from 'path';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -14,7 +15,9 @@ const app = express();
 
 app.set('trust proxy', 1);
 
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // allow inline styles on public HTML pages
+}));
 app.use(cors({
   origin: env.NODE_ENV === 'production'
     ? false
@@ -26,6 +29,10 @@ app.use(cors({
 app.use(express.json());
 app.use(logger);
 app.use(globalRateLimiter);
+
+// Public static files — no auth required (Play Store privacy policy URL)
+// public/ is copied into dist/ during build so the path is self-contained
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

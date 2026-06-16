@@ -612,6 +612,19 @@ export default function LoginScreen() {
                   </View>
                 </>
               )}
+
+              {/* ── PRIVACY NOTICE ── */}
+              <View style={styles.privacyRow}>
+                <Text style={styles.privacyText}>
+                  {t('auth.privacy_notice')}{' '}
+                  <Text
+                    style={styles.privacyLink}
+                    onPress={() => void Linking.openURL('https://udj-api.onrender.com/public/privacy-policy.html')}
+                  >
+                    {t('auth.privacy_link')}
+                  </Text>
+                </Text>
+              </View>
             </>
           )}
         </View>
@@ -1040,6 +1053,25 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   skeletonHelpRow: {
     alignItems: 'center',
     marginTop: spacing.sp8,
+  },
+
+  // ── Privacy notice ──
+  privacyRow: {
+    alignItems: 'center',
+    marginTop: spacing.sp20,
+    paddingHorizontal: spacing.sp8,
+  },
+  privacyText: {
+    fontFamily: fonts.sans,
+    fontSize: fz(11),
+    fontWeight: '400',
+    color: colors.textTertiary,
+    textAlign: 'center',
+    lineHeight: fz(16),
+  },
+  privacyLink: {
+    color: colors.textSecondary,
+    textDecorationLine: 'underline',
   },
 
 });
