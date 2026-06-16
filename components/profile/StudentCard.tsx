@@ -14,7 +14,7 @@ const BRAND_FG = lightColors.surface;
 
 // Diagonal jade gradient matching the Sagal spec — deeper end stop (≈150°) so
 // the dark green pools toward the bottom and the slab reads with depth.
-const GRADIENT_COLORS: [string, string] = ['#1D9E75', '#0A5C44'];
+const GRADIENT_COLORS: [string, string] = ['#1D9E75', '#0A5C44']; // on-gradient literals — hero end stop
 const GRADIENT_START = { x: 0.17, y: 0 };
 const GRADIENT_END = { x: 0.83, y: 1 };
 

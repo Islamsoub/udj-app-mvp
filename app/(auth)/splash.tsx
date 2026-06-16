@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { fonts, lightColors, radius, spacing, withAlpha, colors, fz, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { useTranslation } from 'react-i18next';
 import { restoreSession } from '@/services/auth';
 import api from '@/services/api';
 
@@ -65,6 +66,7 @@ const STATE_LABELS: Record<SplashState, string> = {
 export default function SplashScreen() {
   const router = useRouter();
   const { colors } = useColors();
+  const { t } = useTranslation();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [splashState, setSplashState] = useState<SplashState>('loading');
 
@@ -147,7 +149,7 @@ export default function SplashScreen() {
           <View style={styles.iconCircleDark}>
             <Ionicons name="cloud-offline-outline" size={32} color={BRAND_FG} />
           </View>
-          <Text style={styles.stateBoldText}>Pas de connexion</Text>
+          <Text style={styles.stateBoldText}>{t('splash.no_connection')}</Text>
           <Text style={styles.stateBodyText}>
             {'Vérifiez votre connexion Wi-Fi\nou données mobiles pour continuer.'}
           </Text>
@@ -156,7 +158,7 @@ export default function SplashScreen() {
             onPress={() => setSplashState('loading')}
             hitSlop={8}
           >
-            <Text style={styles.primaryButtonText}>Réessayer</Text>
+            <Text style={styles.primaryButtonText}>{t('splash.retry')}</Text>
           </Pressable>
         </View>
       )}
@@ -167,12 +169,12 @@ export default function SplashScreen() {
           <View style={styles.iconCircleDanger}>
             <Ionicons name="construct-outline" size={32} color={colors.danger} />
           </View>
-          <Text style={styles.stateBoldText}>Maintenance en cours</Text>
+          <Text style={styles.stateBoldText}>{t('splash.maintenance')}</Text>
           <Text style={styles.stateBodyText}>
             {"L'application sera disponible\ndans quelques minutes. Merci de votre patience."}
           </Text>
           <Pressable style={styles.outlineButton} hitSlop={8}>
-            <Text style={styles.outlineButtonText}>Réessayer plus tard</Text>
+            <Text style={styles.outlineButtonText}>{t('splash.retry_later')}</Text>
           </Pressable>
         </View>
       )}
@@ -180,7 +182,7 @@ export default function SplashScreen() {
       {/* ── State: first-install ── */}
       {splashState === 'first-install' && (
         <View style={styles.stateContent}>
-          <Text style={styles.welcomeHeading}>Bienvenue !</Text>
+          <Text style={styles.welcomeHeading}>{t('splash.welcome')}</Text>
           <Text style={styles.welcomeSubtitle}>
             {"Votre application étudiante\nofficielle de l'Université de Djibouti"}
           </Text>
@@ -197,27 +199,27 @@ export default function SplashScreen() {
             onPress={() => router.replace('/(auth)/onboarding')}
             hitSlop={8}
           >
-            <Text style={styles.primaryButtonText}>{'Commencer →'}</Text>
+            <Text style={styles.primaryButtonText}>{t('splash.start')}</Text>
           </Pressable>
-          <Text style={styles.firstInstallCaption}>Première installation</Text>
+          <Text style={styles.firstInstallCaption}>{t('splash.first_install')}</Text>
         </View>
       )}
 
       {/* ── State: force-update ── */}
       {splashState === 'force-update' && (
         <View style={styles.stateContent}>
-          <Text style={styles.stateBoldText}>Mise à jour requise</Text>
+          <Text style={styles.stateBoldText}>{t('splash.update_required')}</Text>
           <Text style={styles.stateBodyText}>
             {"Une nouvelle version de l'app est disponible.\nMettez à jour pour continuer\nà accéder à vos données."}
           </Text>
           <View style={styles.versionRow}>
             <View style={styles.versionBoxCurrent}>
-              <Text style={styles.versionBoxLabel}>VERSION ACTUELLE</Text>
+              <Text style={styles.versionBoxLabel}>{t('splash.current_version')}</Text>
               <Text style={styles.versionBoxNumber}>1.0.0</Text>
             </View>
             <Text style={styles.versionArrow}>→</Text>
             <View style={styles.versionBoxNew}>
-              <Text style={styles.versionBoxLabel}>NOUVELLE VERSION</Text>
+              <Text style={styles.versionBoxLabel}>{t('splash.new_version')}</Text>
               <Text style={styles.versionBoxNumber}>1.1.0</Text>
             </View>
           </View>
@@ -226,7 +228,7 @@ export default function SplashScreen() {
             onPress={() => { void Linking.openURL('https://play.google.com/store'); }}
             hitSlop={8}
           >
-            <Text style={styles.primaryButtonText}>Mettre à jour</Text>
+            <Text style={styles.primaryButtonText}>{t('splash.update')}</Text>
           </Pressable>
         </View>
       )}
@@ -244,7 +246,7 @@ export default function SplashScreen() {
               }}
             />
           </View>
-          <Text style={styles.loadingText}>Chargement</Text>
+          <Text style={styles.loadingText}>{t('splash.loading')}</Text>
         </>
       )}
 
@@ -270,8 +272,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   // Logo is absolutely positioned; top varies by state
   logoAbsolute: {
     position: 'absolute',
-    left: 0,
-    right: 0,
+    start: 0,
+    end: 0,
     alignSelf: 'center',
     alignItems: 'center',
   },

@@ -53,7 +53,7 @@ export function InfoRow({
         </Text>
       ) : null}
       {showChevron ? (
-        <Ionicons name="chevron-forward" size={16} color={chevronColor} />
+        <Ionicons name={I18nManager.isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={chevronColor} />
       ) : null}
     </>
   );

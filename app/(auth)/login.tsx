@@ -359,7 +359,7 @@ export default function LoginScreen() {
         bounces={false}
         showsVerticalScrollIndicator={false}
       >
-        {/* ── HERO GRADIENT — #1D9E75 → #0B5544 at ~155° ── */}
+        {/* ── HERO GRADIENT — #1D9E75 → #0B5544 at ~155° — on-gradient literals ── */}
         <LinearGradient
           colors={['#1D9E75', '#0B5544']}
           start={{ x: 0.71, y: 0.05 }}
@@ -756,11 +756,11 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   loginButtonShadow: {
     // jade glow — login CTA only
-    shadowColor: '#0F6E56',
+    shadowColor: '#0F6E56', // jade CTA glow — bespoke shadow
     shadowOffset: { width: 0, height: 8 },
     shadowRadius: 20,
     shadowOpacity: 0.28,
-    elevation: 6, // CTA jade glow — bespoke shadow
+    elevation: 6,
   },
   loginButtonText: {
     fontFamily: fonts.sans,

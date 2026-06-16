@@ -265,6 +265,8 @@ export default function GradesScreen() {
             style={styles.calcBtn}
             onPress={() => setCalculatorVisible(true)}
             hitSlop={8}
+            accessibilityLabel={t('grades.calc_title')}
+            accessibilityRole="button"
           >
             <Ionicons name="calculator-outline" size={19} color={colors.textPrimary} />
           </Pressable>
@@ -308,7 +310,7 @@ export default function GradesScreen() {
             gpa={null}
             credits={null}
             activeSemester={activeSemester}
-            onPress={() => {}}
+            onPress={undefined}
             skeleton
           />
         )}
@@ -407,7 +409,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1C2320',
+    shadowColor: '#1C2320', // segmented control shadow
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 10,

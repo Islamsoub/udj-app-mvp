@@ -15,6 +15,7 @@
     "last_sync_short": "تحديث: {{time}}",
     "never": "لم تتم بعد",
     "sync_value": "أمس في {{time}}",
+    "notifications": "الإشعارات",
     "session": {
       "title": "انتهت الجلسة",
       "body": "انتهت جلستك لأسباب أمنية. أعد تسجيل الدخول للمتابعة.",
@@ -646,5 +647,19 @@
     "row_phone": "الهاتف",
     "row_address": "العنوان",
     "row_hours": "ساعات العمل"
+  },
+  "splash": {
+    "no_connection": "لا يوجد اتصال",
+    "retry": "إعادة المحاولة",
+    "maintenance": "صيانة جارية",
+    "retry_later": "حاول لاحقاً",
+    "welcome": "!مرحباً",
+    "start": "→ ابدأ",
+    "first_install": "التثبيت الأول",
+    "update_required": "تحديث مطلوب",
+    "current_version": "الإصدار الحالي",
+    "new_version": "الإصدار الجديد",
+    "update": "تحديث",
+    "loading": "جاري التحميل"
   }
 }

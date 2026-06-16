@@ -2,13 +2,13 @@ import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   Pressable,
   TextInput,
   StyleSheet,
   StatusBar,
   Linking,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -149,10 +149,12 @@ function LoadedContent() {
   }
 
   return (
-    <ScrollView
+    <KeyboardAwareScrollView
       style={styles.scroll}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      bottomOffset={20}
     >
       <SearchBar />
 
@@ -194,7 +196,7 @@ function LoadedContent() {
       </View>
 
       <View style={{ height: spacing.sp64 }} />
-    </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 

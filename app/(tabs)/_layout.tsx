@@ -28,7 +28,7 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
 
   const shadowStyle = isDark
     ? {
-        shadowColor: '#000000',
+        shadowColor: '#000000', // nav dark shadow
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.55,
         shadowRadius: 24,

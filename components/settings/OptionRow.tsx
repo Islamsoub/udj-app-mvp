@@ -43,7 +43,7 @@ export function OptionRow({
       </View>
       <View style={[styles.radio, selected && styles.radioSelected]}>
         {selected ? (
-          <Ionicons name="checkmark" size={14} color={lightColors.surface} />
+          <Ionicons name="checkmark" size={14} color={colors.white} />
         ) : null}
       </View>
     </Pressable>

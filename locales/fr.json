@@ -15,6 +15,7 @@
     "last_sync_short": "Mise à jour: {{time}}",
     "never": "jamais",
     "sync_value": "Hier à {{time}}",
+    "notifications": "Notifications",
     "session": {
       "title": "Session expirée",
       "body": "Votre session a expiré pour des raisons de sécurité. Reconnectez-vous pour continuer.",
@@ -646,5 +647,19 @@
     "row_phone": "Téléphone",
     "row_address": "Adresse",
     "row_hours": "Horaires d'ouverture"
+  },
+  "splash": {
+    "no_connection": "Pas de connexion",
+    "retry": "Réessayer",
+    "maintenance": "Maintenance en cours",
+    "retry_later": "Réessayer plus tard",
+    "welcome": "Bienvenue !",
+    "start": "Commencer →",
+    "first_install": "Première installation",
+    "update_required": "Mise à jour requise",
+    "current_version": "VERSION ACTUELLE",
+    "new_version": "NOUVELLE VERSION",
+    "update": "Mettre à jour",
+    "loading": "Chargement"
   }
 }

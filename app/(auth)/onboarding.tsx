@@ -85,7 +85,7 @@ export default function OnboardingScreen() {
         pointerEvents={isLanguageStep ? 'none' : 'auto'}
         style={isLanguageStep ? styles.skipHidden : undefined}
       >
-        <Pressable style={styles.skipButton} onPress={handleSkip}>
+        <Pressable style={styles.skipButton} onPress={handleSkip} accessibilityRole="button">
           <Text style={styles.skipText}>{t('onboarding.skip')}</Text>
           <Ionicons name="chevron-forward" size={14} color={colors.jade600} style={styles.skipIcon} />
         </Pressable>

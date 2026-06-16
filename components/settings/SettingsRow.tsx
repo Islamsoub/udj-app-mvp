@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, Switch, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Switch, StyleSheet, I18nManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { fonts, fz, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -72,7 +72,7 @@ export function SettingsRow({
         </Text>
       ) : null}
       {!isDestructive && showChevron ? (
-        <Ionicons name="chevron-forward" size={16} color={colors.greyMedium} />
+        <Ionicons name={I18nManager.isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.greyMedium} />
       ) : null}
     </Pressable>
   );

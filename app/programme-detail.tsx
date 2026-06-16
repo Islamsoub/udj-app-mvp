@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, StyleSheet, StatusBar } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, StatusBar, I18nManager } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -60,7 +60,7 @@ const makeRowStyles = (colors: Palette) => StyleSheet.create({
     fontFamily: fonts.sans,
     color: colors.textSecondary,
     marginStart: spacing.sp8,
-    textAlign: 'right',
+    textAlign: I18nManager.isRTL ? 'left' : 'right',
   },
   valueMono: {
     fontFamily: fonts.mono,

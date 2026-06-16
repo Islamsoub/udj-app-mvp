@@ -365,6 +365,8 @@ function LoadedHeader({
           style={({ pressed }) => [styles.bellBtn, pressed && { opacity: 0.7 }]}
           onPress={() => router.push('/notifications')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityLabel={t('common.notifications')}
+          accessibilityRole="button"
         >
           <Ionicons name="notifications-outline" size={19} color={colors.textPrimary} />
           {showBadge && <View style={styles.bellBadge} />}
@@ -442,6 +444,8 @@ function SimpleHeader({ topInset, isScrolled }: { topInset: number; isScrolled: 
           style={({ pressed }) => [styles.bellBtn, pressed && { opacity: 0.7 }]}
           onPress={() => router.push('/notifications')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityLabel={t('common.notifications')}
+          accessibilityRole="button"
         >
           <Ionicons name="notifications-outline" size={19} color={colors.textPrimary} />
         </Pressable>

@@ -12,7 +12,7 @@ interface Props {
   gpa: number | null;
   credits: { earned: number; total: number } | null;
   activeSemester: 1 | 2;
-  onPress: () => void;
+  onPress?: () => void;
   skeleton?: boolean;
 }
 

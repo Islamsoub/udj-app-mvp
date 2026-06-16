@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, StatusBar, Linking } from 'react-native';
+import { View, Text, ScrollView, Pressable, StyleSheet, StatusBar, Linking, I18nManager } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -54,7 +54,7 @@ function DetailRow({
         </Text>
       </View>
       {onPress ? (
-        <Ionicons name="chevron-forward" size={16} color={colors.greyMedium} />
+        <Ionicons name={I18nManager.isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.greyMedium} />
       ) : null}
     </>
   );

@@ -7,6 +7,7 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  I18nManager,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -71,7 +72,7 @@ function CategoryRow({ icon, name, rows, size, rowsLabel, onClear, isLast = fals
           {rowsLabel} · {size}
         </Text>
       </View>
-      <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+      <Ionicons name={I18nManager.isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
     </Pressable>
   );
 }

@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet, useColorScheme, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fz, lightColors, darkColors, radius } from '@/constants/theme';
 
 // Uses useColorScheme() directly instead of useColors() — this is the global
@@ -8,11 +9,12 @@ import { fz, lightColors, darkColors, radius } from '@/constants/theme';
 export default function GlobalError({ error, retry }: { error: Error; retry: () => void }) {
   const router = useRouter();
   const scheme = useColorScheme();
+  const insets = useSafeAreaInsets();
   const isDark = scheme === 'dark';
   const colors = isDark ? darkColors : lightColors;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top + 24, paddingBottom: insets.bottom + 16 }]}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <Text style={styles.icon}>⚠️</Text>
       <Text style={[styles.title, { color: colors.textPrimary }]}>Oups, une erreur est survenue</Text>
@@ -30,7 +32,7 @@ export default function GlobalError({ error, retry }: { error: Error; retry: () 
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 24 },
   icon: { fontSize: fz(48), marginBottom: 16 },
   title: { fontSize: fz(20), fontWeight: '600', marginBottom: 8, textAlign: 'center' },
   message: { fontSize: fz(14), textAlign: 'center', marginBottom: 24 },

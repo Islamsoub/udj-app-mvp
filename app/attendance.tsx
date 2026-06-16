@@ -7,6 +7,7 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  I18nManager,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -136,7 +137,7 @@ function CardsBody({ data, onRefresh }: CardsBodyProps) {
           <Text style={styles.uploadHint}>{t('presence.upload_hint')}</Text>
         </View>
         <Ionicons
-          name="chevron-forward"
+          name={I18nManager.isRTL ? 'chevron-back' : 'chevron-forward'}
           size={18}
           color={colors.textTertiary}
         />

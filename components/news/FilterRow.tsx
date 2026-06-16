@@ -88,8 +88,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     color: colors.textSecondary,
   },
   pillTextActive: {
-    // White on jade — do not use a theme token here; jade400 bg requires pure white
-    color: '#FFFFFF',
+    color: colors.white,
     fontWeight: '700',
   },
 });
