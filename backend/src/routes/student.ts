@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import multer from 'multer';
+import { fromBuffer } from 'file-type';
 import { z } from 'zod';
 import prisma from '../utils/prisma';
 import { env } from '../utils/env';
@@ -13,11 +14,13 @@ router.use(authMiddleware);
 
 // ── Multer for justification uploads ──────────────────────────────────────────
 
-const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'application/pdf']);
+const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']);
+const ALLOWED_MAGIC_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 const EXT_BY_MIME: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
+  'image/webp': 'webp',
   'application/pdf': 'pdf',
 };
 
@@ -28,7 +31,7 @@ const justificationUpload = multer({
     if (ALLOWED_MIME.has(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new AppError('Invalid file type. Allowed: JPEG, PNG, PDF', 400));
+      cb(new AppError('Invalid file type. Allowed: JPEG, PNG, WebP, PDF', 400));
     }
   },
 });
@@ -406,6 +409,25 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
       orderBy: { sessionDate: 'desc' },
     });
 
+    const pathsToSign = [
+      ...new Set(
+        records
+          .filter(r => r.justificationUrl && (r.status === 'ABSENT' || r.status === 'JUSTIFIED'))
+          .map(r => r.justificationUrl!)
+      ),
+    ];
+    const signedUrlMap = new Map<string, string>();
+    if (pathsToSign.length > 0) {
+      await Promise.all(
+        pathsToSign.map(async (path) => {
+          const { data } = await supabase.storage
+            .from(JUSTIFICATION_BUCKET)
+            .createSignedUrl(path, 3600);
+          if (data?.signedUrl) signedUrlMap.set(path, data.signedUrl);
+        })
+      );
+    }
+
     type SubjectInfo = { id: string; nameFr: string; nameAr: string; code: string };
     type AbsenceEntry = {
       id: string;
@@ -445,7 +467,9 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
           id: r.id,
           date: r.sessionDate.toISOString(),
           status: r.status,
-          justificationUrl: r.justificationUrl,
+          justificationUrl: r.justificationUrl
+            ? (signedUrlMap.get(r.justificationUrl) ?? null)
+            : null,
           justificationStatus: r.justificationStatus,
         });
       }
@@ -542,6 +566,11 @@ router.patch(
       const studentId = req.studentId!;
       const notificationId = req.params.id as string;
 
+      if (!UUID_RE.test(notificationId)) {
+        res.status(400).json({ error: 'Invalid notification ID' });
+        return;
+      }
+
       const notification = await prisma.notification.findFirst({
         where: { id: notificationId, studentId },
         select: { id: true },
@@ -633,6 +662,10 @@ router.get('/qr-token', async (req: Request, res: Response, next: NextFunction) 
     });
     if (!student) throw new AppError('Student not found', 404);
 
+    await prisma.qrToken.deleteMany({
+      where: { expiresAt: { lt: new Date() } },
+    });
+
     const now = new Date();
     const expiresAt = new Date(now.getTime() + 60_000);
 
@@ -676,6 +709,12 @@ router.post(
         throw new AppError('Missing file field "justification"', 400);
       }
 
+      const fileTypeResult = await fromBuffer(req.file.buffer);
+      if (!fileTypeResult || !ALLOWED_MAGIC_TYPES.includes(fileTypeResult.mime)) {
+        throw new AppError('Invalid file type. Allowed: JPEG, PNG, WebP, PDF', 400);
+      }
+      const contentType = fileTypeResult.mime;
+
       const record = await prisma.attendanceRecord.findUnique({
         where: { id: recordId },
         select: { id: true, studentId: true, status: true },
@@ -689,13 +728,13 @@ router.post(
         throw new AppError('Justification can only be uploaded for ABSENT records', 409);
       }
 
-      const ext = EXT_BY_MIME[req.file.mimetype];
+      const ext = EXT_BY_MIME[contentType];
       const objectPath = `${studentId}/${recordId}_${Date.now()}.${ext}`;
 
       const { error: uploadError } = await supabase.storage
         .from(JUSTIFICATION_BUCKET)
         .upload(objectPath, req.file.buffer, {
-          contentType: req.file.mimetype,
+          contentType,
           upsert: false,
         });
 
@@ -703,22 +742,26 @@ router.post(
         throw new AppError(`Storage upload failed: ${uploadError.message}`, 500);
       }
 
-      const { data: publicUrlData } = supabase.storage
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from(JUSTIFICATION_BUCKET)
-        .getPublicUrl(objectPath);
+        .createSignedUrl(objectPath, 3600);
+
+      if (signedUrlError || !signedUrlData?.signedUrl) {
+        throw new AppError('Failed to generate file URL', 500);
+      }
 
       const updated = await prisma.attendanceRecord.update({
         where: { id: recordId },
         data: {
-          justificationUrl: publicUrlData.publicUrl,
+          justificationUrl: objectPath,
           justificationStatus: 'PENDING',
         },
-        select: { justificationUrl: true, justificationStatus: true },
+        select: { justificationStatus: true },
       });
 
       res.status(200).json({
         success: true,
-        justificationUrl: updated.justificationUrl,
+        justificationUrl: signedUrlData.signedUrl,
         justificationStatus: updated.justificationStatus,
       });
     } catch (err) {

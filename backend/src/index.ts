@@ -12,10 +12,12 @@ import newsRouter from './routes/news';
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 app.use(helmet());
 app.use(cors({
   origin: env.NODE_ENV === 'production'
-    ? ['https://your-app-domain.com']
+    ? false
     : '*',
   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],

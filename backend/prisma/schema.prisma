@@ -267,5 +267,6 @@ model RefreshToken {
   isRevoked  Boolean  @default(false) @map("is_revoked")
   student    Student  @relation(fields: [studentId], references: [id])
 
+  @@unique([tokenHash])
   @@map("refresh_tokens")
 }

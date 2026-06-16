@@ -248,7 +248,7 @@ async function main() {
   ]);
 
   // ── STEP 5 — Student Ahmed ────────────────────────────────────────────────
-  const passwordHash = await bcrypt.hash('test1234', 10);
+  const passwordHash = await bcrypt.hash('test1234', 12);
   const ahmed = await prisma.student.create({
     data: {
       studentIdDisplay: 'UDJ-2024-0432',
