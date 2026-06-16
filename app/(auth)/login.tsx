@@ -20,7 +20,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts, spacing, radius, sizing, withAlpha, colors, HERO_PAD, fz, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -135,8 +134,8 @@ export default function LoginScreen() {
     let mounted = true;
     (async () => {
       const [name, id] = await Promise.all([
-        AsyncStorage.getItem('lastStudentName'),
-        AsyncStorage.getItem('lastStudentId'),
+        SecureStore.getItemAsync('lastStudentName'),
+        SecureStore.getItemAsync('lastStudentId'),
       ]);
       if (mounted) {
         setLastStudentName(name);

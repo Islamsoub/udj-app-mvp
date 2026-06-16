@@ -1,6 +1,5 @@
 import axios, { isAxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL, TIMEOUT } from '@/constants/api';
 import { useAuthStore, REFRESH_KEY, StudentProfile } from '@/stores/authStore';
 import api from './api';
@@ -20,8 +19,8 @@ export async function login(studentId: string, password: string): Promise<LoginR
   await SecureStore.setItemAsync(REFRESH_KEY, data.refreshToken);
   useAuthStore.getState().setStudent(data.student);
 
-  await AsyncStorage.setItem('lastStudentName', `${data.student.firstName} ${data.student.lastName}`);
-  await AsyncStorage.setItem('lastStudentId', data.student.studentIdDisplay);
+  await SecureStore.setItemAsync('lastStudentName', `${data.student.firstName} ${data.student.lastName}`);
+  await SecureStore.setItemAsync('lastStudentId', data.student.studentIdDisplay);
 
   return data;
 }
