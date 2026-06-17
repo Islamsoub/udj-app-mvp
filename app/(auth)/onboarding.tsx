@@ -4,8 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
-import * as Updates from 'expo-updates';
 import { Ionicons } from '@expo/vector-icons';
+import { reloadApp } from '@/utils/reload';
 import { useSettingsStore } from '@/stores/settingsStore';
 import i18n from '@/i18n';
 import { lightColors, spacing, sizing, radius, fz, type Palette } from '@/constants/theme';
@@ -54,7 +54,7 @@ export default function OnboardingScreen() {
     setLanguage(lang);
     i18n.changeLanguage(lang);
     try {
-      await Updates.reloadAsync();
+      await reloadApp();
     } catch {
       Alert.alert(
         t('settings.restart_title'),

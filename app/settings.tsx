@@ -9,7 +9,7 @@ import {
   Alert,
   Linking,
 } from 'react-native';
-import * as Updates from 'expo-updates';
+import { reloadApp } from '@/utils/reload';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -137,7 +137,7 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
     i18n.changeLanguage(lang);
     useSettingsStore.getState().setLanguage(lang);
     try {
-      await Updates.reloadAsync();
+      await reloadApp();
     } catch {
       Alert.alert(
         t('settings.restart_title'),
