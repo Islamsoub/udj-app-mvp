@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   StatusBar,
+  RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -182,9 +183,11 @@ type LoadedContentProps = {
   onMarkAll: () => void;
   isOffline: boolean;
   onItemPress: (item: NotificationItemData) => void;
+  refreshing: boolean;
+  onRefresh: () => void;
 };
 
-function LoadedContent({ sections, onMarkAll, isOffline, onItemPress }: LoadedContentProps) {
+function LoadedContent({ sections, onMarkAll, isOffline, onItemPress, refreshing, onRefresh }: LoadedContentProps) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
@@ -193,6 +196,15 @@ function LoadedContent({ sections, onMarkAll, isOffline, onItemPress }: LoadedCo
       style={styles.scroll}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.jade400}
+          colors={[colors.jade400]}
+          progressBackgroundColor={colors.surface}
+        />
+      }
     >
       {sections.map((section, index) => (
         <View key={section.key}>
@@ -270,6 +282,7 @@ export default function NotificationsScreen() {
   const lang = i18n.language;
   const [devState, setDevState] = useState<NotificationsState | null>(null);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [refreshing, setRefreshing] = useState(false);
 
   // ─── Offline query ──────────────────────────────────────────────────────────
 
@@ -285,6 +298,12 @@ export default function NotificationsScreen() {
     },
     updateCache: (data) => upsertNotifications(data),
   });
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await hook.refetch();
+    setRefreshing(false);
+  }, [hook]);
 
   // ─── Derive grouped sections (with optimistic read overlay) ─────────────────
 
@@ -369,6 +388,8 @@ export default function NotificationsScreen() {
             onMarkAll={handleMarkAll}
             isOffline={hook.isOffline}
             onItemPress={handleItemPress}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
           />
         )}
         {screenState === 'empty' && <EmptyBody />}

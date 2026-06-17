@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   StatusBar,
+  RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -129,6 +130,7 @@ export default function GradesScreen() {
   const [calculatorVisible, setCalculatorVisible] = useState(false);
   const [gpaHistoryVisible, setGpaHistoryVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [gradesData, setGradesData] = useState<GradesResponse | null>(null);
   const [allSemesterData, setAllSemesterData] = useState<SemesterSummary[]>([]);
   const [semesterTabIds, setSemesterTabIds] = useState<[string | null, string | null]>([null, null]);
@@ -219,6 +221,12 @@ export default function GradesScreen() {
     [semesterTabIds],
   );
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await hook.refetch();
+    setRefreshing(false);
+  }, [hook]);
+
   // ─── Derive screen state ────────────────────────────────────────────────────
 
   const hookState: GradesState = useMemo(() => {
@@ -303,6 +311,17 @@ export default function GradesScreen() {
         showsVerticalScrollIndicator={false}
         onScroll={(e) => setIsScrolled(e.nativeEvent.contentOffset.y > 2)}
         scrollEventThrottle={16}
+        refreshControl={
+          gradesState !== 'skeleton' ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.jade400}
+              colors={[colors.jade400]}
+              progressBackgroundColor={colors.surface}
+            />
+          ) : undefined
+        }
       >
         {/* Hero card */}
         {gradesState === 'skeleton' && (

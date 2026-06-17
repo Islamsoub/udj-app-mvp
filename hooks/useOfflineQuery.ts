@@ -15,7 +15,7 @@ export interface UseOfflineQueryResult<T> {
   isStale: boolean;
   isOffline: boolean;
   error: Error | null;
-  refetch: () => void;
+  refetch: () => Promise<void>;
 }
 
 export function useOfflineQuery<T>({
@@ -40,6 +40,8 @@ export function useOfflineQuery<T>({
   fetchFreshRef.current = fetchFresh;
   updateCacheRef.current = updateCache;
 
+  const pendingResolversRef = useRef<Array<() => void>>([]);
+
   const isOnline = useNetworkStore((s) => s.isOnline);
   const setLastSyncAt = useNetworkStore((s) => s.setLastSyncAt);
 
@@ -49,6 +51,7 @@ export function useOfflineQuery<T>({
     let cancelled = false;
 
     (async () => {
+      try {
       // Step 1: Load cached data immediately (stale-while-revalidate)
       let cachedData: T | null = null;
       try {
@@ -116,6 +119,12 @@ export function useOfflineQuery<T>({
           setError(err instanceof Error ? err : new Error('fetch failed'));
         }
       }
+      } finally {
+        if (!cancelled) {
+          const resolvers = pendingResolversRef.current.splice(0);
+          for (const r of resolvers) r();
+        }
+      }
     })();
 
     return () => {
@@ -125,7 +134,10 @@ export function useOfflineQuery<T>({
   }, [enabled, fetchKey, isOnline, setLastSyncAt, cacheKey]);
 
   const refetch = useCallback(() => {
-    setFetchKey((k) => k + 1);
+    return new Promise<void>((resolve) => {
+      pendingResolversRef.current.push(resolve);
+      setFetchKey((k) => k + 1);
+    });
   }, []);
 
   return { data, isLoading, isStale, isOffline, error, refetch };

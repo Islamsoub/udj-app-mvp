@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   StatusBar,
+  RefreshControl,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -376,6 +377,7 @@ export default function ScheduleScreen() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [courseDetailVisible, setCourseDetailVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
   const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
@@ -477,6 +479,12 @@ export default function ScheduleScreen() {
     setSelectedDay(WEEKEND.has(today) ? 0 : today);
   }, []);
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await hook.refetch();
+    setRefreshing(false);
+  }, [hook]);
+
   const dayPagingGesture = useMemo(() => {
     const flingLeft = Gesture.Fling()
       .direction(Directions.LEFT)
@@ -531,6 +539,17 @@ export default function ScheduleScreen() {
           showsVerticalScrollIndicator={false}
           onScroll={({ nativeEvent }) => setIsScrolled(nativeEvent.contentOffset.y > 0)}
           scrollEventThrottle={16}
+          refreshControl={
+            schedState !== 'skeleton' ? (
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                tintColor={colors.jade400}
+                colors={[colors.jade400]}
+                progressBackgroundColor={colors.surface}
+              />
+            ) : undefined
+          }
         >
           <Animated.View style={animatedTimelineStyle}>
             {schedState === 'skeleton' && <SkeletonScheduleBody />}

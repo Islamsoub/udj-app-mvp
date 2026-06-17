@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Image,
   NativeSyntheticEvent,
   NativeScrollEvent,
+  RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -506,6 +507,7 @@ export default function HomeScreen() {
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [courseDetailVisible, setCourseDetailVisible] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t, i18n } = useTranslation();
@@ -623,6 +625,12 @@ export default function HomeScreen() {
     setIsScrolled(e.nativeEvent.contentOffset.y > 0);
   };
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([profileHook.refetch(), scheduleHook.refetch(), newsHook.refetch()]);
+    setRefreshing(false);
+  }, [profileHook, scheduleHook, newsHook]);
+
   return (
     <View style={styles.root}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
@@ -650,6 +658,17 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={16}
+        refreshControl={
+          homeState !== 'skeleton' ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.jade400}
+              colors={[colors.jade400]}
+              progressBackgroundColor={colors.surface}
+            />
+          ) : undefined
+        }
       >
         {/* Body */}
         {showSkeleton && <SkeletonBody />}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Alert,
   Keyboard,
   Linking,
+  RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -330,6 +331,7 @@ export default function ProfileScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [devState, setDevState] = useState<ProfileState | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
 
   const [qrToken, setQrToken] = useState<string | null>(null);
@@ -369,6 +371,12 @@ export default function ProfileScreen() {
     },
     updateCache: (data) => upsertProfile(data),
   });
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await hook.refetch();
+    setRefreshing(false);
+  }, [hook]);
 
   // ─── QR token refresh (independent of profile hook) ────────────────────────
 
@@ -424,6 +432,17 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         onScroll={(e) => setIsScrolled(e.nativeEvent.contentOffset.y > 2)}
         scrollEventThrottle={16}
+        refreshControl={
+          profileState !== 'skeleton' ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.jade400}
+              colors={[colors.jade400]}
+              progressBackgroundColor={colors.surface}
+            />
+          ) : undefined
+        }
       >
         {profileState === 'skeleton' && <ProfileSkeleton />}
         {showBody && (

@@ -6,6 +6,7 @@ import {
   Pressable,
   StyleSheet,
   StatusBar,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -183,6 +184,7 @@ export default function NewsScreen() {
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
   const [filterCategory, setFilterCategory] = useState<string | undefined>(undefined);
   const [scrolled, setScrolled] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const localReadIds = useMemo(() => new Set<string>(), []);
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -256,6 +258,12 @@ export default function NewsScreen() {
     router.push({ pathname: '/article-reader', params: { id } });
   }
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await hook.refetch();
+    setRefreshing(false);
+  }, [hook]);
+
   return (
     <View style={styles.root}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
@@ -274,6 +282,17 @@ export default function NewsScreen() {
         showsVerticalScrollIndicator={false}
         onScroll={(e) => setScrolled(e.nativeEvent.contentOffset.y > 8)}
         scrollEventThrottle={16}
+        refreshControl={
+          newsState !== 'skeleton' ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.jade400}
+              colors={[colors.jade400]}
+              progressBackgroundColor={colors.surface}
+            />
+          ) : undefined
+        }
       >
         {showFilterRow && (
           <FilterRow activeFilter={activeFilter} onFilterChange={handleFilterChange} />

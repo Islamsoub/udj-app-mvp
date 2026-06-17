@@ -8,6 +8,7 @@ import {
   StatusBar,
   Alert,
   I18nManager,
+  RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -198,6 +199,7 @@ export default function AttendanceScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const [devState, setDevState] = useState<AttendanceState | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
@@ -268,6 +270,12 @@ export default function AttendanceScreen() {
     return out;
   }, [hook.data]);
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await hook.refetch();
+    setRefreshing(false);
+  }, [hook]);
+
   // ─── Derive screen state ────────────────────────────────────────────────────
 
   const hookState: AttendanceState = useMemo(() => {
@@ -308,6 +316,17 @@ export default function AttendanceScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          screenState !== 'skeleton' ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.jade400}
+              colors={[colors.jade400]}
+              progressBackgroundColor={colors.surface}
+            />
+          ) : undefined
+        }
       >
         {(screenState === 'skeleton' || showCards) && (
           <AttendanceHeroCard
