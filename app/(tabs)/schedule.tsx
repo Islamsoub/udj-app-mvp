@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  Pressable,
   StyleSheet,
   StatusBar,
   RefreshControl,
@@ -324,9 +323,9 @@ function ErrorStateBody({ onRetry, onViewCache }: ErrorStateProps) {
         <Text style={styles.retryBtnText}>{t('schedule.error.retry')}</Text>
       </PressBox>
 
-      <Pressable onPress={onViewCache} hitSlop={8}>
+      <PressBox tier="tint" onPress={onViewCache} hitSlop={8}>
         <Text style={styles.viewCacheLink}>{t('schedule.error.view_cache')}</Text>
-      </Pressable>
+      </PressBox>
     </View>
   );
 }

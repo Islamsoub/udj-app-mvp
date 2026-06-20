@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
-import { Pressable, View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { fonts, fz, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 
 export type FAQData = {
   id: string;
@@ -22,9 +23,9 @@ export function FAQItem({ item, isExpanded, onToggle, isLast = false }: Props) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
     <View style={styles.container}>
-      <Pressable
+      <PressBox
+        tier="tint"
         onPress={onToggle}
-        android_ripple={{ color: colors.jade50 }}
         style={[styles.questionRow, isLast && !isExpanded && styles.borderless]}
       >
         <Text style={styles.question}>{item.question}</Text>
@@ -33,7 +34,7 @@ export function FAQItem({ item, isExpanded, onToggle, isLast = false }: Props) {
           size={20}
           color={colors.textTertiary}
         />
-      </Pressable>
+      </PressBox>
 
       {isExpanded && (
         <View style={[styles.answerContainer, isLast && styles.borderless]}>

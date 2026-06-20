@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import { Pressable, View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, fz, spacing, sizing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, spacing, sizing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { PressBox } from '@/components/PressBox';
 
@@ -21,12 +21,11 @@ export function PDFRow({ item, onDownload, isLast = false }: Props) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <Pressable
-      android_ripple={{ color: colors.jade50 }}
-      style={({ pressed }) => [
+    <PressBox
+      tier="tint"
+      style={[
         styles.row,
         isLast && styles.rowLast,
-        pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) },
       ]}
     >
       <View style={styles.badge}>
@@ -43,7 +42,7 @@ export function PDFRow({ item, onDownload, isLast = false }: Props) {
       >
         <Ionicons name="download-outline" size={22} color={colors.jade400} />
       </PressBox>
-    </Pressable>
+    </PressBox>
   );
 }
 

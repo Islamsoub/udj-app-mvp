@@ -1,12 +1,13 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, StatusBar, Linking, I18nManager } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, StatusBar, Linking, I18nManager } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, fz, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
+import { PressBox } from '@/components/PressBox';
 import { useAuthStore } from '@/stores/authStore';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -61,17 +62,14 @@ function DetailRow({
 
   if (onPress) {
     return (
-      <Pressable
-        style={({ pressed }) => [
-          rowStyles.row,
-          !isLast && rowStyles.rowBorder,
-          pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) },
-        ]}
+      <PressBox
+        tier="tint"
+        style={[rowStyles.row, !isLast && rowStyles.rowBorder]}
         onPress={onPress}
         hitSlop={4}
       >
         {content}
-      </Pressable>
+      </PressBox>
     );
   }
 

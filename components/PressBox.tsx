@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
   AccessibilityInfo,
+  AccessibilityRole,
+  AccessibilityState,
   Insets,
   Pressable,
   StyleProp,
@@ -63,6 +65,9 @@ export interface PressBoxProps {
   onPressOut?: () => void;
   onLongPress?: () => void;
   children?: React.ReactNode;
+  accessibilityRole?: AccessibilityRole;
+  accessibilityState?: AccessibilityState;
+  accessibilityLabel?: string;
 }
 
 export function PressBox({
@@ -76,6 +81,9 @@ export function PressBox({
   onPressOut: onPressOutProp,
   onLongPress,
   children,
+  accessibilityRole,
+  accessibilityState,
+  accessibilityLabel,
 }: PressBoxProps) {
   const { colors } = useColors();
   const cfg = TIER[tier];
@@ -200,6 +208,9 @@ export function PressBox({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       onLongPress={onLongPress}
+      accessibilityRole={accessibilityRole}
+      accessibilityState={accessibilityState}
+      accessibilityLabel={accessibilityLabel}
     >
       {children}
       <Animated.View

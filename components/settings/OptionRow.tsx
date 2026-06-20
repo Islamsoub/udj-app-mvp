@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, fz, lightColors, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, lightColors, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 
 interface OptionRowProps {
   label: string;
@@ -26,8 +27,9 @@ export function OptionRow({
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <Pressable
-      style={({ pressed }) => [styles.row, !isLast && styles.rowBorder, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
+    <PressBox
+      tier="tint"
+      style={[styles.row, !isLast && styles.rowBorder]}
       onPress={onPress}
       hitSlop={4}
     >
@@ -46,7 +48,7 @@ export function OptionRow({
           <Ionicons name="checkmark" size={14} color={colors.white} />
         ) : null}
       </View>
-    </Pressable>
+    </PressBox>
   );
 }
 

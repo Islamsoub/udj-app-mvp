@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  Pressable,
   StyleSheet,
   StatusBar,
   Animated,
@@ -450,9 +449,9 @@ export default function LoginScreen() {
                       <Text style={styles.savedName}>{lastStudentName ?? t('auth.yourAccount')}</Text>
                       <Text style={styles.savedId}>{lastStudentId ?? ''}</Text>
                     </View>
-                    <Pressable onPress={() => setLoginState('default')} hitSlop={8} style={({ pressed }) => pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }}>
+                    <PressBox tier="tint" onPress={() => setLoginState('default')} hitSlop={8} radius={6}>
                       <Text style={styles.changerText}>{t('auth.change_account')}</Text>
-                    </Pressable>
+                    </PressBox>
                   </View>
                 </>
               )}
@@ -579,13 +578,15 @@ export default function LoginScreen() {
 
               {/* ── LOCKED-OUT: help link ── */}
               {isLocked && (
-                <Pressable
+                <PressBox
+                  tier="tint"
                   hitSlop={8}
-                  style={({ pressed }) => [styles.helpLink, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 }]}
+                  style={styles.helpLink}
                   onPress={() => void Linking.openURL('mailto:support@univ-djibouti.dj?subject=Compte%20verrouill%C3%A9')}
+                  radius={6}
                 >
                   <Text style={styles.helpLinkText}>{t('auth.helpContact')}</Text>
-                </Pressable>
+                </PressBox>
               )}
 
               {/* ── DIVIDER + BIOMETRIC (default, hardware available + opted in) ── */}

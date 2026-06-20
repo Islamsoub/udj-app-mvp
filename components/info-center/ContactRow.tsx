@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
-import { Pressable, View, Text, StyleSheet, I18nManager } from 'react-native';
+import { View, Text, StyleSheet, I18nManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, fz, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 
 export type ContactType = 'phone' | 'location' | 'email';
 
@@ -31,13 +32,12 @@ export function ContactRow({ item, onPress, isLast = false }: Props) {
   const chevron = I18nManager.isRTL ? 'chevron-back' : 'chevron-forward';
 
   return (
-    <Pressable
+    <PressBox
+      tier="tint"
       onPress={onPress}
-      android_ripple={{ color: colors.jade50 }}
-      style={({ pressed }) => [
+      style={[
         styles.row,
         isLast && styles.rowLast,
-        pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) },
       ]}
     >
       <Ionicons name={ICON_NAME[item.type]} size={22} color={colors.jade400} />
@@ -48,7 +48,7 @@ export function ContactRow({ item, onPress, isLast = false }: Props) {
         <Text style={styles.detail} numberOfLines={1}>{item.detail}</Text>
         <Ionicons name={chevron} size={16} color={colors.textTertiary} />
       </View>
-    </Pressable>
+    </PressBox>
   );
 }
 

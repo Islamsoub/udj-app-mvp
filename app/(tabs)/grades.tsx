@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  Pressable,
   StyleSheet,
   StatusBar,
   RefreshControl,
@@ -284,22 +283,24 @@ export default function GradesScreen() {
       {/* Segmented semester control */}
       {gradesState !== 'error' && (
         <View style={styles.semControl}>
-          <Pressable
+          <PressBox
+            tier="tint"
             style={[styles.semSeg, activeSemester === 1 && styles.semSegActive]}
             onPress={() => handleSemesterChange(1)}
           >
             <Text style={[styles.semLabel, activeSemester === 1 && styles.semLabelActive]}>
               {t('grades.semester_1')}
             </Text>
-          </Pressable>
-          <Pressable
+          </PressBox>
+          <PressBox
+            tier="tint"
             style={[styles.semSeg, activeSemester === 2 && styles.semSegActive]}
             onPress={() => handleSemesterChange(2)}
           >
             <Text style={[styles.semLabel, activeSemester === 2 && styles.semLabelActive]}>
               {t('grades.semester_2')}
             </Text>
-          </Pressable>
+          </PressBox>
         </View>
       )}
 

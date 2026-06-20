@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  Pressable,
   StyleSheet,
   StatusBar,
   Animated,
@@ -682,12 +681,13 @@ export default function HomeScreen() {
             {/* Agenda section */}
             <View style={[styles.sectionHeadingRow, { marginTop: 18 }]}>
               <Text style={styles.sectionHeading}>{t('home.agenda_section')}</Text>
-              <Pressable
+              <PressBox
+                tier="tint"
                 onPress={() => router.push('/(tabs)/schedule')}
                 hitSlop={8}
               >
                 <Text style={styles.sectionLink}>{t('home.see_all')}</Text>
-              </Pressable>
+              </PressBox>
             </View>
 
             {todayCards.length > 0 ? (
@@ -721,12 +721,13 @@ export default function HomeScreen() {
             {/* News section */}
             <View style={[styles.sectionHeadingRow, { marginTop: 26 }]}>
               <Text style={styles.sectionHeading}>{t('home.news_section')}</Text>
-              <Pressable
+              <PressBox
+                tier="tint"
                 onPress={() => router.push('/(tabs)/news')}
                 hitSlop={8}
               >
                 <Text style={styles.sectionLink}>{t('home.see_all')}</Text>
-              </Pressable>
+              </PressBox>
             </View>
 
             {newsCards.length > 0 ? (

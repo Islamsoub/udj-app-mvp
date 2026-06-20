@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { Pressable, View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, fz, radius, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, type Palette } from '@/constants/theme';
+import { PressBox } from '@/components/PressBox';
 import { useColors } from '@/hooks/useColors';
 import { useTranslation } from 'react-i18next';
 import { getCategoryColors, type NotifCategory } from '@/constants/colorMap';
@@ -54,13 +55,12 @@ export function NotificationItem({ item, onPress, isLast }: Props) {
   const catColors = getCategoryColors(TYPE_TO_CATEGORY[item.type], colors);
 
   return (
-    <Pressable
+    <PressBox
+      tier="tint"
       onPress={onPress}
-      android_ripple={{ color: colors.jade50 }}
-      style={({ pressed }) => [
+      style={[
         styles.row,
         item.isUnread && styles.rowUnread,
-        pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) },
         isLast && styles.rowLast,
       ]}
     >
@@ -86,7 +86,7 @@ export function NotificationItem({ item, onPress, isLast }: Props) {
       </View>
 
       {item.isUnread && <View style={styles.dot} />}
-    </Pressable>
+    </PressBox>
   );
 }
 

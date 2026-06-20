@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
-import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native';
+import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts, fz, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 
 export type FilterKey = 'all' | 'events' | 'scolarite' | 'sport' | 'youth' | 'sponsors' | 'saved';
 
@@ -38,16 +39,17 @@ export function FilterRow({ activeFilter, onFilterChange }: FilterRowProps) {
         {FILTERS.map((f) => {
           const isActive = f === activeFilter;
           return (
-            <Pressable
+            <PressBox
               key={f}
-              style={({ pressed }) => [styles.pill, isActive && styles.pillActive, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) }]}
+              tier="tint"
+              style={[styles.pill, isActive && styles.pillActive]}
               onPress={() => onFilterChange(f)}
               hitSlop={8}
             >
               <Text style={[styles.pillText, isActive && styles.pillTextActive]}>
                 {t(FILTER_I18N[f])}
               </Text>
-            </Pressable>
+            </PressBox>
           );
         })}
       </ScrollView>

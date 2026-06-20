@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, fz, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { PressBox } from '@/components/PressBox';
 import { toArabicNumerals } from '@/utils/dateFormat';
@@ -116,13 +116,13 @@ export function DayStrip({
           const dateDisplay = isAr ? toArabicNumerals(d.getDate()) : String(d.getDate());
 
           return (
-            <Pressable
+            <PressBox
               key={idx}
-              style={({ pressed }) => [
+              tier="tint"
+              style={[
                 styles.cell,
                 isSelected && styles.cellSelected,
                 isWeekend && !isSelected && styles.cellWeekend,
-                pressed && !isSelected && { backgroundColor: withAlpha(colors.jade400, 0.12) },
               ]}
               onPress={() => onSelect(idx)}
               hitSlop={4}
@@ -145,7 +145,7 @@ export function DayStrip({
               {isToday && !isSelected && (
                 <View style={styles.todayDot} />
               )}
-            </Pressable>
+            </PressBox>
           );
         })}
       </View>

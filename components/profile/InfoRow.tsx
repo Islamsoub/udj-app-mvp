@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet, I18nManager } from 'react-native';
+import { View, Text, StyleSheet, I18nManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { fonts, fz, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -60,17 +61,17 @@ export function InfoRow({
 
   if (onPress) {
     return (
-      <Pressable
-        style={({ pressed }) => [
+      <PressBox
+        tier="tint"
+        style={[
           styles.row,
           isLast && styles.rowLast,
-          pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) },
         ]}
         onPress={onPress}
         hitSlop={4}
       >
         {content}
-      </Pressable>
+      </PressBox>
     );
   }
 

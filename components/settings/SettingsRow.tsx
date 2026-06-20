@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, Switch, StyleSheet, I18nManager } from 'react-native';
+import { View, Text, Switch, StyleSheet, I18nManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { fonts, fz, spacing, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 
 interface SettingsRowProps {
   label: string;
@@ -53,11 +54,11 @@ export function SettingsRow({
   }
 
   return (
-    <Pressable
-      style={({ pressed }) => [
+    <PressBox
+      tier="tint"
+      style={[
         styles.row,
         isLast && styles.rowLast,
-        pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) },
       ]}
       onPress={onPress}
       hitSlop={4}
@@ -74,7 +75,7 @@ export function SettingsRow({
       {!isDestructive && showChevron ? (
         <Ionicons name={I18nManager.isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.greyMedium} />
       ) : null}
-    </Pressable>
+    </PressBox>
   );
 }
 

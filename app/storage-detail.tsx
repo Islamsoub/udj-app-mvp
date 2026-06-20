@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  Pressable,
   StyleSheet,
   StatusBar,
   Alert,
@@ -63,7 +62,7 @@ function CategoryRow({ icon, name, rows, size, rowsLabel, onClear, isLast = fals
   const rowStyles = useMemo(() => makeRowStyles(colors), [colors]);
 
   return (
-    <Pressable style={[rowStyles.row, isLast && rowStyles.rowLast]} onPress={onClear}>
+    <PressBox tier="tint" style={[rowStyles.row, isLast && rowStyles.rowLast]} onPress={onClear}>
       <View style={rowStyles.iconCircle}>
         <Ionicons name={icon} size={18} color={colors.jade400} />
       </View>
@@ -74,7 +73,7 @@ function CategoryRow({ icon, name, rows, size, rowsLabel, onClear, isLast = fals
         </Text>
       </View>
       <Ionicons name={I18nManager.isRTL ? 'chevron-back' : 'chevron-forward'} size={16} color={colors.textTertiary} />
-    </Pressable>
+    </PressBox>
   );
 }
 

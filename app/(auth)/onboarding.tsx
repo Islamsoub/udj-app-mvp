@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet, Image, Alert } from 'react-native';
+import { View, Text, StyleSheet, Image, Alert } from 'react-native';
 import { PressBox } from '@/components/PressBox';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -86,10 +86,10 @@ export default function OnboardingScreen() {
         pointerEvents={isLanguageStep ? 'none' : 'auto'}
         style={isLanguageStep ? styles.skipHidden : undefined}
       >
-        <Pressable style={styles.skipButton} onPress={handleSkip} accessibilityRole="button">
+        <PressBox tier="tint" style={styles.skipButton} onPress={handleSkip} accessibilityRole="button">
           <Text style={styles.skipText}>{t('onboarding.skip')}</Text>
           <Ionicons name="chevron-forward" size={14} color={colors.jade600} style={styles.skipIcon} />
-        </Pressable>
+        </PressBox>
       </View>
 
       {/* Content area: illustration/lang cards + title + body as one centered block */}
@@ -102,7 +102,8 @@ export default function OnboardingScreen() {
           />
         ) : (
           <View style={styles.langCards}>
-            <Pressable
+            <PressBox
+              tier="tint"
               style={[styles.langCard, selectedLang === 'fr' && styles.langCardSelected]}
               onPress={() => handleLangSelect('fr')}
             >
@@ -111,9 +112,10 @@ export default function OnboardingScreen() {
               {selectedLang === 'fr' && (
                 <Ionicons name="checkmark-circle" size={24} color={colors.jade600} />
               )}
-            </Pressable>
+            </PressBox>
 
-            <Pressable
+            <PressBox
+              tier="tint"
               style={[styles.langCard, selectedLang === 'ar' && styles.langCardSelected]}
               onPress={() => handleLangSelect('ar')}
             >
@@ -122,7 +124,7 @@ export default function OnboardingScreen() {
               {selectedLang === 'ar' && (
                 <Ionicons name="checkmark-circle" size={24} color={colors.jade600} />
               )}
-            </Pressable>
+            </PressBox>
           </View>
         )}
 
