@@ -83,6 +83,7 @@ export interface Palette {
   examBg: string;
   slateBg: string;
   dangerBg: string;
+  pressWash: string;
 }
 
 export const lightColors: Palette = {
@@ -173,6 +174,7 @@ export const lightColors: Palette = {
   examBg: 'rgba(139, 92, 246, 0.12)',
   slateBg: 'rgba(90, 107, 123, 0.12)',
   dangerBg: 'rgba(239, 68, 68, 0.10)',
+  pressWash: '#21302A',
 };
 
 // ─── Dark palette ─────────────────────────────────────────────────────────────
@@ -265,6 +267,7 @@ export const darkColors: Palette = {
   examBg: 'rgba(169, 139, 240, 0.18)',
   slateBg: 'rgba(157, 176, 190, 0.16)',
   dangerBg: 'rgba(255, 107, 107, 0.15)',
+  pressWash: '#FFFFFF',
 };
 
 

@@ -745,6 +745,13 @@ export default function HomeScreen() {
                 </Text>
               </View>
             ) : null}
+
+            <Pressable
+              style={({ pressed }) => [styles.retryBtn, { alignSelf: 'center', marginTop: spacing.sp24, marginBottom: spacing.sp8 }, pressed && { backgroundColor: colors.jade600 }]}
+              onPress={() => router.push('/press-test')}
+            >
+              <Text style={styles.retryBtnText}>Press Test</Text>
+            </Pressable>
           </View>
         )}
 
