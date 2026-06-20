@@ -8,6 +8,7 @@ import {
   StatusBar,
   RefreshControl,
 } from 'react-native';
+import { PressBox } from '@/components/PressBox';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Directions, Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -319,9 +320,9 @@ function ErrorStateBody({ onRetry, onViewCache }: ErrorStateProps) {
       <Text style={styles.stateTitle}>{t('schedule.error.title')}</Text>
       <Text style={styles.stateBody}>{t('schedule.error.body')}</Text>
 
-      <Pressable style={styles.retryBtn} onPress={onRetry}>
+      <PressBox tier="button" style={styles.retryBtn} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('schedule.error.retry')}</Text>
-      </Pressable>
+      </PressBox>
 
       <Pressable onPress={onViewCache} hitSlop={8}>
         <Text style={styles.viewCacheLink}>{t('schedule.error.view_cache')}</Text>

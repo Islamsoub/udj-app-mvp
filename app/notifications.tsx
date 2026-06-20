@@ -3,11 +3,11 @@ import {
   View,
   Text,
   ScrollView,
-  Pressable,
   StyleSheet,
   StatusBar,
   RefreshControl,
 } from 'react-native';
+import { PressBox } from '@/components/PressBox';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -158,19 +158,17 @@ function SectionHeader({
     <View style={[styles.sectionBand, isFirst ? styles.sectionBandFirst : styles.sectionBandLater]}>
       <Text style={styles.sectionLabel}>{t(labelKey)}</Text>
       {onMarkAll != null && (
-        <Pressable
+        <PressBox
+          tier="button"
           onPress={onMarkAll}
           disabled={isOffline}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          style={({ pressed }) => [
-            styles.markAllBtn,
-            !isOffline && pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 6 },
-          ]}
+          style={styles.markAllBtn}
         >
           <Text style={[styles.markAllText, isOffline && styles.markAllTextDisabled]}>
             {t('notifications.markAllRead')}
           </Text>
-        </Pressable>
+        </PressBox>
       )}
     </View>
   );
@@ -261,12 +259,13 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
       </View>
       <Text style={styles.stateTitle}>{t('notifications.errorTitle')}</Text>
       <Text style={styles.stateBody}>{t('notifications.errorBody')}</Text>
-      <Pressable
-        style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]}
+      <PressBox
+        tier="button"
+        style={styles.retryBtn}
         onPress={onRetry}
       >
         <Text style={styles.retryBtnText}>{t('notifications.retry')}</Text>
-      </Pressable>
+      </PressBox>
     </View>
   );
 }

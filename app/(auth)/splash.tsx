@@ -2,12 +2,12 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   Animated,
   Linking,
-  Pressable,
   StatusBar,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { PressBox } from '@/components/PressBox';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -153,13 +153,14 @@ export default function SplashScreen() {
           <Text style={styles.stateBodyText}>
             {'Vérifiez votre connexion Wi-Fi\nou données mobiles pour continuer.'}
           </Text>
-          <Pressable
+          <PressBox
+            tier="button"
             style={styles.primaryButton}
             onPress={() => setSplashState('loading')}
             hitSlop={8}
           >
             <Text style={styles.primaryButtonText}>{t('splash.retry')}</Text>
-          </Pressable>
+          </PressBox>
         </View>
       )}
 
@@ -173,9 +174,9 @@ export default function SplashScreen() {
           <Text style={styles.stateBodyText}>
             {"L'application sera disponible\ndans quelques minutes. Merci de votre patience."}
           </Text>
-          <Pressable style={styles.outlineButton} hitSlop={8}>
+          <PressBox tier="button" style={styles.outlineButton} hitSlop={8}>
             <Text style={styles.outlineButtonText}>{t('splash.retry_later')}</Text>
-          </Pressable>
+          </PressBox>
         </View>
       )}
 
@@ -194,13 +195,14 @@ export default function SplashScreen() {
               </View>
             ))}
           </View>
-          <Pressable
+          <PressBox
+            tier="button"
             style={[styles.primaryButton, styles.firstInstallButton]}
             onPress={() => router.replace('/(auth)/onboarding')}
             hitSlop={8}
           >
             <Text style={styles.primaryButtonText}>{t('splash.start')}</Text>
-          </Pressable>
+          </PressBox>
           <Text style={styles.firstInstallCaption}>{t('splash.first_install')}</Text>
         </View>
       )}
@@ -223,13 +225,14 @@ export default function SplashScreen() {
               <Text style={styles.versionBoxNumber}>1.1.0</Text>
             </View>
           </View>
-          <Pressable
+          <PressBox
+            tier="button"
             style={[styles.primaryButton, styles.updateButton]}
             onPress={() => { void Linking.openURL('https://play.google.com/store'); }}
             hitSlop={8}
           >
             <Text style={styles.primaryButtonText}>{t('splash.update')}</Text>
-          </Pressable>
+          </PressBox>
         </View>
       )}
 

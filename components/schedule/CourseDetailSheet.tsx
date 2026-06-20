@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Keyboard,
 } from 'react-native';
+import { PressBox } from '@/components/PressBox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Svg, { Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -180,12 +181,13 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
               textAlignVertical="top"
             />
 
-            <Pressable
-              style={({ pressed }) => [styles.saveBtn, pressed && styles.saveBtnPressed]}
+            <PressBox
+              tier="button"
+              style={styles.saveBtn}
               onPress={handleSave}
             >
               <Text style={styles.saveBtnText}>{t('course.save')}</Text>
-            </Pressable>
+            </PressBox>
 
             <View style={styles.notesList}>
               {notes.map((n) => (
@@ -195,15 +197,14 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
                     <Text style={styles.noteTimestamp}>
                       {formatNoteTimestamp(n.createdAt, i18n.language)}
                     </Text>
-                    <Pressable
+                    <PressBox
+                      tier="icon"
                       onPress={() => handleDelete(n.id)}
                       hitSlop={14}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('course.notes_delete')}
                       style={styles.noteDeleteBtn}
                     >
                       <TrashIcon color={colors.textTertiary} />
-                    </Pressable>
+                    </PressBox>
                   </View>
                 </View>
               ))}

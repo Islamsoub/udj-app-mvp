@@ -3,12 +3,12 @@ import {
   View,
   Text,
   ScrollView,
-  Pressable,
   StyleSheet,
   StatusBar,
   Alert,
   Linking,
 } from 'react-native';
+import { PressBox } from '@/components/PressBox';
 import { reloadApp } from '@/utils/reload';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -316,9 +316,9 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
   return (
     <View style={styles.centeredBody}>
       <Text style={styles.errorTitle}>{t('settings.error.title')}</Text>
-      <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onRetry}>
+      <PressBox tier="button" style={styles.retryBtn} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
-      </Pressable>
+      </PressBox>
     </View>
   );
 }

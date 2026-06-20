@@ -365,16 +365,15 @@ function LoadedHeader({
     ]}>
       <View style={styles.headerTopRow}>
         <Text style={styles.dateLabel}>{dateStr}</Text>
-        <Pressable
-          style={({ pressed }) => [styles.bellBtn, pressed && { opacity: 0.7 }]}
+        <PressBox
+          tier="icon"
+          style={styles.bellBtn}
           onPress={() => router.push('/notifications')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          accessibilityLabel={t('common.notifications')}
-          accessibilityRole="button"
         >
           <Ionicons name="notifications-outline" size={19} color={colors.textPrimary} />
           {showBadge && <View style={styles.bellBadge} />}
-        </Pressable>
+        </PressBox>
       </View>
       <Text style={styles.greeting}>
         <Text style={styles.greetingBase}>{t('home.hello')} </Text>
@@ -445,15 +444,14 @@ function SimpleHeader({ topInset, isScrolled }: { topInset: number; isScrolled: 
     ]}>
       <View style={styles.headerTopRow}>
         <Text style={styles.simpleHeaderTitle}>{t('tabs.home')}</Text>
-        <Pressable
-          style={({ pressed }) => [styles.bellBtn, pressed && { opacity: 0.7 }]}
+        <PressBox
+          tier="icon"
+          style={styles.bellBtn}
           onPress={() => router.push('/notifications')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          accessibilityLabel={t('common.notifications')}
-          accessibilityRole="button"
         >
           <Ionicons name="notifications-outline" size={19} color={colors.textPrimary} />
-        </Pressable>
+        </PressBox>
       </View>
       <View style={styles.divider} />
     </View>
@@ -476,18 +474,20 @@ function SessionExpiredModal({ onClose }: { onClose: () => void }) {
         </View>
         <Text style={styles.modalTitle}>{t('common.session.title')}</Text>
         <Text style={styles.modalBody}>{t('common.session.body')}</Text>
-        <Pressable
-          style={({ pressed }) => [styles.modalPrimaryBtn, pressed && { backgroundColor: colors.jade600 }]}
+        <PressBox
+          tier="button"
+          style={styles.modalPrimaryBtn}
           onPress={() => router.replace('/(auth)/login')}
         >
           <Text style={styles.modalPrimaryBtnText}>{t('common.session.login')}</Text>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [styles.modalOutlineBtn, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) }]}
+        </PressBox>
+        <PressBox
+          tier="button"
+          style={styles.modalOutlineBtn}
           onPress={onClose}
         >
           <Text style={styles.modalOutlineBtnText}>{t('common.session.continue_offline')}</Text>
-        </Pressable>
+        </PressBox>
       </View>
     </View>
   );
@@ -760,12 +760,13 @@ export default function HomeScreen() {
             </View>
             <Text style={styles.stateTitle}>{t('home.error.title')}</Text>
             <Text style={styles.stateBody}>{t('home.error.body')}</Text>
-            <Pressable
-              style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]}
+            <PressBox
+              tier="button"
+              style={styles.retryBtn}
               onPress={handleRetry}
             >
               <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
-            </Pressable>
+            </PressBox>
           </View>
         )}
 

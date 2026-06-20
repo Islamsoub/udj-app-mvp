@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { fonts, fz, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 import { toArabicNumerals } from '@/utils/dateFormat';
 
 const FR_ABBREVS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
@@ -73,44 +74,35 @@ export function DayStrip({
     <View>
       {/* Week navigation row */}
       <View style={styles.weekNav}>
-        <Pressable
+        <PressBox
+          tier="icon"
           onPress={onPrevWeek}
-          style={({ pressed }) => [
-            styles.arrowBtn,
-            pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) },
-          ]}
+          style={styles.arrowBtn}
           hitSlop={8}
-          accessibilityRole="button"
         >
           <Ionicons name={prevIcon} size={20} color={colors.textSecondary} />
-        </Pressable>
+        </PressBox>
 
         <Text style={styles.weekLabel} numberOfLines={1}>{weekLabel}</Text>
 
-        <Pressable
+        <PressBox
+          tier="icon"
           onPress={onNextWeek}
-          style={({ pressed }) => [
-            styles.arrowBtn,
-            pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) },
-          ]}
+          style={styles.arrowBtn}
           hitSlop={8}
-          accessibilityRole="button"
         >
           <Ionicons name={nextIcon} size={20} color={colors.textSecondary} />
-        </Pressable>
+        </PressBox>
 
         {weekOffset !== 0 && (
-          <Pressable
+          <PressBox
+            tier="button"
             onPress={onToday}
-            style={({ pressed }) => [
-              styles.todayPill,
-              pressed && { backgroundColor: withAlpha(colors.jade400, 0.25) },
-            ]}
+            style={styles.todayPill}
             hitSlop={6}
-            accessibilityRole="button"
           >
             <Text style={styles.todayPillText}>{t('schedule.today')}</Text>
-          </Pressable>
+          </PressBox>
         )}
       </View>
 

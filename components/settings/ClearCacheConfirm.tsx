@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { fonts, fz, spacing, radius, withAlpha, type Palette } from '@/constants/theme';
+import { fonts, fz, spacing, radius, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsSheet } from './SettingsSheet';
+import { PressBox } from '@/components/PressBox';
 
 interface ClearCacheConfirmProps {
   visible: boolean;
@@ -28,18 +29,19 @@ export function ClearCacheConfirm({
     >
       <Text style={styles.body}>{t('settings.confirm.clear_cache_body')}</Text>
       <View style={styles.buttons}>
-        <Pressable style={({ pressed }) => [styles.btn, styles.btnOutline, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) }]} onPress={onClose}>
+        <PressBox tier="button" style={[styles.btn, styles.btnOutline]} onPress={onClose}>
           <Text style={styles.btnOutlineText}>{t('settings.confirm.cancel')}</Text>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [styles.btn, styles.btnDestructive, pressed && { backgroundColor: withAlpha(colors.danger, 0.15) }]}
+        </PressBox>
+        <PressBox
+          tier="button"
+          style={[styles.btn, styles.btnDestructive]}
           onPress={() => {
             onConfirm();
             onClose();
           }}
         >
           <Text style={styles.btnDestructiveText}>{t('settings.confirm.clear_cache_action')}</Text>
-        </Pressable>
+        </PressBox>
       </View>
     </SettingsSheet>
   );

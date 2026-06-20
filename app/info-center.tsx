@@ -2,12 +2,12 @@ import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
-  Pressable,
   TextInput,
   StyleSheet,
   StatusBar,
   Linking,
 } from 'react-native';
+import { PressBox } from '@/components/PressBox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -213,9 +213,9 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
       </View>
       <Text style={styles.stateTitle}>{t('infoCenter.errorTitle')}</Text>
       <Text style={styles.stateBody}>{t('infoCenter.errorBody')}</Text>
-      <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onRetry}>
+      <PressBox tier="button" style={styles.retryBtn} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('infoCenter.retry')}</Text>
-      </Pressable>
+      </PressBox>
     </View>
   );
 }

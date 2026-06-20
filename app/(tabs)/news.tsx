@@ -3,11 +3,11 @@ import {
   View,
   Text,
   ScrollView,
-  Pressable,
   StyleSheet,
   StatusBar,
   RefreshControl,
 } from 'react-native';
+import { PressBox } from '@/components/PressBox';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -156,9 +156,9 @@ function ErrorBody({ onRetry }: ErrorBodyProps) {
       </View>
       <Text style={styles.stateTitle}>{t('news.error.title')}</Text>
       <Text style={styles.stateBody}>{t('news.error.body')}</Text>
-      <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onRetry}>
+      <PressBox tier="button" style={styles.retryBtn} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('news.error.retry')}</Text>
-      </Pressable>
+      </PressBox>
     </View>
   );
 }

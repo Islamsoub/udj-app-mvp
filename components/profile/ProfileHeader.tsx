@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { elevation, fonts, fz, radius, spacing, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 
 export type ProfileHeaderState =
   | 'skeleton'
@@ -35,9 +36,9 @@ export function ProfileHeader({ state, topInset, isScrolled = false, onDotsPress
   return (
     <View style={[styles.container, { paddingTop: topInset + HEADER_PAD }, scrolledStyle]}>
       <Text style={styles.title}>{t('profile.title')}</Text>
-      <Pressable style={styles.gearChip} hitSlop={8} onPress={onDotsPress}>
+      <PressBox tier="icon" style={styles.gearChip} hitSlop={8} onPress={onDotsPress}>
         <Ionicons name="settings-outline" size={19} color={colors.textPrimary} />
-      </Pressable>
+      </PressBox>
     </View>
   );
 }

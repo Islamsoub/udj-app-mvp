@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { fonts, fz, lightColors, radius, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 
 interface DevSwitcherProps<T extends string> {
   states: T[];
@@ -33,25 +34,27 @@ export function DevSwitcher<T extends string>({
         contentContainerStyle={styles.scroll}
       >
         {states.map((s) => (
-          <Pressable
+          <PressBox
             key={s}
+            tier="button"
             style={[styles.btn, current === s && styles.btnActive]}
             onPress={() => onChange(s)}
           >
             <Text style={[styles.btnText, current === s && styles.btnTextActive]}>
               {labels?.[s] ?? s}
             </Text>
-          </Pressable>
+          </PressBox>
         ))}
         {onToggleModal && (
-          <Pressable
+          <PressBox
+            tier="button"
             style={[styles.btn, showModal && styles.btnModal]}
             onPress={onToggleModal}
           >
             <Text style={[styles.btnText, showModal && styles.btnTextActive]}>
               {modalLabel}
             </Text>
-          </Pressable>
+          </PressBox>
         )}
       </ScrollView>
     </View>

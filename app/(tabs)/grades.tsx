@@ -8,6 +8,7 @@ import {
   StatusBar,
   RefreshControl,
 } from 'react-native';
+import { PressBox } from '@/components/PressBox';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -57,9 +58,9 @@ function EmptyStateBody({ onRetry, styles }: EmptyStateProps) {
       </View>
       <Text style={styles.stateTitle}>{t('grades.empty_title')}</Text>
       <Text style={styles.stateBody}>{t('grades.empty_body')}</Text>
-      <Pressable style={styles.retryBtn} onPress={onRetry}>
+      <PressBox tier="button" style={styles.retryBtn} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('grades.empty.retry')}</Text>
-      </Pressable>
+      </PressBox>
     </View>
   );
 }
@@ -82,9 +83,9 @@ function ErrorStateBody({ onRetry, styles }: ErrorStateProps) {
       </View>
       <Text style={styles.stateTitle}>{t('grades.error.title')}</Text>
       <Text style={styles.stateBody}>{t('grades.error.body')}</Text>
-      <Pressable style={styles.retryBtn} onPress={onRetry}>
+      <PressBox tier="button" style={styles.retryBtn} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('grades.empty.retry')}</Text>
-      </Pressable>
+      </PressBox>
     </View>
   );
 }
@@ -269,15 +270,14 @@ export default function GradesScreen() {
           <Text style={[styles.headerTitle, isAR && styles.headerTitleAR]}>
             {t('grades.title')}
           </Text>
-          <Pressable
+          <PressBox
+            tier="icon"
             style={styles.calcBtn}
             onPress={() => setCalculatorVisible(true)}
             hitSlop={8}
-            accessibilityLabel={t('grades.calc_title')}
-            accessibilityRole="button"
           >
             <Ionicons name="calculator-outline" size={19} color={colors.textPrimary} />
-          </Pressable>
+          </PressBox>
         </View>
       </View>
 

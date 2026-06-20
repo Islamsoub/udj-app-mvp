@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Keyboard,
 } from 'react-native';
+import { PressBox } from '@/components/PressBox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -103,7 +104,8 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
 
               {/* Subject picker — bidirectional */}
               <View style={styles.pickerRow}>
-                <Pressable
+                <PressBox
+                  tier="icon"
                   style={styles.chevronBtn}
                   onPress={prevSubject}
                   hitSlop={8}
@@ -114,11 +116,12 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
                     size={18}
                     color={canNavigate ? colors.textSecondary : colors.textTertiary}
                   />
-                </Pressable>
+                </PressBox>
                 <Text style={styles.pickerName} numberOfLines={1}>
                   {subject?.name ?? '—'}
                 </Text>
-                <Pressable
+                <PressBox
+                  tier="icon"
                   style={styles.chevronBtn}
                   onPress={nextSubject}
                   hitSlop={8}
@@ -129,7 +132,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
                     size={18}
                     color={canNavigate ? colors.textSecondary : colors.textTertiary}
                   />
-                </Pressable>
+                </PressBox>
               </View>
 
               {/* CC display */}
@@ -167,15 +170,13 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
               </View>
 
               {/* Calculate button */}
-              <Pressable
-                style={({ pressed }) => [
-                  styles.calcBtn,
-                  pressed && styles.calcBtnPressed,
-                ]}
+              <PressBox
+                tier="button"
+                style={styles.calcBtn}
                 onPress={() => { Keyboard.dismiss(); calculate(); }}
               >
                 <Text style={styles.calcBtnText}>{t('grades.calc_calculate')}</Text>
-              </Pressable>
+              </PressBox>
 
               {/* Result card */}
               {calculated && result !== null && (

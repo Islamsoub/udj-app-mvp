@@ -3,6 +3,7 @@ import { Pressable, View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { fonts, fz, spacing, sizing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 
 export type PDFData = {
   id: string;
@@ -34,13 +35,14 @@ export function PDFRow({ item, onDownload, isLast = false }: Props) {
 
       <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
 
-      <Pressable
+      <PressBox
+        tier="icon"
         onPress={onDownload}
         hitSlop={{ top: 11, bottom: 11, left: 11, right: 11 }}
         style={styles.downloadBtn}
       >
         <Ionicons name="download-outline" size={22} color={colors.jade400} />
-      </Pressable>
+      </PressBox>
     </Pressable>
   );
 }

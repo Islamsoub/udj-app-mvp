@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet, Image, Alert } from 'react-native';
+import { PressBox } from '@/components/PressBox';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -137,11 +138,11 @@ export default function OnboardingScreen() {
       </View>
 
       {/* Primary action button */}
-      <Pressable style={styles.primaryButton} onPress={handleNext}>
+      <PressBox tier="button" style={styles.primaryButton} onPress={handleNext}>
         <Text style={styles.primaryButtonText}>
           {isLanguageStep ? t('onboarding.start') : t('onboarding.next')}
         </Text>
-      </Pressable>
+      </PressBox>
     </SafeAreaView>
   );
 }

@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { fonts, fz, radius, scrimColor, spacing, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 
 interface SessionExpiredModalProps {
   visible: boolean;
@@ -30,18 +31,20 @@ export function SessionExpiredModal({ visible, onContinueOffline }: SessionExpir
         </View>
         <Text style={styles.modalTitle}>{t('common.session.title')}</Text>
         <Text style={styles.modalBody}>{t('common.session.body')}</Text>
-        <Pressable
-          style={({ pressed }) => [styles.modalPrimaryBtn, pressed && { backgroundColor: colors.jade600 }]}
+        <PressBox
+          tier="button"
+          style={styles.modalPrimaryBtn}
           onPress={() => router.replace('/(auth)/login')}
         >
           <Text style={styles.modalPrimaryBtnText}>{t('common.session.login')}</Text>
-        </Pressable>
-        <Pressable
-          style={({ pressed }) => [styles.modalOutlineBtn, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15) }]}
+        </PressBox>
+        <PressBox
+          tier="button"
+          style={styles.modalOutlineBtn}
           onPress={onContinueOffline}
         >
           <Text style={styles.modalOutlineBtnText}>{t('common.session.continue_offline')}</Text>
-        </Pressable>
+        </PressBox>
       </View>
     </View>
   );

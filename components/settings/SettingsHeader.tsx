@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet, I18nManager } from 'react-native';
+import { View, Text, StyleSheet, I18nManager } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { elevation, fonts, fz, radius, spacing, sizing, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 
 interface SettingsHeaderProps {
   topInset: number;
@@ -31,10 +32,10 @@ export function SettingsHeader({
   if (big) {
     return (
       <View style={[styles.bigContainer, { paddingTop: topInset + HEADER_PAD }]}>
-        <Pressable style={styles.bigBackBtn} onPress={onBack} hitSlop={8}>
+        <PressBox tier="icon" style={styles.bigBackBtn} onPress={onBack} hitSlop={8}>
           <Ionicons name={chevron} size={24} color={colors.textPrimary} />
           <Text style={styles.bigTitle}>{displayTitle}</Text>
-        </Pressable>
+        </PressBox>
       </View>
     );
   }
@@ -42,13 +43,14 @@ export function SettingsHeader({
   return (
     <View style={[styles.compactContainer, { paddingTop: topInset + HEADER_PAD }]}>
       <View style={styles.compactRow}>
-        <Pressable
+        <PressBox
+          tier="icon"
           style={[styles.circleBtn, elevation.card]}
           onPress={onBack}
           hitSlop={8}
         >
           <Ionicons name={chevron} size={22} color={colors.textPrimary} />
-        </Pressable>
+        </PressBox>
         <Text style={styles.compactTitle} numberOfLines={1}>
           {displayTitle}
         </Text>

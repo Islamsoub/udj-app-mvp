@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import ScrollPicker from 'react-native-wheel-scrollview-picker';
 import { useTranslation } from 'react-i18next';
 import { fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { SettingsSheet } from './SettingsSheet';
+import { PressBox } from '@/components/PressBox';
 
 interface QuietHoursPickerProps {
   visible: boolean;
@@ -105,10 +106,11 @@ export function QuietHoursPicker({
       </View>
 
       <View style={styles.buttons}>
-        <Pressable style={[styles.btn, styles.btnOutline]} onPress={onClose}>
+        <PressBox tier="button" style={[styles.btn, styles.btnOutline]} onPress={onClose}>
           <Text style={styles.btnOutlineText}>{t('settings.picker.cancel')}</Text>
-        </Pressable>
-        <Pressable
+        </PressBox>
+        <PressBox
+          tier="button"
           style={[styles.btn, styles.btnPrimary]}
           onPress={() => {
             onSave(selectedStart, selectedEnd);
@@ -116,7 +118,7 @@ export function QuietHoursPicker({
           }}
         >
           <Text style={styles.btnPrimaryText}>{t('settings.picker.save')}</Text>
-        </Pressable>
+        </PressBox>
       </View>
     </SettingsSheet>
   );

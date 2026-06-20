@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  Pressable,
   StyleSheet,
   StatusBar,
   Image,
@@ -252,9 +251,9 @@ function ErrorBody({ onRetry, styles }: { onRetry: () => void; styles: ReturnTyp
       <Text style={styles.stateTitle}>{t('profile.error.title')}</Text>
       <Text style={styles.stateBody}>{t('profile.error.body')}</Text>
 
-      <Pressable style={styles.retryBtn} onPress={onRetry}>
+      <PressBox tier="button" style={styles.retryBtn} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('profile.error.retry')}</Text>
-      </Pressable>
+      </PressBox>
 
       <View style={styles.qrBanner}>
         <Text style={styles.qrBannerTitle}>{t('profile.error.qr_available')}</Text>

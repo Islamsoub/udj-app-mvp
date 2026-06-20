@@ -13,6 +13,7 @@ import {
   Keyboard,
   AppState,
 } from 'react-native';
+import { PressBox } from '@/components/PressBox';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -550,13 +551,9 @@ export default function LoginScreen() {
               )}
 
               {/* ── PRIMARY BUTTON ── */}
-              <Pressable
-                style={({ pressed }) => [
-                  styles.loginButton,
-                  { backgroundColor: buttonBg },
-                  showButtonShadow && styles.loginButtonShadow,
-                  pressed && !buttonDisabled && { backgroundColor: colors.jade600 },
-                ]}
+              <PressBox
+                tier="button"
+                style={[styles.loginButton, { backgroundColor: buttonBg }, showButtonShadow && styles.loginButtonShadow]}
                 onPress={isNetworkError ? () => setLoginState('default') : loginHandler}
                 disabled={buttonDisabled}
                 hitSlop={8}
@@ -568,7 +565,7 @@ export default function LoginScreen() {
                     {isError || isNetworkError ? t('common.retry') : t('auth.login')}
                   </Text>
                 )}
-              </Pressable>
+              </PressBox>
 
               {/* ── NETWORK INFO CARD (below button) ── */}
               {isNetworkError && (
@@ -600,13 +597,14 @@ export default function LoginScreen() {
                     <View style={styles.dividerLine} />
                   </View>
                   <View style={styles.biometricContainer}>
-                    <Pressable
-                      style={({ pressed }) => [styles.biometricCircle, pressed && { backgroundColor: withAlpha(colors.jade400, 0.15), borderRadius: 999 }]}
+                    <PressBox
+                      tier="icon"
+                      style={styles.biometricCircle}
                       onPress={biometricHandler}
                       hitSlop={8}
                     >
                       <Ionicons name="finger-print" size={26} color={colors.jadeText} />
-                    </Pressable>
+                    </PressBox>
                     <Text style={styles.biometricLabel}>{t('auth.biometric_label')}</Text>
                   </View>
                 </>

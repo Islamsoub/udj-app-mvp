@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  Pressable,
   StyleSheet,
   StatusBar,
   Alert,
@@ -187,9 +186,9 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
       </View>
       <Text style={styles.stateTitle}>{t('attendance.error.title')}</Text>
       <Text style={styles.stateBody}>{t('attendance.error.body')}</Text>
-      <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onRetry}>
+      <PressBox tier="button" style={styles.retryBtn} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('attendance.error.retry')}</Text>
-      </Pressable>
+      </PressBox>
     </View>
   );
 }
@@ -302,13 +301,14 @@ export default function AttendanceScreen() {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       <View style={[styles.compactHeader, { paddingTop: insets.top + HEADER_PAD }]}>
-        <Pressable
-          style={({ pressed }) => [styles.backCircle, pressed && { opacity: 0.7 }]}
+        <PressBox
+          tier="icon"
+          style={styles.backCircle}
           onPress={() => router.back()}
           hitSlop={8}
         >
           <Ionicons name="chevron-back" size={24} color={colors.jade400} />
-        </Pressable>
+        </PressBox>
         <Text style={styles.screenTitle}>{t('attendance.title')}</Text>
       </View>
 

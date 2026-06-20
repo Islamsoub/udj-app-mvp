@@ -4,11 +4,11 @@ import {
   Text,
   Image,
   ScrollView,
-  Pressable,
   StyleSheet,
   StatusBar,
   Share,
 } from 'react-native';
+import { PressBox } from '@/components/PressBox';
 import { LinearGradient } from 'expo-linear-gradient';
 import { isAxiosError } from 'axios';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -245,9 +245,9 @@ function ErrorBody({ onRetry }: ErrorBodyProps) {
       </View>
       <Text style={styles.errorTitle}>{t('article.error.title')}</Text>
       <Text style={styles.errorBodyText}>{t('article.error.body')}</Text>
-      <Pressable style={({ pressed }) => [styles.retryBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onRetry}>
+      <PressBox tier="button" style={styles.retryBtn} onPress={onRetry}>
         <Text style={styles.retryBtnText}>{t('article.error.retry')}</Text>
-      </Pressable>
+      </PressBox>
     </View>
   );
 }
@@ -267,17 +267,17 @@ function BottomBar({ bottomInset, isBookmarked, onBookmark, onShare }: BottomBar
   const { t } = useTranslation();
   return (
     <View style={[styles.bottomBar, { paddingBottom: bottomInset + 8 }]}>
-      <Pressable style={({ pressed }) => [styles.bookmarkBtn, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.15), borderRadius: 999 }]} onPress={onBookmark} hitSlop={8}>
+      <PressBox tier="icon" style={styles.bookmarkBtn} onPress={onBookmark} hitSlop={8}>
         <Ionicons
           name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
           size={24}
           color={isBookmarked ? colors.jade400 : colors.textPrimary}
         />
-      </Pressable>
-      <Pressable style={({ pressed }) => [styles.shareBtn, pressed && { backgroundColor: colors.jade600 }]} onPress={onShare}>
+      </PressBox>
+      <PressBox tier="button" style={styles.shareBtn} onPress={onShare}>
         <Ionicons name="share-social-outline" size={18} color={colors.surface} />
         <Text style={styles.shareBtnText}>{t('article.share')}</Text>
-      </Pressable>
+      </PressBox>
     </View>
   );
 }

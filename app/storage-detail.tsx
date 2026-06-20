@@ -9,6 +9,7 @@ import {
   Alert,
   I18nManager,
 } from 'react-native';
+import { PressBox } from '@/components/PressBox';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -225,15 +226,13 @@ export default function StorageDetailScreen() {
         </View>
 
         {/* ── Clear all button ── */}
-        <Pressable
-          style={({ pressed }) => [
-            styles.clearAllBtn,
-            pressed && { opacity: 0.85 },
-          ]}
+        <PressBox
+          tier="button"
+          style={styles.clearAllBtn}
           onPress={handleClearAll}
         >
           <Text style={styles.clearAllText}>{t('settings.storage.clear_all')}</Text>
-        </Pressable>
+        </PressBox>
 
         <View style={{ height: spacing.sp64 }} />
       </ScrollView>

@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
-import { View, Pressable, StyleSheet, I18nManager } from 'react-native';
+import { View, StyleSheet, I18nManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { elevation, radius, spacing, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 
 interface ArticleReaderHeaderProps {
   topInset: number;
@@ -17,13 +18,14 @@ export function ArticleReaderHeader({ topInset, onBack }: ArticleReaderHeaderPro
   return (
     <View style={[styles.wrapper, { paddingTop: topInset + HEADER_PAD }]}>
       <View style={styles.row}>
-        <Pressable
+        <PressBox
+          tier="icon"
           style={[styles.btn, elevation.card]}
           onPress={onBack}
           hitSlop={8}
         >
           <Ionicons name={chevron} size={22} color={colors.textPrimary} />
-        </Pressable>
+        </PressBox>
       </View>
     </View>
   );
