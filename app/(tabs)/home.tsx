@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import { elevation, fonts, spacing, radius, withAlpha, HEADER_PAD, fz, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { buildSubjectColorMap, getSubjectColor, getNewsCategoryColors } from '@/constants/colorMap';
+import { PressBox } from '@/components/PressBox';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { CourseDetailSheet } from '@/components/schedule/CourseDetailSheet';
@@ -414,15 +415,16 @@ function StatCard({ label, value, sub, onPress }: { label: string; value: string
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   return (
-    <Pressable
-      style={({ pressed }) => [styles.statCard, pressed && { opacity: 0.7 }]}
+    <PressBox
+      tier="lift"
+      style={styles.statCard}
       onPress={onPress}
       hitSlop={4}
     >
       <Text style={styles.statLabel}>{label}</Text>
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statSub} numberOfLines={1} ellipsizeMode="tail">{sub}</Text>
-    </Pressable>
+    </PressBox>
   );
 }
 

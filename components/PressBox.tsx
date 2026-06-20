@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
   AccessibilityInfo,
+  Insets,
   Pressable,
   StyleProp,
   StyleSheet,
@@ -56,6 +57,7 @@ export interface PressBoxProps {
   style?: StyleProp<ViewStyle>;
   radius?: number;
   disabled?: boolean;
+  hitSlop?: number | Insets;
   onPress?: () => void;
   onPressIn?: () => void;
   onPressOut?: () => void;
@@ -68,6 +70,7 @@ export function PressBox({
   style,
   radius: radiusProp,
   disabled,
+  hitSlop,
   onPress,
   onPressIn: onPressInProp,
   onPressOut: onPressOutProp,
@@ -192,6 +195,7 @@ export function PressBox({
       style={[style, animatedStyle]}
       android_ripple={null}
       disabled={disabled}
+      hitSlop={hitSlop}
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
