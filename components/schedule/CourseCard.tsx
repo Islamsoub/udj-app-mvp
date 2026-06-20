@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { fonts, fz, radius, spacing, elevation, withAlpha, type Palette } from '@/constants/theme';
+import { View, Text, StyleSheet } from 'react-native';
+import { fonts, fz, radius, spacing, elevation, type Palette } from '@/constants/theme';
+import { PressBox } from '@/components/PressBox';
 import { useColors } from '@/hooks/useColors';
 import { StatusPill, CourseStatus } from './StatusPill';
 import { getSubjectColor } from '@/constants/colorMap';
@@ -31,10 +32,7 @@ export function CourseCard({ course, onPress }: CourseCardProps) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && { backgroundColor: withAlpha(colors.textPrimary, 0.06) }]}
-    >
+    <PressBox tier="lift" onPress={onPress} style={styles.card}>
       <View style={[styles.accentBar, { backgroundColor: accent }]} />
       <View style={styles.content}>
         <Text
@@ -52,7 +50,7 @@ export function CourseCard({ course, onPress }: CourseCardProps) {
           <StatusPill status={course.status} style={styles.statusPill} />
         </View>
       </View>
-    </Pressable>
+    </PressBox>
   );
 }
 
