@@ -1,12 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, I18nManager } from 'react-native';
+import { View, StyleSheet, I18nManager, Pressable } from 'react-native';
 import { Tabs } from 'expo-router';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { SvgProps } from 'react-native-svg';
 import { useColors } from '@/hooks/useColors';
 import { radius, elevation, spacing, withAlpha } from '@/constants/theme';
-import { PressBox } from '@/components/PressBox';
 import TabHome from '@/assets/icons/tab-home.svg';
 import TabAgenda from '@/assets/icons/tab-agenda.svg';
 import TabNotes from '@/assets/icons/tab-notes.svg';
@@ -69,9 +68,8 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
         };
 
         return (
-          <PressBox
+          <Pressable
             key={route.key}
-            tier="tint"
             onPress={onPress}
             style={styles.cell}
             accessibilityRole="button"
@@ -100,7 +98,7 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
                 ]}
               />
             </View>
-          </PressBox>
+          </Pressable>
         );
       })}
     </View>
