@@ -203,7 +203,7 @@ export default function NewsScreen() {
       const data = await getNews();
       const all = mapNewsToCache(data.articles ?? []);
       await upsertNews(all);
-      return filterCategory ? all.filter((a) => a.category === filterCategory) : all;
+      return getCachedNews(20, filterCategory);
     },
     updateCache: () => Promise.resolve(),
   });
