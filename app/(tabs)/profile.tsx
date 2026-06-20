@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { elevation, fonts, radius, spacing, fz, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import {
@@ -66,8 +67,9 @@ function QuickTile({
   const { colors } = useColors();
   const styles = useMemo(() => makeTileStyles(colors), [colors]);
   return (
-    <Pressable
-      style={({ pressed }) => [styles.tile, pressed && { opacity: 0.75 }]}
+    <PressBox
+      tier="lift"
+      style={styles.tile}
       onPress={onPress}
       hitSlop={4}
     >
@@ -77,7 +79,7 @@ function QuickTile({
       <Text style={styles.tileLabel} numberOfLines={1}>
         {label}
       </Text>
-    </Pressable>
+    </PressBox>
   );
 }
 

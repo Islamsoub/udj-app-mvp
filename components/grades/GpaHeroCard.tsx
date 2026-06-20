@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { fonts, fz, radius, spacing, withAlpha } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { getMention, mentionColor } from '@/utils/gradesMention';
+import { PressBox } from '@/components/PressBox';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 
 interface Props {
@@ -44,7 +45,7 @@ export function GpaHeroCard({ gpa, credits, activeSemester, onPress, skeleton }:
 
   return (
     <View style={styles.shadow}>
-      <Pressable onPress={onPress} style={{ borderRadius: radius.rHero }}>
+      <PressBox tier="settle" onPress={onPress} style={{ borderRadius: radius.rHero }}>
         <LinearGradient
           colors={['#1D9E75', '#0B5544']} // jade400 → deep jade — on-gradient literals required by LinearGradient
           start={{ x: 0, y: 0 }}
@@ -83,7 +84,7 @@ export function GpaHeroCard({ gpa, credits, activeSemester, onPress, skeleton }:
             <View style={[styles.barFill, { width: `${Math.round(creditPct * 100)}%` as any }]} />
           </View>
         </LinearGradient>
-      </Pressable>
+      </PressBox>
     </View>
   );
 }

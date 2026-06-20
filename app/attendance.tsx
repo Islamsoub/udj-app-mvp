@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { elevation, fonts, fz, radius, sizing, spacing, withAlpha, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { AttendanceHeroCard } from '@/components/attendance/AttendanceHeroCard';
@@ -126,8 +127,9 @@ function CardsBody({ data, onRefresh }: CardsBodyProps) {
       {/* ── Upload row ─────────────────────────────────────────────────────── */}
       <Text style={styles.uploadSectionLabel}>{t('presence.section_justify')}</Text>
 
-      <Pressable
-        style={({ pressed }) => [styles.uploadRow, pressed && { opacity: 0.7 }]}
+      <PressBox
+        tier="lift"
+        style={styles.uploadRow}
         onPress={() => setUploadSheetOpen(true)}
       >
         <View style={styles.uploadIconChip}>
@@ -142,7 +144,7 @@ function CardsBody({ data, onRefresh }: CardsBodyProps) {
           size={18}
           color={colors.textTertiary}
         />
-      </Pressable>
+      </PressBox>
 
       <JustificationConfirmSheet
         visible={uploadSheetOpen}

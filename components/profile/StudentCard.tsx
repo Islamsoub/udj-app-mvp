@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, Pressable, Animated, Easing, I18nManager } from 'react-native';
+import { View, Text, StyleSheet, Animated, Easing, I18nManager } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ScreenCapture from 'expo-screen-capture';
 import QRCode from 'react-native-qrcode-svg';
@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { fonts, fz, lightColors, radius, sizing, spacing, elevation, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { PressBox } from '@/components/PressBox';
 
 // White text/strokes sit on the jade gradient — must stay white in both themes.
 const BRAND_FG = lightColors.surface;
@@ -102,11 +103,10 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
 
   return (
     <Animated.View style={[styles.cardWrap, { height: heightAnim }]}>
-      <Pressable
+      <PressBox
+        tier="settle"
         onPress={toggle}
         style={styles.pressable}
-        accessibilityRole="button"
-        accessibilityState={{ expanded }}
       >
         <LinearGradient
           colors={GRADIENT_COLORS}
@@ -194,7 +194,7 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
             </View>
           )}
         </LinearGradient>
-      </Pressable>
+      </PressBox>
     </Animated.View>
   );
 }

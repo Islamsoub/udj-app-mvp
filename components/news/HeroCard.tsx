@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { elevation, fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { getNewsCategoryColors } from '@/constants/colorMap';
+import { PressBox } from '@/components/PressBox';
 
 // Image area height (design constant)
 const IMAGE_H = 170;
@@ -35,9 +36,10 @@ export function HeroCard({ article, onPress }: HeroCardProps) {
     : null;
 
   return (
-    <Pressable
+    <PressBox
+      tier="settle"
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && { opacity: 0.9 }]}
+      style={styles.card}
     >
       <View style={styles.imageArea}>
         {hasImage ? (
@@ -85,7 +87,7 @@ export function HeroCard({ article, onPress }: HeroCardProps) {
           {article.timestamp} · {article.readTime}
         </Text>
       </View>
-    </Pressable>
+    </PressBox>
   );
 }
 

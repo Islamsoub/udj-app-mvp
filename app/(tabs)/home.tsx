@@ -188,9 +188,10 @@ function AgendaCard({
   const isExam = statusLabel != null;
 
   return (
-    <Pressable
+    <PressBox
+      tier="lift"
       onPress={onPress}
-      style={({ pressed }) => [styles.agendaCard, pressed && { opacity: 0.85 }]}
+      style={styles.agendaCard}
     >
       <View style={[styles.agendaRail, { backgroundColor: accentColor }]} />
       <View style={styles.agendaContent}>
@@ -218,7 +219,7 @@ function AgendaCard({
           )}
         </View>
       </View>
-    </Pressable>
+    </PressBox>
   );
 }
 
@@ -239,9 +240,10 @@ function NewsCard({
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { fg, bg } = getNewsCategoryColors(category, colors);
   return (
-    <Pressable
+    <PressBox
+      tier="lift"
       onPress={onPress}
-      style={({ pressed }) => [styles.newsCard, pressed && { opacity: 0.85 }]}
+      style={styles.newsCard}
     >
       {imageUrl ? (
         <Image source={{ uri: imageUrl }} style={styles.newsThumbnail} resizeMode="cover" />
@@ -256,7 +258,7 @@ function NewsCard({
           <Text style={[styles.newsCategoryText, { color: fg }]}>{category}</Text>
         </View>
       </View>
-    </Pressable>
+    </PressBox>
   );
 }
 

@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { elevation, fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { getNewsCategoryColors } from '@/constants/colorMap';
+import { PressBox } from '@/components/PressBox';
 import { toggleNewsBookmark } from '@/services/db';
 
 export type ArticleCategory = 'official' | 'events' | 'scolarite' | 'sport' | 'youth' | 'sponsors';
@@ -49,9 +50,10 @@ export function ArticleCard({ article, onPress }: ArticleCardProps) {
   }
 
   return (
-    <Pressable
+    <PressBox
+      tier="lift"
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && { opacity: 0.9 }]}
+      style={styles.card}
     >
       {/* Thumbnail */}
       <View style={styles.thumbnail}>
@@ -87,17 +89,17 @@ export function ArticleCard({ article, onPress }: ArticleCardProps) {
 
         <View style={styles.bottomRow}>
           <Text style={styles.readTime}>{article.readTime}</Text>
-          {/* Nested Pressable absorbs touch so bookmark does not trigger card navigation */}
-          <Pressable onPress={handleBookmarkPress} hitSlop={12}>
+          {/* Nested PressBox absorbs touch so bookmark does not trigger card navigation */}
+          <PressBox tier="icon" onPress={handleBookmarkPress} hitSlop={12}>
             <Ionicons
               name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
               size={20}
               color={isBookmarked ? colors.jade400 : colors.textTertiary}
             />
-          </Pressable>
+          </PressBox>
         </View>
       </View>
-    </Pressable>
+    </PressBox>
   );
 }
 
