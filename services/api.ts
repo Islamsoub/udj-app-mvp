@@ -323,8 +323,11 @@ export interface AbsenceRecord {
   id: string;
   date: string;
   status: 'ABSENT' | 'JUSTIFIED';
+  subjectName: string;
+  subjectNameAr: string;
   justificationUrl: string | null;
   justificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
+  justificationNote: string | null;
 }
 
 export interface AttendanceSubject {
@@ -358,6 +361,7 @@ export async function uploadJustification(
   recordId: string,
   fileUri: string,
   mimeType: string,
+  note?: string,
 ): Promise<{ justificationUrl: string; justificationStatus: string }> {
   const ext = mimeType.includes('pdf') ? 'pdf' : mimeType.includes('png') ? 'png' : 'jpg';
   const formData = new FormData();
@@ -366,6 +370,11 @@ export async function uploadJustification(
     type: mimeType,
     name: `justification_${recordId}.${ext}`,
   } as any);
+
+  const trimmedNote = note?.trim();
+  if (trimmedNote) {
+    formData.append('note', trimmedNote);
+  }
 
   const res = await instance.post(
     `/student/attendance/${recordId}/justification`,

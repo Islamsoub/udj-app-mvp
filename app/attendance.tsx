@@ -6,14 +6,13 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
-  I18nManager,
   RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { elevation, fonts, fz, radius, sizing, spacing, withAlpha, HEADER_PAD, type Palette } from '@/constants/theme';
+import { fonts, fz, radius, sizing, spacing, withAlpha, HEADER_PAD, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { PressBox } from '@/components/PressBox';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
@@ -21,7 +20,9 @@ import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { AttendanceHeroCard } from '@/components/attendance/AttendanceHeroCard';
 import { AttendanceCard } from '@/components/attendance/AttendanceCard';
 import { AttendanceSkeleton } from '@/components/attendance/AttendanceSkeleton';
-import { JustificationConfirmSheet } from '@/components/attendance/JustificationConfirmSheet';
+import { AbsenceSection } from '@/components/attendance/AbsenceSection';
+import { JustifySheet } from '@/components/attendance/JustifySheet';
+import type { AbsenceRecord as AbsenceItem } from '@/components/attendance/AbsenceRow';
 import {
   getAttendance as getAttendanceApi,
   AttendanceApiResponse,
@@ -85,26 +86,52 @@ function CardsBody({ data, onRefresh }: CardsBodyProps) {
   const lang = i18n.language;
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const [uploadSheetOpen, setUploadSheetOpen] = useState(false);
 
-  const firstAbsentRecordId = useMemo(() => {
+  const [selectedRecord, setSelectedRecord] = useState<AbsenceItem | null>(null);
+  const [sheetVisible, setSheetVisible] = useState(false);
+
+  // Flatten the per-subject absence groups into a single list. Backend only
+  // returns ABSENT / JUSTIFIED entries (never PRESENT); map them to the
+  // AbsenceSection record shape and sort most-recent first.
+  const absenceRecords = useMemo<AbsenceItem[]>(() => {
+    const out: AbsenceItem[] = [];
     for (const subject of data.subjects) {
-      for (const record of subject.absences) {
-        if (!record.justificationStatus) return record.id;
+      for (const a of subject.absences) {
+        out.push({
+          id: a.id,
+          status: 'ABSENT',
+          sessionDate: a.date,
+          subjectName: a.subjectName ?? subject.subject.nameFr,
+          subjectNameAr: a.subjectNameAr ?? subject.subject.nameAr,
+          justificationStatus: a.justificationStatus,
+          justificationUrl: a.justificationUrl,
+          justificationNote: a.justificationNote,
+        });
       }
     }
-    return null;
+    out.sort(
+      (x, y) => new Date(y.sessionDate).getTime() - new Date(x.sessionDate).getTime(),
+    );
+    return out;
   }, [data.subjects]);
 
-  const handleSendJustification = useCallback(
-    async (imageUri: string, mimeType: string) => {
-      if (!firstAbsentRecordId) throw new Error('no_record');
-      await uploadJustification(firstAbsentRecordId, imageUri, mimeType);
+  const handleRecordPress = useCallback((record: AbsenceItem) => {
+    setSelectedRecord(record);
+    setSheetVisible(true);
+  }, []);
+
+  const handleSheetClose = useCallback(() => {
+    setSheetVisible(false);
+  }, []);
+
+  const handleJustifySubmit = useCallback(
+    async (recordId: string, imageUri: string, mimeType: string, note?: string) => {
+      await uploadJustification(recordId, imageUri, mimeType, note);
       Alert.alert(t('attendance.upload_success'));
-      setUploadSheetOpen(false);
+      setSheetVisible(false);
       onRefresh();
     },
-    [firstAbsentRecordId, t, onRefresh],
+    [t, onRefresh],
   );
 
   return (
@@ -123,32 +150,14 @@ function CardsBody({ data, onRefresh }: CardsBodyProps) {
         ))}
       </View>
 
-      {/* ── Upload row ─────────────────────────────────────────────────────── */}
-      <Text style={styles.uploadSectionLabel}>{t('presence.section_justify')}</Text>
+      {/* ── Absences + per-record justification ────────────────────────────── */}
+      <AbsenceSection records={absenceRecords} onRecordPress={handleRecordPress} />
 
-      <PressBox
-        tier="lift"
-        style={styles.uploadRow}
-        onPress={() => setUploadSheetOpen(true)}
-      >
-        <View style={styles.uploadIconChip}>
-          <Ionicons name="cloud-upload-outline" size={17} color={colors.jadeText} />
-        </View>
-        <View style={styles.uploadTextCol}>
-          <Text style={styles.uploadLabel}>{t('presence.upload_label')}</Text>
-          <Text style={styles.uploadHint}>{t('presence.upload_hint')}</Text>
-        </View>
-        <Ionicons
-          name={I18nManager.isRTL ? 'chevron-back' : 'chevron-forward'}
-          size={18}
-          color={colors.textTertiary}
-        />
-      </PressBox>
-
-      <JustificationConfirmSheet
-        visible={uploadSheetOpen}
-        onClose={() => setUploadSheetOpen(false)}
-        onSend={handleSendJustification}
+      <JustifySheet
+        visible={sheetVisible}
+        record={selectedRecord}
+        onClose={handleSheetClose}
+        onSubmit={handleJustifySubmit}
       />
     </View>
   );
@@ -433,54 +442,6 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   cardsList: {
     gap: spacing.sp8,
-  },
-
-  // ── Upload row
-  uploadSectionLabel: {
-    fontSize: fz(12.5),
-    fontWeight: '700',
-    fontFamily: fonts.sans,
-    color: colors.textTertiary,
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
-    marginTop: spacing.sp24,
-    marginBottom: spacing.sp8,
-    marginHorizontal: spacing.sp20,
-  },
-  uploadRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sp12,
-    backgroundColor: colors.surface,
-    borderRadius: radius.rXl,
-    paddingVertical: spacing.sp16,
-    paddingHorizontal: spacing.sp16,
-    marginHorizontal: spacing.sp16,
-    ...elevation.card,
-  },
-  uploadIconChip: {
-    width: 38,
-    height: 38,
-    borderRadius: radius.rMd,
-    backgroundColor: colors.jadeFaint,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  uploadTextCol: {
-    flex: 1,
-  },
-  uploadLabel: {
-    fontSize: fz(14.5),
-    fontWeight: '600',
-    fontFamily: fonts.sans,
-    color: colors.textPrimary,
-  },
-  uploadHint: {
-    fontSize: fz(12.5),
-    fontWeight: '400',
-    fontFamily: fonts.sans,
-    color: colors.textTertiary,
-    marginTop: 1,
   },
 
   // ── Center states (empty / error)

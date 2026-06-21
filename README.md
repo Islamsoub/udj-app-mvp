@@ -182,7 +182,7 @@ udj-app-mvp/
 │   ├── storage-detail.tsx        # Cache management
 │   └── account-info.tsx          # Account details
 ├── components/                   # Shared components by domain
-│   ├── attendance/               # AttendanceHeader, JustificationConfirmSheet
+│   ├── attendance/               # AttendanceHeader, AbsenceSection, JustifySheet
 │   ├── grades/                   # GradesHeader, SubjectCard, GPA sheets
 │   ├── news/                     # ArticleCard, HeroCard, FilterRow, NewsHeader
 │   ├── notifications/            # NotificationItem
