@@ -94,7 +94,8 @@
       "Bash(git -C C:/Users/urohe/documents/udj-app-mvp log --all --full-history -- \"backend/.env\")",
       "Bash(git -C C:/Users/urohe/documents/udj-app-mvp status --short -- \"backend/.env\")",
       "Bash(xargs cat)",
-      "PowerShell(cd \"C:\\\\Users\\\\urohe\\\\documents\\\\udj-app-mvp\"; npx tsc --noEmit 2>&1; echo \"Exit: $LASTEXITCODE\")"
+      "PowerShell(cd \"C:\\\\Users\\\\urohe\\\\documents\\\\udj-app-mvp\"; npx tsc --noEmit 2>&1; echo \"Exit: $LASTEXITCODE\")",
+      "Bash(echo \"---EXIT:$?---\")"
     ]
   }
 }

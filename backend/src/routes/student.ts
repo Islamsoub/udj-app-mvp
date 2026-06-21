@@ -404,6 +404,7 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
         sessionDate: true,
         justificationUrl: true,
         justificationStatus: true,
+        justificationNote: true,
         subject: { select: { id: true, nameFr: true, nameAr: true, code: true } },
       },
       orderBy: { sessionDate: 'desc' },
@@ -433,8 +434,11 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
       id: string;
       date: string;
       status: 'ABSENT' | 'JUSTIFIED';
+      subjectName: string;
+      subjectNameAr: string;
       justificationUrl: string | null;
       justificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
+      justificationNote: string | null;
     };
     const subjectMap = new Map<
       string,
@@ -467,10 +471,13 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
           id: r.id,
           date: r.sessionDate.toISOString(),
           status: r.status,
+          subjectName: r.subject.nameFr,
+          subjectNameAr: r.subject.nameAr,
           justificationUrl: r.justificationUrl
             ? (signedUrlMap.get(r.justificationUrl) ?? null)
             : null,
           justificationStatus: r.justificationStatus,
+          justificationNote: r.justificationNote,
         });
       }
     }
@@ -709,6 +716,20 @@ router.post(
         throw new AppError('Missing file field "justification"', 400);
       }
 
+      // Optional free-text reason supplied alongside the file (multipart text field).
+      const rawNote: unknown = req.body?.note;
+      let note: string | null = null;
+      if (rawNote !== undefined && rawNote !== null && rawNote !== '') {
+        if (typeof rawNote !== 'string') {
+          throw new AppError('Invalid note', 400);
+        }
+        const trimmed = rawNote.trim();
+        if (trimmed.length > 80) {
+          throw new AppError('Note must be 80 characters or fewer', 400);
+        }
+        note = trimmed.length > 0 ? trimmed : null;
+      }
+
       const fileTypeResult = await fromBuffer(req.file.buffer);
       if (!fileTypeResult || !ALLOWED_MAGIC_TYPES.includes(fileTypeResult.mime)) {
         throw new AppError('Invalid file type. Allowed: JPEG, PNG, WebP, PDF', 400);
@@ -755,14 +776,16 @@ router.post(
         data: {
           justificationUrl: objectPath,
           justificationStatus: 'PENDING',
+          justificationNote: note ?? null,
         },
-        select: { justificationStatus: true },
+        select: { justificationStatus: true, justificationNote: true },
       });
 
       res.status(200).json({
         success: true,
         justificationUrl: signedUrlData.signedUrl,
         justificationStatus: updated.justificationStatus,
+        justificationNote: updated.justificationNote,
       });
     } catch (err) {
       next(err);
