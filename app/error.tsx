@@ -1,6 +1,8 @@
 import { View, Text, Pressable, StyleSheet, useColorScheme, StatusBar } from 'react-native';
+import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Sentry from '@sentry/react-native';
 import { fz, lightColors, darkColors, radius } from '@/constants/theme';
 
 // Uses useColorScheme() directly instead of useColors() — this is the global
@@ -12,6 +14,11 @@ export default function GlobalError({ error, retry }: { error: Error; retry: () 
   const insets = useSafeAreaInsets();
   const isDark = scheme === 'dark';
   const colors = isDark ? darkColors : lightColors;
+
+  // Report caught errors (not just unhandled crashes) to Sentry.
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top + 24, paddingBottom: insets.bottom + 16 }]}>

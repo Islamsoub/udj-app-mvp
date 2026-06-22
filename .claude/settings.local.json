@@ -101,7 +101,8 @@
       "Bash(grep '\"version\"' node_modules/expo-crypto/package.json)",
       "PowerShell(npx expo install expo-crypto -- --legacy-peer-deps --ignore-scripts)",
       "PowerShell(npx tsc --noEmit; if \\($?\\) { \"TSC PASSED\" } else { \"TSC FAILED\" })",
-      "PowerShell($out = npx expo config --json 2>$null | Out-String; if \\($?\\) { $cfg = $out | ConvertFrom-Json; \"config OK\"; \"plugins:\"; $cfg.exp.plugins | ForEach-Object { if \\($_ -is [array]\\) { $_[0] } else { $_ } } } else { \"config FAILED\" })"
+      "PowerShell($out = npx expo config --json 2>$null | Out-String; if \\($?\\) { $cfg = $out | ConvertFrom-Json; \"config OK\"; \"plugins:\"; $cfg.exp.plugins | ForEach-Object { if \\($_ -is [array]\\) { $_[0] } else { $_ } } } else { \"config FAILED\" })",
+      "PowerShell(npx expo install @sentry/react-native -- --legacy-peer-deps)"
     ]
   }
 }

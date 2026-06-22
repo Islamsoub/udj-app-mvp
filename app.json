@@ -3,7 +3,10 @@
     "name": "UDJ",
     "slug": "udj-app-mvp",
     "version": "1.1.0",
-    "scheme": ["udj", "unipocket"],
+    "scheme": [
+      "udj",
+      "unipocket"
+    ],
     "orientation": "portrait",
     "icon": "./assets/icons/icon.png",
     "userInterfaceStyle": "light",
@@ -61,6 +64,13 @@
         {
           "icon": "./assets/icons/icon.png",
           "color": "#1D9E75"
+        }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "unipocket",
+          "project": "unipocket"
         }
       ]
     ],

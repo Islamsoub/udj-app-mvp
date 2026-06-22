@@ -1,4 +1,6 @@
+import { initSentry } from '@/services/sentry';
 import i18n from '@/i18n';
+import * as Sentry from '@sentry/react-native';
 import React, { useEffect, useState } from 'react';
 import { I18nManager, StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -22,6 +24,9 @@ import {
   isQuietHours,
 } from '@/services/pushNotifications';
 
+// Initialize crash reporting before any component code runs.
+initSentry();
+
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient({
@@ -43,7 +48,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export default function RootLayout() {
+function RootLayout() {
   const [migrationsReady, setMigrationsReady] = useState(false);
   const loadAuthFromStorage = useAuthStore((s) => s.loadAuthFromStorage);
   const authLoaded = useAuthStore((s) => s.loaded);
@@ -164,3 +169,7 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
+
+// Sentry.wrap enables automatic navigation breadcrumbs (expo-router) and
+// touch/render instrumentation on the root component.
+export default Sentry.wrap(RootLayout);
