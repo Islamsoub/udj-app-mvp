@@ -95,7 +95,13 @@
       "Bash(git -C C:/Users/urohe/documents/udj-app-mvp status --short -- \"backend/.env\")",
       "Bash(xargs cat)",
       "PowerShell(cd \"C:\\\\Users\\\\urohe\\\\documents\\\\udj-app-mvp\"; npx tsc --noEmit 2>&1; echo \"Exit: $LASTEXITCODE\")",
-      "Bash(echo \"---EXIT:$?---\")"
+      "Bash(echo \"---EXIT:$?---\")",
+      "PowerShell(npx expo install expo-crypto -- --legacy-peer-deps)",
+      "Bash(ls node_modules/expo-crypto/package.json)",
+      "Bash(grep '\"version\"' node_modules/expo-crypto/package.json)",
+      "PowerShell(npx expo install expo-crypto -- --legacy-peer-deps --ignore-scripts)",
+      "PowerShell(npx tsc --noEmit; if \\($?\\) { \"TSC PASSED\" } else { \"TSC FAILED\" })",
+      "PowerShell($out = npx expo config --json 2>$null | Out-String; if \\($?\\) { $cfg = $out | ConvertFrom-Json; \"config OK\"; \"plugins:\"; $cfg.exp.plugins | ForEach-Object { if \\($_ -is [array]\\) { $_[0] } else { $_ } } } else { \"config FAILED\" })"
     ]
   }
 }

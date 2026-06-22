@@ -1,4 +1,7 @@
 import * as SQLite from 'expo-sqlite';
+import * as SecureStore from 'expo-secure-store';
+import * as Crypto from 'expo-crypto';
+import { File } from 'expo-file-system';
 import type {
   Schedule,
   Grade,
@@ -8,12 +11,160 @@ import type {
   CachedNotification,
 } from './api';
 
+const DB_NAME = 'udj.db';
+const ENC_TMP_NAME = 'udj_enc.db';
+
+// SecureStore keys. The 256-bit SQLCipher key and the one-time migration flag.
+const ENCRYPTION_KEY_KEY = 'db_encryption_key';
+const MIGRATED_FLAG_KEY = 'db_encrypted_v1';
+
+// Survives reboot (so background sync works) but never leaves this device and
+// is not restored to a different device — see CLAUDE.md security decisions.
+const SECURE_OPTS: SecureStore.SecureStoreOptions = {
+  keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
+};
+
 let _db: SQLite.SQLiteDatabase | null = null;
+
+/**
+ * Returns the hex-encoded 256-bit SQLCipher key, generating and persisting one
+ * in SecureStore on first run. Used as a raw key (`x'<hex>'`) so SQLCipher skips
+ * PBKDF2 derivation on a value that is already cryptographically random.
+ */
+async function getEncryptionKey(): Promise<string> {
+  const existing = await SecureStore.getItemAsync(ENCRYPTION_KEY_KEY);
+  if (existing) return existing;
+
+  const bytes = await Crypto.getRandomBytesAsync(32); // 256-bit
+  const hex = Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+  await SecureStore.setItemAsync(ENCRYPTION_KEY_KEY, hex, SECURE_OPTS);
+  return hex;
+}
+
+/**
+ * The directory expo-sqlite resolves database names against. Deriving both the
+ * ATTACH path (plain filesystem path, consumed by the SQLCipher C layer) and the
+ * expo-file-system URIs from this single source guarantees they reference the
+ * exact files expo-sqlite opens.
+ */
+function dbDirectoryPath(): string {
+  const dir = SQLite.defaultDatabaseDirectory;
+  if (!dir) throw new Error('defaultDatabaseDirectory unavailable on this platform');
+  return dir.replace(/\/*$/, '');
+}
+
+function dbFilePath(name: string): string {
+  return `${dbDirectoryPath()}/${name}`;
+}
+
+function dbFile(name: string): File {
+  const dir = dbDirectoryPath();
+  const uri = dir.startsWith('file://') ? dir : `file://${dir}`;
+  return new File(uri, name);
+}
+
+/**
+ * One-time conversion of a legacy plaintext `udj.db` (shipped on beta devices
+ * before SQLCipher) into an encrypted database, preserving all rows including
+ * user-authored course_notes, bookmarks and read states.
+ *
+ * Runs before the encrypted database is opened. Uses SQLCipher's `sqlcipher_export`
+ * to copy the plaintext `main` schema into a freshly-keyed attached database, then
+ * swaps the encrypted copy into place.
+ */
+async function migratePlaintextIfNeeded(): Promise<void> {
+  if ((await SecureStore.getItemAsync(MIGRATED_FLAG_KEY)) === 'true') return;
+
+  // Fresh install: no legacy plaintext db to convert. openEncrypted() creates an
+  // encrypted db directly. Mark migrated so we never treat it as plaintext later.
+  if (!dbFile(DB_NAME).exists) {
+    await SecureStore.setItemAsync(MIGRATED_FLAG_KEY, 'true', SECURE_OPTS);
+    return;
+  }
+
+  const key = await getEncryptionKey();
+  const encPath = dbFilePath(ENC_TMP_NAME);
+
+  // Clear any half-written temp from a previously interrupted migration.
+  const encTmp = dbFile(ENC_TMP_NAME);
+  if (encTmp.exists) encTmp.delete();
+
+  const plain = await SQLite.openDatabaseAsync(DB_NAME);
+  try {
+    // main (plaintext, no key) → encrypted attachment keyed with the raw hex key.
+    await plain.execAsync(
+      `ATTACH DATABASE '${encPath}' AS encrypted KEY "x'${key}'";` +
+        `SELECT sqlcipher_export('encrypted');` +
+        `DETACH DATABASE encrypted;`,
+    );
+  } finally {
+    await plain.closeAsync();
+  }
+
+  // Drop the plaintext db and its WAL/SHM sidecars so no plaintext page or stale
+  // journal sits next to the new encrypted file.
+  for (const name of [DB_NAME, `${DB_NAME}-wal`, `${DB_NAME}-shm`]) {
+    const f = dbFile(name);
+    if (f.exists) f.delete();
+  }
+
+  // Promote the encrypted copy to the canonical name expo-sqlite opens.
+  encTmp.move(dbFile(DB_NAME));
+
+  await SecureStore.setItemAsync(MIGRATED_FLAG_KEY, 'true', SECURE_OPTS);
+}
+
+/**
+ * Deletes the encrypted database and its WAL/SHM sidecars. Used by the key-loss
+ * recovery path when the stored key can no longer decrypt the file.
+ */
+function wipeEncryptedDb(): void {
+  for (const name of [DB_NAME, `${DB_NAME}-wal`, `${DB_NAME}-shm`]) {
+    const f = dbFile(name);
+    if (f.exists) f.delete();
+  }
+}
+
+/**
+ * Opens `udj.db`, applies the SQLCipher key as the very first statement, and
+ * verifies it can decrypt. If the key no longer matches the file (e.g. SecureStore
+ * was cleared by a restore), the cache is unrecoverable: wipe it, mint a fresh key,
+ * and return a new empty encrypted db. Cached data re-syncs from the API on next
+ * load; locally-authored course notes are the only non-recoverable loss.
+ */
+async function openEncrypted(): Promise<SQLite.SQLiteDatabase> {
+  const key = await getEncryptionKey();
+  let db = await SQLite.openDatabaseAsync(DB_NAME);
+  try {
+    // PRAGMA key MUST precede any other statement (including WAL) on the connection.
+    await db.execAsync(`PRAGMA key = "x'${key}'";`);
+    // Force a read of the database header to validate the key.
+    await db.execAsync('SELECT count(*) FROM sqlite_master;');
+  } catch {
+    console.warn('[db] SQLCipher key invalid — cache unrecoverable, resetting database');
+    await db.closeAsync().catch(() => {});
+    wipeEncryptedDb();
+    await SecureStore.deleteItemAsync(ENCRYPTION_KEY_KEY);
+    await SecureStore.deleteItemAsync(MIGRATED_FLAG_KEY);
+
+    const freshKey = await getEncryptionKey(); // regenerates and stores a new key
+    db = await SQLite.openDatabaseAsync(DB_NAME);
+    await db.execAsync(`PRAGMA key = "x'${freshKey}'";`);
+    // The fresh file is already encrypted; record it as migrated so the legacy
+    // plaintext path never tries to re-open it as plaintext.
+    await SecureStore.setItemAsync(MIGRATED_FLAG_KEY, 'true', SECURE_OPTS);
+  }
+
+  await db.execAsync('PRAGMA journal_mode = WAL;');
+  return db;
+}
 
 async function getDb(): Promise<SQLite.SQLiteDatabase> {
   if (!_db) {
-    _db = await SQLite.openDatabaseAsync('udj.db');
-    await _db.execAsync('PRAGMA journal_mode = WAL;');
+    await migratePlaintextIfNeeded();
+    _db = await openEncrypted();
   }
   return _db;
 }

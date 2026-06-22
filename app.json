@@ -42,6 +42,12 @@
       "expo-secure-store",
       "expo-local-authentication",
       [
+        "expo-sqlite",
+        {
+          "useSQLCipher": true
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#0A3D2E",

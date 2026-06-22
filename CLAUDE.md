@@ -252,11 +252,13 @@ stored in SecureStore, and auto-rotate. Pinning adds operational
 complexity (cert hash rotation locks users out). Plan for v1.1 if
 the app handles more sensitive data.
 
-### SQLite encryption — ACCEPTED RISK
-Android sandbox prevents other apps from reading the DB on non-rooted
-devices. SQLite is a cache of API data, not primary storage. allowBackup
-is set to false to prevent ADB dump. Full SQLCipher encryption planned
-for v1.1.
+### SQLite encryption — SQLCipher AES-256 enabled
+SQLCipher AES-256 encryption enabled (expo-sqlite `useSQLCipher` plugin).
+Key stored in SecureStore (AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY), generated
+on-device via expo-crypto and applied as a raw key (no KDF) on every open.
+Key loss = cache cleared, re-syncs from API. Course notes are the only
+non-recoverable data. allowBackup remains false. Requires an EAS dev/native
+build — SQLCipher will not run in Expo Go.
 
 ### Privacy policy — REQUIRED BEFORE PLAY STORE
 Google Play requires a privacy policy URL. Must be created and hosted
