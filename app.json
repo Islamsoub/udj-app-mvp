@@ -70,7 +70,8 @@
         "@sentry/react-native/expo",
         {
           "organization": "unipocket",
-          "project": "unipocket"
+          "project": "unipocket",
+          "uploadSourceMapsToSentry": false
         }
       ]
     ],
