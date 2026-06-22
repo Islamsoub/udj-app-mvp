@@ -95,12 +95,24 @@ export function useOfflineQuery<T>({
 
         try {
           await updateCacheRef.current(freshData);
-        } catch {
+        } catch (e) {
           // Cache write failure is non-fatal; still surface fresh data
+          console.warn('[useOfflineQuery] cache write failed:', e);
         }
 
+        // Re-read from cache so the rendered data is the canonical, deduped,
+        // correctly-ordered, user-state-preserved copy from SQLite — not the
+        // raw API array. Fall back to freshData only if the cache read fails.
+        let canonical: T | null = null;
+        try {
+          canonical = await getCachedRef.current();
+        } catch {
+          // Cache read failure is non-fatal; fall back to freshData below
+        }
+        if (cancelled) return;
+
         setLastSyncAt(Date.now());
-        setData(freshData);
+        setData(canonical ?? freshData);
         setIsStale(false);
         setIsOffline(false);
         setIsLoading(false);
