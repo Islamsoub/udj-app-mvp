@@ -58,7 +58,8 @@ No quick fixes. Always diagnose to the root cause and devise proper solutions. N
 
 ## Project overview
 Offline-first student mobile app for Universite de Djibouti.
-Stack: React Native + Expo (TypeScript), expo-router, expo-sqlite, expo-secure-store, Zustand, TanStack Query, axios, i18next/react-i18next, Node.js backend, PostgreSQL (Supabase), Prisma.
+Stack: React Native + Expo (TypeScript), expo-router, expo-sqlite (SQLCipher), expo-secure-store, Zustand, axios, i18next/react-i18next, Node.js backend, PostgreSQL (Supabase), Prisma.
+Data layer: the custom `useOfflineQuery` hook (hooks/useOfflineQuery.ts) is the primary data-fetching layer for every server-backed screen — NOT TanStack Query directly. `@tanstack/react-query` is installed but screens read/write through useOfflineQuery's stale-while-revalidate flow (getCached → fetchFresh → updateCache → re-read canonical from SQLite). When adding a data screen, use useOfflineQuery; do not call useQuery directly.
 Platforms: Android-first. iOS secondary (no announcement until Phase 2).
 Languages: French (LTR, default) + Arabic (RTL).
 
@@ -171,12 +172,15 @@ Languages: French (LTR, default) + Arabic (RTL).
 - Full-width below header, non-dismissable, shows last sync timestamp
 - Auto-appears on network drop, auto-dismisses on reconnect
 
-## SQLite schema (5 tables — exact, do not modify without a migration)
-- schedules: id, student_id, subject_name, subject_code, lecturer_name, room, day_of_week, start_time, end_time, semester, is_exam DEFAULT 0, cached_at
-- grades: id, student_id, subject_code, semester, cc_score, exam_score, final_score, coefficient, passed, cached_at
+## SQLite schema (7 cache tables — exact, do not modify without a migration)
+Defined in services/db.ts. The DB is encrypted with SQLCipher AES-256 (see Security decisions). An 8th meta table, `schema_version`, tracks the migration version. New columns are added via additive `ALTER TABLE` migrations (addColumnSafe), never by editing the base CREATE TABLE.
+- schedules: id, student_id, subject_name, subject_code, lecturer_name, room, day_of_week, start_time, end_time, semester, is_exam DEFAULT 0, cached_at (+ coefficient, subject_name_ar via migration)
+- grades: id, student_id, subject_code, semester, cc_score, exam_score, final_score, coefficient, passed, cached_at (+ subject_name, subject_name_ar via migration)
 - news_cache: id, title, body, category, published_at, bookmarked DEFAULT 0, read DEFAULT 0, cached_at
 - student_profile: student_id PK, name, programme, faculty, year, photo_url, cached_at
-- attendance: id, student_id, subject_code, sessions_total, sessions_present, threshold DEFAULT 0.75, cached_at
+- attendance: id, student_id, subject_code, sessions_total, sessions_present, threshold DEFAULT 0.85, cached_at
+- notifications: id PK, type, title_fr, body_fr, is_read DEFAULT 0, created_at, cached_at
+- course_notes: id PK, subject_code, day_of_week, note, created_at — user-authored, never cleared by cache sync (only non-recoverable local data)
 
 ## API
 - Base URL from .env EXPO_PUBLIC_API_URL — never hardcode
@@ -185,20 +189,34 @@ Languages: French (LTR, default) + Arabic (RTL).
 - 401 response: trigger SessionExpiredSheet via Zustand flag — never navigate away from current screen.
 - Rate limit on /auth/login: 10 req/min per IP.
 
-## 13 screens in MVP scope
-01. Splash                 — W6,      2 states, no nav, dark bg #0A3D2E only
-02. Login                  — W6,      5 states, no nav, RTL required, biometric
-03. Onboarding             — W6,      3 steps, no nav, RTL required
-04. Home/Agenda            — W8,      6 states, Tab 1, RTL, full offline
-05. Schedule               — W8,      6 states, Tab 2, RTL, full offline
-06. Grades                 — W9,      6 states, Tab 3, RTL, full offline
-07. News                   — W11,     6 states, Tab 4, RTL, partial offline
-08. Profile/QR             — W10+W12, 6 states, Tab 5, RTL, QR offline
-09. Attendance             — W11,     6 states, stack from Home, RTL
-10. Article Reader         — W11,     push onto NewsStack, RTL
-11. Course Detail Sheet    — W8,      bottom sheet modal, RTL
-12. Grade Calculator Sheet — W9,      bottom sheet modal, offline
-13. Settings               — W12,     stack from Profile, RTL
+## Screens (17 route screens in app/ + error boundary)
+Original MVP scope was 13; the app has since grown. Actual route files in app/ (excluding _layout.tsx and the index redirect):
+
+Auth group (app/(auth)/):
+01. Splash                 — 2 states, no nav, dark bg #0A3D2E only
+02. Login                  — 5 states, no nav, RTL required, biometric
+03. Onboarding             — multi-step, no nav, RTL required
+
+Tabs group (app/(tabs)/):
+04. Home/Agenda            — 6 states, Tab 1, RTL, full offline
+05. Schedule               — 6 states, Tab 2, RTL, full offline
+06. Grades                 — 6 states, Tab 3, RTL, full offline
+07. News                   — 6 states, Tab 4, RTL, partial offline
+08. Profile/QR             — 6 states, Tab 5, RTL, QR offline
+
+Root stack (app/):
+09. Attendance             — 6 states, stack from Home, RTL, per-record justification
+10. Article Reader         — push onto NewsStack, RTL
+11. Notifications          — grouped by date, unread dots
+12. Settings               — stack from Profile, RTL
+13. Info Center            — FAQ, contacts, forms
+14. Programme Detail       — programme info page
+15. Faculty Detail         — faculty info page
+16. Storage Detail         — cache breakdown + per-table clearing
+17. Account Info           — account details
+    error.tsx              — global Expo Router error boundary
+
+Bottom-sheet modals (not routes — rendered in-screen): Course Detail Sheet, Grade Calculator Sheet, GPA History Sheet, Justify Sheet.
 
 ## Out of scope for MVP
 - Moodle LMS integration
@@ -244,6 +262,47 @@ Languages: French (LTR, default) + Arabic (RTL).
    an inset, not a window resize. The keyboard-controller library
    handles insets natively on the UI thread.
 
+## PressBox Rules (unified press system)
+
+All tappable surfaces use the `PressBox` component (components/PressBox.tsx) —
+never raw `Pressable`/`TouchableOpacity` in screens. It centralizes the
+press animation (scale + shadow + color wash) and haptics on the UI thread,
+and respects the OS "reduce motion" setting automatically.
+
+Five tiers (the `tier` prop, default `button`):
+1. lift   — scale 1.02, grows + deepens shadow, selection haptic. Cards/tiles
+            that "lift" toward the user (agenda cards, stat cards, quick tiles).
+2. settle — scale 0.98, sinks + softens shadow, selection haptic. Surfaces that
+            press inward.
+3. button — scale 0.965 + 6% wash. Primary/secondary buttons, CTAs (default).
+4. icon   — scale 0.90 + 6% wash. Small icon buttons (bell, back, calc).
+5. tint   — scale 1.0 (no scale) + 4% wash, slow fade-out. Inline text links,
+            segmented controls, list rows.
+
+Rules:
+- Haptics fire only on lift/settle (Haptics.selectionAsync), and only when
+  reduce-motion is off.
+- Extend small targets to 44×44 with `hitSlop`, never by inflating the box.
+- The color wash uses `colors.pressWash` from theme — never a hardcoded overlay.
+
+Accepted exceptions (raw Pressable/Touchable allowed):
+- Modal/scrim backdrops (tap-to-dismiss overlays — no press feedback wanted).
+- app/error.tsx (the global error boundary must not depend on theme/animation
+  infra that may itself be broken).
+- The bottom tab bar (handled by the navigator's own press handling).
+
+## Sentry (crash reporting)
+
+Initialized in services/sentry.ts via `initSentry()`.
+- `enabled: !__DEV__` — reports ONLY in production/preview builds, never in dev.
+- `sendDefaultPii: false` — no personally identifiable info attached.
+- `tracesSampleRate: 0.2` — 20% performance-transaction sampling.
+- `beforeSend` hook — strips student ID/PII from events before they leave the
+  device (aligns with the "No PII in logs" P0 security rule).
+- Global error boundary: app/error.tsx is the Expo Router error screen; runtime
+  crashes are captured by Sentry and surfaced through it.
+- DSN is a public ingest key (safe to ship); never add secret tokens here.
+
 ## Security decisions (v1.0 — documented accepted risks)
 
 ### SSL certificate pinning — ACCEPTED RISK
@@ -252,7 +311,7 @@ stored in SecureStore, and auto-rotate. Pinning adds operational
 complexity (cert hash rotation locks users out). Plan for v1.1 if
 the app handles more sensitive data.
 
-### SQLite encryption — SQLCipher AES-256 enabled
+### SQLite encryption — ENABLED (SQLCipher AES-256)
 SQLCipher AES-256 encryption enabled (expo-sqlite `useSQLCipher` plugin).
 Key stored in SecureStore (AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY), generated
 on-device via expo-crypto and applied as a raw key (no KDF) on every open.
@@ -260,8 +319,10 @@ Key loss = cache cleared, re-syncs from API. Course notes are the only
 non-recoverable data. allowBackup remains false. Requires an EAS dev/native
 build — SQLCipher will not run in Expo Go.
 
-### Privacy policy — REQUIRED BEFORE PLAY STORE
-Google Play requires a privacy policy URL. Must be created and hosted
-before production submission. Data collected: student profile, grades,
-attendance, FCM push token, course notes (local only). No location,
-no analytics.
+### Privacy policy — DEPLOYED
+Privacy policy is hosted and linked from Settings → Confidentialité:
+https://udj-api.onrender.com/public/privacy-policy.html
+Data collected: student profile, grades, attendance, FCM push token,
+course notes (local only). No location. Crash reporting via Sentry
+sends no PII (sendDefaultPii: false). Satisfies the Google Play
+privacy-policy-URL requirement for production submission.

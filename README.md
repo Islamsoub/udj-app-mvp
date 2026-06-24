@@ -10,9 +10,9 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white" alt="Android" />
-  <img src="https://img.shields.io/badge/React%20Native-0.76-61DAFB?logo=react&logoColor=white" alt="React Native" />
-  <img src="https://img.shields.io/badge/Expo-SDK%2053-000020?logo=expo&logoColor=white" alt="Expo" />
-  <img src="https://img.shields.io/badge/TypeScript-5.3-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/React%20Native-0.81.5-61DAFB?logo=react&logoColor=white" alt="React Native" />
+  <img src="https://img.shields.io/badge/Expo-SDK%2054-000020?logo=expo&logoColor=white" alt="Expo" />
+  <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/License-Proprietary-red" alt="License" />
 </p>
 
@@ -25,9 +25,12 @@ Unipocket is a mobile student portal built for **Université de Djibouti (UDJ)**
 ### Key Highlights
 
 - **Offline-first architecture** — SQLite cache with stale-while-revalidate ensures every screen works without internet
+- **Encrypted local cache** — SQLCipher AES-256 on the SQLite database, key generated on-device and held in SecureStore
 - **Rotating QR student ID** — 60-second JWT-signed QR code that can't be screenshot-abused
 - **Bilingual** — Full French + Arabic support with RTL layout switching
 - **Dark mode** — System-aware theming with manual override (light/dark/system)
+- **Crash reporting** — Sentry integration (production/preview only, PII stripped)
+- **Unified press system** — `PressBox` drives every tappable surface with tier-based scale, shadow, wash, and haptics
 - **Low-end device targeting** — Optimized for Android API 24+ (Android 7.0), APK under 30MB
 
 ---
@@ -116,18 +119,21 @@ Unipocket is a mobile student portal built for **Université de Djibouti (UDJ)**
 
 | Technology | Purpose |
 |------------|---------|
-| React Native + Expo (SDK 53) | Cross-platform mobile framework |
+| React Native + Expo (SDK 54) | Cross-platform mobile framework |
 | Expo Router | File-based navigation |
 | TypeScript | Type safety |
 | Zustand | State management (authStore, themeStore, settingsStore) |
-| expo-sqlite | Offline SQLite cache (7 tables) |
-| expo-secure-store | Secure JWT token storage |
+| expo-sqlite | Offline SQLite cache (7 tables, SQLCipher AES-256) |
+| expo-secure-store | Secure JWT token + SQLCipher key storage |
+| expo-crypto | On-device SQLCipher key generation |
 | expo-local-authentication | Biometric login (fingerprint/face) |
 | expo-image-picker | Justification photo upload |
+| expo-haptics | Press feedback (PressBox tiers) |
 | expo-notifications | Push notifications (FCM) |
+| @sentry/react-native | Crash reporting (production/preview only) |
 | react-native-qrcode-svg | Rotating QR student ID |
 | react-native-gesture-handler | Schedule day swipe navigation |
-| react-native-reanimated | Animations |
+| react-native-reanimated | Animations (PressBox, transitions) |
 | react-native-svg | SVG icons and graphics |
 | i18next | Internationalization (FR + AR) |
 | Axios | HTTP client with auto-refresh interceptor |
@@ -256,8 +262,9 @@ udj-app-mvp/
 - **Node.js** ≥ 18
 - **npm** ≥ 9
 - **Android Studio** (for emulator) or a physical Android device
-- **Expo Go** app on your phone (for development)
-- **EAS CLI** for building APKs: `npm install -g eas-cli`
+- **EAS CLI** for building APKs and the dev client: `npm install -g eas-cli`
+
+> **Expo Go is not supported.** SQLCipher (encrypted SQLite) requires a native build, so development runs against a **custom dev client** (`expo-dev-client`), not Expo Go. Build one once with `npx eas build --platform android --profile development`, install the resulting APK, then start Metro and connect to it.
 
 ### Installation
 
@@ -281,11 +288,11 @@ cd ..
 ### Running the App (Development)
 
 ```bash
-# Start Metro bundler
-npx expo start
+# Start Metro bundler (dev client)
+npx expo start --dev-client
 
-# Press 'a' to open on Android emulator
-# Or scan the QR code with Expo Go on your phone
+# Press 'a' to open on the Android emulator/device
+# (requires the custom dev client installed — Expo Go will not load SQLCipher)
 ```
 
 ### Running the Backend Locally
@@ -360,24 +367,34 @@ cd backend
 npx prisma db seed
 ```
 
-Seeds: 7 faculties, 10 programmes, 2 semesters, 8 subjects, 1 student (Ahmed), grades, schedule (15 entries), attendance (80 records), 5 notifications, 5 news articles.
+Seeds: 7 faculties, 10 programmes, 2 semesters, 52 subjects (S1 + S2), **5 students** across 5 programmes, plus grades, schedules, attendance records, notifications, and news articles for each.
 
-**Test account:** `UDJ-2024-0432` / `test1234`
+### Test Accounts
+
+All accounts share the password **`test1234`**.
+
+| Name | Student ID | Programme | Faculty | Level |
+|------|------------|-----------|---------|-------|
+| Ahmed Omar Said | `UDJ-2024-0432` | Informatique | Faculté des Sciences | Licence |
+| Fatima Hassan Ali | `UDJ-2024-0587` | Droit | Faculté de Droit, d'Économie et de Gestion | Licence |
+| Youssouf Mohamed Daher | `UDJ-2024-0891` | Mathématiques | Faculté des Sciences | Licence |
+| Amina Abdi Farah | `UDJ-2024-1045` | Économie et Gestion | Faculté de Droit, d'Économie et de Gestion | Licence |
+| Ibrahim Moussa Aden | `UDJ-2024-1298` | Génie Civil | Faculté d'Ingénieurs | Master |
 
 ---
 
 ## Database Schema
 
 ```
-Faculty (7)        → Programme (10)    → Student (1)
-                                        → Grade (8)
-                                        → ScheduleEntry (15)
-                                        → AttendanceRecord (80)
-                                        → Notification (5)
+Faculty (7)        → Programme (10)    → Student (5)
+                                        → Grade
+                                        → ScheduleEntry
+                                        → AttendanceRecord
+                                        → Notification
                                         → QrToken
                                         → RefreshToken
 
-Semester (2)       → Subject (8)
+Semester (2)       → Subject (52)
 
 NewsArticle (5)    (independent)
 ```
@@ -451,7 +468,7 @@ The app has **15 screens** with **6 states each** (Loaded, Skeleton, Empty, Erro
 | Grades | Tab 3 | Subject cards, GPA chart, grade calculator |
 | News | Tab 4 | Category filters, bookmarks, article reader |
 | Profile | Tab 5 | Digital ID, QR card, faculty/programme detail |
-| Attendance | — | Presence rate, justification upload |
+| Attendance | — | Presence rate, per-record absence list + justification upload with notes |
 | Notifications | — | Grouped by date, unread dots, tap-to-navigate |
 | Settings | — | Language, theme, notifications, cache management |
 | Info Center | — | FAQ, contacts, PDF forms |
@@ -592,7 +609,7 @@ Produces a signed `.aab` for Google Play Store submission.
 
 ## Contributing
 
-This is currently a private project developed by **Islam Soubere Farah** with design by **Sagal**. 
+This is currently a private project developed by **Islam Soubere Farah** with design by **Sagal**. Visual specifications (colors, spacing, typography, component states) are sourced from **Claude Design**, which is the source of truth for the design system in `constants/theme.ts`.
 
 ### Development Rules
 
