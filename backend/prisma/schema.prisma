@@ -137,7 +137,7 @@ model Subject {
   nameFr            String             @map("name_fr")
   nameAr            String             @map("name_ar")
   code              String
-  coefficient       Int
+  coefficient       Float
   credits           Int
   hoursCm           Float              @default(0) @map("hours_cm")
   hoursTd           Float              @default(0) @map("hours_td")

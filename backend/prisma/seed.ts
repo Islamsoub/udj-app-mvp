@@ -146,6 +146,11 @@ async function main() {
     }),
   ]);
 
+  // ── STEP 2b — Programme BBA (FDEG, Licence) ──────────────────────────────
+  const bba = await prisma.programme.create({
+    data: { code: 'BBA', nameFr: 'Bachelor in Business Administration', nameAr: 'بكالوريوس في إدارة الأعمال', level: ProgrammeLevel.LICENCE, facultyId: fdeg.id, durationSemesters: 6, totalCredits: 180 },
+  });
+
   // ── STEP 3 — Semesters ────────────────────────────────────────────────────
   const [s1, s2] = await Promise.all([
     prisma.semester.create({
@@ -319,6 +324,30 @@ async function main() {
     }),
   ]);
 
+  // ── STEP 4f — 8 subjects for BBA L1 S1 (Sagal) ───────────────────────────
+  const [bba101, bba102, bba103, bba104, bba105, bba106, bba107, bba108] = await Promise.all([
+    prisma.subject.create({ data: { code: 'BBA101', nameFr: 'Initiation à la macroéconomie', nameAr: 'مدخل إلى الاقتصاد الكلي', coefficient: 2.5, credits: 4, hoursCm: 30, hoursTd: 18, hoursTp: 0, programmeId: bba.id, semesterId: s1.id } }),
+    prisma.subject.create({ data: { code: 'BBA102', nameFr: 'Mathématiques appliquées à la gestion', nameAr: 'رياضيات تطبيقية في التسيير', coefficient: 2, credits: 3, hoursCm: 24, hoursTd: 18, hoursTp: 0, programmeId: bba.id, semesterId: s1.id } }),
+    prisma.subject.create({ data: { code: 'BBA103', nameFr: 'Comptabilité générale 1', nameAr: 'محاسبة عامة 1', coefficient: 2, credits: 3, hoursCm: 24, hoursTd: 18, hoursTp: 0, programmeId: bba.id, semesterId: s1.id } }),
+    prisma.subject.create({ data: { code: 'BBA104', nameFr: 'Management des entreprises', nameAr: 'إدارة المؤسسات', coefficient: 2, credits: 3, hoursCm: 24, hoursTd: 12, hoursTp: 0, programmeId: bba.id, semesterId: s1.id } }),
+    prisma.subject.create({ data: { code: 'BBA105', nameFr: 'Business English Basic', nameAr: 'إنجليزية الأعمال الأساسية', coefficient: 1.5, credits: 2, hoursCm: 12, hoursTd: 18, hoursTp: 0, programmeId: bba.id, semesterId: s1.id } }),
+    prisma.subject.create({ data: { code: 'BBA106', nameFr: 'English Grammar I', nameAr: 'قواعد اللغة الإنجليزية 1', coefficient: 2, credits: 3, hoursCm: 12, hoursTd: 24, hoursTp: 0, programmeId: bba.id, semesterId: s1.id } }),
+    prisma.subject.create({ data: { code: 'BBA107', nameFr: 'English speaking and listening I', nameAr: 'محادثة واستماع 1', coefficient: 1.5, credits: 2, hoursCm: 0, hoursTd: 24, hoursTp: 0, programmeId: bba.id, semesterId: s1.id } }),
+    prisma.subject.create({ data: { code: 'BBA108', nameFr: 'English reading and writing I', nameAr: 'قراءة وكتابة 1', coefficient: 1.5, credits: 2, hoursCm: 0, hoursTd: 24, hoursTp: 0, programmeId: bba.id, semesterId: s1.id } }),
+  ]);
+
+  // ── STEP 4g — 8 subjects for BBA L1 S2 (Sagal) ───────────────────────────
+  const [bba201, bba202, bba203, bba204, bba205, bba206, bba207, bba208] = await Promise.all([
+    prisma.subject.create({ data: { code: 'BBA201', nameFr: 'Comptabilité générale 2', nameAr: 'محاسبة عامة 2', coefficient: 2, credits: 3, hoursCm: 24, hoursTd: 18, hoursTp: 0, programmeId: bba.id, semesterId: s2.id } }),
+    prisma.subject.create({ data: { code: 'BBA202', nameFr: 'Introduction au droit', nameAr: 'مدخل إلى القانون', coefficient: 1, credits: 2, hoursCm: 18, hoursTd: 12, hoursTp: 0, programmeId: bba.id, semesterId: s2.id } }),
+    prisma.subject.create({ data: { code: 'BBA203', nameFr: 'Microéconomie', nameAr: 'الاقتصاد الجزئي', coefficient: 2.5, credits: 4, hoursCm: 30, hoursTd: 18, hoursTp: 0, programmeId: bba.id, semesterId: s2.id } }),
+    prisma.subject.create({ data: { code: 'BBA204', nameFr: 'Statistiques descriptives', nameAr: 'إحصاء وصفي', coefficient: 2, credits: 3, hoursCm: 24, hoursTd: 18, hoursTp: 0, programmeId: bba.id, semesterId: s2.id } }),
+    prisma.subject.create({ data: { code: 'BBA205', nameFr: 'English grammar II', nameAr: 'قواعد اللغة الإنجليزية 2', coefficient: 2, credits: 3, hoursCm: 12, hoursTd: 24, hoursTp: 0, programmeId: bba.id, semesterId: s2.id } }),
+    prisma.subject.create({ data: { code: 'BBA206', nameFr: 'Business English intermediate', nameAr: 'إنجليزية الأعمال المتوسطة', coefficient: 2, credits: 3, hoursCm: 12, hoursTd: 24, hoursTp: 0, programmeId: bba.id, semesterId: s2.id } }),
+    prisma.subject.create({ data: { code: 'BBA207', nameFr: 'English speaking & listening II', nameAr: 'محادثة واستماع 2', coefficient: 2, credits: 3, hoursCm: 0, hoursTd: 24, hoursTp: 0, programmeId: bba.id, semesterId: s2.id } }),
+    prisma.subject.create({ data: { code: 'BBA208', nameFr: 'English reading and writing II', nameAr: 'قراءة وكتابة 2', coefficient: 1.5, credits: 2, hoursCm: 0, hoursTd: 24, hoursTp: 0, programmeId: bba.id, semesterId: s2.id } }),
+  ]);
+
   // ── STEP 5 — Student Ahmed ────────────────────────────────────────────────
   const passwordHash = await bcrypt.hash('test1234', 12);
   const ahmed = await prisma.student.create({
@@ -340,13 +369,14 @@ async function main() {
     },
   });
 
-  // ── STEP 5b — Student Fatima ─────────────────────────────────────────────
+  // ── STEP 5b — Student Saba (renamed from Fatima; same ID UDJ-2024-0587) ──
+  // Arabic name صبا صوبري فرح is not stored — Student has no nameAr field.
   const fatima = await prisma.student.create({
     data: {
       studentIdDisplay: 'UDJ-2024-0587',
-      firstName: 'Fatima',
-      lastName: 'Hassan Ali',
-      email: 'fatima.hassan@univ-djibouti.dj',
+      firstName: 'Saba',
+      lastName: 'Soubere Farah',
+      email: 'saba.soubere@univ-djibouti.dj',
       photoUrl: null,
       currentSemester: 4,
       status: StudentStatus.ACTIVE,
@@ -360,13 +390,14 @@ async function main() {
     },
   });
 
-  // ── STEP 5c — Student Youssouf ────────────────────────────────────────────
+  // ── STEP 5c — Student Salsabila (renamed from Youssouf; same ID UDJ-2024-0891) ──
+  // Arabic name سلسبيل صوبري فرح is not stored — Student has no nameAr field.
   const youssouf = await prisma.student.create({
     data: {
       studentIdDisplay: 'UDJ-2024-0891',
-      firstName: 'Youssouf',
-      lastName: 'Mohamed Daher',
-      email: 'youssouf.mohamed@univ-djibouti.dj',
+      firstName: 'Salsabila',
+      lastName: 'Soubere Farah',
+      email: 'salsabila.soubere@univ-djibouti.dj',
       photoUrl: null,
       currentSemester: 4,
       status: StudentStatus.ACTIVE,
@@ -380,13 +411,14 @@ async function main() {
     },
   });
 
-  // ── STEP 5d — Student Amina ──────────────────────────────────────────────
+  // ── STEP 5d — Student Sadeka (renamed from Amina; same ID UDJ-2024-1045) ──
+  // Arabic name صديقة صوبري فرح is not stored — Student has no nameAr field.
   const amina = await prisma.student.create({
     data: {
       studentIdDisplay: 'UDJ-2024-1045',
-      firstName: 'Amina',
-      lastName: 'Abdi Farah',
-      email: 'amina.abdi@univ-djibouti.dj',
+      firstName: 'Sadeka',
+      lastName: 'Soubere Farah',
+      email: 'sadeka.soubere@univ-djibouti.dj',
       photoUrl: null,
       currentSemester: 4,
       status: StudentStatus.ACTIVE,
@@ -412,6 +444,27 @@ async function main() {
       status: StudentStatus.ACTIVE,
       passwordHash,
       programmeId: gc.id,
+      notifGrades: true,
+      notifCourses: true,
+      notifAttendance: true,
+      quietHoursStart: '22:00',
+      quietHoursEnd: '07:00',
+    },
+  });
+
+  // ── STEP 5f — Student Sagal (BBA L1) ─────────────────────────────────────
+  // Arabic name سجال سعيد موسى is not stored — Student has no nameAr field.
+  const sagal = await prisma.student.create({
+    data: {
+      studentIdDisplay: 'UDJ-2024-1501',
+      firstName: 'Sagal',
+      lastName: 'Said Moussa',
+      email: 'sagal.said@univ-djibouti.dj',
+      photoUrl: null,
+      currentSemester: 2,
+      status: StudentStatus.ACTIVE,
+      passwordHash,
+      programmeId: bba.id,
       notifGrades: true,
       notifCourses: true,
       notifAttendance: true,
@@ -481,6 +534,30 @@ async function main() {
       { studentId: ibrahim.id, subjectId: gcv404.id, semesterId: s2.id, noteCc: 14.0, noteCf: 15.0, noteFinale: 14.6, isValidated: true  },
       { studentId: ibrahim.id, subjectId: gcv405.id, semesterId: s2.id, noteCc: 12.0, noteCf: 13.0, noteFinale: 12.6, isValidated: true  },
       { studentId: ibrahim.id, subjectId: gcv406.id, semesterId: s2.id, noteCc: 15.0, noteCf: 16.0, noteFinale: 15.6, isValidated: true  },
+    ],
+  });
+
+  // ── STEP 6g — Grades (Sagal / BBA) — real transcript noteFinale, cc/cf split 40/60 ─
+  await prisma.grade.createMany({
+    data: [
+      // S1
+      { studentId: sagal.id, subjectId: bba101.id, semesterId: s1.id, noteCc: 18.6,  noteCf: 19.6,  noteFinale: 19.2,  isValidated: true },
+      { studentId: sagal.id, subjectId: bba102.id, semesterId: s1.id, noteCc: 16.6,  noteCf: 17.6,  noteFinale: 17.2,  isValidated: true },
+      { studentId: sagal.id, subjectId: bba103.id, semesterId: s1.id, noteCc: 13.2,  noteCf: 14.2,  noteFinale: 13.8,  isValidated: true },
+      { studentId: sagal.id, subjectId: bba104.id, semesterId: s1.id, noteCc: 12.06, noteCf: 13.06, noteFinale: 12.66, isValidated: true },
+      { studentId: sagal.id, subjectId: bba105.id, semesterId: s1.id, noteCc: 14.3,  noteCf: 15.3,  noteFinale: 14.9,  isValidated: true },
+      { studentId: sagal.id, subjectId: bba106.id, semesterId: s1.id, noteCc: 11.35, noteCf: 12.35, noteFinale: 11.95, isValidated: true },
+      { studentId: sagal.id, subjectId: bba107.id, semesterId: s1.id, noteCc: 13.75, noteCf: 14.75, noteFinale: 14.35, isValidated: true },
+      { studentId: sagal.id, subjectId: bba108.id, semesterId: s1.id, noteCc: 15.6,  noteCf: 16.6,  noteFinale: 16.2,  isValidated: true },
+      // S2
+      { studentId: sagal.id, subjectId: bba201.id, semesterId: s2.id, noteCc: 17.8,  noteCf: 18.8,  noteFinale: 18.4,  isValidated: true },
+      { studentId: sagal.id, subjectId: bba202.id, semesterId: s2.id, noteCc: 13.9,  noteCf: 14.9,  noteFinale: 14.5,  isValidated: true },
+      { studentId: sagal.id, subjectId: bba203.id, semesterId: s2.id, noteCc: 15.2,  noteCf: 16.2,  noteFinale: 15.8,  isValidated: true },
+      { studentId: sagal.id, subjectId: bba204.id, semesterId: s2.id, noteCc: 15.4,  noteCf: 16.4,  noteFinale: 16.0,  isValidated: true },
+      { studentId: sagal.id, subjectId: bba205.id, semesterId: s2.id, noteCc: 16.1,  noteCf: 17.1,  noteFinale: 16.7,  isValidated: true },
+      { studentId: sagal.id, subjectId: bba206.id, semesterId: s2.id, noteCc: 17.7,  noteCf: 18.7,  noteFinale: 18.3,  isValidated: true },
+      { studentId: sagal.id, subjectId: bba207.id, semesterId: s2.id, noteCc: 15.7,  noteCf: 16.7,  noteFinale: 16.3,  isValidated: true },
+      { studentId: sagal.id, subjectId: bba208.id, semesterId: s2.id, noteCc: 16.4,  noteCf: 17.4,  noteFinale: 17.0,  isValidated: true },
     ],
   });
 
@@ -631,6 +708,23 @@ async function main() {
       { subjectId: gcv404.id, semesterId: s2.id, dayOfWeek: 3, startTime: '08:00', endTime: '10:00', type: ScheduleEntryType.CM, room: 'Salle 302',      professorName: 'Dr. Liban Wais',          effectiveDate },
       // Thursday (4)
       { subjectId: gcv406.id, semesterId: s2.id, dayOfWeek: 4, startTime: '13:00', endTime: '14:30', type: ScheduleEntryType.TD, room: 'Salle 303',      professorName: 'Dr. Samir Robleh',        effectiveDate },
+    ],
+  });
+
+  // ── STEP 7f — Schedule entries (Sagal / BBA, S2 subjects) ────────────────
+  await prisma.scheduleEntry.createMany({
+    data: [
+      // Sunday (0)
+      { subjectId: bba201.id, semesterId: s2.id, dayOfWeek: 0, startTime: '08:00', endTime: '09:30', type: ScheduleEntryType.CM, room: 'Amphi I1',  professorName: 'Pr. Osman Dirieh',    effectiveDate },
+      // Monday (1)
+      { subjectId: bba203.id, semesterId: s2.id, dayOfWeek: 1, startTime: '10:00', endTime: '11:30', type: ScheduleEntryType.CM, room: 'Salle 401', professorName: 'Dr. Faisal Abdi',     effectiveDate },
+      // Tuesday (2)
+      { subjectId: bba204.id, semesterId: s2.id, dayOfWeek: 2, startTime: '08:00', endTime: '09:30', type: ScheduleEntryType.TD, room: 'Salle 402', professorName: 'Dr. Mariam Houmed',   effectiveDate },
+      // Wednesday (3)
+      { subjectId: bba206.id, semesterId: s2.id, dayOfWeek: 3, startTime: '10:00', endTime: '11:30', type: ScheduleEntryType.TD, room: 'Salle 403', professorName: 'Mrs. Halima Robleh',  effectiveDate },
+      // Thursday (4)
+      { subjectId: bba202.id, semesterId: s2.id, dayOfWeek: 4, startTime: '08:00', endTime: '09:30', type: ScheduleEntryType.CM, room: 'Salle 404', professorName: 'Pr. Ahmed Guedi',     effectiveDate },
+      { subjectId: bba207.id, semesterId: s2.id, dayOfWeek: 4, startTime: '10:00', endTime: '11:30', type: ScheduleEntryType.TD, room: 'Salle 405', professorName: 'Mr. Kamil Waiss',     effectiveDate },
     ],
   });
 
@@ -853,6 +947,44 @@ async function main() {
   );
 
   await prisma.attendanceRecord.createMany({ data: ibrahimRows });
+
+  // ── STEP 8g — Attendance records (Sagal ~85%, 7 unjustified absences) ────
+  const sagalRows: AttRow[] = [];
+
+  // BBA201 — 8/10: indices 5, 9 ABSENT (Sun)
+  sunDates.forEach((d, i) =>
+    sagalRows.push({ studentId: sagal.id, subjectId: bba201.id, sessionDate: d, status: i === 5 || i === 9 ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT, justificationUrl: null })
+  );
+  // BBA203 — 9/10: index 3 ABSENT (Mon)
+  monDates.forEach((d, i) =>
+    sagalRows.push({ studentId: sagal.id, subjectId: bba203.id, sessionDate: d, status: i === 3 ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT, justificationUrl: null })
+  );
+  // BBA204 — 9/10: index 7 ABSENT (Tue)
+  tueDates.forEach((d, i) =>
+    sagalRows.push({ studentId: sagal.id, subjectId: bba204.id, sessionDate: d, status: i === 7 ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT, justificationUrl: null })
+  );
+  // BBA206 — 8/10: index 2 ABSENT + index 7 JUSTIFIED (Wed)
+  wedDates.forEach((d, i) => {
+    const status =
+      i === 2 ? AttendanceStatus.ABSENT :
+      i === 7 ? AttendanceStatus.JUSTIFIED :
+                AttendanceStatus.PRESENT;
+    sagalRows.push({ studentId: sagal.id, subjectId: bba206.id, sessionDate: d, status, justificationUrl: null });
+  });
+  // BBA202 — 8/10: index 1 ABSENT + index 6 JUSTIFIED (Thu)
+  thuDates.forEach((d, i) => {
+    const status =
+      i === 1 ? AttendanceStatus.ABSENT :
+      i === 6 ? AttendanceStatus.JUSTIFIED :
+                AttendanceStatus.PRESENT;
+    sagalRows.push({ studentId: sagal.id, subjectId: bba202.id, sessionDate: d, status, justificationUrl: null });
+  });
+  // BBA207 — 9/10: index 4 ABSENT (Thu)
+  thuDates.forEach((d, i) =>
+    sagalRows.push({ studentId: sagal.id, subjectId: bba207.id, sessionDate: d, status: i === 4 ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT, justificationUrl: null })
+  );
+
+  await prisma.attendanceRecord.createMany({ data: sagalRows });
 
   // ── STEP 8d — S1 Attendance (10 sessions per subject, S1 date range) ──────
   const s1SunDates = weeklyDates('2024-09-15', 10);
@@ -1079,6 +1211,39 @@ async function main() {
         bodyFr: "Connectez-vous au portail avant le 10 juin pour confirmer votre inscription aux examens.",
         bodyAr: 'سجّل في البوابة قبل 10 يونيو لتأكيد تسجيلك في الامتحانات.',
         createdAt: daysAgo(4),
+      },
+    ],
+  });
+
+  // ── STEP 9g — Notifications (Sagal) ──────────────────────────────────────
+  await prisma.notification.createMany({
+    data: [
+      {
+        studentId: sagal.id,
+        type: NotificationType.GRADES,
+        titleFr: 'Vos notes de Comptabilité Générale 2 sont disponibles',
+        titleAr: 'درجاتك في المحاسبة العامة 2 متاحة',
+        bodyFr: 'Consultez votre relevé pour le détail des évaluations du semestre.',
+        bodyAr: 'اطلعي على كشفك لمعرفة تفاصيل تقييمات السداسي.',
+        createdAt: hoursAgo(4),
+      },
+      {
+        studentId: sagal.id,
+        type: NotificationType.ATTENDANCE,
+        titleFr: 'Votre taux de présence est à 85% — proche du seuil',
+        titleAr: 'معدل حضورك 85٪ — قريب من العتبة',
+        bodyFr: "Votre présence globale atteint tout juste le seuil. Pensez à régulariser votre situation.",
+        bodyAr: 'حضورك الكلي يبلغ العتبة بالكاد. تذكّري تسوية وضعك.',
+        createdAt: yesterdayAt(11, 20),
+      },
+      {
+        studentId: sagal.id,
+        type: NotificationType.GENERAL,
+        titleFr: 'Inscription aux examens finaux ouverte',
+        titleAr: 'التسجيل في الامتحانات النهائية مفتوح',
+        bodyFr: "Connectez-vous au portail avant le 10 juin pour confirmer votre inscription aux examens.",
+        bodyAr: 'سجّلي في البوابة قبل 10 يونيو لتأكيد تسجيلك في الامتحانات.',
+        createdAt: daysAgo(3),
       },
     ],
   });
@@ -1417,7 +1582,7 @@ async function main() {
 
   console.log(
     `Seeded: ${fC} faculties, ${pC} programmes, ${smC} semesters, ` +
-    `${subC} subjects, ${stC} students (Ahmed/Fatima/Youssouf/Amina/Ibrahim), ${gC} grades, ` +
+    `${subC} subjects, ${stC} students (Ahmed/Saba/Salsabila/Sadeka/Ibrahim/Sagal), ${gC} grades, ` +
     `${schC} schedule entries, ${attC} attendance records, ` +
     `${notifC} notifications, ${newsC} news articles`
   );
