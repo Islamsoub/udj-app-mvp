@@ -206,6 +206,8 @@ export interface StudentDetail {
   lastName: string;
   name: string;
   email: string;
+  /** Optional — not yet returned by GET /admin/students/:id; row hidden when absent. */
+  phone?: string | null;
   photoUrl: string | null;
   currentSemester: number;
   status: StudentStatus;
@@ -213,6 +215,8 @@ export interface StudentDetail {
   faculty: Faculty;
   gpa: number | null;
   presence: number | null;
+  /** Validated credits earned. Optional — falls back to programme total when absent. */
+  creditsEarned?: number | null;
   grades: StudentGrade[];
   attendance: StudentAttendanceRecord[];
   schedule: StudentScheduleEntry[];

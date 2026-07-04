@@ -35,7 +35,7 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '', stayConnected: true },
+    defaultValues: { email: 'said.warsama@univ.dj', password: '', stayConnected: true },
   });
 
   useEffect(() => {

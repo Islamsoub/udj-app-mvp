@@ -121,7 +121,9 @@ export default function GradesPage() {
                           {subject.nameFr}
                         </div>
                         <div className="mt-[2px] font-mono text-[12px] text-ink3">
-                          {subject.code} · Coef. {subject.coefficient}
+                          {subject.code}
+                          {subject.professorName ? ` · Prof. ${subject.professorName}` : ''} · Coef.{' '}
+                          {subject.coefficient}
                         </div>
                       </div>
                       <Badge tone={published ? 'jade' : 'amber'}>

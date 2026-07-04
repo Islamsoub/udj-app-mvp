@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import {
   BookOpen,
   Calendar,
@@ -78,6 +78,17 @@ export default function AcademicsPage() {
   const { data: semesters, isLoading: semestersLoading } = useSemesters();
   const saveSemester = useSaveSemester();
 
+  // Faculty student totals — summed from each faculty's programmes, since the
+  // faculties endpoint only returns a programme count.
+  const studentsByFaculty = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of allProgrammes ?? []) {
+      if (!p.facultyId) continue;
+      map.set(p.facultyId, (map.get(p.facultyId) ?? 0) + (p._count?.students ?? 0));
+    }
+    return map;
+  }, [allProgrammes]);
+
   const addForms: Record<TabKey, ReactNode> = {
     faculties: <FacultyForm />,
     programmes: <ProgrammeForm />,
@@ -135,7 +146,7 @@ export default function AcademicsPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-[15px] font-bold text-ink">{f.nameFr}</div>
-                    <div className="truncate text-[12.5px] text-ink3">Contact · {f.email}</div>
+                    <div className="truncate text-[12.5px] text-ink3">Doyen · {f.email}</div>
                   </div>
                   <Menu
                     items={[
@@ -163,8 +174,10 @@ export default function AcademicsPage() {
                     </div>
                   </div>
                   <div>
-                    <SectionLabel>Code</SectionLabel>
-                    <div className="font-mono text-[15px] font-extrabold text-ink">{f.code}</div>
+                    <SectionLabel>Étudiants</SectionLabel>
+                    <div className="text-[15px] font-extrabold text-ink">
+                      {studentsByFaculty.get(f.id) ?? 0}
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -239,6 +252,7 @@ export default function AcademicsPage() {
             columns={[
               { label: 'Matière' },
               { label: 'Code' },
+              { label: 'Professeur' },
               { label: 'Semestre' },
               { label: 'Coef', align: 'end' },
               { label: '', width: 40 },
@@ -257,6 +271,9 @@ export default function AcademicsPage() {
                     {s.nameFr}
                   </div>
                   <div className="flex-1 font-mono text-[12px] text-ink2">{s.code}</div>
+                  <div className="min-w-0 flex-1 truncate text-[13px] text-ink2">
+                    {s.professorName || '—'}
+                  </div>
                   <div className="flex-1">
                     <Badge tone={semesterTone(s.semester?.label)}>{s.semester?.label ?? '—'}</Badge>
                   </div>

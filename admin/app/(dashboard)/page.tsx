@@ -33,7 +33,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAdminRole } from '@/hooks/use-admin';
 import { useDashboardStats, useRecentActivity } from '@/hooks/queries/use-dashboard';
 import { useStudents } from '@/hooks/queries/use-students';
-import { useCurrentSemester } from '@/hooks/queries/use-academics';
 import { fmt, gradeTone, listGradeTone, presenceTone } from '@/lib/grade-helpers';
 import { fmtRelative } from '@/lib/utils';
 import { C, TONE_COLORS, type Tone } from '@/lib/tokens';
@@ -116,7 +115,6 @@ export default function DashboardPage() {
   const { data: stats } = useDashboardStats();
   const { data: activity } = useRecentActivity();
   const { data: studentsPage } = useStudents({ pageSize: 100 });
-  const currentSemester = useCurrentSemester();
 
   const atRisk = useMemo<StudentRow[]>(() => {
     const rows = studentsPage?.data ?? [];
@@ -145,7 +143,7 @@ export default function DashboardPage() {
     <>
       <PageHead
         title="Tableau de bord"
-        sub={`${currentSemester?.label ?? stats.currentSemester ?? '—'} · Université de Djibouti`}
+        sub="Université de Djibouti"
         actions={
           <>
             <Button

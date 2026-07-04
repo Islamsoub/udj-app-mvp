@@ -180,7 +180,13 @@ export default function GradeEntryPage() {
       <PageHead
         back="/grades"
         title={subject?.nameFr ?? 'Saisie des notes'}
-        sub={subject ? `${subject.code} · Coef. ${subject.coefficient} · ${semesterLabel}` : undefined}
+        sub={
+          subject
+            ? `${subject.code}${
+                subject.professorName ? ` · Prof. ${subject.professorName}` : ''
+              } · Coef. ${subject.coefficient} · ${semesterLabel}`
+            : undefined
+        }
         actions={
           <>
             <Button

@@ -3,11 +3,13 @@
 import { useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
+  Award,
   AlertTriangle,
   BookOpen,
   GraduationCap,
   Mail,
   Pencil,
+  Phone,
   RotateCcw,
   UserX,
 } from 'lucide-react';
@@ -29,7 +31,7 @@ import { useSettings } from '@/hooks/queries/use-settings';
 import { NF, fmt, gradeTone, listGradeTone, mention, presenceTone, weightedGpa } from '@/lib/grade-helpers';
 import { STATUS_META } from '@/lib/constants';
 import { TONE_COLORS, type Tone } from '@/lib/tokens';
-import type { StudentGrade } from '@/lib/types';
+import type { ProgrammeLevel, StudentGrade } from '@/lib/types';
 
 /**
  * Student detail (impl spec §13): profile card (avatar, stat tiles, info
@@ -49,6 +51,26 @@ const TONE_TEXT: Record<Tone, string> = {
   exam: 'text-exam',
   slate: 'text-ink',
 };
+
+/** French academic-year prefix per degree level (Licence → L, Master → M…). */
+const LEVEL_PREFIX: Record<ProgrammeLevel, string> = {
+  DUT: 'DUT',
+  LICENCE: 'L',
+  MASTER: 'M',
+  DOCTORAT: 'D',
+};
+
+/** e.g. LICENCE + semester 3 → "L2". */
+function levelTag(level: ProgrammeLevel, currentSemester: number): string {
+  return `${LEVEL_PREFIX[level]}${Math.max(1, Math.ceil(currentSemester / 2))}`;
+}
+
+/** Group a raw phone string into 2-digit pairs for display; falls back as-is. */
+function fmtPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length < 6) return raw;
+  return digits.replace(/(\d{2})(?=\d)/g, '$1 ').trim();
+}
 
 function DetailSkeleton() {
   return (
@@ -192,7 +214,8 @@ export default function StudentDetailPage() {
             <Avatar name={student.name} size={76} ring />
             <div className="mt-3 text-[19px] font-extrabold text-ink">{student.name}</div>
             <div className="mt-[2px] text-[13px] text-ink2">
-              {student.programme.nameFr} · S{student.currentSemester}
+              {student.programme.nameFr} ·{' '}
+              {levelTag(student.programme.level, student.currentSemester)}
             </div>
             <div className="mt-2">
               <Badge tone={statusMeta.tone} dot>
@@ -232,6 +255,12 @@ export default function StudentDetailPage() {
               <Mail size={14} className="shrink-0 text-ink3" />
               <span className="truncate">{student.email}</span>
             </div>
+            {student.phone && (
+              <div className="flex items-center gap-2 text-[13px] text-ink2">
+                <Phone size={14} className="shrink-0 text-ink3" />
+                <span className="truncate font-mono">{fmtPhone(student.phone)}</span>
+              </div>
+            )}
             <div className="flex items-center gap-2 text-[13px] text-ink2">
               <BookOpen size={14} className="shrink-0 text-ink3" />
               <span className="truncate">{student.faculty.nameFr}</span>
@@ -239,6 +268,14 @@ export default function StudentDetailPage() {
             <div className="flex items-center gap-2 text-[13px] text-ink2">
               <GraduationCap size={14} className="shrink-0 text-ink3" />
               <span>Semestre {student.currentSemester}</span>
+            </div>
+            <div className="flex items-center gap-2 text-[13px] text-ink2">
+              <Award size={14} className="shrink-0 text-ink3" />
+              <span>
+                {student.creditsEarned != null
+                  ? `${student.creditsEarned} crédits acquis`
+                  : `${student.programme.totalCredits} crédits requis`}
+              </span>
             </div>
           </div>
         </Card>

@@ -14,6 +14,7 @@ import { Dropdown } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useSubjects } from '@/hooks/queries/use-academics';
 import { useRecordSession } from '@/hooks/queries/use-attendance';
+import { useSchedule } from '@/hooks/queries/use-schedule';
 import { useStudents } from '@/hooks/queries/use-students';
 import { apiErrorMessage, cn, fmtDateShort } from '@/lib/utils';
 import type { AttendanceStatus } from '@/lib/types';
@@ -40,6 +41,18 @@ export default function SessionPage() {
   const [date, setDate] = useState<Date>(() => new Date());
   const { data: studentsData } = useStudents({ programme: subject?.programmeId, pageSize: 200 });
   const roster = useMemo(() => studentsData?.data ?? [], [studentsData]);
+
+  // Scheduled slot for this subject on the selected weekday (0 = Dimanche),
+  // used to show the session's time range in the header when it exists.
+  const { data: schedule } = useSchedule({
+    programme: subject?.programmeId,
+    semester: subject?.semesterId,
+  });
+  const sessionSlot = useMemo(
+    () =>
+      schedule?.find((e) => e.subjectId === subject?.id && e.dayOfWeek === date.getDay()) ?? null,
+    [schedule, subject, date]
+  );
 
   // Default everyone to PRESENT; reset when the roster changes.
   const [statuses, setStatuses] = useState<Record<string, MarkStatus>>({});
@@ -73,7 +86,13 @@ export default function SessionPage() {
       <PageHead
         back="/attendance"
         title="Faire l'appel"
-        sub={subject ? `${subject.nameFr} · Séance du ${fmtDateShort(date)}` : undefined}
+        sub={
+          subject
+            ? `${subject.nameFr} · Séance du ${fmtDateShort(date)}${
+                sessionSlot ? ` · ${sessionSlot.startTime}–${sessionSlot.endTime}` : ''
+              }`
+            : undefined
+        }
       />
 
       <div className="mb-5 flex items-center gap-3">
