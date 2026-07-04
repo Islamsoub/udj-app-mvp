@@ -24,9 +24,9 @@ export function Avatar({ name, size = 36, tone, ring, className }: AvatarProps) 
         width: size,
         height: size,
         fontSize: size * 0.4,
-        background: solid ?? 'var(--jade-faint2)',
+        background: solid ?? 'var(--jade-faint)',
         color: solid ? '#fff' : 'var(--jade-text)',
-        boxShadow: ring ? '0 0 0 2px var(--surface), 0 0 0 4px var(--jade-faint2)' : undefined,
+        boxShadow: ring ? '0 0 0 2px var(--surface), 0 0 0 4px var(--jade-faint)' : undefined,
       }}
       aria-hidden
     >

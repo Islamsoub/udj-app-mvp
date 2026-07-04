@@ -25,15 +25,15 @@ export const C = {
   jade9: '#0A3D2E',
   jade50: '#E6F7F1',
   jade100: '#C9ECDF',
-  jadeFaint: 'rgba(29, 158, 117, 0.08)',
-  jadeFaint2: 'rgba(29, 158, 117, 0.14)',
+  jadeFaint: 'rgba(29, 158, 117, 0.10)',
+  jadeFaint2: 'rgba(29, 158, 117, 0.16)',
   jadeText: '#0F6E56',
 
   // Status accents
   amber: '#D9821A',
   amberBg: 'rgba(217, 130, 26, 0.12)',
   danger: '#E1483D',
-  dangerBg: 'rgba(225, 72, 61, 0.08)',
+  dangerBg: 'rgba(225, 72, 61, 0.10)',
   blue: '#2F7DD1',
   blueBg: 'rgba(47, 125, 209, 0.12)',
   exam: '#7C53E0',
@@ -55,8 +55,8 @@ export const C = {
   scrim: 'rgba(16, 22, 20, 0.45)',
 
   // Shadows
-  shadow: '0 1px 3px rgba(10, 30, 22, 0.07), 0 1px 2px rgba(10, 30, 22, 0.04)',
-  shadowLg: '0 8px 24px rgba(10, 30, 22, 0.10), 0 2px 6px rgba(10, 30, 22, 0.05)',
+  shadow: '0 1px 2px rgba(28, 35, 32, 0.05), 0 4px 14px rgba(28, 35, 32, 0.05)',
+  shadowLg: '0 8px 28px rgba(28, 35, 32, 0.10), 0 2px 6px rgba(28, 35, 32, 0.05)',
   shadowSide: '0 8px 30px rgba(10, 61, 46, 0.18)',
   shadowModal: '0 24px 60px rgba(10, 30, 22, 0.30)',
 } as const;

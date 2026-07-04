@@ -231,7 +231,7 @@ export default function SettingsPage() {
             NF = {cc.toFixed(2)}·CC + {cf.toFixed(2)}·CF
           </div>
           <div className="mt-3 flex h-[10px] overflow-hidden rounded-full">
-            <div className="bg-jade-faint2" style={{ width: `${cc * 100}%` }} />
+            <div className="bg-jade-faint" style={{ width: `${cc * 100}%` }} />
             <div className="flex-1 bg-blue-bg" />
           </div>
           <input
