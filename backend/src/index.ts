@@ -10,6 +10,7 @@ import prisma from './utils/prisma';
 import authRouter from './routes/auth';
 import studentRouter from './routes/student';
 import newsRouter from './routes/news';
+import adminRouter from './routes/admin';
 
 const app = express();
 
@@ -20,7 +21,7 @@ app.use(helmet({
 }));
 app.use(cors({
   origin: env.NODE_ENV === 'production'
-    ? false
+    ? [env.ADMIN_CORS_ORIGIN].filter(Boolean)
     : '*',
   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -41,6 +42,7 @@ app.get('/health', (_req, res) => {
 app.use('/auth', authRouter);
 app.use('/student', studentRouter);
 app.use('/news', newsRouter);
+app.use('/admin', adminRouter);
 
 app.use(errorHandler);
 

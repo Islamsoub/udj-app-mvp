@@ -11,6 +11,9 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   PORT: z.string().default('3000'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  JWT_ADMIN_SECRET: z.string().min(32),
+  JWT_ADMIN_REFRESH_SECRET: z.string().min(32),
+  ADMIN_CORS_ORIGIN: z.string().optional().default('http://localhost:3001'),
 });
 
 const result = envSchema.safeParse(process.env);
