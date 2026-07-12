@@ -3,6 +3,10 @@ import { z } from 'zod';
 /**
  * Zod schemas for every form (impl spec §27) — mirrors the backend route
  * validators so client-side errors match server-side rules.
+ *
+ * Pass C-2 additions (change-set §30): `gradeCorrectionSchema`,
+ * `attendanceRecordSchema` / `attendanceSessionSchema` (PARTIAL + hoursAttended),
+ * `newsCategorySchema`.
  */
 
 export const MATRICULE_REGEX = /^UDJ-\d{4}-\d{3,4}$/;
@@ -170,6 +174,44 @@ export const newsSchema = z.object({
   isUrgent: z.boolean(),
 });
 export type NewsValues = z.infer<typeof newsSchema>;
+
+/** Pass C-2: admin-managed news category (AD §7.2) — nameFr required. */
+export const newsCategorySchema = z.object({
+  nameFr: z.string().trim().min(1, 'Nom de catégorie requis').max(40, '40 caractères maximum'),
+});
+export type NewsCategoryValues = z.infer<typeof newsCategorySchema>;
+
+// ─── Grade correction (Pass C-2, AD §3.4) ────────────────────────────────────
+// Post-publication correction — field, new value 0–20, mandatory reason.
+
+export const gradeCorrectionSchema = z.object({
+  field: z.enum(['cc', 'cf']),
+  value: z.coerce.number().min(0, 'Entre 0 et 20').max(20, 'Entre 0 et 20'),
+  reason: z.string().trim().min(1, 'Un motif est requis').max(500, '500 caractères maximum'),
+});
+export type GradeCorrectionValues = z.infer<typeof gradeCorrectionSchema>;
+
+// ─── Attendance record (Pass C-2, AD §4.2/§4.3) ──────────────────────────────
+// PARTIAL requires a positive hoursAttended; other statuses leave it null.
+
+export const attendanceRecordSchema = z
+  .object({
+    studentId: z.string().min(1),
+    status: z.enum(['PRESENT', 'ABSENT', 'PARTIAL', 'JUSTIFIED']),
+    hoursAttended: z.number().positive().nullable().optional(),
+  })
+  .refine((d) => d.status !== 'PARTIAL' || (d.hoursAttended != null && d.hoursAttended > 0), {
+    message: 'Heures requises pour un statut partiel',
+    path: ['hoursAttended'],
+  });
+export type AttendanceRecordValues = z.infer<typeof attendanceRecordSchema>;
+
+export const attendanceSessionSchema = z.object({
+  subjectId: z.string().min(1, 'Matière requise'),
+  sessionDate: z.string().min(1, 'Date requise'),
+  records: z.array(attendanceRecordSchema).min(1),
+});
+export type AttendanceSessionValues = z.infer<typeof attendanceSessionSchema>;
 
 // ─── Notification composer ───────────────────────────────────────────────────
 

@@ -5,7 +5,7 @@ import { get, patch } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import type { SystemSettings } from '@/lib/types';
 
-/** GET /admin/settings — singleton row. */
+/** GET /admin/settings — singleton row (now includes justificationDeadlineDays). */
 export function useSettings() {
   return useQuery({
     queryKey: ['settings'],
@@ -41,7 +41,29 @@ export function useUpdateAttendanceThreshold() {
   });
 }
 
-/** PATCH /admin/settings/automations. */
+/**
+ * PATCH /admin/settings/justification-deadline (1–30 days) — Pass C-2, AD §4.4.
+ * Window after which students can no longer submit an absence justification.
+ */
+export function useUpdateJustificationDeadline() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: (days: number) =>
+      patch<SystemSettings>('/admin/settings/justification-deadline', { days }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+      toast('Délai de justification mis à jour', 'check');
+    },
+  });
+}
+
+/**
+ * PATCH /admin/settings/automations.
+ * @deprecated Pass C-2 — publication is two-phase manual and automated
+ * notifications are always-on, so these toggles no longer affect behaviour.
+ * Kept for backward compatibility; the Settings page shows them disabled.
+ */
 export function useUpdateAutomations() {
   const queryClient = useQueryClient();
   const { toast } = useToast();

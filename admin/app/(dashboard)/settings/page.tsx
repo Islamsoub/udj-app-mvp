@@ -1,10 +1,23 @@
 'use client';
 
-import { useEffect, useState, type ReactNode } from 'react';
-import { Calendar, CalendarCheck, Globe, GraduationCap, Zap } from 'lucide-react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  Calendar,
+  CalendarCheck,
+  Check,
+  GripVertical,
+  Globe,
+  GraduationCap,
+  Megaphone,
+  Plus,
+  Trash2,
+  X,
+  Zap,
+} from 'lucide-react';
 import { PageHead } from '@/components/shell/page-head';
 import { Card } from '@/components/shared/card';
 import { AccessDenied } from '@/components/shared/access-denied';
+import { ConfirmModal } from '@/components/shared/confirm-modal';
 import { Button } from '@/components/ui/button';
 import { Dropdown } from '@/components/ui/select';
 import { Toggle } from '@/components/ui/toggle';
@@ -19,24 +32,30 @@ import {
   useSemesters,
 } from '@/hooks/queries/use-academics';
 import {
+  useCreateCategory,
+  useDeleteCategory,
+  useNewsCategories,
+  useReorderCategories,
+} from '@/hooks/queries/use-news';
+import {
   useSettings,
   useUpdateAttendanceThreshold,
-  useUpdateAutomations,
   useUpdateGradeFormula,
+  useUpdateJustificationDeadline,
 } from '@/hooks/queries/use-settings';
 import { cn, apiErrorMessage } from '@/lib/utils';
+import type { NewsCategory } from '@/lib/types';
 
 /**
- * Settings (impl spec §26, supplement §12) — SUPER_ADMIN only. Local draft is
- * diffed against the server state on "Enregistrer"; only the changed PATCHes
- * fire (each hook toasts on success).
+ * Settings (impl spec §26; Pass C-2 change-set §30.9) — SUPER_ADMIN only. Adds
+ * a news-category manager (drag-to-reorder), a justification-deadline field, and
+ * greys out the deprecated automation toggles (publication is two-phase manual
+ * and system notifications are always-on).
  */
 interface Draft {
   cc: number; // gradeWeightCc, 0–1
   threshold: number;
-  autoPublishGrades: boolean;
-  notifyOnPublish: boolean;
-  weeklyRecap: boolean;
+  justificationDeadlineDays: number;
   /** Local-only toggle — no server field in MVP. */
   autoAlert: boolean;
 }
@@ -103,6 +122,160 @@ function SettingsSkeleton() {
   );
 }
 
+// ─── News categories manager (§30.9 / AD §7.2) ───────────────────────────────
+
+function CategoriesCard() {
+  const { data } = useNewsCategories();
+  const createCat = useCreateCategory();
+  const deleteCat = useDeleteCategory();
+  const reorder = useReorderCategories();
+  const { open } = useModal();
+  const { toast } = useToast();
+
+  const [items, setItems] = useState<NewsCategory[]>([]);
+  useEffect(() => {
+    if (data) setItems(data);
+  }, [data]);
+
+  const dragIndex = useRef<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [newName, setNewName] = useState('');
+
+  const commitOrder = (next: NewsCategory[]) => {
+    setItems(next);
+    reorder.mutate(next.map((c, i) => ({ id: c.id, displayOrder: i })));
+  };
+
+  const onDrop = (dropIndex: number) => {
+    const from = dragIndex.current;
+    dragIndex.current = null;
+    setOverIndex(null);
+    if (from == null || from === dropIndex) return;
+    const next = [...items];
+    const [moved] = next.splice(from, 1);
+    next.splice(dropIndex, 0, moved);
+    commitOrder(next);
+  };
+
+  const onAdd = async () => {
+    const name = newName.trim();
+    if (!name) return;
+    try {
+      await createCat.mutateAsync({ nameFr: name });
+      setNewName('');
+      setAdding(false);
+    } catch (err) {
+      toast(apiErrorMessage(err), 'x');
+    }
+  };
+
+  const confirmDelete = (c: NewsCategory) =>
+    open(
+      <ConfirmModal
+        title="Supprimer la catégorie"
+        sub={c.nameFr}
+        body={
+          <>
+            Cette catégorie sera définitivement supprimée. La suppression est refusée si des articles
+            l&apos;utilisent encore.
+          </>
+        }
+        confirmLabel="Supprimer"
+        onConfirm={async () => {
+          try {
+            await deleteCat.mutateAsync(c.id);
+          } catch (err) {
+            toast(apiErrorMessage(err), 'x');
+            return { keep: true };
+          }
+        }}
+      />
+    );
+
+  return (
+    <SettingsCard icon={<Megaphone size={18} />} title="Catégories d'actualités" className="col-span-2">
+      <div className="mt-1 flex flex-col gap-[6px]">
+        {items.map((c, i) => (
+          <div
+            key={c.id}
+            draggable
+            onDragStart={() => {
+              dragIndex.current = i;
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setOverIndex(i);
+            }}
+            onDragEnd={() => setOverIndex(null)}
+            onDrop={() => onDrop(i)}
+            className={cn(
+              'flex items-center gap-3 rounded-[10px] border bg-surface2 px-3 py-[9px] transition-colors',
+              overIndex === i ? 'border-jade' : 'border-transparent'
+            )}
+          >
+            <GripVertical size={16} className="shrink-0 cursor-grab text-ink3" />
+            <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-ink">
+              {c.nameFr}
+            </span>
+            <span className="font-mono text-[11px] text-ink3">{c.slug}</span>
+            <button
+              type="button"
+              onClick={() => confirmDelete(c)}
+              className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-[8px] border-0 bg-transparent text-ink3 transition-colors hover:bg-danger-bg hover:text-danger"
+              aria-label={`Supprimer ${c.nameFr}`}
+            >
+              <Trash2 size={15} />
+            </button>
+          </div>
+        ))}
+        {items.length === 0 && (
+          <div className="py-3 text-center text-[13px] text-ink3">Aucune catégorie.</div>
+        )}
+      </div>
+
+      {adding ? (
+        <div className="mt-3 flex items-center gap-2">
+          <input
+            autoFocus
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') void onAdd();
+              if (e.key === 'Escape') {
+                setAdding(false);
+                setNewName('');
+              }
+            }}
+            placeholder="Nom de la catégorie"
+            className="flex-1 rounded-[10px] border border-hair2 bg-surface px-[13px] py-[9px] text-[14px] text-ink outline-none focus:border-jade focus:shadow-[0_0_0_3px_var(--jade-faint)]"
+          />
+          <Button size="sm" icon={<Check size={15} />} disabled={createCat.isPending} onClick={onAdd}>
+            Ajouter
+          </Button>
+          <Button
+            kind="quiet"
+            size="sm"
+            icon={<X size={15} />}
+            onClick={() => {
+              setAdding(false);
+              setNewName('');
+            }}
+          >
+            Annuler
+          </Button>
+        </div>
+      ) : (
+        <div className="mt-3">
+          <Button kind="soft" size="sm" icon={<Plus size={15} />} onClick={() => setAdding(true)}>
+            Ajouter une catégorie
+          </Button>
+        </div>
+      )}
+    </SettingsCard>
+  );
+}
+
 export default function SettingsPage() {
   const role = useAdminRole();
   const { open } = useModal();
@@ -113,7 +286,7 @@ export default function SettingsPage() {
   const saveSemester = useSaveSemester();
   const updateGradeFormula = useUpdateGradeFormula();
   const updateAttendanceThreshold = useUpdateAttendanceThreshold();
-  const updateAutomations = useUpdateAutomations();
+  const updateJustificationDeadline = useUpdateJustificationDeadline();
 
   const [draft, setDraft] = useState<Draft | null>(null);
 
@@ -122,9 +295,7 @@ export default function SettingsPage() {
       setDraft({
         cc: settings.gradeWeightCc,
         threshold: settings.attendanceThreshold,
-        autoPublishGrades: settings.autoPublishGrades,
-        notifyOnPublish: settings.notifyOnPublish,
-        weeklyRecap: settings.weeklyRecap,
+        justificationDeadlineDays: settings.justificationDeadlineDays,
         autoAlert: true,
       });
     }
@@ -135,7 +306,7 @@ export default function SettingsPage() {
   const saving =
     updateGradeFormula.isPending ||
     updateAttendanceThreshold.isPending ||
-    updateAutomations.isPending;
+    updateJustificationDeadline.isPending;
 
   const onSave = async () => {
     if (!draft || !settings) return;
@@ -149,16 +320,8 @@ export default function SettingsPage() {
       if (draft.threshold !== settings.attendanceThreshold) {
         await updateAttendanceThreshold.mutateAsync(draft.threshold);
       }
-      if (
-        draft.autoPublishGrades !== settings.autoPublishGrades ||
-        draft.notifyOnPublish !== settings.notifyOnPublish ||
-        draft.weeklyRecap !== settings.weeklyRecap
-      ) {
-        await updateAutomations.mutateAsync({
-          autoPublishGrades: draft.autoPublishGrades,
-          notifyOnPublish: draft.notifyOnPublish,
-          weeklyRecap: draft.weeklyRecap,
-        });
+      if (draft.justificationDeadlineDays !== settings.justificationDeadlineDays) {
+        await updateJustificationDeadline.mutateAsync(draft.justificationDeadlineDays);
       }
     } catch (err) {
       toast(apiErrorMessage(err), 'x');
@@ -240,9 +403,7 @@ export default function SettingsPage() {
             max={60}
             step={5}
             value={Math.round(cc * 100)}
-            onChange={(e) =>
-              setDraft((d) => (d ? { ...d, cc: Number(e.target.value) / 100 } : d))
-            }
+            onChange={(e) => setDraft((d) => (d ? { ...d, cc: Number(e.target.value) / 100 } : d))}
             className="mt-2 w-full"
           />
           <div className="flex justify-between font-mono text-[11.5px] text-ink2">
@@ -274,12 +435,38 @@ export default function SettingsPage() {
             max={90}
             step={5}
             value={draft.threshold}
-            onChange={(e) =>
-              setDraft((d) => (d ? { ...d, threshold: Number(e.target.value) } : d))
-            }
+            onChange={(e) => setDraft((d) => (d ? { ...d, threshold: Number(e.target.value) } : d))}
             className="mt-2 w-full"
           />
           <div className="mt-2">
+            <SettingsRow
+              title="Délai de justification"
+              desc="Les étudiants ne pourront plus soumettre de justificatif après ce délai."
+            >
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={1}
+                  max={30}
+                  value={draft.justificationDeadlineDays}
+                  onChange={(e) =>
+                    setDraft((d) =>
+                      d
+                        ? {
+                            ...d,
+                            justificationDeadlineDays: Math.max(
+                              1,
+                              Math.min(30, Number(e.target.value) || 1)
+                            ),
+                          }
+                        : d
+                    )
+                  }
+                  className="w-[68px] rounded-[10px] border border-hair2 bg-surface px-[10px] py-[7px] text-center font-mono text-[14px] text-ink outline-none focus:border-jade focus:shadow-[0_0_0_3px_var(--jade-faint)]"
+                />
+                <span className="text-[12.5px] text-ink2">jours</span>
+              </div>
+            </SettingsRow>
             <SettingsRow title="Alerte automatique" desc="Notifier les étudiants sous le seuil">
               <Toggle
                 checked={draft.autoAlert}
@@ -290,39 +477,24 @@ export default function SettingsPage() {
           </div>
         </SettingsCard>
 
-        {/* ─── Automatisations ───────────────────────────────────────────── */}
+        {/* ─── Automatisations (deprecated — display only) ───────────────── */}
         <SettingsCard icon={<Zap size={18} />} title="Automatisations">
-          <SettingsRow
-            title="Publication auto des notes"
-            desc="Publier les notes dès leur validation"
-          >
-            <Toggle
-              checked={draft.autoPublishGrades}
-              onChange={(b) => setDraft((d) => (d ? { ...d, autoPublishGrades: b } : d))}
-              aria-label="Publication auto des notes"
-            />
+          <SettingsRow title="Publication auto des notes" desc="Publication désormais manuelle en deux temps">
+            <Toggle checked={settings.autoPublishGrades} onChange={() => {}} disabled aria-label="Publication auto des notes" />
           </SettingsRow>
-          <SettingsRow
-            title="Notification à la publication"
-            desc="Push aux étudiants concernés"
-          >
-            <Toggle
-              checked={draft.notifyOnPublish}
-              onChange={(b) => setDraft((d) => (d ? { ...d, notifyOnPublish: b } : d))}
-              aria-label="Notification à la publication"
-            />
+          <SettingsRow title="Notification à la publication" desc="Notifications système toujours envoyées">
+            <Toggle checked={settings.notifyOnPublish} onChange={() => {}} disabled aria-label="Notification à la publication" />
           </SettingsRow>
-          <SettingsRow
-            title="Récapitulatif hebdomadaire"
-            desc="Résumé d'activité envoyé chaque semaine"
-          >
-            <Toggle
-              checked={draft.weeklyRecap}
-              onChange={(b) => setDraft((d) => (d ? { ...d, weeklyRecap: b } : d))}
-              aria-label="Récapitulatif hebdomadaire"
-            />
+          <SettingsRow title="Récapitulatif hebdomadaire" desc="Réservé à un usage futur">
+            <Toggle checked={settings.weeklyRecap} onChange={() => {}} disabled aria-label="Récapitulatif hebdomadaire" />
           </SettingsRow>
+          <div className="mt-2 rounded-[10px] bg-surface2 px-3 py-2 text-[12px] text-ink3">
+            Notifications automatiques toujours actives.
+          </div>
         </SettingsCard>
+
+        {/* ─── Catégories d'actualités (§30.9) ───────────────────────────── */}
+        <CategoriesCard />
 
         {/* ─── Préférences régionales ────────────────────────────────────── */}
         <SettingsCard icon={<Globe size={18} />} title="Préférences régionales">

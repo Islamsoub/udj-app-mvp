@@ -3,7 +3,7 @@
 import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Calendar } from 'lucide-react';
+import { AlertTriangle, Calendar } from 'lucide-react';
 import { Modal } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { TextInput } from '@/components/ui/input';
@@ -20,6 +20,7 @@ import {
 import {
   useCreateScheduleEntry,
   useDeleteScheduleEntry,
+  useScheduleConflicts,
   useUpdateScheduleEntry,
 } from '@/hooks/queries/use-schedule';
 import { scheduleSchema, type ScheduleValues } from '@/lib/validations';
@@ -28,8 +29,11 @@ import { apiErrorMessage } from '@/lib/utils';
 import type { ScheduleEntry, ScheduleEntryInput, ScheduleEntryType } from '@/lib/types';
 
 /**
- * ScheduleForm (impl spec §27, supplement §3.8) — create/edit a schedule
- * entry. Edit mode adds a left-aligned danger "Supprimer" in the footer.
+ * ScheduleForm (impl spec §27; Pass C-2 change-set §30.7) — create/edit a
+ * schedule entry. A real-time room-clash check (GET /admin/schedule/conflicts)
+ * shows an amber inline warning below the Salle field when the room is already
+ * booked at that weekday + time in the same semester. Save is NOT blocked (soft
+ * warning): amphitheatres may be intentionally shared (AD §5.2).
  */
 export function ScheduleForm({ entry }: { entry?: ScheduleEntry }) {
   const { close } = useModal();
@@ -73,6 +77,24 @@ export function ScheduleForm({ entry }: { entry?: ScheduleEntry }) {
       setValue('semesterId', currentSemester.id);
     }
   }, [entry, currentSemester, getValues, setValue]);
+
+  // ── Soft room-conflict check (§30.7) ───────────────────────────────────────
+  const room = watch('room');
+  const dayOfWeek = watch('dayOfWeek');
+  const startTime = watch('startTime');
+  const endTime = watch('endTime');
+  const semesterId = watch('semesterId');
+  const { data: conflictData } = useScheduleConflicts({
+    room,
+    dayOfWeek,
+    startTime,
+    endTime,
+    excludeId: entry?.id,
+  });
+  const roomConflict = useMemo(
+    () => conflictData?.conflicts.find((c) => c.semesterId === semesterId) ?? null,
+    [conflictData, semesterId]
+  );
 
   const programmeOptions = useMemo(
     () => (programmes ?? []).map((p) => ({ value: p.id, label: p.nameFr })),
@@ -200,6 +222,18 @@ export function ScheduleForm({ entry }: { entry?: ScheduleEntry }) {
             <TextInput placeholder="A201" error={!!errors.room} {...register('room')} />
           </FField>
         </FRow>
+
+        {/* Soft room-conflict warning (§30.7) — does not block saving. */}
+        {roomConflict && (
+          <div className="mb-[14px] -mt-[4px] flex items-start gap-2 rounded-[10px] bg-amber-bg px-3 py-2 text-[12px] text-amber">
+            <AlertTriangle size={14} className="mt-[1px] shrink-0" />
+            <span>
+              Salle {roomConflict.room} est déjà réservée par {roomConflict.subjectCode} (
+              {roomConflict.programmeName}) à ce créneau.
+            </span>
+          </div>
+        )}
+
         <FRow>
           <FField label="Jour" required error={errors.dayOfWeek?.message}>
             <Controller

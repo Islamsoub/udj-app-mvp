@@ -1,16 +1,27 @@
 /**
  * Shared TypeScript types — shaped 1:1 on the responses of the Pass A backend
  * route handlers (admin-backend-output/routes/admin/*.ts). No `any` anywhere.
+ *
+ * Pass C-2 updates (UX architecture change-set §30):
+ *  - Grade / StudentGrade: `publishedAt` → `publishedCcAt` + `publishedNfAt`
+ *  - AttendanceStatus: `LATE` removed, `PARTIAL` added (backend enum)
+ *  - AttendanceRecord: `hoursAttended` (only set for PARTIAL)
+ *  - `NewsCategory` model + `NotificationType` (adds `NEWS`)
+ *  - `SystemSettings.justificationDeadlineDays`
+ *  - `GradeChangeInput`, `AttendanceOverview` (per-subject rollup)
  */
 
 // ─── Enums (Prisma) ──────────────────────────────────────────────────────────
 
 export type AdminRole = 'SUPER_ADMIN' | 'FACULTY_ADMIN' | 'REGISTRAR' | 'NEWS_EDITOR';
 export type StudentStatus = 'ACTIVE' | 'SUSPENDED' | 'GRADUATED';
-export type AttendanceStatus = 'PRESENT' | 'LATE' | 'ABSENT' | 'JUSTIFIED';
+/** Pass C-2: `LATE` dropped, `PARTIAL` added (mirrors the backend enum). */
+export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'PARTIAL' | 'JUSTIFIED';
 export type JustificationStatus = 'NONE' | 'PENDING' | 'APPROVED' | 'REJECTED';
 export type ProgrammeLevel = 'DUT' | 'LICENCE' | 'MASTER' | 'DOCTORAT';
 export type ScheduleEntryType = 'CM' | 'TD' | 'TP' | 'EXAM';
+/** Pass C-2: adds `NEWS` (urgent / opted-in article push). */
+export type NotificationType = 'GRADES' | 'SCHEDULE' | 'ATTENDANCE' | 'GENERAL' | 'NEWS';
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
@@ -166,7 +177,9 @@ export interface StudentGrade {
   noteCf: number | null;
   noteFinale: number | null;
   isValidated: boolean;
-  publishedAt: string | null;
+  /** Pass C-2: dual publication timestamps replace the single `publishedAt`. */
+  publishedCcAt: string | null;
+  publishedNfAt: string | null;
   subject: { id: string; code: string; nameFr: string; coefficient: number };
   semester: SemesterRef;
 }
@@ -177,6 +190,8 @@ export interface StudentAttendanceRecord {
   subjectId: string;
   sessionDate: string;
   status: AttendanceStatus;
+  /** Pass C-2: hours attended when status = PARTIAL (null otherwise). */
+  hoursAttended: number | null;
   justificationStatus: JustificationStatus | null;
   justificationReason?: string | null;
   justificationDocUrl?: string | null;
@@ -296,7 +311,9 @@ export interface GradeRow {
   noteCf: number | null;
   noteFinale: number | null;
   isValidated: boolean;
-  publishedAt: string | null;
+  /** Pass C-2: dual publication timestamps replace the single `publishedAt`. */
+  publishedCcAt: string | null;
+  publishedNfAt: string | null;
   student: StudentRef;
   subject: { id: string; code: string; nameFr: string; coefficient: number };
   semester: SemesterRef;
@@ -329,11 +346,49 @@ export interface BulkGradeResult {
   }[];
 }
 
+/** POST /admin/grades/publish — two-phase publication (Pass C-2, AD §3.3). */
+export type PublishType = 'cc' | 'nf';
+
+export interface PublishGradesInput {
+  type: PublishType;
+  semesterId: string;
+  /** Target one subject… */
+  subjectId?: string;
+  /** …or every subject in a programme (within the current semester). */
+  programmeId?: string;
+}
+
 export interface PublishGradesResult {
-  subjectId: string;
+  type: PublishType;
+  semesterId: string;
+  subjectIds: string[];
   published: number;
   notified: number;
   message: string;
+}
+
+/** POST /admin/grades/:id/change — post-publication correction (Pass C-2, AD §3.4). */
+export interface GradeChangeInput {
+  field: 'cc' | 'cf';
+  value: number;
+  reason: string;
+}
+
+export interface GradeChangeResult {
+  id: string;
+  studentId: string;
+  subjectId: string;
+  semesterId: string;
+  noteCc: number | null;
+  noteCf: number | null;
+  noteFinale: number | null;
+  publishedCcAt: string | null;
+  publishedNfAt: string | null;
+  isValidated: boolean;
+  mention: string | null;
+  passed: boolean;
+  reason: string;
+  correction: { field: 'cc' | 'cf'; oldValue: number | null; newValue: number; reason: string };
 }
 
 // ─── Attendance ──────────────────────────────────────────────────────────────
@@ -344,6 +399,8 @@ export interface AttendanceRecordRow {
   subjectId: string;
   sessionDate: string;
   status: AttendanceStatus;
+  /** Pass C-2: hours attended when status = PARTIAL (null otherwise). */
+  hoursAttended: number | null;
   justificationStatus: JustificationStatus | null;
   justificationReason?: string | null;
   justificationDocUrl?: string | null;
@@ -354,16 +411,54 @@ export interface AttendanceRecordRow {
   subject: { id: string; code: string; nameFr: string };
 }
 
-export interface AttendanceOverview {
+/**
+ * GET /admin/attendance response (records + pending count + status tally).
+ * Renamed from `AttendanceOverview` in Pass C-2 so the name can carry the new
+ * per-subject rollup below (change-set §30.6).
+ */
+export interface AttendanceSummary {
   records: AttendanceRecordRow[];
   pendingJustifications: number;
   statusCounts: { status: AttendanceStatus; count: number }[];
 }
 
+/** One row of GET /admin/attendance/overview (per-subject rollup, AD §4.7). */
+export interface AttendanceOverview {
+  subjectId: string;
+  subjectName: string;
+  subjectCode: string;
+  totalSessions: number;
+  completedSessions: number;
+  classAveragePercentage: number | null;
+  studentsAtRisk: number;
+  belowThreshold: boolean;
+}
+
+/** GET /admin/attendance/overview?programmeId= envelope. */
+export interface AttendanceOverviewResponse {
+  programmeId: string;
+  threshold: number;
+  subjects: AttendanceOverview[];
+}
+
+/** One student's mark in a session roster (PARTIAL carries hoursAttended). */
+export interface AttendanceMark {
+  studentId: string;
+  status: AttendanceStatus;
+  hoursAttended?: number | null;
+}
+
 export interface RecordSessionInput {
   subjectId: string;
   sessionDate: string;
-  records: { studentId: string; status: AttendanceStatus }[];
+  records: AttendanceMark[];
+}
+
+export interface RecordSessionResult {
+  subjectId: string;
+  sessionDate: string;
+  sessionHours: number;
+  saved: number;
 }
 
 export interface JustificationDecisionInput {
@@ -374,13 +469,26 @@ export interface JustificationDecisionInput {
 
 // ─── News ────────────────────────────────────────────────────────────────────
 
+/** Admin-managed news category (Pass C-2, AD §7.2). */
+export interface NewsCategory {
+  id: string;
+  nameFr: string;
+  slug: string;
+  displayOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface NewsArticle {
   id: string;
   titleFr: string;
   titleAr: string;
   bodyFr: string;
   bodyAr: string;
+  /** Legacy category slug (kept, dual-written with `categoryId`). */
   category: string;
+  categoryId?: string | null;
+  categoryRel?: NewsCategory | null;
   isUrgent: boolean;
   heroImageUrl: string | null;
   readTimeMinutes: number;
@@ -396,9 +504,33 @@ export interface CreateNewsInput {
   bodyFr: string;
   bodyAr?: string;
   category: string;
+  categoryId?: string | null;
   isUrgent?: boolean;
+  /** Pass C-2: send a push notification on publish (or implied by urgent). */
+  sendNotification?: boolean;
   heroImageUrl?: string | null;
   publishedAt?: string;
+}
+
+/** POST /admin/news + PATCH — includes the urgent-limit unpin + notify count. */
+export interface NewsMutationResult extends NewsArticle {
+  unpinned?: { id: string; titleFr: string } | null;
+  notified?: number;
+}
+
+export interface CreateCategoryInput {
+  nameFr: string;
+  displayOrder?: number;
+}
+
+export interface UpdateCategoryInput {
+  nameFr?: string;
+  displayOrder?: number;
+}
+
+export interface ReorderCategoryInput {
+  id: string;
+  displayOrder: number;
 }
 
 // ─── Schedule ────────────────────────────────────────────────────────────────
@@ -422,6 +554,7 @@ export interface ScheduleEntry {
   };
   semester: SemesterRef;
   warning?: string | null;
+  notified?: number;
 }
 
 export interface ScheduleEntryInput {
@@ -434,6 +567,35 @@ export interface ScheduleEntryInput {
   endTime: string;
   type: ScheduleEntryType;
   effectiveDate?: string;
+}
+
+/** GET /admin/schedule filters (Pass C-2 adds room / professorName modes). */
+export interface ScheduleFilters {
+  programme?: string;
+  semester?: string;
+  day?: number;
+  room?: string;
+  professorName?: string;
+}
+
+/** One clashing entry from GET /admin/schedule/conflicts (Pass C-2, AD §5.2). */
+export interface ScheduleConflict {
+  id: string;
+  room: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  semesterId: string;
+  semesterLabel: string;
+  subjectCode: string;
+  subjectName: string;
+  programmeCode: string;
+  programmeName: string;
+}
+
+export interface ScheduleConflictsResult {
+  count: number;
+  conflicts: ScheduleConflict[];
 }
 
 // ─── Notifications ───────────────────────────────────────────────────────────
@@ -569,8 +731,13 @@ export interface SystemSettings {
   gradeWeightCc: number;
   gradeWeightCf: number;
   attendanceThreshold: number;
+  /** Pass C-2: window (days) after which students can no longer justify (AD §4.4). */
+  justificationDeadlineDays: number;
+  /** @deprecated Pass C-2 — kept for compatibility, no longer affects behaviour. */
   autoPublishGrades: boolean;
+  /** @deprecated Pass C-2 — automated notifications are always-on. */
   notifyOnPublish: boolean;
+  /** @deprecated Pass C-2 — reserved for future use, not wired. */
   weeklyRecap: boolean;
   createdAt: string;
   updatedAt: string;

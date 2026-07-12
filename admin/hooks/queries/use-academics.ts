@@ -7,6 +7,7 @@ import type { Faculty, Programme, Semester, Subject } from '@/lib/types';
 
 // ─── Faculties ───────────────────────────────────────────────────────────────
 
+/** GET /admin/faculties — drives the Context Bar faculty dropdown (Pass C-2). */
 export function useFaculties() {
   return useQuery({
     queryKey: ['faculties'],
@@ -29,11 +30,23 @@ export function useSaveFaculty() {
 
 // ─── Programmes ──────────────────────────────────────────────────────────────
 
+/**
+ * GET /admin/programmes[?faculty=] — drives the Context Bar programme dropdown
+ * (Pass C-2). Each programme carries `_count.students`, used for the
+ * "Vue filtrée · N étudiants" label.
+ */
 export function useProgrammes(facultyId?: string) {
   return useQuery({
     queryKey: ['programmes', facultyId ?? 'all'],
     queryFn: () => get<Programme[]>('/admin/programmes', facultyId ? { faculty: facultyId } : undefined),
   });
+}
+
+/** Resolve a single programme from the cached list (Context Bar helper). */
+export function useProgramme(programmeId: string | null | undefined): Programme | undefined {
+  const { data } = useProgrammes();
+  if (!programmeId) return undefined;
+  return data?.find((p) => p.id === programmeId);
 }
 
 export function useSaveProgramme() {

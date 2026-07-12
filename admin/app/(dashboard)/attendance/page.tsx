@@ -19,14 +19,18 @@ import { Card } from '@/components/shared/card';
 import { Avatar } from '@/components/shared/avatar';
 import { StatCard } from '@/components/shared/stat-card';
 import { EmptyState } from '@/components/shared/empty-state';
+import { SectionLabel } from '@/components/shared/section-label';
 import { DocViewer } from '@/components/modals/doc-viewer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs } from '@/components/ui/tabs';
+import { Table, THead, Th, Td } from '@/components/ui/table';
 import { useModal } from '@/hooks/use-modal';
 import { useToast } from '@/hooks/use-toast';
 import { useAttendance, useDecideJustification } from '@/hooks/queries/use-attendance';
+import { useAttendanceOverview } from '@/hooks/queries/use-attendance-overview';
 import { useSettings } from '@/hooks/queries/use-settings';
+import { useScopeStore } from '@/stores/scope-store';
 import { apiErrorMessage, cn, fmtDate } from '@/lib/utils';
 import type { AttendanceRecordRow, JustificationStatus } from '@/lib/types';
 
@@ -50,12 +54,18 @@ function docType(r: AttendanceRecordRow): string {
   return (r.justificationDocUrl ?? '').toLowerCase().endsWith('.pdf') ? 'PDF' : 'Photo';
 }
 
-/** Attendance queue (impl spec §17) — justification triage. */
+/**
+ * Attendance (impl spec §17; Pass C-2 change-set §30.6): a programme-scoped
+ * per-subject overview table renders above the always-visible justification
+ * queue. Rows below the attendance threshold are tinted amber with a warning.
+ */
 export default function AttendancePage() {
   const router = useRouter();
   const { open } = useModal();
   const { toast } = useToast();
+  const programmeId = useScopeStore((s) => s.programmeId);
   const { data } = useAttendance();
+  const { data: overview, isLoading: overviewLoading } = useAttendanceOverview(programmeId);
   const { data: settings } = useSettings();
   const decide = useDecideJustification();
 
@@ -63,7 +73,7 @@ export default function AttendancePage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const records = useMemo(() => data?.records ?? [], [data]);
-  const threshold = settings?.attendanceThreshold ?? 75;
+  const threshold = overview?.threshold ?? settings?.attendanceThreshold ?? 75;
 
   const byStatus = (status: JustificationStatus) =>
     records.filter((r) => r.justificationStatus === status);
@@ -71,31 +81,16 @@ export default function AttendancePage() {
   const approved = useMemo(() => byStatus('APPROVED'), [records]); // eslint-disable-line react-hooks/exhaustive-deps
   const rejected = useMemo(() => byStatus('REJECTED'), [records]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Average presence: (PRESENT + JUSTIFIED) / total, from statusCounts.
+  // Average presence: (PRESENT + JUSTIFIED + partial credit) / total.
   const presencePct = useMemo(() => {
     const counts = data?.statusCounts ?? [];
     const total = counts.reduce((s, c) => s + c.count, 0);
     const present = counts
       .filter((c) => c.status === 'PRESENT' || c.status === 'JUSTIFIED')
       .reduce((s, c) => s + c.count, 0);
-    return total > 0 ? Math.round((present / total) * 100) : 0;
+    const partial = counts.filter((c) => c.status === 'PARTIAL').reduce((s, c) => s + c.count, 0);
+    return total > 0 ? Math.round(((present + partial * 0.5) / total) * 100) : 0;
   }, [data]);
-
-  // Distinct students under the threshold, from per-student record ratios.
-  const underThreshold = useMemo(() => {
-    const perStudent = new Map<string, { present: number; total: number }>();
-    for (const r of records) {
-      const agg = perStudent.get(r.studentId) ?? { present: 0, total: 0 };
-      agg.total += 1;
-      if (r.status === 'PRESENT' || r.status === 'JUSTIFIED') agg.present += 1;
-      perStudent.set(r.studentId, agg);
-    }
-    let n = 0;
-    for (const agg of perStudent.values()) {
-      if (agg.total > 0 && (agg.present / agg.total) * 100 < threshold) n += 1;
-    }
-    return n;
-  }, [records, threshold]);
 
   const list = tab === 'PENDING' ? pending : tab === 'APPROVED' ? approved : rejected;
   const selected = list.find((r) => r.id === selectedId) ?? list[0] ?? null;
@@ -104,7 +99,6 @@ export default function AttendancePage() {
     if (!selected) return;
     try {
       await decide.mutateAsync({ id: selected.id, decision });
-      // Auto-advance to the next pending item.
       const next = pending.filter((p) => p.id !== selected.id);
       setSelectedId(next[0]?.id ?? null);
     } catch (err) {
@@ -119,7 +113,7 @@ export default function AttendancePage() {
     <div>
       <PageHead
         title="Présence"
-        sub="File des justificatifs d'absence à traiter"
+        sub="Vue d'ensemble et file des justificatifs d'absence"
         actions={
           <Button
             kind="ghost"
@@ -155,9 +149,87 @@ export default function AttendancePage() {
             <StatCard
               icon={<AlertTriangle size={18} />}
               tone="danger"
-              label={`Sous le seuil ${threshold}%`}
-              value={underThreshold}
+              label={`Seuil ${threshold}%`}
+              value={overview ? overview.subjects.filter((s) => s.belowThreshold).length : 0}
+              sub={overview ? 'matières sous le seuil' : 'sélectionnez un programme'}
             />
+          </div>
+
+          {/* ── Programme overview (scoped) ─────────────────────────────────── */}
+          {programmeId && (
+            <div className="mb-6">
+              <SectionLabel className="mb-3">Vue d&apos;ensemble par matière</SectionLabel>
+              <Card pad={0} className="overflow-hidden">
+                {overviewLoading || !overview ? (
+                  <div className="h-[160px] animate-pulse bg-sunken" />
+                ) : overview.subjects.length === 0 ? (
+                  <EmptyState
+                    icon={<CalendarCheck size={20} />}
+                    message="Aucune matière pour ce programme au semestre courant."
+                  />
+                ) : (
+                  <Table>
+                    <THead>
+                      <tr>
+                        <Th>Matière</Th>
+                        <Th>Séances</Th>
+                        <Th>Moy. classe</Th>
+                        <Th>Étudiants à risque</Th>
+                        <Th className="w-16 text-center">Statut</Th>
+                      </tr>
+                    </THead>
+                    <tbody>
+                      {overview.subjects.map((s) => (
+                        <tr
+                          key={s.subjectId}
+                          className="border-t border-hair"
+                          style={s.belowThreshold ? { background: 'var(--amber-bg)' } : undefined}
+                        >
+                          <Td>
+                            <div className="text-[13.5px] font-semibold text-ink">{s.subjectName}</div>
+                            <div className="font-mono text-[11px] text-ink3">{s.subjectCode}</div>
+                          </Td>
+                          <Td className="font-mono text-[12.5px] text-ink2">
+                            {s.completedSessions}/{s.totalSessions}
+                          </Td>
+                          <Td
+                            className={cn(
+                              'font-mono text-[13px] font-bold',
+                              s.belowThreshold ? 'text-amber' : 'text-ink'
+                            )}
+                          >
+                            {s.classAveragePercentage != null
+                              ? `${Math.round(s.classAveragePercentage)}%`
+                              : '—'}
+                          </Td>
+                          <Td
+                            className={cn(
+                              'font-mono text-[13px] font-bold',
+                              s.studentsAtRisk > 0 ? 'text-danger' : 'text-ink2'
+                            )}
+                          >
+                            {s.studentsAtRisk}
+                          </Td>
+                          <Td className="text-center">
+                            {s.belowThreshold ? (
+                              <AlertTriangle size={17} className="mx-auto text-amber" />
+                            ) : (
+                              <CheckCircle2 size={17} className="mx-auto text-jade" />
+                            )}
+                          </Td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                )}
+              </Card>
+            </div>
+          )}
+
+          {/* ── File des justificatifs (always visible) ─────────────────────── */}
+          <div className="mb-3 flex items-center gap-3">
+            <SectionLabel>File des justificatifs</SectionLabel>
+            <span className="h-px flex-1 bg-hair" />
           </div>
 
           <div className="grid gap-5" style={{ gridTemplateColumns: '1fr 400px' }}>

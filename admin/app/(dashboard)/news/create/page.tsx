@@ -1,8 +1,8 @@
 'use client';
 
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Image as ImageIcon, Save, Send } from 'lucide-react';
+import { AlertTriangle, Image as ImageIcon, Save, Send } from 'lucide-react';
 import { PageHead } from '@/components/shell/page-head';
 import { Card } from '@/components/shared/card';
 import { RichText } from '@/components/shared/rich-text';
@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Toggle } from '@/components/ui/toggle';
 import { useToast } from '@/hooks/use-toast';
-import { useCreateNews, useNews, useUpdateNews } from '@/hooks/queries/use-news';
-import { CATEGORY_LABELS, CATEGORY_TONES } from '@/lib/constants';
+import { useCreateNews, useNews, useNewsCategories, useUpdateNews } from '@/hooks/queries/use-news';
+import { CATEGORY_TONES } from '@/lib/constants';
 import { apiErrorMessage, cn } from '@/lib/utils';
 import type { CreateNewsInput } from '@/lib/types';
 
@@ -19,12 +19,15 @@ const STRIPES = {
   background: 'repeating-linear-gradient(45deg, var(--surface2) 0 12px, var(--sunken) 12px 24px)',
 } as const;
 
+/** Max number of simultaneously-urgent articles (AD §7.3). */
+const MAX_URGENT = 3;
+
 /** Strip HTML tags for the plain-text preview / emptiness check. */
 function stripHtml(html: string): string {
   return html.replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ');
 }
 
-/** News editor (impl spec §20) — create + edit (?id=). */
+/** News editor (impl spec §20; Pass C-2 change-set §30.8) — create + edit (?id=). */
 export default function NewsCreatePage() {
   return (
     <Suspense fallback={null}>
@@ -39,6 +42,7 @@ function NewsEditor() {
   const router = useRouter();
   const { toast } = useToast();
   const { data: articles } = useNews();
+  const { data: categories } = useNewsCategories();
   const article = id ? articles?.find((a) => a.id === id) : undefined;
   const create = useCreateNews();
   const update = useUpdateNews();
@@ -47,7 +51,7 @@ function NewsEditor() {
   const [body, setBody] = useState('');
   const [category, setCategory] = useState('');
   const [urgent, setUrgent] = useState(false);
-  const [push, setPush] = useState(true);
+  const [push, setPush] = useState(false);
 
   // Pre-fill once in edit mode.
   const prefilled = useRef(false);
@@ -56,26 +60,48 @@ function NewsEditor() {
       prefilled.current = true;
       setTitle(article.titleFr);
       setBody(article.bodyFr);
-      setCategory(article.category);
+      setCategory(article.categoryRel?.slug ?? article.category);
       setUrgent(article.isUrgent);
     }
   }, [article]);
 
+  // Urgent articles always push — the toggle auto-enables + locks (§30.8).
+  useEffect(() => {
+    if (urgent) setPush(true);
+  }, [urgent]);
+
+  // Urgent-limit warning: which article would be un-pinned if this becomes urgent.
+  const urgentOthers = useMemo(
+    () =>
+      (articles ?? [])
+        .filter((a) => a.isUrgent && a.id !== id)
+        .sort((a, b) =>
+          (a.publishedAt ?? a.createdAt ?? '').localeCompare(b.publishedAt ?? b.createdAt ?? '')
+        ),
+    [articles, id]
+  );
+  const willUnpin = urgent && urgentOthers.length >= MAX_URGENT ? urgentOthers[0] : null;
+
   const canPublish = title.trim() !== '' && stripHtml(body).trim() !== '';
   const busy = create.isPending || update.isPending;
 
+  const selectedCategory = (categories ?? []).find((c) => c.slug === category);
+
   const save = async (publishNow: boolean) => {
+    const notify = urgent || push;
     const data: CreateNewsInput = {
       titleFr: title.trim(),
       bodyFr: body,
       category: category || 'general',
+      categoryId: selectedCategory?.id ?? null,
       isUrgent: urgent,
+      sendNotification: notify,
       ...(publishNow ? { publishedAt: new Date().toISOString() } : {}),
     };
     try {
       if (article) await update.mutateAsync({ id: article.id, data });
       else await create.mutateAsync(data);
-      if (publishNow) toast(`Article publié${push ? ' · Étudiants notifiés' : ''}`, 'send');
+      if (publishNow) toast(`Article publié${notify ? ' · Étudiants notifiés' : ''}`, 'send');
       else toast('Brouillon enregistré', 'check');
       router.push('/news');
     } catch (err) {
@@ -83,7 +109,6 @@ function NewsEditor() {
     }
   };
 
-  const categories = Object.entries(CATEGORY_LABELS).filter(([key]) => key !== 'general');
   const previewText = stripHtml(body).trim();
 
   return (
@@ -143,26 +168,31 @@ function NewsEditor() {
           <Card>
             <div className="mb-3 text-[14px] font-bold text-ink">Catégorie</div>
             <div className="flex flex-wrap gap-[6px]">
-              {categories.map(([key, label]) => (
+              {(categories ?? []).map((c) => (
                 <button
-                  key={key}
+                  key={c.id}
                   type="button"
-                  onClick={() => setCategory(key)}
+                  onClick={() => setCategory(c.slug)}
                   className={cn(
                     'cursor-pointer rounded-full border-0 px-3 py-[6px] text-[12.5px] font-semibold transition-colors',
-                    category === key
+                    category === c.slug
                       ? 'bg-jade text-white'
                       : 'bg-surface2 text-ink2 hover:bg-sunken'
                   )}
                 >
-                  {label}
+                  {c.nameFr}
                 </button>
               ))}
+              {(categories ?? []).length === 0 && (
+                <span className="text-[12.5px] text-ink3">Aucune catégorie configurée.</span>
+              )}
             </div>
           </Card>
 
           <Card>
             <div className="mb-1 text-[14px] font-bold text-ink">Options</div>
+
+            {/* Urgent */}
             <div className="flex items-center justify-between gap-3 border-b border-hair py-3">
               <div>
                 <div className="text-[13px] font-semibold text-ink">Marquer comme urgent</div>
@@ -170,15 +200,41 @@ function NewsEditor() {
               </div>
               <Toggle checked={urgent} onChange={setUrgent} aria-label="Marquer comme urgent" />
             </div>
+
+            {/* Push notification (auto-locked when urgent, §30.8) */}
             <div className="flex items-center justify-between gap-3 py-3">
-              <div>
-                <div className="text-[13px] font-semibold text-ink">Notification push</div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <div className="text-[13px] font-semibold text-ink">Notification push</div>
+                  {urgent && (
+                    <span className="rounded-full bg-jade-faint px-[7px] py-[1px] text-[10px] font-bold uppercase tracking-[0.06em] text-jade-text">
+                      Auto
+                    </span>
+                  )}
+                </div>
                 <div className="mt-[2px] text-[11.5px] text-ink3">
-                  Notifier les étudiants à la publication
+                  {urgent
+                    ? 'Les articles urgents envoient automatiquement une notification.'
+                    : 'Envoyer une notification push à tous les étudiants.'}
                 </div>
               </div>
-              <Toggle checked={push} onChange={setPush} aria-label="Notification push" />
+              <Toggle
+                checked={push}
+                onChange={setPush}
+                disabled={urgent}
+                aria-label="Notification push"
+              />
             </div>
+
+            {/* Urgent-limit warning (§30.8 / AD §7.3) */}
+            {willUnpin && (
+              <div className="mt-1 flex items-start gap-2 rounded-[10px] bg-amber-bg px-3 py-2 text-[12px] text-amber">
+                <AlertTriangle size={14} className="mt-[1px] shrink-0" />
+                <span>
+                  L&apos;article «&nbsp;{willUnpin.titleFr}&nbsp;» ne sera plus marqué comme urgent.
+                </span>
+              </div>
+            )}
           </Card>
 
           <Card>
@@ -189,9 +245,9 @@ function NewsEditor() {
               </div>
               <div className="p-3">
                 <div className="flex flex-wrap items-center gap-[6px]">
-                  {category && (
-                    <Badge tone={CATEGORY_TONES[category] ?? 'slate'}>
-                      {CATEGORY_LABELS[category] ?? category}
+                  {selectedCategory && (
+                    <Badge tone={CATEGORY_TONES[selectedCategory.slug] ?? 'slate'}>
+                      {selectedCategory.nameFr}
                     </Badge>
                   )}
                   {urgent && (
