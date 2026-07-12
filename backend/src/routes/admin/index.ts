@@ -7,6 +7,7 @@ import scheduleRouter from './schedule';
 import gradesRouter from './grades';
 import attendanceRouter from './attendance';
 import newsRouter from './news';
+import categoriesRouter from './categories';
 import notificationsRouter from './notifications';
 import usersRouter from './users';
 import auditRouter from './audit';
@@ -30,6 +31,9 @@ adminRouter.use('/students', studentsRouter);
 adminRouter.use('/schedule', scheduleRouter);
 adminRouter.use('/grades', gradesRouter);
 adminRouter.use('/attendance', attendanceRouter);
+// News categories must be registered BEFORE the news router so that
+// /admin/news/categories is not matched by the news `GET /:id` route.
+adminRouter.use('/news/categories', categoriesRouter);
 adminRouter.use('/news', newsRouter);
 adminRouter.use('/notifications', notificationsRouter);
 adminRouter.use('/users', usersRouter);

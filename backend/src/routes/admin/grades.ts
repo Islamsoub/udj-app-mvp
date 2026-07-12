@@ -7,6 +7,7 @@ import adminAuth from '../../middleware/adminAuth';
 import { rbac, facultyScopeWhere } from '../../middleware/rbac';
 import { audit } from '../../middleware/auditLog';
 import { computeNoteFinale, mentionFor, isPassing, GradeWeights } from '../../utils/adminHelpers';
+import { createNotification } from '../../utils/notify';
 
 const router = Router();
 
@@ -112,6 +113,62 @@ router.patch(
   }
 );
 
+// ─── POST /admin/grades/:id/change (post-publication correction) ─────────────
+// Corrects one field of an already-published grade. A mandatory `reason` is
+// recorded in the audit log alongside the old and new values (architecture
+// doc §3.4). SUPER_ADMIN / REGISTRAR only.
+const changeSchema = z.object({
+  field: z.enum(['cc', 'cf']),
+  value: z.number().min(0).max(20),
+  reason: z.string().trim().min(1, 'Un motif est requis'),
+});
+
+router.post(
+  '/:id/change',
+  adminAuth,
+  rbac(...WRITE_ROLES),
+  audit('grade.change', 'Grade'),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const parsed = changeSchema.safeParse(req.body);
+      if (!parsed.success) {
+        throw new AppError(
+          parsed.error.issues[0]?.message ?? 'Correction invalide (field, value 0–20, reason requis)',
+          400
+        );
+      }
+      const { field, value, reason } = parsed.data;
+
+      const existing = await prisma.grade.findUnique({ where: { id: String(req.params.id) } });
+      if (!existing) throw new AppError('Grade not found', 404);
+      await assertGradeScope(req, existing.subjectId);
+
+      const oldValue = field === 'cc' ? existing.noteCc : existing.noteCf;
+      const noteCc = field === 'cc' ? value : existing.noteCc;
+      const noteCf = field === 'cf' ? value : existing.noteCf;
+      const weights = await getWeights();
+      const noteFinale = computeNoteFinale(noteCc, noteCf, weights);
+
+      const grade = await prisma.grade.update({
+        where: { id: existing.id },
+        data: { noteCc, noteCf, noteFinale },
+      });
+
+      // The audit middleware persists this response body as the `after`
+      // snapshot, so `reason` + old/new values are recorded in the audit log.
+      res.status(200).json({
+        ...grade,
+        mention: mentionFor(grade.noteFinale),
+        passed: isPassing(grade.noteFinale),
+        reason,
+        correction: { field, oldValue, newValue: value, reason },
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 // ─── POST /admin/grades/bulk (from parsed CSV rows) ──────────────────────────
 // Body: { subjectId, semesterId, rows: [{ matricule|studentId, noteCc, noteCf }] }
 const bulkSchema = z.object({
@@ -188,10 +245,17 @@ router.post(
 );
 
 // ─── POST /admin/grades/publish ──────────────────────────────────────────────
-// Publish all grades for a subject (+ semester); notify each affected student.
+// Two-phase publication (architecture doc §3.3):
+//   type: 'cc' → publishes contrôle continu scores (sets publishedCcAt)
+//   type: 'nf' → publishes final results (sets publishedNfAt); requires CC
+//                already published and all NFs computed.
+// Targets one subject (subjectId) or every subject in a semester (optionally
+// narrowed by programmeId). Notifies every affected student.
 const publishSchema = z.object({
-  subjectId: z.string().uuid(),
-  semesterId: z.string().uuid().optional(),
+  type: z.enum(['cc', 'nf']),
+  semesterId: z.string().uuid(),
+  subjectId: z.string().uuid().optional(),
+  programmeId: z.string().uuid().optional(),
 });
 
 router.post(
@@ -202,57 +266,119 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const parsed = publishSchema.safeParse(req.body);
-      if (!parsed.success) throw new AppError('subjectId requis', 400);
-      const { subjectId, semesterId } = parsed.data;
-      await assertGradeScope(req, subjectId);
+      if (!parsed.success) {
+        throw new AppError(
+          parsed.error.issues[0]?.message ?? 'type et semesterId requis',
+          400
+        );
+      }
+      const { type, semesterId, subjectId, programmeId } = parsed.data;
 
-      const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
-      if (!subject) throw new AppError('Subject not found', 404);
+      const semester = await prisma.semester.findUnique({ where: { id: semesterId } });
+      if (!semester) throw new AppError('Semester not found', 404);
+
+      // Resolve the set of subjects to publish.
+      let subjectIds: string[];
+      if (subjectId) {
+        await assertGradeScope(req, subjectId);
+        subjectIds = [subjectId];
+      } else {
+        const subjects = await prisma.subject.findMany({
+          where: {
+            semesterId,
+            ...(programmeId ? { programmeId } : {}),
+            ...(facultyScopeWhere(req, ['programme']) as Prisma.SubjectWhereInput),
+          },
+          select: { id: true },
+        });
+        subjectIds = subjects.map((s) => s.id);
+      }
+      if (subjectIds.length === 0) {
+        throw new AppError('Aucune matière à publier pour ce périmètre', 400);
+      }
 
       const gradeWhere: Prisma.GradeWhereInput = {
-        subjectId,
-        ...(semesterId ? { semesterId } : {}),
-        noteFinale: { not: null },
+        subjectId: { in: subjectIds },
+        semesterId,
       };
       const grades = await prisma.grade.findMany({
         where: gradeWhere,
-        select: { id: true, studentId: true },
+        select: {
+          id: true,
+          studentId: true,
+          noteCc: true,
+          noteCf: true,
+          noteFinale: true,
+          publishedCcAt: true,
+        },
       });
-      if (grades.length === 0) throw new AppError('Aucune note à publier pour cette matière', 400);
+      if (grades.length === 0) {
+        throw new AppError('Aucune note à publier pour ce périmètre', 400);
+      }
+
+      // Phase-specific validation.
+      if (type === 'cc') {
+        if (grades.some((g) => g.noteCc == null)) {
+          throw new AppError(
+            'Toutes les notes de contrôle continu doivent être saisies avant publication',
+            400
+          );
+        }
+      } else {
+        if (grades.some((g) => g.publishedCcAt == null)) {
+          throw new AppError(
+            'Les notes CC doivent être publiées avant les résultats finaux',
+            400
+          );
+        }
+        if (grades.some((g) => g.noteCf == null || g.noteFinale == null)) {
+          throw new AppError(
+            'Toutes les notes CF doivent être saisies et les NF calculées avant publication',
+            400
+          );
+        }
+      }
 
       const now = new Date();
-      const settings = await prisma.systemSettings.findUnique({ where: { id: 'singleton' } });
-      const notify = settings?.notifyOnPublish ?? true;
+      const studentIds = Array.from(new Set(grades.map((g) => g.studentId)));
+
+      const title =
+        type === 'cc'
+          ? `Vos notes de contrôle continu (${semester.label}) sont disponibles`
+          : `Vos résultats finaux (${semester.label}) sont disponibles`;
+      const body =
+        type === 'cc'
+          ? 'Consultez vos résultats de contrôle continu dans l’application.'
+          : 'Consultez vos résultats finaux et votre moyenne dans l’application.';
 
       const result = await prisma.$transaction(async (tx) => {
         await tx.grade.updateMany({
           where: gradeWhere,
-          data: { isValidated: true, publishedAt: now },
+          data:
+            type === 'cc'
+              ? { publishedCcAt: now }
+              : { publishedNfAt: now, isValidated: true },
         });
-
-        let notified = 0;
-        if (notify) {
-          const studentIds = Array.from(new Set(grades.map((g) => g.studentId)));
-          await tx.notification.createMany({
-            data: studentIds.map((studentId) => ({
-              studentId,
-              type: NotificationType.GRADES,
-              titleFr: 'Nouvelles notes disponibles',
-              titleAr: 'نتائج جديدة متاحة',
-              bodyFr: `Vos notes pour « ${subject.nameFr} » sont désormais disponibles.`,
-              bodyAr: `أصبحت درجاتك في مادة « ${subject.nameAr} » متاحة الآن.`,
-            })),
-          });
-          notified = studentIds.length;
-        }
-        return { published: grades.length, notified };
+        const notified = await createNotification(
+          studentIds,
+          NotificationType.GRADES,
+          title,
+          body,
+          tx
+        );
+        return { notified };
       });
 
       res.status(200).json({
-        subjectId,
-        published: result.published,
+        type,
+        semesterId,
+        subjectIds,
+        published: grades.length,
         notified: result.notified,
-        message: 'Notes publiées — notifications envoyées',
+        message:
+          type === 'cc'
+            ? 'Notes CC publiées — notifications envoyées'
+            : 'Résultats finaux publiés — notifications envoyées',
       });
     } catch (err) {
       next(err);

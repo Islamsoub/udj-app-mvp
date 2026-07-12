@@ -3,11 +3,17 @@ import jwt from 'jsonwebtoken';
 import multer from 'multer';
 import { fromBuffer } from 'file-type';
 import { z } from 'zod';
+import { AttendanceStatus } from '@prisma/client';
 import prisma from '../utils/prisma';
 import { env } from '../utils/env';
 import { supabase, JUSTIFICATION_BUCKET } from '../utils/supabase';
 import authMiddleware from '../middleware/auth';
 import { AppError } from '../utils/AppError';
+import {
+  buildSessionHoursResolver,
+  hoursBasedPercentage,
+  AttendanceInput,
+} from '../utils/attendance';
 
 const router = Router();
 router.use(authMiddleware);
@@ -100,10 +106,17 @@ router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
       allValidatedGrades,
       semesterSubjects,
       attendanceRecords,
+      scheduleSlots,
     ] = await Promise.all([
+      // GPA reflects only NF-published finals (Pass C: GPA hidden until results).
       currentSemester
         ? prisma.grade.findMany({
-            where: { studentId, semesterId: currentSemester.id, noteFinale: { not: null } },
+            where: {
+              studentId,
+              semesterId: currentSemester.id,
+              noteFinale: { not: null },
+              publishedNfAt: { not: null },
+            },
             select: { noteFinale: true, subject: { select: { coefficient: true } } },
           })
         : Promise.resolve([] as { noteFinale: number | null; subject: { coefficient: number } }[]),
@@ -127,12 +140,30 @@ router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
           })
         : Promise.resolve([] as { credits: number }[]),
 
+      // Hours-based attendance (Pass C §4.3): fetch status + hoursAttended.
       currentSemester
         ? prisma.attendanceRecord.findMany({
             where: { studentId, subject: { semesterId: currentSemester.id } },
-            select: { status: true },
+            select: { subjectId: true, sessionDate: true, status: true, hoursAttended: true },
           })
-        : Promise.resolve([] as { status: 'PRESENT' | 'ABSENT' | 'JUSTIFIED' }[]),
+        : Promise.resolve(
+            [] as {
+              subjectId: string;
+              sessionDate: Date;
+              status: AttendanceStatus;
+              hoursAttended: number | null;
+            }[]
+          ),
+
+      // Schedule slots for the programme drive the per-session hour lengths.
+      currentSemester
+        ? prisma.scheduleEntry.findMany({
+            where: { semesterId: currentSemester.id, subject: { programmeId: student.programmeId } },
+            select: { subjectId: true, dayOfWeek: true, startTime: true, endTime: true },
+          })
+        : Promise.resolve(
+            [] as { subjectId: string; dayOfWeek: number; startTime: string; endTime: string }[]
+          ),
     ]);
 
     const gpa = computeGPA(semesterGrades);
@@ -147,10 +178,14 @@ router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
 
     let attendancePercentage: number | null = null;
     if (attendanceRecords.length > 0) {
-      const present = attendanceRecords.filter(
-        (r) => r.status === 'PRESENT' || r.status === 'JUSTIFIED'
-      ).length;
-      attendancePercentage = Math.round((present / attendanceRecords.length) * 100);
+      const resolveHours = buildSessionHoursResolver(scheduleSlots);
+      const inputs: AttendanceInput[] = attendanceRecords.map((r) => ({
+        subjectId: r.subjectId,
+        sessionDate: r.sessionDate,
+        status: r.status,
+        hoursAttended: r.hoursAttended,
+      }));
+      attendancePercentage = hoursBasedPercentage(inputs, resolveHours);
     }
 
     res.status(200).json({
@@ -257,6 +292,11 @@ router.get('/schedule', async (req: Request, res: Response, next: NextFunction) 
 });
 
 // ── GET /student/grades ───────────────────────────────────────────────────────
+// Two-phase visibility (Pass C §3.6):
+//   • neither timestamp set → grade is unpublished, omitted entirely
+//   • publishedCcAt only    → CC visible; CF / NF returned as null
+//   • publishedNfAt set      → all scores visible
+// GPA / mention reflect only NF-published grades.
 
 router.get('/grades', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -281,6 +321,7 @@ router.get('/grades', async (req: Request, res: Response, next: NextFunction) =>
           noteFinale: true,
           isValidated: true,
           semesterId: true,
+          publishedNfAt: true,
           semester: { select: { id: true, label: true, academicYear: true } },
           subject: { select: { coefficient: true, credits: true } },
         },
@@ -307,9 +348,11 @@ router.get('/grades', async (req: Request, res: Response, next: NextFunction) =>
       const semesters = semesterIds.map((semId) => {
         const semGrades = gradesBySem.get(semId) ?? [];
         const semInfo = semGrades[0]?.semester ?? { id: semId, label: '', academicYear: '' };
-        const gpa = computeGPA(semGrades);
+        // Only NF-published grades count toward the historical GPA / credits.
+        const nfGrades = semGrades.filter((g) => g.publishedNfAt !== null);
+        const gpa = computeGPA(nfGrades);
         const mention = gpa !== null ? computeMention(gpa) : null;
-        const earned = semGrades
+        const earned = nfGrades
           .filter((g) => g.isValidated)
           .reduce((s, g) => s + g.subject.credits, 0);
         const total = totalCreditsBySem.get(semId) ?? 0;
@@ -348,6 +391,8 @@ router.get('/grades', async (req: Request, res: Response, next: NextFunction) =>
           noteCf: true,
           noteFinale: true,
           isValidated: true,
+          publishedCcAt: true,
+          publishedNfAt: true,
           subject: {
             select: {
               id: true,
@@ -366,9 +411,26 @@ router.get('/grades', async (req: Request, res: Response, next: NextFunction) =>
       }),
     ]);
 
-    const gpa = computeGPA(grades);
+    // Drop unpublished grades; mask CF/NF until final results are published.
+    const visible = grades.filter((g) => g.publishedCcAt !== null || g.publishedNfAt !== null);
+    const shapedGrades = visible.map((g) => {
+      const nfPublished = g.publishedNfAt !== null;
+      return {
+        id: g.id,
+        noteCc: g.noteCc,
+        noteCf: nfPublished ? g.noteCf : null,
+        noteFinale: nfPublished ? g.noteFinale : null,
+        isValidated: nfPublished ? g.isValidated : false,
+        subject: g.subject,
+      };
+    });
+
+    const nfGrades = visible.filter((g) => g.publishedNfAt !== null);
+    const gpa = computeGPA(nfGrades);
     const mention = gpa !== null ? computeMention(gpa) : null;
-    const earned = grades.filter((g) => g.isValidated).reduce((s, g) => s + g.subject.credits, 0);
+    const earned = nfGrades
+      .filter((g) => g.isValidated)
+      .reduce((s, g) => s + g.subject.credits, 0);
     const total = semesterSubjects.reduce((s, sub) => s + sub.credits, 0);
 
     res.status(200).json({
@@ -376,7 +438,9 @@ router.get('/grades', async (req: Request, res: Response, next: NextFunction) =>
       gpa,
       mention,
       credits: { earned, total },
-      grades,
+      ccPublished: visible.some((g) => g.publishedCcAt !== null),
+      nfPublished: visible.some((g) => g.publishedNfAt !== null),
+      grades: shapedGrades,
     });
   } catch (err) {
     next(err);
@@ -384,6 +448,7 @@ router.get('/grades', async (req: Request, res: Response, next: NextFunction) =>
 });
 
 // ── GET /student/attendance ───────────────────────────────────────────────────
+// Hours-based percentages (Pass C §4.3), with PARTIAL sessions surfaced.
 
 router.get('/attendance', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -400,6 +465,7 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
       select: {
         id: true,
         status: true,
+        hoursAttended: true,
         subjectId: true,
         sessionDate: true,
         justificationUrl: true,
@@ -410,11 +476,21 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
       orderBy: { sessionDate: 'desc' },
     });
 
+    // Session lengths come from the subjects' schedule entries.
+    const subjectIds = [...new Set(records.map((r) => r.subjectId))];
+    const slots = subjectIds.length
+      ? await prisma.scheduleEntry.findMany({
+          where: { subjectId: { in: subjectIds }, semesterId: currentSemester.id },
+          select: { subjectId: true, dayOfWeek: true, startTime: true, endTime: true },
+        })
+      : [];
+    const resolveHours = buildSessionHoursResolver(slots);
+
     const pathsToSign = [
       ...new Set(
         records
-          .filter(r => r.justificationUrl && (r.status === 'ABSENT' || r.status === 'JUSTIFIED'))
-          .map(r => r.justificationUrl!)
+          .filter((r) => r.justificationUrl && (r.status === 'ABSENT' || r.status === 'JUSTIFIED'))
+          .map((r) => r.justificationUrl!)
       ),
     ];
     const signedUrlMap = new Map<string, string>();
@@ -447,6 +523,8 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
         present: number;
         absent: number;
         justified: number;
+        partial: number;
+        inputs: AttendanceInput[];
         absences: AbsenceEntry[];
       }
     >();
@@ -458,6 +536,8 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
           present: 0,
           absent: 0,
           justified: 0,
+          partial: 0,
+          inputs: [],
           absences: [],
         });
       }
@@ -465,6 +545,14 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
       if (r.status === 'PRESENT') entry.present++;
       else if (r.status === 'ABSENT') entry.absent++;
       else if (r.status === 'JUSTIFIED') entry.justified++;
+      else if (r.status === 'PARTIAL') entry.partial++;
+
+      entry.inputs.push({
+        subjectId: r.subjectId,
+        sessionDate: r.sessionDate,
+        status: r.status,
+        hoursAttended: r.hoursAttended,
+      });
 
       if (r.status === 'ABSENT' || r.status === 'JUSTIFIED') {
         entry.absences.push({
@@ -483,10 +571,10 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
     }
 
     const subjects = [...subjectMap.values()].map(
-      ({ subject, present, absent, justified, absences }) => {
-        const total = present + absent + justified;
-        const percentage = total > 0 ? Math.round(((present + justified) / total) * 100) : 0;
-        return { subject, total, present, absent, justified, percentage, absences };
+      ({ subject, present, absent, justified, partial, inputs, absences }) => {
+        const total = present + absent + justified + partial;
+        const percentage = hoursBasedPercentage(inputs, resolveHours) ?? 0;
+        return { subject, total, present, absent, justified, partial, percentage, absences };
       }
     );
 
@@ -494,8 +582,14 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
     const presentAll = records.filter((r) => r.status === 'PRESENT').length;
     const absentAll = records.filter((r) => r.status === 'ABSENT').length;
     const justifiedAll = records.filter((r) => r.status === 'JUSTIFIED').length;
-    const percentageAll =
-      totalAll > 0 ? Math.round(((presentAll + justifiedAll) / totalAll) * 100) : null;
+    const partialAll = records.filter((r) => r.status === 'PARTIAL').length;
+    const overallInputs: AttendanceInput[] = records.map((r) => ({
+      subjectId: r.subjectId,
+      sessionDate: r.sessionDate,
+      status: r.status,
+      hoursAttended: r.hoursAttended,
+    }));
+    const percentageAll = hoursBasedPercentage(overallInputs, resolveHours);
 
     res.status(200).json({
       overall: {
@@ -503,6 +597,7 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
         present: presentAll,
         absent: absentAll,
         justified: justifiedAll,
+        partial: partialAll,
         percentage: percentageAll,
       },
       subjects,
@@ -738,7 +833,7 @@ router.post(
 
       const record = await prisma.attendanceRecord.findUnique({
         where: { id: recordId },
-        select: { id: true, studentId: true, status: true },
+        select: { id: true, studentId: true, status: true, sessionDate: true },
       });
 
       if (!record || record.studentId !== studentId) {
@@ -747,6 +842,15 @@ router.post(
 
       if (record.status !== 'ABSENT') {
         throw new AppError('Justification can only be uploaded for ABSENT records', 409);
+      }
+
+      // Enforce the configurable justification deadline (Pass C §4.4): students
+      // cannot submit after N days from the absence date.
+      const settings = await prisma.systemSettings.findUnique({ where: { id: 'singleton' } });
+      const deadlineDays = settings?.justificationDeadlineDays ?? 8;
+      const deadline = new Date(record.sessionDate.getTime() + deadlineDays * 24 * 60 * 60 * 1000);
+      if (new Date() > deadline) {
+        throw new AppError(`Délai de soumission dépassé (${deadlineDays} jours)`, 409);
       }
 
       const ext = EXT_BY_MIME[contentType];

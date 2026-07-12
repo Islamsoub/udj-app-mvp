@@ -32,6 +32,7 @@ enum ScheduleEntryType {
 enum AttendanceStatus {
   PRESENT
   ABSENT
+  PARTIAL // NEW — attended part of a session; hours in AttendanceRecord.hoursAttended
   JUSTIFIED
 }
 
@@ -46,6 +47,7 @@ enum NotificationType {
   SCHEDULE
   ATTENDANCE
   GENERAL
+  NEWS // NEW — urgent / opted-in news-article push notifications
 }
 
 // ─── Models ──────────────────────────────────────────────────────────────────
@@ -164,7 +166,8 @@ model Grade {
   noteCf      Float?    @map("note_cf")
   noteFinale  Float?    @map("note_finale")
   isValidated Boolean   @default(false) @map("is_validated")
-  publishedAt DateTime? @map("published_at")
+  publishedCcAt DateTime? @map("published_cc_at") // CC (contrôle continu) publication moment
+  publishedNfAt DateTime? @map("published_nf_at") // NF (note finale / résultats finaux) publication moment
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
   student     Student   @relation(fields: [studentId], references: [id])
@@ -201,6 +204,7 @@ model AttendanceRecord {
   subjectId           String               @map("subject_id")
   sessionDate         DateTime             @map("session_date")
   status              AttendanceStatus
+  hoursAttended       Float?               @map("hours_attended") // NEW — only set when status = PARTIAL
   justificationUrl    String?              @map("justification_url")
   justificationStatus JustificationStatus? @map("justification_status")
   justificationNote   String?              @map("justification_note")
@@ -236,7 +240,9 @@ model NewsArticle {
   bodyFr          String   @map("body_fr")
   bodyAr          String   @map("body_ar")
   heroImageUrl    String?  @map("hero_image_url")
-  category        String
+  category        String // KEPT for backward compat (stores the category slug)
+  categoryId      String?       @map("category_id") // NEW — FK to NewsCategory
+  categoryRel     NewsCategory? @relation(fields: [categoryId], references: [id]) // NEW
   readTimeMinutes Int      @default(3) @map("read_time_minutes")
   isUrgent        Boolean  @default(false) @map("is_urgent")
   publishedAt     DateTime @map("published_at")
@@ -245,6 +251,19 @@ model NewsArticle {
 
   @@index([publishedAt])
   @@map("news_articles")
+}
+
+model NewsCategory {
+  id           String   @id @default(uuid())
+  nameFr       String   @map("name_fr")
+  slug         String   @unique
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  articles NewsArticle[]
+
+  @@map("news_categories")
 }
 
 model QrToken {
@@ -338,6 +357,7 @@ model SystemSettings {
   gradeWeightCc       Float    @default(0.40) @map("grade_weight_cc")
   gradeWeightCf       Float    @default(0.60) @map("grade_weight_cf")
   attendanceThreshold Int      @default(75) @map("attendance_threshold")
+  justificationDeadlineDays Int      @default(8) @map("justification_deadline_days") // NEW
   autoPublishGrades   Boolean  @default(false) @map("auto_publish_grades")
   notifyOnPublish     Boolean  @default(true) @map("notify_on_publish")
   weeklyRecap         Boolean  @default(false) @map("weekly_recap")

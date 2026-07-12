@@ -57,8 +57,10 @@ router.get(
             status: { in: [AttendanceStatus.PRESENT, AttendanceStatus.JUSTIFIED] },
           },
         }),
+        // "Published" for GPA/distribution = final results are out (publishedNfAt).
+        // (Grade.publishedAt was replaced by dual CC/NF timestamps in Pass C.)
         prisma.grade.findMany({
-          where: { ...gradeWhere, noteFinale: { not: null }, publishedAt: { not: null } },
+          where: { ...gradeWhere, noteFinale: { not: null }, publishedNfAt: { not: null } },
           select: { studentId: true, noteFinale: true },
         }),
       ]);
