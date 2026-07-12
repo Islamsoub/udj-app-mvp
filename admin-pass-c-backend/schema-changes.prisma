@@ -1,0 +1,172 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Unipocket Admin Portal — Pass C-1 schema changes
+//
+// This file contains ONLY the additions/modifications to prisma/schema.prisma.
+// It is NOT a standalone schema — merge each block into the existing schema,
+// then run:
+//
+//     npx prisma generate
+//     npx prisma migrate dev --name admin_pass_c   (or `db push` in dev)
+//
+// Summary (architecture doc §9): 5 model modifications, 2 enum modifications,
+// 1 new model.
+// ─────────────────────────────────────────────────────────────────────────────
+
+
+// ── 1.2 / 1.7  Enum changes ──────────────────────────────────────────────────
+
+// REPLACE the existing `enum AttendanceStatus` with this (adds PARTIAL):
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  PARTIAL // NEW — attended part of a session; hours in AttendanceRecord.hoursAttended
+  JUSTIFIED
+}
+
+// REPLACE the existing `enum NotificationType` with this (adds NEWS):
+enum NotificationType {
+  GRADES
+  SCHEDULE
+  ATTENDANCE
+  GENERAL
+  NEWS // NEW — urgent / opted-in news-article push notifications
+}
+
+
+// ── 1.1  Grade — dual publication timestamps ─────────────────────────────────
+//
+// In `model Grade`, REMOVE this line:
+//     publishedAt DateTime? @map("published_at")
+//
+// and ADD these two lines in its place:
+
+//   publishedCcAt DateTime? @map("published_cc_at") // set when CC scores published (mid-semester)
+//   publishedNfAt DateTime? @map("published_nf_at") // set when final results published (end of semester)
+
+// Full modified model for reference:
+model Grade {
+  id          String    @id @default(uuid())
+  studentId   String    @map("student_id")
+  subjectId   String    @map("subject_id")
+  semesterId  String    @map("semester_id")
+  noteCc      Float?    @map("note_cc")
+  noteCf      Float?    @map("note_cf")
+  noteFinale  Float?    @map("note_finale")
+  isValidated Boolean   @default(false) @map("is_validated")
+  // publishedAt REMOVED — replaced by the two timestamps below
+  publishedCcAt DateTime? @map("published_cc_at") // CC (contrôle continu) publication moment
+  publishedNfAt DateTime? @map("published_nf_at") // NF (note finale / résultats finaux) publication moment
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  student     Student   @relation(fields: [studentId], references: [id])
+  subject     Subject   @relation(fields: [subjectId], references: [id])
+  semester    Semester  @relation(fields: [semesterId], references: [id])
+
+  @@unique([studentId, subjectId, semesterId])
+  @@map("grades")
+}
+
+
+// ── 1.3  AttendanceRecord — hoursAttended ────────────────────────────────────
+//
+// In `model AttendanceRecord`, ADD this field (only set when status = PARTIAL;
+// PRESENT/JUSTIFIED imply full session hours, ABSENT implies zero — both stored
+// as null and derived at read time from the matching ScheduleEntry):
+
+//   hoursAttended Float? @map("hours_attended")
+
+// Full modified model for reference:
+model AttendanceRecord {
+  id                  String               @id @default(uuid())
+  studentId           String               @map("student_id")
+  subjectId           String               @map("subject_id")
+  sessionDate         DateTime             @map("session_date")
+  status              AttendanceStatus
+  hoursAttended       Float?               @map("hours_attended") // NEW — only set when status = PARTIAL
+  justificationUrl    String?              @map("justification_url")
+  justificationStatus JustificationStatus? @map("justification_status")
+  justificationNote   String?              @map("justification_note")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  student             Student              @relation(fields: [studentId], references: [id])
+  subject             Subject              @relation(fields: [subjectId], references: [id])
+
+  @@unique([studentId, subjectId, sessionDate])
+  @@map("attendance_records")
+}
+
+
+// ── 1.6  NewsArticle — category relation (backward-compatible) ───────────────
+//
+// In `model NewsArticle`, KEEP the existing `category String` field and ADD the
+// relation below. New code writes to BOTH `category` (slug string) and
+// `categoryId`; reads prefer the relation.
+
+//   categoryId  String?       @map("category_id")
+//   categoryRel NewsCategory? @relation(fields: [categoryId], references: [id])
+
+// Full modified model for reference:
+model NewsArticle {
+  id              String        @id @default(uuid())
+  titleFr         String        @map("title_fr")
+  titleAr         String        @map("title_ar")
+  bodyFr          String        @map("body_fr")
+  bodyAr          String        @map("body_ar")
+  heroImageUrl    String?       @map("hero_image_url")
+  category        String // KEPT for backward compat (stores the category slug)
+  categoryId      String?       @map("category_id") // NEW — FK to NewsCategory
+  categoryRel     NewsCategory? @relation(fields: [categoryId], references: [id]) // NEW
+  readTimeMinutes Int           @default(3) @map("read_time_minutes")
+  isUrgent        Boolean       @default(false) @map("is_urgent")
+  publishedAt     DateTime      @map("published_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  @@index([publishedAt])
+  @@map("news_articles")
+}
+
+
+// ── 1.5  NewsCategory — new model ────────────────────────────────────────────
+//
+// ADD this new model. Admin-managed (create/edit/delete/reorder from Settings);
+// seeded with the 6 categories that used to be hardcoded in the app.
+model NewsCategory {
+  id           String   @id @default(uuid())
+  nameFr       String   @map("name_fr")
+  slug         String   @unique
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  articles NewsArticle[]
+
+  @@map("news_categories")
+}
+
+
+// ── 1.4  SystemSettings — justification deadline + deprecated toggles ─────────
+//
+// In `model SystemSettings`, ADD this field:
+//
+//   justificationDeadlineDays Int @default(8) @map("justification_deadline_days")
+//
+// KEEP autoPublishGrades / notifyOnPublish / weeklyRecap in the schema (data
+// exists) — they are now IGNORED in code (publication is two-phase manual;
+// automated notifications are always-on).
+
+// Full modified model for reference:
+model SystemSettings {
+  id                        String   @id @default("singleton")
+  gradeWeightCc             Float    @default(0.40) @map("grade_weight_cc")
+  gradeWeightCf             Float    @default(0.60) @map("grade_weight_cf")
+  attendanceThreshold       Int      @default(75) @map("attendance_threshold")
+  justificationDeadlineDays Int      @default(8) @map("justification_deadline_days") // NEW
+  autoPublishGrades         Boolean  @default(false) @map("auto_publish_grades") // DEPRECATED — ignored in code
+  notifyOnPublish           Boolean  @default(true) @map("notify_on_publish") // DEPRECATED — ignored in code
+  weeklyRecap               Boolean  @default(false) @map("weekly_recap") // DEPRECATED — ignored in code
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
