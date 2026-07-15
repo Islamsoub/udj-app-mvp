@@ -8,6 +8,9 @@ import type {
   NewsItem,
   StudentProfileCache,
   Attendance,
+  AbsenceRecord,
+  AttendanceSummary,
+  GradesSummary,
   CachedNotification,
 } from './api';
 
@@ -267,6 +270,41 @@ export async function runMigrations(): Promise<void> {
         note TEXT NOT NULL,
         created_at TEXT NOT NULL
       );
+
+      CREATE TABLE IF NOT EXISTS attendance_absences (
+        id TEXT PRIMARY KEY,
+        student_id TEXT NOT NULL,
+        subject_code TEXT NOT NULL,
+        session_date TEXT NOT NULL,
+        status TEXT NOT NULL,
+        subject_name TEXT NOT NULL DEFAULT '',
+        subject_name_ar TEXT NOT NULL DEFAULT '',
+        justification_status TEXT,
+        justification_url TEXT,
+        justification_note TEXT,
+        hours_attended REAL,
+        cached_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS attendance_summary (
+        student_id TEXT PRIMARY KEY,
+        percentage REAL NOT NULL DEFAULT 0,
+        total INTEGER NOT NULL DEFAULT 0,
+        present INTEGER NOT NULL DEFAULT 0,
+        absent INTEGER NOT NULL DEFAULT 0,
+        justified INTEGER NOT NULL DEFAULT 0,
+        partial INTEGER NOT NULL DEFAULT 0,
+        cached_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS grades_summary (
+        semester_id TEXT PRIMARY KEY,
+        gpa REAL,
+        mention TEXT,
+        credits_earned INTEGER NOT NULL DEFAULT 0,
+        credits_total INTEGER NOT NULL DEFAULT 0,
+        cached_at TEXT NOT NULL
+      );
     `);
   });
 
@@ -373,6 +411,24 @@ export async function getAllCachedGrades(): Promise<Grade[]> {
   return rows.map(rowToGrade);
 }
 
+/**
+ * Semester-level GPA/mention/credits for the grades hero card. When no semester
+ * id is given (the "current semester" view), returns the most-recently-synced
+ * summary — which is the current semester, since it is fetched on each open.
+ */
+export async function getGradesSummary(semesterId?: string): Promise<GradesSummary | null> {
+  const db = await getDb();
+  const row = semesterId
+    ? await db.getFirstAsync<Record<string, SQLite.SQLiteBindValue>>(
+        'SELECT * FROM grades_summary WHERE semester_id = ?',
+        [semesterId],
+      )
+    : await db.getFirstAsync<Record<string, SQLite.SQLiteBindValue>>(
+        'SELECT * FROM grades_summary ORDER BY cached_at DESC LIMIT 1',
+      );
+  return row ? rowToGradesSummary(row) : null;
+}
+
 export async function getCachedNews(limit: number, category?: string): Promise<NewsItem[]> {
   const db = await getDb();
   const rows = category
@@ -436,6 +492,22 @@ export async function getAttendance(): Promise<Attendance[]> {
     'SELECT * FROM attendance',
   );
   return rows.map(rowToAttendance);
+}
+
+export async function getCachedAbsences(): Promise<AbsenceRecord[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<Record<string, SQLite.SQLiteBindValue>>(
+    'SELECT * FROM attendance_absences ORDER BY session_date DESC',
+  );
+  return rows.map(rowToAbsence);
+}
+
+export async function getCachedAttendanceSummary(): Promise<AttendanceSummary | null> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<Record<string, SQLite.SQLiteBindValue>>(
+    'SELECT * FROM attendance_summary LIMIT 1',
+  );
+  return row ? rowToAttendanceSummary(row) : null;
 }
 
 export async function getCachedNotifications(): Promise<CachedNotification[]> {
@@ -554,6 +626,29 @@ export async function upsertGrades(items: Grade[]): Promise<void> {
       );
     }
   });
+}
+
+export async function upsertGradesSummary(summary: GradesSummary): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT INTO grades_summary
+      (semester_id, gpa, mention, credits_earned, credits_total, cached_at)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(semester_id) DO UPDATE SET
+       gpa           = excluded.gpa,
+       mention       = excluded.mention,
+       credits_earned = excluded.credits_earned,
+       credits_total  = excluded.credits_total,
+       cached_at     = excluded.cached_at`,
+    [
+      summary.semesterId,
+      summary.gpa,
+      summary.mention,
+      summary.creditsEarned,
+      summary.creditsTotal,
+      summary.cachedAt,
+    ],
+  );
 }
 
 export async function upsertNews(items: NewsItem[]): Promise<void> {
@@ -721,6 +816,68 @@ export async function upsertAttendance(items: Attendance[]): Promise<void> {
   });
 }
 
+// Replaces the whole cached absence list for the student (mirrors the API's
+// full-snapshot semantics — the response always returns the complete set).
+export async function upsertAbsences(
+  studentId: string,
+  items: AbsenceRecord[],
+): Promise<void> {
+  const db = await getDb();
+  const now = new Date().toISOString();
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM attendance_absences WHERE student_id = ?', [studentId]);
+    for (const a of items) {
+      await db.runAsync(
+        `INSERT OR REPLACE INTO attendance_absences
+          (id, student_id, subject_code, session_date, status, subject_name, subject_name_ar,
+           justification_status, justification_url, justification_note, hours_attended, cached_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          a.id,
+          studentId,
+          a.subjectCode ?? '',
+          a.date,
+          a.status,
+          a.subjectName,
+          a.subjectNameAr,
+          a.justificationStatus,
+          a.justificationUrl,
+          a.justificationNote ?? null,
+          a.hoursAttended ?? null,
+          now,
+        ],
+      );
+    }
+  });
+}
+
+export async function upsertAttendanceSummary(summary: AttendanceSummary): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT INTO attendance_summary
+      (student_id, percentage, total, present, absent, justified, partial, cached_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(student_id) DO UPDATE SET
+       percentage = excluded.percentage,
+       total      = excluded.total,
+       present    = excluded.present,
+       absent     = excluded.absent,
+       justified  = excluded.justified,
+       partial    = excluded.partial,
+       cached_at  = excluded.cached_at`,
+    [
+      summary.studentId,
+      summary.percentage,
+      summary.total,
+      summary.present,
+      summary.absent,
+      summary.justified,
+      summary.partial,
+      summary.cachedAt,
+    ],
+  );
+}
+
 export async function markNotificationReadLocal(id: string): Promise<void> {
   const db = await getDb();
   await db.runAsync('UPDATE notifications SET is_read = 1 WHERE id = ?', [id]);
@@ -817,10 +974,18 @@ export async function getLastSyncTime(): Promise<number | null> {
   return result?.latest ? new Date(result.latest).getTime() : null;
 }
 
+// Companion tables not surfaced in the Storage stats list but cleared alongside
+// their parent cache so "clear cache" leaves nothing stale behind.
+const ATTENDANCE_COMPANION_TABLES = ['attendance_absences', 'attendance_summary'];
+const GRADES_COMPANION_TABLES = ['grades_summary'];
+
 export async function clearAllCache(): Promise<void> {
   const db = await getDb();
   await db.withTransactionAsync(async () => {
     for (const { table } of CACHE_TABLES) {
+      await db.execAsync(`DELETE FROM ${table}`);
+    }
+    for (const table of [...ATTENDANCE_COMPANION_TABLES, ...GRADES_COMPANION_TABLES]) {
       await db.execAsync(`DELETE FROM ${table}`);
     }
   });
@@ -830,7 +995,18 @@ export async function clearTableCache(table: string): Promise<void> {
   const allowedTables = CACHE_TABLES.map((t) => t.table);
   if (!allowedTables.includes(table)) return;
   const db = await getDb();
-  await db.execAsync(`DELETE FROM ${table}`);
+  const companions =
+    table === 'attendance'
+      ? ATTENDANCE_COMPANION_TABLES
+      : table === 'grades'
+      ? GRADES_COMPANION_TABLES
+      : [];
+  await db.withTransactionAsync(async () => {
+    await db.execAsync(`DELETE FROM ${table}`);
+    for (const companion of companions) {
+      await db.execAsync(`DELETE FROM ${companion}`);
+    }
+  });
 }
 
 // --- Row mappers ---
@@ -869,6 +1045,45 @@ function rowToGrade(row: Record<string, SQLite.SQLiteBindValue>): Grade {
     passed: (row.passed as number) === 1,
     ccPublished: (row.published_cc_at as string | null) != null,
     nfPublished: (row.published_nf_at as string | null) != null,
+    cachedAt: row.cached_at as string,
+  };
+}
+
+function rowToGradesSummary(row: Record<string, SQLite.SQLiteBindValue>): GradesSummary {
+  return {
+    semesterId: row.semester_id as string,
+    gpa: row.gpa as number | null,
+    mention: row.mention as string | null,
+    creditsEarned: (row.credits_earned as number | null) ?? 0,
+    creditsTotal: (row.credits_total as number | null) ?? 0,
+    cachedAt: row.cached_at as string,
+  };
+}
+
+function rowToAbsence(row: Record<string, SQLite.SQLiteBindValue>): AbsenceRecord {
+  return {
+    id: row.id as string,
+    date: row.session_date as string,
+    status: row.status as AbsenceRecord['status'],
+    subjectCode: (row.subject_code as string | null) ?? '',
+    subjectName: (row.subject_name as string | null) ?? '',
+    subjectNameAr: (row.subject_name_ar as string | null) ?? '',
+    justificationUrl: (row.justification_url as string | null) ?? null,
+    justificationStatus: (row.justification_status as AbsenceRecord['justificationStatus']) ?? null,
+    justificationNote: (row.justification_note as string | null) ?? null,
+    hoursAttended: (row.hours_attended as number | null) ?? null,
+  };
+}
+
+function rowToAttendanceSummary(row: Record<string, SQLite.SQLiteBindValue>): AttendanceSummary {
+  return {
+    studentId: row.student_id as string,
+    percentage: (row.percentage as number | null) ?? 0,
+    total: (row.total as number | null) ?? 0,
+    present: (row.present as number | null) ?? 0,
+    absent: (row.absent as number | null) ?? 0,
+    justified: (row.justified as number | null) ?? 0,
+    partial: (row.partial as number | null) ?? 0,
     cachedAt: row.cached_at as string,
   };
 }

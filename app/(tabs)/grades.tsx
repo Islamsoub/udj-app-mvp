@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -22,7 +22,13 @@ import { GradeCalculatorSheet } from '@/components/grades/GradeCalculatorSheet';
 import { GPAHistorySheet, GPADataPoint } from '@/components/grades/GPAHistorySheet';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
-import { getAllCachedGrades, getGradesForSemester, upsertGrades } from '@/services/db';
+import {
+  getAllCachedGrades,
+  getGradesForSemester,
+  getGradesSummary,
+  upsertGrades,
+  upsertGradesSummary,
+} from '@/services/db';
 import { mapGradesToCache } from '@/services/cacheMappers';
 import { useAuthStore } from '@/stores/authStore';
 import { localName } from '@/utils/i18nName';
@@ -31,6 +37,7 @@ import {
   getGrades,
   getGradesAllSemesters,
   GradesResponse,
+  GradesSummary,
   SemesterSummary,
   Grade,
 } from '@/services/api';
@@ -132,6 +139,7 @@ export default function GradesScreen() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [gradesData, setGradesData] = useState<GradesResponse | null>(null);
+  const [cachedSummary, setCachedSummary] = useState<GradesSummary | null>(null);
   const [allSemesterData, setAllSemesterData] = useState<SemesterSummary[]>([]);
   const [semesterTabIds, setSemesterTabIds] = useState<[string | null, string | null]>([null, null]);
   const [activeSemesterId, setActiveSemesterId] = useState<string | undefined>(undefined);
@@ -151,6 +159,17 @@ export default function GradesScreen() {
     fetchFresh: async () => {
       const res = await getGrades(activeSemesterId);
       setGradesData(res);
+
+      // Cache the semester-level GPA/mention/credits so the hero card renders
+      // the same numbers on a cold offline launch (the raw response is null then).
+      upsertGradesSummary({
+        semesterId: res.semester.id,
+        gpa: res.gpa,
+        mention: res.mention,
+        creditsEarned: res.credits.earned,
+        creditsTotal: res.credits.total,
+        cachedAt: new Date().toISOString(),
+      }).catch(() => {});
 
       if (!activeSemesterId) {
         getGradesAllSemesters()
@@ -195,6 +214,20 @@ export default function GradesScreen() {
       })),
     [hook.data, lang],
   );
+
+  // Load the cached semester summary (GPA/mention/credits) cache-first so the
+  // hero card works on a cold offline launch. Re-reads after each sync.
+  useEffect(() => {
+    let alive = true;
+    getGradesSummary(activeSemesterId)
+      .then((s) => {
+        if (alive) setCachedSummary(s);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [activeSemesterId, hook.data]);
 
   // Final results are published once the response says so (fresh fetch) or any
   // cached grade carries an NF score / flag (offline). Drives the GPA-pending
@@ -257,14 +290,22 @@ export default function GradesScreen() {
 
   const gradesState = devState ?? hookState;
 
+  // Prefer the fresh response; fall back to the cached summary so the hero shows
+  // real GPA/credits offline instead of "—".
+  const summaryGpa = gradesData?.gpa ?? cachedSummary?.gpa ?? null;
+  const summaryCredits = gradesData?.credits
+    ?? (cachedSummary
+      ? { earned: cachedSummary.creditsEarned, total: cachedSummary.creditsTotal }
+      : null);
+
   const headerGpa =
     gradesState === 'loaded' || gradesState === 'offline' || gradesState === 'session'
-      ? (gradesData?.gpa ?? null)
+      ? summaryGpa
       : null;
 
   const headerCredits =
     gradesState === 'loaded' || gradesState === 'offline'
-      ? (gradesData?.credits ?? null)
+      ? summaryCredits
       : null;
 
   // Show the "moyenne après résultats finaux" message instead of a GPA when the

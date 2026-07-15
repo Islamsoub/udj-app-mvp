@@ -315,6 +315,18 @@ export interface SemesterSummary {
   credits: { earned: number; total: number };
 }
 
+// SQLite cache shape for the semester-level GPA/mention/credits, so the grades
+// hero card renders identically online and offline (the raw GradesResponse is
+// null on a cold offline launch).
+export interface GradesSummary {
+  semesterId: string;
+  gpa: number | null;
+  mention: string | null;
+  creditsEarned: number;
+  creditsTotal: number;
+  cachedAt: string;
+}
+
 export interface AllSemestersResponse {
   semesters: SemesterSummary[];
 }
@@ -338,12 +350,17 @@ export const getGradesAllSemesters = () =>
 export interface AbsenceRecord {
   id: string;
   date: string;
-  status: 'ABSENT' | 'JUSTIFIED';
+  // Pass C added PARTIAL (attended part of a session, hours-based).
+  status: 'ABSENT' | 'JUSTIFIED' | 'PARTIAL';
+  // Present when the record is grouped/cached under its subject.
+  subjectCode?: string;
   subjectName: string;
   subjectNameAr: string;
   justificationUrl: string | null;
   justificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
   justificationNote: string | null;
+  // Hours attended for a PARTIAL session; null/absent otherwise.
+  hoursAttended?: number | null;
 }
 
 export interface AttendanceSubject {
@@ -357,17 +374,32 @@ export interface AttendanceSubject {
   present: number;
   absent: number;
   justified: number;
+  partial: number;
   percentage: number;
   absences: AbsenceRecord[];
 }
 
+// Overall attendance figures. `percentage` is hours-based (Pass C §4.3). The
+// backend sends `overall: null` when there is no current semester.
+export interface AttendanceOverall {
+  percentage: number;
+  total: number;
+  present: number;
+  absent: number;
+  justified: number;
+  partial: number;
+}
+
 export interface AttendanceApiResponse {
-  overall: {
-    percentage: number;
-    absent: number;
-    total: number;
-  };
+  overall: AttendanceOverall | null;
   subjects: AttendanceSubject[];
+}
+
+// SQLite cache shape for the overall summary (kept out of the per-subject rows
+// so the hours-based overall percentage survives a cold offline launch).
+export interface AttendanceSummary extends AttendanceOverall {
+  studentId: string;
+  cachedAt: string;
 }
 
 export const getAttendance = () =>

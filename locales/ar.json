@@ -584,6 +584,8 @@
     "status_pending": "قيد الانتظار",
     "status_approved": "موافق عليه",
     "status_rejected": "مرفوض",
+    "partial": "جزئي",
+    "hoursAttended": "{{hours}}س/{{total}}س",
     "justify": "تبرير",
     "confirm_send": "إرسال التبرير",
     "confirm_title": "تأكيد الإرسال",

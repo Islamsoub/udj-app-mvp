@@ -5,20 +5,25 @@ import { fonts, fz, radius, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import type { JustificationStatus } from './DateTile';
 
+// The badge also renders the PARTIAL attendance status (Pass C), which is not a
+// justification lifecycle state — hence a locally-widened union.
+export type BadgeStatus = JustificationStatus | 'partial';
+
 interface StatusBadgeProps {
-  status: JustificationStatus;
+  status: BadgeStatus;
 }
 
-const LABEL_KEYS: Record<JustificationStatus, string> = {
+const LABEL_KEYS: Record<BadgeStatus, string> = {
   unjustified: 'presence.status_unjustified',
   pending: 'presence.status_pending',
   approved: 'presence.status_approved',
   rejected: 'presence.status_rejected',
+  partial: 'attendance.partial',
 };
 
 /** Pill background + text color for each status (light / dark variants). */
 function badgeColors(
-  status: JustificationStatus,
+  status: BadgeStatus,
   colors: Palette,
   isDark: boolean,
 ): { bg: string; text: string } {
@@ -29,6 +34,8 @@ function badgeColors(
         text: isDark ? colors.danger : '#b91c1c',
       };
     case 'pending':
+    case 'partial':
+      // Both use the amber warning treatment.
       return {
         bg: isDark ? 'rgba(240,168,75,0.16)' : 'rgba(224,138,30,0.14)',
         text: isDark ? colors.warning : '#9a5b06',

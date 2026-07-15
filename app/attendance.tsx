@@ -26,13 +26,22 @@ import type { AbsenceRecord as AbsenceItem } from '@/components/attendance/Absen
 import {
   getAttendance as getAttendanceApi,
   AttendanceApiResponse,
+  AttendanceOverall,
   AttendanceSubject,
+  AttendanceSummary,
   AbsenceRecord,
   Attendance,
   uploadJustification,
 } from '@/services/api';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
-import { getAttendance as getCachedAttendance, upsertAttendance } from '@/services/db';
+import {
+  getAttendance as getCachedAttendance,
+  getCachedAbsences,
+  getCachedAttendanceSummary,
+  upsertAttendance,
+  upsertAbsences,
+  upsertAttendanceSummary,
+} from '@/services/db';
 import { mapAttendanceToCache } from '@/services/cacheMappers';
 import { useAuthStore } from '@/stores/authStore';
 import { localName } from '@/utils/i18nName';
@@ -40,6 +49,14 @@ import { localName } from '@/utils/i18nName';
 // ─── State type ───────────────────────────────────────────────────────────────
 
 type AttendanceState = 'skeleton' | 'loaded' | 'empty' | 'error' | 'offline' | 'session';
+
+// Composite offline cache: per-subject aggregates + individual absence records
+// + the hours-based overall summary.
+interface CachedAttendance {
+  subjects: Attendance[];
+  absences: AbsenceRecord[];
+  summary: AttendanceSummary | null;
+}
 
 // ─── DEV switcher ─────────────────────────────────────────────────────────────
 
@@ -215,47 +232,98 @@ export default function AttendanceScreen() {
 
   const studentId = useAuthStore.getState().student?.id ?? 'me';
 
-  // Fresh API absences (not stored in SQLite cache)
-  const [freshAbsences, setFreshAbsences] = useState<Record<string, AbsenceRecord[]>>({});
-
   // ─── Offline query ──────────────────────────────────────────────────────────
+  // Composite cache: per-subject aggregates + the individual absence records +
+  // the hours-based overall summary. All three are persisted to SQLite so a cold
+  // offline launch renders the last-synced data (no empty state, no lost list).
 
-  const hook = useOfflineQuery<Attendance[]>({
+  const hook = useOfflineQuery<CachedAttendance>({
     cacheKey: 'attendance',
     getCached: async () => {
-      const cached = await getCachedAttendance();
-      return cached.length > 0 ? cached : null;
+      const subjects = await getCachedAttendance();
+      if (subjects.length === 0) return null;
+      const [absences, summary] = await Promise.all([
+        getCachedAbsences(),
+        getCachedAttendanceSummary(),
+      ]);
+      return { subjects, absences, summary };
     },
     fetchFresh: async () => {
       const res = await getAttendanceApi();
-      // Capture absences from the API response (not cacheable in SQLite)
-      const absMap: Record<string, AbsenceRecord[]> = {};
-      for (const s of res.subjects) {
-        if (s.absences && s.absences.length > 0) {
-          absMap[s.subject.code] = s.absences;
-        }
-      }
-      setFreshAbsences(absMap);
-      return mapAttendanceToCache(res.subjects, studentId);
+
+      // Per-subject aggregates.
+      await upsertAttendance(mapAttendanceToCache(res.subjects, studentId));
+
+      // Individual absence records, each tagged with its subject code.
+      const absences: AbsenceRecord[] = res.subjects.flatMap((s) =>
+        s.absences.map((a) => ({ ...a, subjectCode: s.subject.code })),
+      );
+      await upsertAbsences(studentId, absences);
+
+      // Overall summary (hours-based percentage). `overall` is null with no sem.
+      const o = res.overall;
+      await upsertAttendanceSummary({
+        studentId,
+        percentage: o?.percentage ?? 0,
+        total: o?.total ?? 0,
+        present: o?.present ?? 0,
+        absent: o?.absent ?? 0,
+        justified: o?.justified ?? 0,
+        partial: o?.partial ?? 0,
+        cachedAt: new Date().toISOString(),
+      });
+
+      // Re-read the canonical composite from SQLite.
+      const subjects = await getCachedAttendance();
+      const [cachedAbsences, summary] = await Promise.all([
+        getCachedAbsences(),
+        getCachedAttendanceSummary(),
+      ]);
+      return { subjects, absences: cachedAbsences, summary };
     },
-    updateCache: (data) => upsertAttendance(data),
+    updateCache: () => Promise.resolve(),
   });
 
-  // ─── Reconstruct AttendanceApiResponse from cached Attendance[] ─────────────
+  // ─── Reconstruct AttendanceApiResponse from the composite cache ─────────────
 
   const attendanceData: AttendanceApiResponse | null = useMemo(() => {
-    const items = hook.data;
-    if (!items || items.length === 0) return null;
-    const totalPresent = items.reduce((s, a) => s + a.sessionsPresent, 0);
-    const totalSessions = items.reduce((s, a) => s + a.sessionsTotal, 0);
-    const overallPct = totalSessions > 0 ? Math.round(totalPresent / totalSessions * 100) : 0;
+    const cache = hook.data;
+    if (!cache || cache.subjects.length === 0) return null;
+
+    // Group cached absence records back under their subject code.
+    const absByCode: Record<string, AbsenceRecord[]> = {};
+    for (const a of cache.absences) {
+      const code = a.subjectCode ?? '';
+      (absByCode[code] ??= []).push(a);
+    }
+
+    const s = cache.summary;
+    const overall: AttendanceOverall = s
+      ? {
+          percentage: s.percentage,
+          total: s.total,
+          present: s.present,
+          absent: s.absent,
+          justified: s.justified,
+          partial: s.partial,
+        }
+      : // Fallback for a cache written before the summary row existed.
+        (() => {
+          const total = cache.subjects.reduce((n, a) => n + a.sessionsTotal, 0);
+          const present = cache.subjects.reduce((n, a) => n + a.sessionsPresent, 0);
+          return {
+            percentage: 0,
+            total,
+            present,
+            absent: total - present,
+            justified: 0,
+            partial: 0,
+          };
+        })();
+
     return {
-      overall: {
-        percentage: overallPct,
-        absent: totalSessions - totalPresent,
-        total: totalSessions,
-      },
-      subjects: items.map((a): AttendanceSubject => ({
+      overall,
+      subjects: cache.subjects.map((a): AttendanceSubject => ({
         subject: {
           id: a.id,
           nameFr: a.subjectName,
@@ -266,15 +334,16 @@ export default function AttendanceScreen() {
         present: a.sessionsPresent,
         absent: a.sessionsTotal - a.sessionsPresent,
         justified: 0,
+        partial: 0,
         percentage: a.percentage,
-        absences: freshAbsences[a.subjectCode] ?? [],
+        absences: absByCode[a.subjectCode] ?? [],
       })),
     };
-  }, [hook.data, freshAbsences]);
+  }, [hook.data]);
 
   const remainingByCode = useMemo(() => {
     const out: Record<string, number> = {};
-    for (const a of hook.data ?? []) {
+    for (const a of hook.data?.subjects ?? []) {
       out[a.subjectCode] = a.sessionsRemaining;
     }
     return out;
@@ -291,14 +360,21 @@ export default function AttendanceScreen() {
   const hookState: AttendanceState = useMemo(() => {
     if (hook.isLoading && !hook.data) return 'skeleton';
     if (hook.isOffline && hook.data) return 'offline';
-    if (hook.data) return hook.data.length === 0 && !hook.isStale ? 'empty' : 'loaded';
+    if (hook.data) return hook.data.subjects.length === 0 && !hook.isStale ? 'empty' : 'loaded';
     if (hook.error) return 'error';
     return 'skeleton';
   }, [hook.isLoading, hook.data, hook.isOffline, hook.error, hook.isStale]);
 
   const screenState = devState ?? hookState;
 
-  const overall = attendanceData?.overall ?? { percentage: 0, absent: 0, total: 0 };
+  const overall = attendanceData?.overall ?? {
+    percentage: 0,
+    total: 0,
+    present: 0,
+    absent: 0,
+    justified: 0,
+    partial: 0,
+  };
 
   const showCards =
     screenState === 'loaded' ||

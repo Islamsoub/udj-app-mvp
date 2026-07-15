@@ -584,6 +584,8 @@
     "status_pending": "En attente",
     "status_approved": "Approuvé",
     "status_rejected": "Rejeté",
+    "partial": "Partiel",
+    "hoursAttended": "{{hours}}h/{{total}}h",
     "justify": "Justifier",
     "confirm_send": "Envoyer le justificatif",
     "confirm_title": "Confirmer l'envoi",
