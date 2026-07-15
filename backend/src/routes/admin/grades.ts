@@ -11,11 +11,11 @@ import { createNotification } from '../../utils/notify';
 
 const router = Router();
 
-const ALL_ROLES: AdminRole[] = [
+// Grade data is off-limits to NEWS_EDITOR; only these roles may read it.
+const READ_ROLES: AdminRole[] = [
   AdminRole.SUPER_ADMIN,
-  AdminRole.FACULTY_ADMIN,
   AdminRole.REGISTRAR,
-  AdminRole.NEWS_EDITOR,
+  AdminRole.FACULTY_ADMIN,
 ];
 const WRITE_ROLES: AdminRole[] = [AdminRole.SUPER_ADMIN, AdminRole.REGISTRAR];
 
@@ -40,7 +40,7 @@ async function assertGradeScope(req: Request, subjectId: string): Promise<void> 
 
 // ─── GET /admin/grades ───────────────────────────────────────────────────────
 // Filter by subject, semester, student.
-router.get('/', adminAuth, rbac(...ALL_ROLES), async (req, res, next) => {
+router.get('/', adminAuth, rbac(...READ_ROLES), async (req, res, next) => {
   try {
     const { subject, semester, student } = req.query as Record<string, string | undefined>;
     const where: Prisma.GradeWhereInput = {

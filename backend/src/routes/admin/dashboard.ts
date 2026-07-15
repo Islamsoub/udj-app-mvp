@@ -8,18 +8,18 @@ import { mentionFor } from '../../utils/adminHelpers';
 
 const router = Router();
 
-const ALL_ROLES: AdminRole[] = [
+// Dashboard aggregates student/grade/attendance data, off-limits to NEWS_EDITOR.
+const READ_ROLES: AdminRole[] = [
   AdminRole.SUPER_ADMIN,
-  AdminRole.FACULTY_ADMIN,
   AdminRole.REGISTRAR,
-  AdminRole.NEWS_EDITOR,
+  AdminRole.FACULTY_ADMIN,
 ];
 
 // ─── GET /admin/dashboard/stats ──────────────────────────────────────────────
 router.get(
   '/stats',
   adminAuth,
-  rbac(...ALL_ROLES),
+  rbac(...READ_ROLES),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const studentWhere = facultyScopeWhere(req, ['programme']) as Prisma.StudentWhereInput;
@@ -153,7 +153,7 @@ router.get(
 router.get(
   '/recent-activity',
   adminAuth,
-  rbac(...ALL_ROLES),
+  rbac(...READ_ROLES),
   async (_req: Request, res: Response, next: NextFunction) => {
     try {
       const logs = await prisma.auditLog.findMany({

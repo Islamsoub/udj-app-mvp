@@ -11,6 +11,10 @@ import { hashToken } from '../utils/hash';
 
 const router = Router();
 
+// Pre-computed bcrypt hash (cost 12) used to equalize response time when an
+// account is not found, so login timing can't be used to enumerate accounts.
+const DUMMY_HASH = '$2b$12$LJ3m4ys3Lf0YOm/.0RqRC.6TYnKLkRFMGpdVHw1P6W5yBxJvzNDtC';
+
 router.use(authRateLimiter);
 
 const loginSchema = z.object({
@@ -53,6 +57,8 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
     });
 
     if (!student) {
+      // Equalize timing vs. the found-account path (which runs bcrypt.compare).
+      await bcrypt.compare(password, DUMMY_HASH);
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }

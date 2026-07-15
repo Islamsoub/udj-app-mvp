@@ -9,13 +9,6 @@ import { audit } from '../../middleware/auditLog';
 
 const router = Router();
 
-const ALL_ROLES: AdminRole[] = [
-  AdminRole.SUPER_ADMIN,
-  AdminRole.FACULTY_ADMIN,
-  AdminRole.REGISTRAR,
-  AdminRole.NEWS_EDITOR,
-];
-
 // Ensures the singleton settings row exists, then returns it.
 async function getOrCreateSettings() {
   return prisma.systemSettings.upsert({
@@ -27,7 +20,7 @@ async function getOrCreateSettings() {
 
 // ─── GET /admin/settings ─────────────────────────────────────────────────────
 // Returns the full singleton row, which now includes justificationDeadlineDays.
-router.get('/', adminAuth, rbac(...ALL_ROLES), async (_req, res, next) => {
+router.get('/', adminAuth, rbac(AdminRole.SUPER_ADMIN), async (_req, res, next) => {
   try {
     const settings = await getOrCreateSettings();
     res.status(200).json(settings);

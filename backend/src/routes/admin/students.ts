@@ -22,11 +22,11 @@ import { BCRYPT_COST } from '../../config/adminEnv';
 
 const router = Router();
 
-const ALL_ROLES: AdminRole[] = [
+// Student PII is off-limits to NEWS_EDITOR; only these roles may read it.
+const READ_ROLES: AdminRole[] = [
   AdminRole.SUPER_ADMIN,
-  AdminRole.FACULTY_ADMIN,
   AdminRole.REGISTRAR,
-  AdminRole.NEWS_EDITOR,
+  AdminRole.FACULTY_ADMIN,
 ];
 const WRITE_ROLES: AdminRole[] = [AdminRole.SUPER_ADMIN, AdminRole.REGISTRAR];
 
@@ -61,7 +61,7 @@ function computePresence(
 router.get(
   '/',
   adminAuth,
-  rbac(...ALL_ROLES),
+  rbac(...READ_ROLES),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { search, faculty, programme, semester, status, gpaMin } = req.query as Record<
@@ -154,7 +154,7 @@ router.get(
 router.get(
   '/:id',
   adminAuth,
-  rbac(...ALL_ROLES),
+  rbac(...READ_ROLES),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const student = await prisma.student.findUnique({

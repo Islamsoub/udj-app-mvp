@@ -50,6 +50,8 @@ function redact(entity: unknown): unknown {
   delete clone.passwordHash;
   delete clone.password_hash;
   delete clone.tokenHash;
+  delete clone.newPassword;
+  delete clone.password;
   return clone;
 }
 

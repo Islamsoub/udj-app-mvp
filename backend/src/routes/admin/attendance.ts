@@ -21,11 +21,11 @@ import {
 
 const router = Router();
 
-const ALL_ROLES: AdminRole[] = [
+// Attendance data is off-limits to NEWS_EDITOR; only these roles may read it.
+const READ_ROLES: AdminRole[] = [
   AdminRole.SUPER_ADMIN,
-  AdminRole.FACULTY_ADMIN,
   AdminRole.REGISTRAR,
-  AdminRole.NEWS_EDITOR,
+  AdminRole.FACULTY_ADMIN,
 ];
 
 async function assertAttendanceScope(req: Request, subjectId: string): Promise<void> {
@@ -48,7 +48,7 @@ function formatSessionDate(d: Date): string {
 
 // ─── GET /admin/attendance ───────────────────────────────────────────────────
 // Overview + pending justification count. Filter by subject, student, status.
-router.get('/', adminAuth, rbac(...ALL_ROLES), async (req, res, next) => {
+router.get('/', adminAuth, rbac(...READ_ROLES), async (req, res, next) => {
   try {
     const { subject, student, status } = req.query as Record<string, string | undefined>;
     const where: Prisma.AttendanceRecordWhereInput = {
@@ -90,7 +90,7 @@ router.get('/', adminAuth, rbac(...ALL_ROLES), async (req, res, next) => {
 // ─── GET /admin/attendance/overview ──────────────────────────────────────────
 // Programme-level table (architecture doc §4.7): per subject → sessions, class
 // average (hours-based), students at risk. Threshold from SystemSettings.
-router.get('/overview', adminAuth, rbac(...ALL_ROLES), async (req, res, next) => {
+router.get('/overview', adminAuth, rbac(...READ_ROLES), async (req, res, next) => {
   try {
     const programmeId = (req.query.programmeId as string | undefined) ?? '';
     if (!programmeId) throw new AppError('programmeId requis', 400);
@@ -217,7 +217,7 @@ router.get('/overview', adminAuth, rbac(...ALL_ROLES), async (req, res, next) =>
 });
 
 // ─── GET /admin/attendance/pending-justifications ────────────────────────────
-router.get('/pending-justifications', adminAuth, rbac(...ALL_ROLES), async (req, res, next) => {
+router.get('/pending-justifications', adminAuth, rbac(...READ_ROLES), async (req, res, next) => {
   try {
     const where: Prisma.AttendanceRecordWhereInput = {
       ...(facultyScopeWhere(req, ['subject', 'programme']) as Prisma.AttendanceRecordWhereInput),

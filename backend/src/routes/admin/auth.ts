@@ -18,6 +18,10 @@ import {
 
 const router = Router();
 
+// Pre-computed bcrypt hash (cost 12) used to equalize response time when an
+// account is missing/inactive, so login timing can't be used to enumerate emails.
+const DUMMY_HASH = '$2b$12$LJ3m4ys3Lf0YOm/.0RqRC.6TYnKLkRFMGpdVHw1P6W5yBxJvzNDtC';
+
 // ─── Token helpers ───────────────────────────────────────────────────────────
 
 function signAccessToken(admin: {
@@ -71,6 +75,8 @@ router.post('/login', authRateLimiter, async (req: Request, res: Response, next:
 
     // Uniform 401 whether the account is missing or inactive.
     if (!admin || !admin.isActive) {
+      // Equalize timing vs. the found-account path (which runs bcrypt.compare).
+      await bcrypt.compare(password, DUMMY_HASH);
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
