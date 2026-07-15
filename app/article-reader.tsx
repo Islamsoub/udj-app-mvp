@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { PressBox } from '@/components/PressBox';
 import { LinearGradient } from 'expo-linear-gradient';
-import { isAxiosError } from 'axios';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -21,15 +20,17 @@ import { getNewsCategoryColors } from '@/constants/colorMap';
 import { ArticleReaderHeader } from '@/components/news/ArticleReaderHeader';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
-import { getNewsArticle, NewsArticleDetail } from '@/services/api';
+import { getNewsArticle, NewsItem } from '@/services/api';
+import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { isValidUUID } from '@/utils/validate';
-import { isArticleBookmarked, toggleNewsBookmark } from '@/services/db';
+import { getCachedArticle, upsertArticle, toggleNewsBookmark } from '@/services/db';
+import { mapArticleDetailToCache } from '@/services/cacheMappers';
 import { localTitle, localBody } from '@/utils/i18nName';
 import type { ArticleCategory } from '@/components/news/ArticleCard';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ArticleReaderState = 'loaded' | 'skeleton' | 'error' | 'offline';
+type ArticleReaderState = 'loaded' | 'skeleton' | 'error' | 'offline' | 'offlineEmpty';
 
 interface ArticleData {
   id: string;
@@ -42,22 +43,13 @@ interface ArticleData {
   url?: string;
 }
 
-// ─── Mock data (fallback for dev / DevSwitcher) ───────────────────────────────
+// ─── Cached article → ArticleData mapper ──────────────────────────────────────
+// The reader renders exclusively from the SQLite cache (populated by the offline
+// query below), so the same mapper serves both the online and offline paths —
+// there is no mock fallback and fabricated content can never render.
 
-const MOCK_ARTICLE: ArticleData = {
-  id: '0',
-  category: 'scolarite',
-  title: 'Inscriptions aux examens de rattrapage : ouverture des dépôts',
-  fullDate: '12 mai 2026 · 09:30',
-  author: 'Service Scolarité',
-  body:
-    "Les dépôts de dossiers pour les examens de rattrapage de la session de juin 2026 sont désormais ouverts. Tous les étudiants concernés sont invités à se présenter au service de la scolarité muni de leur carte étudiant et des pièces justificatives requises.\n\nLes dépôts se dérouleront du lundi 12 mai au vendredi 16 mai 2026, de 08h00 à 14h00 du lundi au jeudi, et de 08h00 à 11h30 le vendredi. Passé ce délai, aucun dossier ne sera accepté.\n\nPour toute question relative aux modalités d'inscription, les étudiants peuvent contacter directement le service de la scolarité ou consulter l'affichage officiel sur le tableau d'annonces de leur faculté.",
-};
-
-// ─── API response → ArticleData mapper ───────────────────────────────────────
-
-function mapArticleDetail(detail: NewsArticleDetail, lang: string): ArticleData {
-  const date = new Date(detail.publishedAt);
+function mapCachedArticle(item: NewsItem, lang: string): ArticleData {
+  const date = new Date(item.publishedAt);
   const dateStr = date.toLocaleDateString('fr-FR', {
     day: 'numeric',
     month: 'long',
@@ -68,13 +60,13 @@ function mapArticleDetail(detail: NewsArticleDetail, lang: string): ArticleData 
     minute: '2-digit',
   });
   return {
-    id: detail.id,
-    category: detail.category as ArticleCategory,
-    title: localTitle(detail, lang),
+    id: item.id,
+    category: item.category as ArticleCategory,
+    title: localTitle({ titleFr: item.title, titleAr: item.titleAr }, lang),
     fullDate: `${dateStr} · ${timeStr}`,
-    author: detail.author ?? 'Service Communication',
-    body: localBody(detail, lang),
-    heroImageUrl: detail.heroImageUrl,
+    author: item.author || 'Service Communication',
+    body: localBody({ bodyFr: item.body, bodyAr: item.bodyAr }, lang),
+    heroImageUrl: item.imageUrl,
   };
 }
 
@@ -252,6 +244,22 @@ function ErrorBody({ onRetry }: ErrorBodyProps) {
   );
 }
 
+// ─── Offline empty body (article not in cache, device offline) ────────────────
+
+function OfflineEmptyBody() {
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { t } = useTranslation();
+  return (
+    <View style={styles.errorBody}>
+      <View style={styles.errorIconCircle}>
+        <Ionicons name="cloud-offline-outline" size={32} color={colors.offline} />
+      </View>
+      <Text style={styles.errorTitle}>{t('news.offlineContent')}</Text>
+    </View>
+  );
+}
+
 // ─── Bottom action bar ────────────────────────────────────────────────────────
 
 interface BottomBarProps {
@@ -284,12 +292,13 @@ function BottomBar({ bottomInset, isBookmarked, onBookmark, onShare }: BottomBar
 
 // ─── DEV switcher ─────────────────────────────────────────────────────────────
 
-const ALL_STATES: ArticleReaderState[] = ['loaded', 'skeleton', 'error', 'offline'];
+const ALL_STATES: ArticleReaderState[] = ['loaded', 'skeleton', 'error', 'offline', 'offlineEmpty'];
 const STATE_LABELS: Record<ArticleReaderState, string> = {
   loaded: 'loaded',
   skeleton: 'loading',
   error: 'error',
   offline: 'offline',
+  offlineEmpty: 'offline-empty',
 };
 
 // ─── Main screen ──────────────────────────────────────────────────────────────
@@ -299,40 +308,58 @@ export default function ArticleReaderScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { i18n } = useTranslation();
   const lang = i18n.language;
-  const [readerState, setReaderState] = useState<ArticleReaderState>('skeleton');
-  const [articleData, setArticleData] = useState<ArticleData | null>(null);
+  const [devState, setDevState] = useState<ArticleReaderState | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const validId = isValidUUID(id);
 
-  const fetchArticle = useCallback(async (articleId: string) => {
-    setReaderState('skeleton');
-    try {
-      const [detail, bookmarked] = await Promise.all([
-        getNewsArticle(articleId),
-        isArticleBookmarked(articleId),
-      ]);
-      setArticleData(mapArticleDetail(detail, lang));
-      setIsBookmarked(bookmarked);
-      setReaderState('loaded');
-    } catch (err: unknown) {
-      if (isAxiosError(err)) {
-        if (!err.response) setReaderState('offline');
-        else setReaderState('error');
-      } else {
-        setReaderState('error');
-      }
-    }
-  }, [lang]);
-
+  // Malformed deep link → bounce back rather than query a bad id.
   useEffect(() => {
-    if (!isValidUUID(id)) {
-      router.back();
-      return;
-    }
-    fetchArticle(id);
-  }, [id, fetchArticle, router]);
+    if (!validId) router.back();
+  }, [validId, router]);
+
+  // ─── Offline-first article load (same stale-while-revalidate flow as every
+  // other screen). Reads the cached article, revalidates from the API when
+  // online, and caches the full bilingual body so it survives offline. ─────────
+  const hook = useOfflineQuery<NewsItem>({
+    cacheKey: `article-${id}`,
+    getCached: async () => {
+      const item = await getCachedArticle(id);
+      // A list-only row has an empty body — treat it as "not cached" so we never
+      // render a blank article, and offline correctly falls to the empty state.
+      return item && item.body ? item : null;
+    },
+    fetchFresh: async () => {
+      const detail = await getNewsArticle(id);
+      return mapArticleDetailToCache(detail);
+    },
+    updateCache: (item) => upsertArticle(item),
+    enabled: validId,
+  });
+
+  const article = useMemo<ArticleData | null>(
+    () => (hook.data ? mapCachedArticle(hook.data, lang) : null),
+    [hook.data, lang],
+  );
+
+  // Keep the bookmark toggle in sync with the cached row.
+  useEffect(() => {
+    if (hook.data) setIsBookmarked(hook.data.bookmarked);
+  }, [hook.data]);
+
+  // ─── Derive screen state ─────────────────────────────────────────────────────
+  const hookState: ArticleReaderState = useMemo(() => {
+    if (hook.isLoading && !hook.data) return 'skeleton';
+    if (hook.data) return hook.isOffline ? 'offline' : 'loaded';
+    // useOfflineQuery raises Error('offline') when there is nothing cached and
+    // the device is offline; any other error is a genuine fetch failure.
+    if (hook.error) return hook.error.message === 'offline' ? 'offlineEmpty' : 'error';
+    return 'skeleton';
+  }, [hook.isLoading, hook.data, hook.isOffline, hook.error]);
+
+  const readerState = devState ?? hookState;
 
   function handleBack() {
     router.back();
@@ -340,9 +367,9 @@ export default function ArticleReaderScreen() {
 
   async function handleShare() {
     try {
-      const deepLink = `unipocket://article/${article.id}`;
+      const deepLink = `unipocket://article/${id}`;
       await Share.share({
-        message: `${article.title}\n\n${deepLink}`,
+        message: `${article?.title ?? ''}\n\n${deepLink}`,
       });
     } catch {
       // Share dismissed or unavailable — no-op
@@ -353,14 +380,14 @@ export default function ArticleReaderScreen() {
     const next = !isBookmarked;
     setIsBookmarked(next);
     try {
-      await toggleNewsBookmark(article.id, next);
+      await toggleNewsBookmark(id, next);
     } catch {
       setIsBookmarked(!next);
     }
   }
 
-  const article = articleData ?? MOCK_ARTICLE;
-  const isError = readerState === 'error';
+  const showArticle =
+    (readerState === 'loaded' || readerState === 'offline') && article !== null;
 
   return (
     <View style={styles.root}>
@@ -371,16 +398,15 @@ export default function ArticleReaderScreen() {
         onBack={handleBack}
       />
 
-      {readerState === 'offline' && <ArticleOfflineBanner />}
+      {(readerState === 'offline' || readerState === 'offlineEmpty') && <ArticleOfflineBanner />}
 
-      {isError ? (
-        <ErrorBody onRetry={() => id && fetchArticle(id)} />
-      ) : (
+      {readerState === 'error' && <ErrorBody onRetry={() => hook.refetch()} />}
+      {readerState === 'offlineEmpty' && <OfflineEmptyBody />}
+      {readerState === 'skeleton' && <SkeletonBody />}
+
+      {showArticle && (
         <>
-          {readerState === 'skeleton' && <SkeletonBody />}
-          {(readerState === 'loaded' || readerState === 'offline') && (
-            <LoadedBody article={article} bottomInset={insets.bottom} />
-          )}
+          <LoadedBody article={article} bottomInset={insets.bottom} />
           <BottomBar
             bottomInset={insets.bottom}
             isBookmarked={isBookmarked}
@@ -394,7 +420,7 @@ export default function ArticleReaderScreen() {
         states={ALL_STATES}
         labels={STATE_LABELS}
         current={readerState}
-        onChange={setReaderState}
+        onChange={(s) => setDevState(s)}
       />
     </View>
   );

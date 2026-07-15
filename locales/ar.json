@@ -475,6 +475,7 @@
     "empty_title": "لا توجد أخبار",
     "empty_body": "عد لاحقاً لآخر الأخبار.",
     "empty_saved": "لا توجد مقالات محفوظة",
+    "offlineContent": "المحتوى غير متاح بدون اتصال",
     "mark_all_read_error": "خطأ في التحديث",
     "time_ago_days": "منذ {{n}} يوم",
     "today_at": "اليوم في {{time}}",

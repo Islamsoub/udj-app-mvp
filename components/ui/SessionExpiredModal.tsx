@@ -11,9 +11,12 @@ import { PressBox } from '@/components/PressBox';
 interface SessionExpiredModalProps {
   visible: boolean;
   onContinueOffline: () => void;
+  // When provided, overrides the default navigate-to-login behaviour (used by
+  // the app-wide instance to also clear the showSessionExpired flag first).
+  onReconnect?: () => void;
 }
 
-export function SessionExpiredModal({ visible, onContinueOffline }: SessionExpiredModalProps) {
+export function SessionExpiredModal({ visible, onContinueOffline, onReconnect }: SessionExpiredModalProps) {
   const { t } = useTranslation();
   const router = useRouter();
   const { colors } = useColors();
@@ -34,7 +37,7 @@ export function SessionExpiredModal({ visible, onContinueOffline }: SessionExpir
         <PressBox
           tier="button"
           style={styles.modalPrimaryBtn}
-          onPress={() => router.replace('/(auth)/login')}
+          onPress={onReconnect ?? (() => router.replace('/(auth)/login'))}
         >
           <Text style={styles.modalPrimaryBtnText}>{t('common.session.login')}</Text>
         </PressBox>

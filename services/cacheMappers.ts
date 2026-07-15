@@ -8,6 +8,7 @@ import type {
   ScheduleEntry,
   GradeItem,
   NewsArticleSummary,
+  NewsArticleDetail,
   AttendanceSubject,
   ApiNotification,
 } from './api';
@@ -118,6 +119,8 @@ export function mapNewsToCache(articles: NewsArticleSummary[]): NewsItem[] {
     id: a.id,
     title: a.titleFr,
     titleAr: a.titleAr,
+    // List summaries carry no body — leave empty; the reader fills body/body_ar
+    // when the full article is fetched (see mapArticleDetailToCache).
     body: '',
     category: a.category,
     publishedAt: a.publishedAt,
@@ -128,6 +131,27 @@ export function mapNewsToCache(articles: NewsArticleSummary[]): NewsItem[] {
     read: false,
     cachedAt: NOW(),
   }));
+}
+
+// Full article detail → cache row. Stores the real bilingual body + author so
+// the Article Reader can render genuine cached content offline (never a mock).
+export function mapArticleDetailToCache(detail: NewsArticleDetail): NewsItem {
+  return {
+    id: detail.id,
+    title: detail.titleFr,
+    titleAr: detail.titleAr,
+    body: detail.bodyFr,
+    bodyAr: detail.bodyAr,
+    author: detail.author,
+    category: detail.category,
+    publishedAt: detail.publishedAt,
+    readTimeMinutes: detail.readTimeMinutes,
+    isUrgent: detail.isUrgent,
+    imageUrl: detail.heroImageUrl,
+    bookmarked: false,
+    read: false,
+    cachedAt: NOW(),
+  };
 }
 
 // ─── Attendance ───────────────────────────────────────────────────────────────

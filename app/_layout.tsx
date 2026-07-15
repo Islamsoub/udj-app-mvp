@@ -16,6 +16,7 @@ import { isValidUUID } from '@/utils/validate';
 import { runMigrations } from '@/services/db';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { useColors } from '@/hooks/useColors';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import {
@@ -56,6 +57,8 @@ function RootLayout() {
   const isRTL = useSettingsStore((s) => s.isRTL);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const student = useAuthStore((s) => s.student);
+  const showSessionExpired = useAuthStore((s) => s.showSessionExpired);
+  const setShowSessionExpired = useAuthStore((s) => s.setShowSessionExpired);
   const router = useRouter();
   const { isDark } = useColors();
   useNetworkStatus();
@@ -163,6 +166,16 @@ function RootLayout() {
           <SafeAreaProvider>
             <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
             <Stack screenOptions={{ headerShown: false }} />
+            {/* App-wide session-expired prompt, triggered by the 401 interceptor
+                setting the showSessionExpired flag (services/api.ts). */}
+            <SessionExpiredModal
+              visible={showSessionExpired}
+              onReconnect={() => {
+                setShowSessionExpired(false);
+                router.replace('/(auth)/login');
+              }}
+              onContinueOffline={() => setShowSessionExpired(false)}
+            />
           </SafeAreaProvider>
         </KeyboardProvider>
       </GestureHandlerRootView>

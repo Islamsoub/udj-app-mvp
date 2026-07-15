@@ -297,6 +297,12 @@ export async function runMigrations(): Promise<void> {
   await addColumnSafe(db, 'ALTER TABLE news_cache ADD COLUMN image_url TEXT');
   await addColumnSafe(db, "ALTER TABLE news_cache ADD COLUMN title_ar TEXT NOT NULL DEFAULT ''");
 
+  // news_cache: article-detail fields (body is bilingual; author from detail).
+  // Populated when an article is opened in the reader — the news list summaries
+  // carry no body, so these stay '' until the full article is fetched once.
+  await addColumnSafe(db, "ALTER TABLE news_cache ADD COLUMN body_ar TEXT NOT NULL DEFAULT ''");
+  await addColumnSafe(db, "ALTER TABLE news_cache ADD COLUMN author TEXT NOT NULL DEFAULT ''");
+
   // student_profile: extended fields
   await addColumnSafe(db, "ALTER TABLE student_profile ADD COLUMN first_name TEXT NOT NULL DEFAULT ''");
   await addColumnSafe(db, "ALTER TABLE student_profile ADD COLUMN last_name TEXT NOT NULL DEFAULT ''");
@@ -379,6 +385,15 @@ export async function getCachedNews(limit: number, category?: string): Promise<N
         [limit],
       );
   return rows.map(rowToNews);
+}
+
+export async function getCachedArticle(id: string): Promise<NewsItem | null> {
+  const db = await getDb();
+  const row = await db.getFirstAsync<Record<string, SQLite.SQLiteBindValue>>(
+    'SELECT * FROM news_cache WHERE id = ?',
+    [id],
+  );
+  return row ? rowToNews(row) : null;
 }
 
 export async function getSavedArticles(limit: number): Promise<NewsItem[]> {
@@ -583,6 +598,52 @@ export async function upsertNews(items: NewsItem[]): Promise<void> {
       );
     }
   });
+}
+
+/**
+ * Caches a single article's full detail (bilingual body + author) without
+ * touching the rest of the news cache. Unlike upsertNews it does NOT prune
+ * other rows, and it preserves the local bookmarked/read state. Non-empty
+ * body/body_ar/author overwrite; empty incoming values leave the stored value
+ * intact (so a later list sync can't wipe a fetched body).
+ */
+export async function upsertArticle(item: NewsItem): Promise<void> {
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT INTO news_cache
+      (id, title, title_ar, body, body_ar, author, category, published_at,
+       read_time_minutes, is_urgent, image_url, bookmarked, read, cached_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+       title             = excluded.title,
+       title_ar          = excluded.title_ar,
+       category          = excluded.category,
+       published_at      = excluded.published_at,
+       read_time_minutes = excluded.read_time_minutes,
+       is_urgent         = excluded.is_urgent,
+       image_url         = excluded.image_url,
+       cached_at         = excluded.cached_at,
+       -- bookmarked and read intentionally NOT updated → preserved
+       body    = CASE WHEN excluded.body    != '' THEN excluded.body    ELSE news_cache.body    END,
+       body_ar = CASE WHEN excluded.body_ar != '' THEN excluded.body_ar ELSE news_cache.body_ar END,
+       author  = CASE WHEN excluded.author  != '' THEN excluded.author  ELSE news_cache.author  END`,
+    [
+      item.id,
+      item.title,
+      item.titleAr ?? '',
+      item.body,
+      item.bodyAr ?? '',
+      item.author ?? '',
+      item.category,
+      item.publishedAt,
+      item.readTimeMinutes,
+      item.isUrgent ? 1 : 0,
+      item.imageUrl,
+      item.bookmarked ? 1 : 0,
+      item.read ? 1 : 0,
+      item.cachedAt,
+    ],
+  );
 }
 
 export async function upsertProfile(profile: StudentProfileCache): Promise<void> {
@@ -818,6 +879,8 @@ function rowToNews(row: Record<string, SQLite.SQLiteBindValue>): NewsItem {
     title: row.title as string,
     titleAr: (row.title_ar as string | null) ?? '',
     body: row.body as string,
+    bodyAr: (row.body_ar as string | null) ?? '',
+    author: (row.author as string | null) ?? '',
     category: row.category as string,
     publishedAt: row.published_at as string,
     readTimeMinutes: (row.read_time_minutes as number | null) ?? 0,

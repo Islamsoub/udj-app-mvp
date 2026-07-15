@@ -475,6 +475,7 @@
     "empty_title": "Aucune actualité",
     "empty_body": "Revenez plus tard pour les dernières nouvelles.",
     "empty_saved": "Aucun article sauvegardé",
+    "offlineContent": "Contenu non disponible hors ligne",
     "mark_all_read_error": "Erreur lors de la mise à jour",
     "time_ago_days": "Il y a {{n}}j",
     "today_at": "Aujourd'hui à {{time}}",

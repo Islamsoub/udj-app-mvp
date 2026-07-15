@@ -101,6 +101,10 @@ export interface NewsItem {
   title: string;
   titleAr?: string;
   body: string;
+  // Arabic body + author, populated only when an article's full detail has been
+  // fetched (news list summaries carry neither). Empty until then.
+  bodyAr?: string;
+  author?: string;
   category: string;
   publishedAt: string;
   readTimeMinutes: number;
@@ -229,7 +233,10 @@ instance.interceptors.response.use(
       const storedRefresh = await SecureStore.getItemAsync(REFRESH_KEY);
       if (!storedRefresh) {
         processQueue(error);
+        // logout() resets showSessionExpired to false, so raise the flag after
+        // it to surface the app-wide SessionExpired modal.
         useAuthStore.getState().logout();
+        useAuthStore.getState().setShowSessionExpired(true);
         return Promise.reject(error);
       }
 
@@ -249,7 +256,10 @@ instance.interceptors.response.use(
     } catch (refreshErr) {
       processQueue(refreshErr);
       await SecureStore.deleteItemAsync(REFRESH_KEY);
+      // Terminal 401: the refresh failed. logout() clears the flag, so set it
+      // afterwards to trigger the app-wide SessionExpired modal.
       useAuthStore.getState().logout();
+      useAuthStore.getState().setShowSessionExpired(true);
       return Promise.reject(refreshErr);
     } finally {
       isRefreshing = false;
