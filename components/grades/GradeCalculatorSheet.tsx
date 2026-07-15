@@ -50,7 +50,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
   }
 
   function calculate() {
-    if (!subject) return;
+    if (!subject || subject.cc === null) return;
     const target = parseFloat(targetGrade);
     if (isNaN(target)) return;
     const required = (target - subject.cc * 0.4) / 0.6;
@@ -140,7 +140,7 @@ export function GradeCalculatorSheet({ visible, onClose, subjects }: Props) {
                 <Text style={styles.ccLabel}>{t('grades.calc_current_cc')}</Text>
                 <View style={styles.ccRight}>
                   <Text style={styles.ccValue}>
-                    {subject !== null ? subject.cc.toFixed(2) : '—'}
+                    {subject && subject.cc !== null ? subject.cc.toFixed(2) : '—'}
                   </Text>
                   <Text style={styles.ccSuffix}>/20</Text>
                 </View>

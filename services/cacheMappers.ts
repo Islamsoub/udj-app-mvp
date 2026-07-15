@@ -89,6 +89,8 @@ export function mapGradesToCache(
   grades: GradeItem[],
   studentId: string,
   semesterId: string,
+  ccPublished = false,
+  nfPublished = false,
 ): Grade[] {
   return grades.map((g) => ({
     id: g.id,
@@ -97,11 +99,14 @@ export function mapGradesToCache(
     subjectName: g.subject.nameFr,
     subjectNameAr: g.subject.nameAr,
     semester: semesterId,
+    // Preserve null — a missing/unpublished score must not become 0.
     ccScore: g.noteCc,
     examScore: g.noteCf,
     finalScore: g.noteFinale,
     coefficient: g.subject.coefficient,
     passed: g.isValidated,
+    ccPublished,
+    nfPublished,
     cachedAt: NOW(),
   }));
 }

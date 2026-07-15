@@ -8,10 +8,14 @@ import { useColors } from '@/hooks/useColors';
 export interface Subject {
   id: string;
   name: string;
-  cc: number;
-  exam: number;
+  cc: number | null;
+  exam: number | null;
   coef: number;
-  finale: number;
+  finale: number | null;
+  // Publication phase (Pass C dual-publish). When NF is not yet published the
+  // CF/NF scores are null and must render as "pending", never as 0.
+  ccPublished?: boolean;
+  nfPublished?: boolean;
 }
 
 type SubjectLevel = 'validated' | 'borderline' | 'atRisk';
@@ -42,23 +46,43 @@ interface SubjectCardProps {
   subject: Subject;
 }
 
+const DASH = '—';
+
 export function SubjectCard({ subject }: SubjectCardProps) {
   const { t } = useTranslation();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const level = getSubjectLevel(subject.finale);
-  const levelColor = getLevelColor(level, colors);
-  const pill = getLevelPill(level, colors);
-  const isAtRisk = subject.finale < 10;
 
-  const pillLabel =
-    level === 'validated'
-      ? t('grades.status_validated')
-      : level === 'borderline'
-      ? t('grades.status_borderline')
-      : t('grades.status_at_risk');
+  // NF is available once the final result is published (backend masks it to
+  // null during the CC-only window). Everything risk-related keys off this so
+  // a pending grade never reads as "0.00 à risque".
+  const nfAvailable = subject.finale !== null;
+  const level = nfAvailable ? getSubjectLevel(subject.finale as number) : null;
+  const finaleColor = level ? getLevelColor(level, colors) : colors.textTertiary;
+  const pill = level ? getLevelPill(level, colors) : { bg: colors.surface2, fg: colors.textTertiary };
+  const isAtRisk = nfAvailable && (subject.finale as number) < 10;
 
-  const progressWidth = `${Math.min((subject.finale / 20) * 100, 100)}%`;
+  const pillLabel = !nfAvailable
+    ? t('grades.pending')
+    : level === 'validated'
+    ? t('grades.status_validated')
+    : level === 'borderline'
+    ? t('grades.status_borderline')
+    : t('grades.status_at_risk');
+
+  // Per-cell text: real value when present, "—" for a genuinely missing score,
+  // "En attente" for the CF/NF columns while NF publication is still pending.
+  const ccText = subject.cc !== null ? subject.cc.toFixed(2) : DASH;
+  const examText = !nfAvailable
+    ? t('grades.pending')
+    : subject.exam !== null
+    ? subject.exam.toFixed(2)
+    : DASH;
+  const finaleText = nfAvailable ? (subject.finale as number).toFixed(2) : t('grades.pending');
+
+  const progressWidth = nfAvailable
+    ? (`${Math.min(((subject.finale as number) / 20) * 100, 100)}%` as `${number}%`)
+    : ('0%' as `${number}%`);
 
   return (
     <View style={styles.card}>
@@ -76,38 +100,51 @@ export function SubjectCard({ subject }: SubjectCardProps) {
       <View style={styles.metricStrip}>
         <View style={styles.metricCell}>
           <Text style={styles.metricLabel}>{t('grades.subject.cc')}</Text>
-          <Text style={styles.metricValue}>{subject.cc.toFixed(2)}</Text>
+          <Text style={styles.metricValue} numberOfLines={1}>{ccText}</Text>
         </View>
         <View style={styles.metricDivider} />
         <View style={styles.metricCell}>
           <Text style={styles.metricLabel}>{t('grades.subject.exam')}</Text>
-          <Text style={styles.metricValue}>{subject.exam.toFixed(2)}</Text>
+          <Text
+            style={[styles.metricValue, !nfAvailable && styles.metricPending]}
+            numberOfLines={1}
+          >
+            {examText}
+          </Text>
         </View>
         <View style={styles.metricDivider} />
         <View style={styles.metricCell}>
           <Text style={styles.metricLabel}>{t('grades.subject.coef')}</Text>
-          <Text style={styles.metricValue}>{subject.coef}</Text>
+          <Text style={styles.metricValue} numberOfLines={1}>{subject.coef}</Text>
         </View>
         <View style={styles.metricDivider} />
         <View style={styles.metricCell}>
           <Text style={styles.metricLabel}>{t('grades.subject.finale')}</Text>
-          <Text style={[styles.metricValue, { color: levelColor }]}>
-            {subject.finale.toFixed(2)}
+          <Text
+            style={[
+              styles.metricValue,
+              nfAvailable ? { color: finaleColor } : styles.metricPending,
+            ]}
+            numberOfLines={1}
+          >
+            {finaleText}
           </Text>
         </View>
       </View>
 
-      {/* Progress bar */}
+      {/* Progress bar — empty track while NF is pending (no misleading 0%) */}
       <View style={styles.progressTrack}>
-        <View
-          style={[
-            styles.progressFill,
-            { width: progressWidth as `${number}%`, backgroundColor: levelColor },
-          ]}
-        />
+        {nfAvailable && (
+          <View
+            style={[
+              styles.progressFill,
+              { width: progressWidth, backgroundColor: finaleColor },
+            ]}
+          />
+        )}
       </View>
 
-      {/* At-risk hint */}
+      {/* At-risk hint — only once NF is published and below the pass mark */}
       {isAtRisk && (
         <View style={styles.atRiskRow}>
           <Ionicons name="alert-circle-outline" size={13} color={colors.danger} />
@@ -180,6 +217,13 @@ const makeStyles = (colors: Palette) =>
       fontFamily: fonts.mono,
       color: colors.textPrimary,
       marginTop: 3,
+    },
+    // "En attente" pending label — smaller, muted, sans (not a number/mono).
+    metricPending: {
+      fontSize: fz(11),
+      fontFamily: fonts.sans,
+      fontWeight: '600',
+      color: colors.textTertiary,
     },
     metricDivider: {
       width: 1,

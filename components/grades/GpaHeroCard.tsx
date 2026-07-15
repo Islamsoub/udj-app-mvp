@@ -15,13 +15,15 @@ interface Props {
   activeSemester: 1 | 2;
   onPress?: () => void;
   skeleton?: boolean;
+  // Final results not yet published — show a message instead of a GPA/mention.
+  pending?: boolean;
 }
 
 function toArabicIndic(n: number): string {
   return n.toString().replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[parseInt(d, 10)]);
 }
 
-export function GpaHeroCard({ gpa, credits, activeSemester, onPress, skeleton }: Props) {
+export function GpaHeroCard({ gpa, credits, activeSemester, onPress, skeleton, pending }: Props) {
   const { t, i18n } = useTranslation();
   const { colors } = useColors();
   const lang = (i18n.language === 'ar' ? 'ar' : 'fr') as 'fr' | 'ar';
@@ -65,16 +67,22 @@ export function GpaHeroCard({ gpa, credits, activeSemester, onPress, skeleton }:
             {t('grades.hero_label', { semester: activeSemester })}
           </Text>
 
-          <View style={styles.gpaRow}>
-            <Text style={styles.gpaValue}>{gpaText}</Text>
-            <Text style={styles.gpaSuffix}>/20</Text>
-          </View>
+          {pending ? (
+            <Text style={styles.pendingText}>{t('grades.gpaPending')}</Text>
+          ) : (
+            <>
+              <View style={styles.gpaRow}>
+                <Text style={styles.gpaValue}>{gpaText}</Text>
+                <Text style={styles.gpaSuffix}>/20</Text>
+              </View>
 
-          {mention !== null && mc !== null && (
-            <View style={styles.mentionBadge}>
-              <View style={[styles.mentionDot, { backgroundColor: mc.dot }]} />
-              <Text style={styles.mentionText}>{mention}</Text>
-            </View>
+              {mention !== null && mc !== null && (
+                <View style={styles.mentionBadge}>
+                  <View style={[styles.mentionDot, { backgroundColor: mc.dot }]} />
+                  <Text style={styles.mentionText}>{mention}</Text>
+                </View>
+              )}
+            </>
           )}
 
           <Text style={styles.creditsLabel}>
@@ -136,6 +144,15 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     marginTop: spacing.sp6,
     gap: spacing.sp4,
+  },
+  pendingText: {
+    fontSize: fz(15),
+    fontWeight: '600',
+    fontFamily: fonts.sans,
+    color: withAlpha('#FFFFFF', 0.92), // on-gradient literal
+    marginTop: spacing.sp8,
+    lineHeight: fz(21),
+    maxWidth: 260,
   },
   gpaValue: {
     fontSize: fz(42),

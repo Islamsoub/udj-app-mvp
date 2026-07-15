@@ -166,25 +166,43 @@ export default function GradesScreen() {
           });
       }
 
-      return mapGradesToCache(res.grades, studentId, res.semester.id);
+      return mapGradesToCache(
+        res.grades,
+        studentId,
+        res.semester.id,
+        res.ccPublished,
+        res.nfPublished,
+      );
     },
     updateCache: (data) => upsertGrades(data),
   });
 
   // ─── Derive subjects from cached Grade[] ────────────────────────────────────
+  // Scores stay null when unpublished — the SubjectCard renders "—"/"En attente",
+  // never a fabricated 0.00.
 
   const subjects: Subject[] = useMemo(
     () =>
       (hook.data ?? []).map((g) => ({
         id: g.id,
         name: localName({ nameFr: g.subjectName, nameAr: g.subjectNameAr }, lang),
-        cc: g.ccScore ?? 0,
-        exam: g.examScore ?? 0,
+        cc: g.ccScore,
+        exam: g.examScore,
         coef: g.coefficient,
-        finale: g.finalScore ?? 0,
+        finale: g.finalScore,
+        ccPublished: g.ccPublished,
+        nfPublished: g.nfPublished,
       })),
     [hook.data, lang],
   );
+
+  // Final results are published once the response says so (fresh fetch) or any
+  // cached grade carries an NF score / flag (offline). Drives the GPA-pending
+  // message and gates the mention badge.
+  const nfPublished = useMemo(() => {
+    if (gradesData) return gradesData.nfPublished ?? gradesData.gpa !== null;
+    return (hook.data ?? []).some((g) => g.nfPublished ?? g.finalScore !== null);
+  }, [gradesData, hook.data]);
 
   const gpaChartData = useMemo<GPADataPoint[]>(() => {
     let real: GPADataPoint[] = allSemesterData
@@ -248,6 +266,12 @@ export default function GradesScreen() {
     gradesState === 'loaded' || gradesState === 'offline'
       ? (gradesData?.credits ?? null)
       : null;
+
+  // Show the "moyenne après résultats finaux" message instead of a GPA when the
+  // semester's final results aren't published yet (grades exist, just CC-only).
+  const heroPending =
+    (gradesState === 'loaded' || gradesState === 'offline' || gradesState === 'session') &&
+    !nfPublished;
 
   // ─── Scroll shadow ──────────────────────────────────────────────────────────
 
@@ -339,6 +363,7 @@ export default function GradesScreen() {
             gpa={headerGpa}
             credits={headerCredits}
             activeSemester={activeSemester}
+            pending={heroPending}
             onPress={() => setGpaHistoryVisible(true)}
           />
         )}

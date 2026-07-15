@@ -280,6 +280,11 @@ export async function runMigrations(): Promise<void> {
   await addColumnSafe(db, "ALTER TABLE grades ADD COLUMN subject_name TEXT NOT NULL DEFAULT ''");
   await addColumnSafe(db, "ALTER TABLE grades ADD COLUMN subject_name_ar TEXT NOT NULL DEFAULT ''");
 
+  // grades: dual-publish markers (Pass C). Nullable timestamps — a non-null
+  // value means that phase is published; null means still pending.
+  await addColumnSafe(db, 'ALTER TABLE grades ADD COLUMN published_cc_at TEXT');
+  await addColumnSafe(db, 'ALTER TABLE grades ADD COLUMN published_nf_at TEXT');
+
   // attendance: subject_name, subject_name_ar, sessions_remaining, percentage
   await addColumnSafe(db, "ALTER TABLE attendance ADD COLUMN subject_name TEXT NOT NULL DEFAULT ''");
   await addColumnSafe(db, "ALTER TABLE attendance ADD COLUMN subject_name_ar TEXT NOT NULL DEFAULT ''");
@@ -510,8 +515,8 @@ export async function upsertGrades(items: Grade[]): Promise<void> {
       await db.runAsync(
         `INSERT INTO grades
           (id, student_id, subject_code, subject_name, subject_name_ar, semester, cc_score,
-           exam_score, final_score, coefficient, passed, cached_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           exam_score, final_score, coefficient, passed, published_cc_at, published_nf_at, cached_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           item.id,
           item.studentId,
@@ -519,11 +524,16 @@ export async function upsertGrades(items: Grade[]): Promise<void> {
           item.subjectName,
           item.subjectNameAr ?? '',
           item.semester,
+          // null scores bind as SQL NULL — never coerced to 0.
           item.ccScore,
           item.examScore,
           item.finalScore,
           item.coefficient,
           item.passed ? 1 : 0,
+          // Presence encodes the publication flag; we only hold booleans, so
+          // stamp the sync time when published and leave NULL when pending.
+          item.ccPublished ? item.cachedAt : null,
+          item.nfPublished ? item.cachedAt : null,
           item.cachedAt,
         ],
       );
@@ -796,6 +806,8 @@ function rowToGrade(row: Record<string, SQLite.SQLiteBindValue>): Grade {
     finalScore: row.final_score as number | null,
     coefficient: row.coefficient as number,
     passed: (row.passed as number) === 1,
+    ccPublished: (row.published_cc_at as string | null) != null,
+    nfPublished: (row.published_nf_at as string | null) != null,
     cachedAt: row.cached_at as string,
   };
 }

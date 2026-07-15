@@ -76,6 +76,9 @@ export interface Grade {
   finalScore: number | null;
   coefficient: number;
   passed: boolean;
+  // Dual-publish phase (Pass C). CF/NF scores stay null until nfPublished.
+  ccPublished?: boolean;
+  nfPublished?: boolean;
   cachedAt: string;
 }
 
@@ -287,6 +290,9 @@ export interface GradesResponse {
   gpa: number | null;
   mention: string | null;
   credits: { earned: number; total: number };
+  // Publication phase for this semester. CF/NF are masked null until nfPublished.
+  ccPublished?: boolean;
+  nfPublished?: boolean;
   grades: GradeItem[];
 }
 

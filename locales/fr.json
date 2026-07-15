@@ -220,6 +220,10 @@
     "status_borderline": "Limite",
     "status_at_risk": "À Risque",
     "at_risk_hint": "Sous la moyenne",
+    "pending": "En attente",
+    "gpaPending": "Moyenne disponible après les résultats finaux",
+    "ccPublished": "Notes CC publiées",
+    "nfPublished": "Résultats finaux publiés",
     "session": {
       "title": "Session expirée",
       "body": "Votre session a expiré pour des raisons de sécurité. Reconnectez-vous pour continuer.",
