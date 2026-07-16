@@ -65,11 +65,16 @@ export interface Pagination {
   take: number;
 }
 
+// Cap high enough to return a full class roster in one page. The admin grade-entry
+// and attendance-session screens request pageSize=200; a lower cap silently dropped
+// students beyond it. 500 accommodates any realistic class size.
+const MAX_PAGE_SIZE = 500;
+
 /** Parses ?page & ?pageSize (default 20 rows/page per UI specs §8). */
 export function parsePagination(query: Record<string, unknown>, defaultSize = 20): Pagination {
   const page = Math.max(1, parseInt(String(query.page ?? '1'), 10) || 1);
   const pageSize = Math.min(
-    100,
+    MAX_PAGE_SIZE,
     Math.max(1, parseInt(String(query.pageSize ?? String(defaultSize)), 10) || defaultSize)
   );
   return { page, pageSize, skip: (page - 1) * pageSize, take: pageSize };

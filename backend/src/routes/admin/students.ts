@@ -4,7 +4,6 @@ import { z } from 'zod';
 import {
   Prisma,
   StudentStatus,
-  AttendanceStatus,
   AdminRole,
 } from '@prisma/client';
 import prisma from '../../utils/prisma';
@@ -18,6 +17,12 @@ import {
   MATRICULE_REGEX,
   EMAIL_REGEX,
 } from '../../utils/adminHelpers';
+import {
+  buildSessionHoursResolver,
+  hoursBasedPercentage,
+  AttendanceInput,
+  SessionHoursResolver,
+} from '../../utils/attendance';
 import { BCRYPT_COST } from '../../config/adminEnv';
 
 const router = Router();
@@ -45,14 +50,30 @@ function computeGpa(grades: GradeForGpa[]): number | null {
   return Math.round((num / den) * 100) / 100;
 }
 
+// Hours-based presence (architecture doc §4.3), shared with GET /student/attendance
+// and GET /admin/attendance/overview so all three surfaces report the same figure.
 function computePresence(
-  records: { status: AttendanceStatus }[]
+  records: AttendanceInput[],
+  resolveHours: SessionHoursResolver
 ): number | null {
-  if (records.length === 0) return null;
-  const present = records.filter(
-    (r) => r.status === AttendanceStatus.PRESENT || r.status === AttendanceStatus.JUSTIFIED
-  ).length;
-  return Math.round((present / records.length) * 100);
+  return hoursBasedPercentage(records, resolveHours);
+}
+
+// Builds a session-hours resolver covering every subject referenced by the given
+// students' attendance records — loaded once so the list maps in memory.
+async function buildPresenceResolver(
+  students: { attendanceRecords: { subjectId: string }[] }[]
+): Promise<SessionHoursResolver> {
+  const subjectIds = [
+    ...new Set(students.flatMap((s) => s.attendanceRecords.map((r) => r.subjectId))),
+  ];
+  const slots = subjectIds.length
+    ? await prisma.scheduleEntry.findMany({
+        where: { subjectId: { in: subjectIds } },
+        select: { subjectId: true, dayOfWeek: true, startTime: true, endTime: true },
+      })
+    : [];
+  return buildSessionHoursResolver(slots);
 }
 
 // ─── GET /admin/students ─────────────────────────────────────────────────────
@@ -91,10 +112,15 @@ router.get(
       const include = {
         programme: { include: { faculty: { select: { id: true, nameFr: true, code: true } } } },
         grades: { select: { noteFinale: true, subject: { select: { coefficient: true } } } },
-        attendanceRecords: { select: { status: true } },
+        attendanceRecords: {
+          select: { subjectId: true, sessionDate: true, status: true, hoursAttended: true },
+        },
       } satisfies Prisma.StudentInclude;
 
-      const shapeRow = (s: Prisma.StudentGetPayload<{ include: typeof include }>) => ({
+      const shapeRow = (
+        s: Prisma.StudentGetPayload<{ include: typeof include }>,
+        resolveHours: SessionHoursResolver
+      ) => ({
         id: s.id,
         matricule: s.studentIdDisplay,
         firstName: s.firstName,
@@ -111,14 +137,17 @@ router.get(
           faculty: s.programme.faculty,
         },
         gpa: computeGpa(s.grades),
-        presence: computePresence(s.attendanceRecords),
+        presence: computePresence(s.attendanceRecords, resolveHours),
       });
 
       if (gpaMinNum != null) {
         // GPA is computed, so filter/paginate in memory (dataset is small —
         // ~hundreds of students). Documented tradeoff vs. a SQL view.
         const all = await prisma.student.findMany({ where, include, orderBy: { lastName: 'asc' } });
-        const rows = all.map(shapeRow).filter((r) => r.gpa != null && r.gpa >= gpaMinNum);
+        const resolveHours = await buildPresenceResolver(all);
+        const rows = all
+          .map((s) => shapeRow(s, resolveHours))
+          .filter((r) => r.gpa != null && r.gpa >= gpaMinNum);
         const total = rows.length;
         const start = (page - 1) * pageSize;
         res.status(200).json({
@@ -139,8 +168,9 @@ router.get(
         }),
       ]);
 
+      const resolveHours = await buildPresenceResolver(students);
       res.status(200).json({
-        data: students.map(shapeRow),
+        data: students.map((s) => shapeRow(s, resolveHours)),
         pagination: { page, pageSize, total, totalPages: Math.ceil(total / pageSize) },
       });
     } catch (err) {
@@ -187,6 +217,15 @@ router.get(
         orderBy: [{ dayOfWeek: 'asc' }, { startTime: 'asc' }],
       });
 
+      const resolveHours = buildSessionHoursResolver(
+        schedule.map((e) => ({
+          subjectId: e.subjectId,
+          dayOfWeek: e.dayOfWeek,
+          startTime: e.startTime,
+          endTime: e.endTime,
+        }))
+      );
+
       res.status(200).json({
         id: student.id,
         matricule: student.studentIdDisplay,
@@ -200,7 +239,7 @@ router.get(
         programme: student.programme,
         faculty: student.programme.faculty,
         gpa: computeGpa(student.grades),
-        presence: computePresence(student.attendanceRecords),
+        presence: computePresence(student.attendanceRecords, resolveHours),
         grades: student.grades,
         attendance: student.attendanceRecords,
         schedule,

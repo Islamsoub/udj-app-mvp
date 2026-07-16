@@ -114,6 +114,7 @@ model Student {
   qrTokens            QrToken[]
   refreshTokens       RefreshToken[]
 
+  @@index([programmeId])
   @@map("students")
 }
 
@@ -175,6 +176,7 @@ model Grade {
   semester    Semester  @relation(fields: [semesterId], references: [id])
 
   @@unique([studentId, subjectId, semesterId])
+  @@index([subjectId, semesterId])
   @@map("grades")
 }
 
@@ -195,6 +197,7 @@ model ScheduleEntry {
   subject       Subject           @relation(fields: [subjectId], references: [id])
   semester      Semester          @relation(fields: [semesterId], references: [id])
 
+  @@index([subjectId, semesterId])
   @@map("schedule_entries")
 }
 
@@ -214,6 +217,7 @@ model AttendanceRecord {
   subject             Subject              @relation(fields: [subjectId], references: [id])
 
   @@unique([studentId, subjectId, sessionDate])
+  @@index([subjectId])
   @@map("attendance_records")
 }
 
@@ -230,6 +234,7 @@ model Notification {
   student   Student          @relation(fields: [studentId], references: [id])
 
   @@index([createdAt])
+  @@index([studentId, createdAt])
   @@map("notifications")
 }
 
@@ -288,6 +293,7 @@ model RefreshToken {
   student    Student  @relation(fields: [studentId], references: [id])
 
   @@unique([tokenHash])
+  @@index([studentId])
   @@map("refresh_tokens")
 }
 

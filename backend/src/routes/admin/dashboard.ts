@@ -1,10 +1,15 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { Prisma, StudentStatus, AttendanceStatus, JustificationStatus } from '@prisma/client';
+import { Prisma, StudentStatus, JustificationStatus } from '@prisma/client';
 import prisma from '../../utils/prisma';
 import adminAuth from '../../middleware/adminAuth';
 import { rbac, facultyScopeWhere } from '../../middleware/rbac';
 import { AdminRole } from '@prisma/client';
 import { mentionFor } from '../../utils/adminHelpers';
+import {
+  buildSessionHoursResolver,
+  hoursBasedPercentage,
+  AttendanceInput,
+} from '../../utils/attendance';
 
 const router = Router();
 
@@ -40,8 +45,7 @@ router.get(
         studentsSuspended,
         currentSemester,
         pendingJustifications,
-        attendanceTotal,
-        attendancePresent,
+        attendanceRecords,
         publishedGrades,
       ] = await Promise.all([
         prisma.student.count({ where: studentWhere }),
@@ -50,11 +54,17 @@ router.get(
         prisma.attendanceRecord.count({
           where: { ...attWhere, justificationStatus: JustificationStatus.PENDING },
         }),
-        prisma.attendanceRecord.count({ where: attWhere }),
-        prisma.attendanceRecord.count({
-          where: {
-            ...attWhere,
-            status: { in: [AttendanceStatus.PRESENT, AttendanceStatus.JUSTIFIED] },
+        // Hours-based attendance (architecture doc §4.3): pull the records and
+        // resolve session lengths from the schedule, matching GET /student/attendance
+        // and GET /admin/attendance/overview instead of session-count math.
+        prisma.attendanceRecord.findMany({
+          where: attWhere,
+          select: {
+            subjectId: true,
+            studentId: true,
+            sessionDate: true,
+            status: true,
+            hoursAttended: true,
           },
         }),
         // "Published" for GPA/distribution = final results are out (publishedNfAt).
@@ -64,6 +74,16 @@ router.get(
           select: { studentId: true, noteFinale: true },
         }),
       ]);
+
+      // Session lengths for every subject that appears in the attendance records.
+      const attSubjectIds = [...new Set(attendanceRecords.map((r) => r.subjectId))];
+      const attSlots = attSubjectIds.length
+        ? await prisma.scheduleEntry.findMany({
+            where: { subjectId: { in: attSubjectIds } },
+            select: { subjectId: true, dayOfWeek: true, startTime: true, endTime: true },
+          })
+        : [];
+      const resolveHours = buildSessionHoursResolver(attSlots);
 
       // Average GPA across published grades (/20 scale).
       const finals = publishedGrades
@@ -93,35 +113,29 @@ router.get(
         cur.count += 1;
         perStudent.set(g.studentId, cur);
       }
-      const attAgg = await prisma.attendanceRecord.groupBy({
-        by: ['studentId'],
-        where: attWhere,
-        _count: { _all: true },
-      });
-      const attPresentAgg = await prisma.attendanceRecord.groupBy({
-        by: ['studentId'],
-        where: {
-          ...attWhere,
-          status: { in: [AttendanceStatus.PRESENT, AttendanceStatus.JUSTIFIED] },
-        },
-        _count: { _all: true },
-      });
-      const presentByStudent = new Map(
-        attPresentAgg.map((a) => [a.studentId, a._count._all])
-      );
+      // Per-student hours-based attendance for the at-risk check.
+      const attByStudent = new Map<string, AttendanceInput[]>();
+      for (const r of attendanceRecords) {
+        const arr = attByStudent.get(r.studentId) ?? [];
+        arr.push({
+          subjectId: r.subjectId,
+          sessionDate: r.sessionDate,
+          status: r.status,
+          hoursAttended: r.hoursAttended,
+        });
+        attByStudent.set(r.studentId, arr);
+      }
 
       const atRiskIds = new Set<string>();
       for (const [sid, agg] of perStudent) {
         if (agg.count > 0 && agg.sum / agg.count < 10) atRiskIds.add(sid);
       }
-      for (const a of attAgg) {
-        const total = a._count._all;
-        const present = presentByStudent.get(a.studentId) ?? 0;
-        if (total > 0 && (present / total) * 100 < threshold) atRiskIds.add(a.studentId);
+      for (const [sid, recs] of attByStudent) {
+        const pct = hoursBasedPercentage(recs, resolveHours);
+        if (pct != null && pct < threshold) atRiskIds.add(sid);
       }
 
-      const attendancePercentage =
-        attendanceTotal > 0 ? Math.round((attendancePresent / attendanceTotal) * 100) : 0;
+      const attendancePercentage = hoursBasedPercentage(attendanceRecords, resolveHours) ?? 0;
 
       res.status(200).json({
         studentsCount,
