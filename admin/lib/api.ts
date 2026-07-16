@@ -11,7 +11,12 @@ import type { RefreshResponse } from './types';
  * Base URL comes from NEXT_PUBLIC_API_URL (e.g. https://udj-api.onrender.com).
  * All admin endpoints live under /admin on the backend.
  */
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+if (!BASE_URL) {
+  throw new Error(
+    'NEXT_PUBLIC_API_URL is required — set it in .env.local or your deployment environment'
+  );
+}
 
 export const api = axios.create({
   baseURL: BASE_URL,

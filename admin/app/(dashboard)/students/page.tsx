@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { ColumnDef } from '@tanstack/react-table';
 import {
@@ -21,22 +21,32 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { TextInput } from '@/components/ui/input';
 import { Tabs } from '@/components/ui/tabs';
-import { Dropdown } from '@/components/ui/select';
 import { useModal } from '@/hooks/use-modal';
 import { useStudents } from '@/hooks/queries/use-students';
-import { useProgrammes } from '@/hooks/queries/use-academics';
 import { useSettings } from '@/hooks/queries/use-settings';
+import { useScopeStore } from '@/stores/scope-store';
 import { fmt, listGradeTone, presenceTone } from '@/lib/grade-helpers';
 import { STATUS_META } from '@/lib/constants';
 import { TONE_COLORS } from '@/lib/tokens';
-import type { StudentRow } from '@/lib/types';
+import type { StudentRow, StudentStatus } from '@/lib/types';
 
 /**
- * Students list (impl spec §12, supplement §8). Client-side search, segmented
- * status filter (with computed "À risque"), advanced filters panel, sortable
- * DataTable. `?filter=risk` preselects the risk segment.
+ * Students list (impl spec §12, supplement §8). Server-side search / status /
+ * scope (Faculté→Programme from the Context Bar) / GPA filtering + pagination —
+ * TanStack Query re-fetches on any filter change via the query key. `?filter=risk`
+ * preselects the risk segment. The computed "À risque" cut isn't expressible as a
+ * backend filter, so it refines the current ACTIVE page client-side.
  */
 type Segment = 'all' | 'active' | 'risk' | 'suspended';
+
+const PAGE_SIZE = 20;
+
+const SEGMENT_STATUS: Record<Segment, StudentStatus | undefined> = {
+  all: undefined,
+  active: 'ACTIVE',
+  risk: 'ACTIVE',
+  suspended: 'SUSPENDED',
+};
 
 const GRADE_TEXT: Record<'danger' | 'amber' | 'ink', string> = {
   danger: 'text-danger',
@@ -59,20 +69,37 @@ function StudentsInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { open } = useModal();
-  const { data: page, isLoading } = useStudents({ pageSize: 100 });
-  const { data: programmes } = useProgrammes();
   const { data: settings } = useSettings();
+
+  // Faculté → Programme scope comes from the Context Bar (shared scope store).
+  const facultyId = useScopeStore((s) => s.facultyId);
+  const programmeId = useScopeStore((s) => s.programmeId);
 
   const [search, setSearch] = useState('');
   const [segment, setSegment] = useState<Segment>(
     searchParams.get('filter') === 'risk' ? 'risk' : 'all'
   );
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [programmeId, setProgrammeId] = useState<string | null>(null);
   const [gpaMin, setGpaMin] = useState(0);
+  const [pageIndex, setPageIndex] = useState(0);
 
   const threshold = settings?.attendanceThreshold ?? 75;
-  const all = useMemo(() => page?.data ?? [], [page]);
+
+  // All filtering happens server-side; changing any filter resets to page 1 and
+  // TanStack Query re-fetches (the filters are part of the query key).
+  const { data: page, isLoading } = useStudents({
+    search: search.trim() || undefined,
+    status: SEGMENT_STATUS[segment],
+    faculty: facultyId ?? undefined,
+    programme: programmeId ?? undefined,
+    gpaMin: gpaMin > 0 ? gpaMin : undefined,
+    page: pageIndex + 1,
+    pageSize: PAGE_SIZE,
+  });
+
+  useEffect(() => {
+    setPageIndex(0);
+  }, [search, segment, facultyId, programmeId, gpaMin]);
 
   const isRisk = useMemo(
     () => (s: StudentRow) =>
@@ -80,29 +107,14 @@ function StudentsInner() {
     [threshold]
   );
 
-  const counts = useMemo(
-    () => ({
-      all: all.length,
-      risk: all.filter((s) => s.status === 'ACTIVE' && isRisk(s)).length,
-      active: all.filter((s) => s.status === 'ACTIVE' && !isRisk(s)).length,
-      suspended: all.filter((s) => s.status === 'SUSPENDED').length,
-    }),
-    [all, isRisk]
-  );
+  const serverRows = useMemo(() => page?.data ?? [], [page]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return all.filter((s) => {
-      if (q && !s.name.toLowerCase().includes(q) && !s.matricule.toLowerCase().includes(q))
-        return false;
-      if (segment === 'risk' && !(s.status === 'ACTIVE' && isRisk(s))) return false;
-      if (segment === 'active' && !(s.status === 'ACTIVE' && !isRisk(s))) return false;
-      if (segment === 'suspended' && s.status !== 'SUSPENDED') return false;
-      if (programmeId && s.programme.id !== programmeId) return false;
-      if (gpaMin > 0 && (s.gpa == null || s.gpa < gpaMin)) return false;
-      return true;
-    });
-  }, [all, search, segment, programmeId, gpaMin, isRisk]);
+  // "À risque" is a computed cut the backend can't express — refine the ACTIVE
+  // page client-side. (A backend `atRisk` filter would make this fully paginable.)
+  const rows = useMemo(
+    () => (segment === 'risk' ? serverRows.filter((s) => s.status === 'ACTIVE' && isRisk(s)) : serverRows),
+    [serverRows, segment, isRisk]
+  );
 
   const columns = useMemo<ColumnDef<StudentRow, unknown>[]>(
     () => [
@@ -198,7 +210,8 @@ function StudentsInner() {
     [isRisk]
   );
 
-  const total = page?.pagination.total ?? all.length;
+  const total = page?.pagination.total ?? 0;
+  const pageCount = page?.pagination.totalPages ?? 1;
 
   return (
     <>
@@ -236,10 +249,10 @@ function StudentsInner() {
             </div>
             <Tabs<Segment>
               tabs={[
-                { key: 'all', label: 'Tous', count: counts.all },
-                { key: 'active', label: 'Actifs', count: counts.active },
-                { key: 'risk', label: 'À risque', count: counts.risk, tone: 'danger' },
-                { key: 'suspended', label: 'Suspendus', count: counts.suspended, tone: 'slate' },
+                { key: 'all', label: 'Tous' },
+                { key: 'active', label: 'Actifs' },
+                { key: 'risk', label: 'À risque', tone: 'danger' },
+                { key: 'suspended', label: 'Suspendus', tone: 'slate' },
               ]}
               active={segment}
               onChange={setSegment}
@@ -256,16 +269,7 @@ function StudentsInner() {
           </div>
 
           {filtersOpen && (
-            <div className="grid grid-cols-3 items-end gap-4 border-b border-hair bg-surface2 p-4">
-              <div>
-                <div className="mb-[7px] text-[12.5px] font-semibold text-ink2">Programme</div>
-                <Dropdown
-                  value={programmeId}
-                  onChange={setProgrammeId}
-                  options={(programmes ?? []).map((p) => ({ value: p.id, label: p.nameFr }))}
-                  placeholder="Tous"
-                />
-              </div>
+            <div className="grid grid-cols-2 items-end gap-4 border-b border-hair bg-surface2 p-4">
               <div>
                 <div className="mb-[7px] flex items-center justify-between text-[12.5px] font-semibold text-ink2">
                   <span>Moyenne minimale</span>
@@ -284,13 +288,7 @@ function StudentsInner() {
                 />
               </div>
               <div>
-                <Button
-                  kind="quiet"
-                  onClick={() => {
-                    setProgrammeId(null);
-                    setGpaMin(0);
-                  }}
-                >
+                <Button kind="quiet" onClick={() => setGpaMin(0)}>
                   Réinitialiser
                 </Button>
               </div>
@@ -299,10 +297,11 @@ function StudentsInner() {
 
           <DataTable<StudentRow>
             columns={columns}
-            data={filtered}
-            pageSize={20}
+            data={rows}
+            pageSize={PAGE_SIZE}
             onRowClick={(row) => router.push(`/students/${row.id}`)}
-            totalLabel={(_shown, totalFiltered) => `${totalFiltered} sur ${total} étudiants`}
+            serverPagination={{ pageIndex, pageCount, total, onPageChange: setPageIndex }}
+            totalLabel={(_shown, t) => `${t} étudiants`}
             emptyState={<EmptyState icon={<Users size={20} />} message="Aucun étudiant trouvé." />}
           />
         </Card>

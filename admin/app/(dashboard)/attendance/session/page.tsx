@@ -108,10 +108,15 @@ export default function SessionPage() {
 
   const onSave = async () => {
     if (!subject) return;
+    // Normalize to UTC midnight so re-saving the same day hits the same upsert
+    // key (studentId+subjectId+sessionDate) instead of creating a duplicate.
+    const normalizedDate = new Date(
+      Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+    );
     try {
       await record.mutateAsync({
         subjectId: subject.id,
-        sessionDate: date.toISOString(),
+        sessionDate: normalizedDate.toISOString(),
         records: roster.map((r) => {
           const s = statusOf(r.id);
           return s === 'PARTIAL'
