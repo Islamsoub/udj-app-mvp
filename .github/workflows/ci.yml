@@ -1,12 +1,13 @@
-﻿name: CI
+name: CI
 
 on:
   push:
-    branches: [develop, 'feature/**']
+    branches: [main, develop, admin-portal, 'feature/**']
   pull_request:
-    branches: [develop]
+    branches: [main, develop, admin-portal]
 
 jobs:
+  # Mobile app (Expo / React Native) — root tsconfig
   check:
     runs-on: ubuntu-latest
     steps:
@@ -27,3 +28,52 @@ jobs:
 
       - name: Expo doctor
         run: npx expo-doctor
+
+  # Backend API (Node.js + Express + Prisma)
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+  # Admin portal (Next.js)
+  admin:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: admin/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
