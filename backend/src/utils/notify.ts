@@ -1,5 +1,6 @@
 import { NotificationType, Prisma } from '@prisma/client';
 import prisma from './prisma';
+import { sendPushNotifications } from './push';
 
 /**
  * Creates one in-app Notification row per recipient student.
@@ -39,6 +40,16 @@ export async function createNotification(
       bodyAr: '',
     })),
   });
+
+  // After the DB write, send push notifications
+  // (fire-and-forget — don't block the response on push delivery)
+  sendPushNotifications(uniqueIds, title, body, { type })
+    .then((pushResult) => {
+      console.info(`Push sent: ${pushResult.sent} delivered, ${pushResult.failed} failed`);
+    })
+    .catch((err) => {
+      console.error('Push notification dispatch failed:', err);
+    });
 
   return result.count;
 }

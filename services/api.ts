@@ -481,9 +481,6 @@ export const getQrToken = () =>
 export const getNews = (params?: NewsParams) =>
   instance.get<NewsListResponse>('/news', { params }).then((r) => r.data);
 
-export const registerFcmToken = (token: string) =>
-  instance.post('/notifications/register', { token }).then((r) => r.data);
-
 export interface NewsArticleDetail {
   id: string;
   titleFr: string;

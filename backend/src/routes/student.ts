@@ -736,16 +736,37 @@ router.patch('/preferences', async (req: Request, res: Response, next: NextFunct
 
 // ── POST /student/push-token ──────────────────────────────────────────────────
 
-const pushTokenSchema = z.object({ token: z.string().min(1).max(256) });
+const pushTokenSchema = z.object({
+  token: z.string().min(1).max(256),
+  platform: z.string().min(1).max(32).optional(),
+});
 
 router.post('/push-token', async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const studentId = req.studentId!;
     const parsed = pushTokenSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ error: 'Invalid token' });
       return;
     }
-    console.info('push-token registered');
+
+    const platform = parsed.data.platform ?? 'android';
+
+    // Upsert — same student can re-register (app reinstall, token refresh)
+    await prisma.pushToken.upsert({
+      where: { token: parsed.data.token },
+      update: {
+        studentId,
+        platform,
+        updatedAt: new Date(),
+      },
+      create: {
+        studentId,
+        token: parsed.data.token,
+        platform,
+      },
+    });
+
     res.status(200).json({ success: true });
   } catch (err) {
     next(err);

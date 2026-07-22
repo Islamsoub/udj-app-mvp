@@ -113,6 +113,7 @@ model Student {
   notifications       Notification[]
   qrTokens            QrToken[]
   refreshTokens       RefreshToken[]
+  pushTokens          PushToken[]
 
   @@index([programmeId])
   @@map("students")
@@ -280,6 +281,20 @@ model QrToken {
   student   Student  @relation(fields: [studentId], references: [id])
 
   @@map("qr_tokens")
+}
+
+model PushToken {
+  id        String   @id @default(uuid())
+  studentId String   @map("student_id")
+  token     String   @unique
+  platform  String   @default("android") @map("platform")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("push_tokens")
 }
 
 model RefreshToken {

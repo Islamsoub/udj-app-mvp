@@ -344,7 +344,7 @@ export default function NotificationsPage() {
                     </div>
                     <div>
                       <SectionLabel>Statut</SectionLabel>
-                      <div className="mt-[2px] text-jade-text">✓ Envoyé via FCM</div>
+                      <div className="mt-[2px] text-jade-text">✓ Envoyé</div>
                     </div>
                     <div>
                       <SectionLabel>Corps</SectionLabel>
