@@ -25,6 +25,10 @@ const sendSchema = z.object({
   studentIds: z.array(z.string().uuid()).optional(),
   title: z.string().min(1).max(120),
   body: z.string().min(1).max(180),
+  // Optional Arabic copy. The admin composer's Arabic fields are a separate
+  // frontend task; until then these default to empty on the write below.
+  titleAr: z.string().max(120).optional(),
+  bodyAr: z.string().max(180).optional(),
 });
 
 // Resolves the concrete list of student ids for a target.
@@ -85,9 +89,9 @@ router.post(
           studentId,
           type: NotificationType.GENERAL,
           titleFr: d.title,
-          titleAr: '',
+          titleAr: d.titleAr ?? '',
           bodyFr: d.body,
-          bodyAr: '',
+          bodyAr: d.bodyAr ?? '',
         })),
       });
 

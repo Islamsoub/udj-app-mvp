@@ -342,14 +342,22 @@ router.post(
       const now = new Date();
       const studentIds = Array.from(new Set(grades.map((g) => g.studentId)));
 
-      const title =
+      const titleFr =
         type === 'cc'
           ? `Vos notes de contrôle continu (${semester.label}) sont disponibles`
           : `Vos résultats finaux (${semester.label}) sont disponibles`;
-      const body =
+      const titleAr =
         type === 'cc'
-          ? 'Consultez vos résultats de contrôle continu dans l’application.'
-          : 'Consultez vos résultats finaux et votre moyenne dans l’application.';
+          ? `نتائج الامتحان الجزئي (${semester.label}) متاحة`
+          : `نتائجك النهائية (${semester.label}) متاحة`;
+      const bodyFr =
+        type === 'cc'
+          ? 'Consultez vos résultats de CC dans l’application.'
+          : 'Consultez votre relevé complet dans l’application.';
+      const bodyAr =
+        type === 'cc'
+          ? 'اطلع على نتائج الامتحان الجزئي في التطبيق.'
+          : 'اطلع على كشفك الكامل في التطبيق.';
 
       const result = await prisma.$transaction(async (tx) => {
         await tx.grade.updateMany({
@@ -362,8 +370,10 @@ router.post(
         const notified = await createNotification(
           studentIds,
           NotificationType.GRADES,
-          title,
-          body,
+          titleFr,
+          bodyFr,
+          titleAr,
+          bodyAr,
           tx
         );
         return { notified };

@@ -140,7 +140,9 @@ router.post(
           await activeStudentIds(),
           NotificationType.NEWS,
           article.titleFr,
-          notifBody(article.bodyFr)
+          notifBody(article.bodyFr),
+          article.titleAr ?? '',
+          article.bodyAr ? article.bodyAr.substring(0, 180) : ''
         );
       }
 
@@ -192,7 +194,9 @@ router.patch(
           await activeStudentIds(),
           NotificationType.NEWS,
           article.titleFr,
-          notifBody(article.bodyFr)
+          notifBody(article.bodyFr),
+          article.titleAr ?? '',
+          article.bodyAr ? article.bodyAr.substring(0, 180) : ''
         );
       }
 

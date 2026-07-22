@@ -10,9 +10,9 @@ import { sendPushNotifications } from './push';
  * news) so the recipient shape and the NotificationType mapping stay identical
  * everywhere (architecture doc §6.1).
  *
- * The admin portal is French-only, so the Arabic columns (titleAr / bodyAr) are
- * stored empty — matching the existing manual-composer behaviour in
- * routes/admin/notifications.ts.
+ * Callers pass both the French and Arabic copy; the mobile notification screen
+ * renders whichever matches the user's active language. Push notifications carry
+ * no language switching, so they use the French strings only.
  *
  * Pass a transaction client as the last argument to enrol these writes in an
  * outer `$transaction` (e.g. grade publication, where the publish + notify must
@@ -23,8 +23,10 @@ import { sendPushNotifications } from './push';
 export async function createNotification(
   studentIds: string[],
   type: NotificationType,
-  title: string,
-  body: string,
+  titleFr: string,
+  bodyFr: string,
+  titleAr: string,
+  bodyAr: string,
   client: Prisma.TransactionClient = prisma
 ): Promise<number> {
   const uniqueIds = Array.from(new Set(studentIds));
@@ -34,16 +36,17 @@ export async function createNotification(
     data: uniqueIds.map((studentId) => ({
       studentId,
       type,
-      titleFr: title,
-      titleAr: '',
-      bodyFr: body,
-      bodyAr: '',
+      titleFr,
+      titleAr,
+      bodyFr,
+      bodyAr,
     })),
   });
 
   // After the DB write, send push notifications
-  // (fire-and-forget — don't block the response on push delivery)
-  sendPushNotifications(uniqueIds, title, body, { type })
+  // (fire-and-forget — don't block the response on push delivery).
+  // Push has no language switching, so it uses the French copy.
+  sendPushNotifications(uniqueIds, titleFr, bodyFr, { type })
     .then((pushResult) => {
       console.info(`Push sent: ${pushResult.sent} delivered, ${pushResult.failed} failed`);
     })

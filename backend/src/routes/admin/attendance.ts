@@ -331,7 +331,7 @@ router.patch(
 
       const record = await prisma.attendanceRecord.findUnique({
         where: { id: String(req.params.id) },
-        include: { subject: { select: { nameFr: true } } },
+        include: { subject: { select: { nameFr: true, nameAr: true } } },
       });
       if (!record) throw new AppError('Attendance record not found', 404);
       await assertAttendanceScope(req, record.subjectId);
@@ -349,14 +349,21 @@ router.patch(
 
       // Automated notification to the individual student (architecture §6.1).
       const dateStr = formatSessionDate(record.sessionDate);
-      const subjectName = record.subject.nameFr;
+      const subjectNameFr = record.subject.nameFr;
+      const subjectNameAr = record.subject.nameAr;
       await createNotification(
         [record.studentId],
         NotificationType.ATTENDANCE,
-        approve ? `Justificatif approuvé — ${subjectName}` : `Justificatif rejeté — ${subjectName}`,
         approve
-          ? `Votre justificatif pour ${subjectName} (${dateStr}) a été approuvé.`
-          : `Votre justificatif pour ${subjectName} (${dateStr}) a été rejeté.`
+          ? `Votre justificatif pour ${subjectNameFr} (${dateStr}) a été approuvé`
+          : `Votre justificatif pour ${subjectNameFr} (${dateStr}) a été rejeté`,
+        approve
+          ? 'Votre absence est désormais justifiée.'
+          : 'Contactez le secrétariat pour plus d’informations.',
+        approve
+          ? `تمت الموافقة على مبررك لمادة ${subjectNameAr} (${dateStr})`
+          : `تم رفض مبررك لمادة ${subjectNameAr} (${dateStr})`,
+        approve ? 'غيابك الآن مبرر.' : 'تواصل مع الأمانة لمزيد من المعلومات.'
       );
 
       res.status(200).json({

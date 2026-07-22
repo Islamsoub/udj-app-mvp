@@ -95,8 +95,10 @@ async function notifyProgrammeScheduleChange(subjectId: string): Promise<number>
   return createNotification(
     students.map((s) => s.id),
     NotificationType.SCHEDULE,
-    'Emploi du temps mis à jour',
-    'Votre emploi du temps a été mis à jour.'
+    'Votre emploi du temps a été mis à jour',
+    'Vérifiez les changements dans votre emploi du temps.',
+    'تم تحديث جدولك الزمني',
+    'تحقق من التغييرات في جدولك.'
   );
 }
 
