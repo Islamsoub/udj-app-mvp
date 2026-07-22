@@ -5,29 +5,37 @@ import { fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { PressBox } from '@/components/PressBox';
 
-export type FilterKey = 'all' | 'events' | 'scolarite' | 'sport' | 'youth' | 'sponsors' | 'saved';
+// A filter chip value: the two special sentinels 'all' / 'saved', or a category
+// slug supplied dynamically by the parent (fetched from GET /news/categories).
+export type FilterKey = 'all' | 'saved' | (string & {});
 
-const FILTERS: FilterKey[] = ['all', 'events', 'scolarite', 'sport', 'youth', 'sponsors', 'saved'];
-
-const FILTER_I18N: Record<FilterKey, string> = {
-  all: 'news.filter.all',
-  events: 'news.filter.events',
-  scolarite: 'news.filter.scolarite',
-  sport: 'news.filter.sport',
-  youth: 'news.filter.youth',
-  sponsors: 'news.filter.sponsors',
-  saved: 'news.filter.saved',
-};
+// A dynamic category chip. `label` is already resolved to the active language by
+// the parent, so FilterRow renders it verbatim.
+export interface FilterCategory {
+  slug: string;
+  label: string;
+}
 
 interface FilterRowProps {
+  categories: FilterCategory[];
   activeFilter: FilterKey;
   onFilterChange: (f: FilterKey) => void;
 }
 
-export function FilterRow({ activeFilter, onFilterChange }: FilterRowProps) {
+export function FilterRow({ categories, activeFilter, onFilterChange }: FilterRowProps) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
+
+  // "Tout" first, one chip per dynamic category, "Enregistrés" last.
+  const chips = useMemo(
+    () => [
+      { key: 'all', label: t('news.filter.all') },
+      ...categories.map((c) => ({ key: c.slug, label: c.label })),
+      { key: 'saved', label: t('news.filter.saved') },
+    ],
+    [categories, t],
+  );
 
   return (
     <View style={styles.container}>
@@ -36,18 +44,18 @@ export function FilterRow({ activeFilter, onFilterChange }: FilterRowProps) {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
-        {FILTERS.map((f) => {
-          const isActive = f === activeFilter;
+        {chips.map((chip) => {
+          const isActive = chip.key === activeFilter;
           return (
             <PressBox
-              key={f}
+              key={chip.key}
               tier="tint"
               style={[styles.pill, isActive && styles.pillActive]}
-              onPress={() => onFilterChange(f)}
+              onPress={() => onFilterChange(chip.key)}
               hitSlop={8}
             >
               <Text style={[styles.pillText, isActive && styles.pillTextActive]}>
-                {t(FILTER_I18N[f])}
+                {chip.label}
               </Text>
             </PressBox>
           );

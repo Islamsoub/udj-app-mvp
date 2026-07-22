@@ -12,6 +12,7 @@ import type {
   AttendanceSummary,
   GradesSummary,
   CachedNotification,
+  NewsCategory,
 } from './api';
 
 const DB_NAME = 'udj.db';
@@ -271,6 +272,15 @@ export async function runMigrations(): Promise<void> {
         created_at TEXT NOT NULL
       );
 
+      CREATE TABLE IF NOT EXISTS news_categories (
+        id TEXT PRIMARY KEY,
+        name_fr TEXT NOT NULL,
+        name_ar TEXT NOT NULL DEFAULT '',
+        slug TEXT NOT NULL,
+        display_order INTEGER NOT NULL DEFAULT 0,
+        cached_at TEXT NOT NULL
+      );
+
       CREATE TABLE IF NOT EXISTS attendance_absences (
         id TEXT PRIMARY KEY,
         student_id TEXT NOT NULL,
@@ -441,6 +451,14 @@ export async function getCachedNews(limit: number, category?: string): Promise<N
         [limit],
       );
   return rows.map(rowToNews);
+}
+
+export async function getCachedNewsCategories(): Promise<NewsCategory[]> {
+  const db = await getDb();
+  const rows = await db.getAllAsync<Record<string, SQLite.SQLiteBindValue>>(
+    'SELECT * FROM news_categories ORDER BY display_order ASC',
+  );
+  return rows.map(rowToNewsCategory);
 }
 
 export async function getCachedArticle(id: string): Promise<NewsItem | null> {
@@ -739,6 +757,23 @@ export async function upsertArticle(item: NewsItem): Promise<void> {
       item.cachedAt,
     ],
   );
+}
+
+// Replaces the whole cached category list (mirrors the API's full-snapshot
+// semantics — GET /news/categories always returns the complete ordered set).
+export async function upsertNewsCategories(items: NewsCategory[]): Promise<void> {
+  const db = await getDb();
+  const now = new Date().toISOString();
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM news_categories');
+    for (const c of items) {
+      await db.runAsync(
+        `INSERT INTO news_categories (id, name_fr, name_ar, slug, display_order, cached_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [c.id, c.nameFr, c.nameAr ?? '', c.slug, c.displayOrder, now],
+      );
+    }
+  });
 }
 
 export async function upsertProfile(profile: StudentProfileCache): Promise<void> {
@@ -1104,6 +1139,16 @@ function rowToNews(row: Record<string, SQLite.SQLiteBindValue>): NewsItem {
     bookmarked: (row.bookmarked as number) === 1,
     read: (row.read as number) === 1,
     cachedAt: row.cached_at as string,
+  };
+}
+
+function rowToNewsCategory(row: Record<string, SQLite.SQLiteBindValue>): NewsCategory {
+  return {
+    id: row.id as string,
+    nameFr: row.name_fr as string,
+    nameAr: (row.name_ar as string | null) ?? '',
+    slug: row.slug as string,
+    displayOrder: (row.display_order as number | null) ?? 0,
   };
 }
 

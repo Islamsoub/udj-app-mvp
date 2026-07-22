@@ -23,13 +23,13 @@ const prisma = new PrismaClient();
 // The 6 categories that used to be hardcoded in the app (architecture §7.2).
 // Slugs match the `category` strings already stored on NewsArticle rows
 // (official, events, scolarite, sport) so the backfill links them up.
-const CATEGORY_SEED: { nameFr: string; slug: string; displayOrder: number }[] = [
-  { nameFr: 'Officiel', slug: 'official', displayOrder: 0 },
-  { nameFr: 'Événements', slug: 'events', displayOrder: 1 },
-  { nameFr: 'Scolarité', slug: 'scolarite', displayOrder: 2 },
-  { nameFr: 'Sport', slug: 'sport', displayOrder: 3 },
-  { nameFr: 'Youth', slug: 'youth', displayOrder: 4 },
-  { nameFr: 'Sponsors', slug: 'sponsors', displayOrder: 5 },
+const CATEGORY_SEED: { nameFr: string; nameAr: string; slug: string; displayOrder: number }[] = [
+  { nameFr: 'Officiel', nameAr: 'رسمي', slug: 'official', displayOrder: 0 },
+  { nameFr: 'Événements', nameAr: 'فعاليات', slug: 'events', displayOrder: 1 },
+  { nameFr: 'Scolarité', nameAr: 'الدراسة', slug: 'scolarite', displayOrder: 2 },
+  { nameFr: 'Sport', nameAr: 'رياضة', slug: 'sport', displayOrder: 3 },
+  { nameFr: 'Youth', nameAr: 'شباب', slug: 'youth', displayOrder: 4 },
+  { nameFr: 'Sponsors', nameAr: 'شركاء', slug: 'sponsors', displayOrder: 5 },
 ];
 
 async function main() {
@@ -38,8 +38,8 @@ async function main() {
   for (const c of CATEGORY_SEED) {
     const category = await prisma.newsCategory.upsert({
       where: { slug: c.slug },
-      create: { nameFr: c.nameFr, slug: c.slug, displayOrder: c.displayOrder },
-      update: { nameFr: c.nameFr, displayOrder: c.displayOrder },
+      create: { nameFr: c.nameFr, nameAr: c.nameAr, slug: c.slug, displayOrder: c.displayOrder },
+      update: { nameFr: c.nameFr, nameAr: c.nameAr, displayOrder: c.displayOrder },
     });
     categoryIdBySlug.set(c.slug, category.id);
   }

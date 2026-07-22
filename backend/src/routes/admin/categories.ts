@@ -66,6 +66,7 @@ router.get('/', adminAuth, rbac(...ALL_ROLES), async (_req, res, next) => {
 // ─── POST /admin/news/categories ─────────────────────────────────────────────
 const createSchema = z.object({
   nameFr: z.string().trim().min(1),
+  nameAr: z.string().trim().optional(),
   displayOrder: z.number().int().optional(),
 });
 
@@ -78,13 +79,13 @@ router.post(
     try {
       const parsed = createSchema.safeParse(req.body);
       if (!parsed.success) throw new AppError('Nom de catégorie requis', 400);
-      const { nameFr, displayOrder } = parsed.data;
+      const { nameFr, nameAr, displayOrder } = parsed.data;
 
       const slug = await uniqueSlug(slugify(nameFr));
       const order = displayOrder ?? (await prisma.newsCategory.count());
 
       const category = await prisma.newsCategory.create({
-        data: { nameFr, slug, displayOrder: order },
+        data: { nameFr, nameAr: nameAr ?? '', slug, displayOrder: order },
       });
       res.status(201).json(category);
     } catch (err) {
@@ -136,11 +137,13 @@ router.patch(
 const updateSchema = z
   .object({
     nameFr: z.string().trim().min(1).optional(),
+    nameAr: z.string().trim().optional(),
     displayOrder: z.number().int().optional(),
   })
-  .refine((d) => d.nameFr !== undefined || d.displayOrder !== undefined, {
-    message: 'Aucune modification fournie',
-  });
+  .refine(
+    (d) => d.nameFr !== undefined || d.nameAr !== undefined || d.displayOrder !== undefined,
+    { message: 'Aucune modification fournie' }
+  );
 
 router.patch(
   '/:id',
@@ -160,6 +163,7 @@ router.patch(
         where: { id: existing.id },
         data: {
           ...(parsed.data.nameFr !== undefined ? { nameFr: parsed.data.nameFr } : {}),
+          ...(parsed.data.nameAr !== undefined ? { nameAr: parsed.data.nameAr } : {}),
           ...(parsed.data.displayOrder !== undefined ? { displayOrder: parsed.data.displayOrder } : {}),
         },
       });

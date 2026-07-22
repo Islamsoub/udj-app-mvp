@@ -164,6 +164,18 @@ export interface NewsListResponse {
   articles: NewsArticleSummary[];
 }
 
+export interface NewsCategory {
+  id: string;
+  nameFr: string;
+  nameAr: string;
+  slug: string;
+  displayOrder: number;
+}
+
+export interface NewsCategoriesResponse {
+  categories: NewsCategory[];
+}
+
 export interface NewsParams {
   page?: number;
   limit?: number;
@@ -480,6 +492,9 @@ export const getQrToken = () =>
 
 export const getNews = (params?: NewsParams) =>
   instance.get<NewsListResponse>('/news', { params }).then((r) => r.data);
+
+export const getNewsCategories = () =>
+  instance.get<NewsCategoriesResponse>('/news/categories').then((r) => r.data);
 
 export interface NewsArticleDetail {
   id: string;

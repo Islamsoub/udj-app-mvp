@@ -262,6 +262,7 @@ model NewsArticle {
 model NewsCategory {
   id           String   @id @default(uuid())
   nameFr       String   @map("name_fr")
+  nameAr       String   @default("") @map("name_ar")
   slug         String   @unique
   displayOrder Int      @default(0) @map("display_order")
   createdAt    DateTime @default(now()) @map("created_at")

@@ -17,14 +17,20 @@ import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { NewsHeader } from '@/components/news/NewsHeader';
-import { FilterRow, FilterKey } from '@/components/news/FilterRow';
+import { FilterRow, FilterKey, FilterCategory } from '@/components/news/FilterRow';
 import { HeroCard } from '@/components/news/HeroCard';
 import { ArticleCard, Article, ArticleCategory } from '@/components/news/ArticleCard';
 import { NewsSkeleton } from '@/components/news/NewsSkeleton';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
-import { getNews, NewsItem } from '@/services/api';
+import { getNews, getNewsCategories, NewsItem, NewsCategory } from '@/services/api';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
-import { getCachedNews, upsertNews, getSavedArticles } from '@/services/db';
+import {
+  getCachedNews,
+  upsertNews,
+  getSavedArticles,
+  getCachedNewsCategories,
+  upsertNewsCategories,
+} from '@/services/db';
 import { mapNewsToCache } from '@/services/cacheMappers';
 import { formatTimestamp, formatReadTime } from '@/utils/dateFormat';
 import { localTitle } from '@/utils/i18nName';
@@ -60,13 +66,16 @@ function newsItemToHero(item: NewsItem, lang: string) {
   };
 }
 
-const FILTER_CATEGORY: Partial<Record<FilterKey, string>> = {
-  events:    'events',
-  scolarite: 'scolarite',
-  sport:     'sport',
-  youth:     'youth',
-  sponsors:  'sponsors',
-};
+// Graceful-degradation set: the categories that used to be hardcoded chips. Used
+// only when both the network fetch and the SQLite cache come up empty (e.g. a
+// fresh install that has never been online). Labels resolve via i18n.
+const FALLBACK_CATEGORIES: { slug: string; i18nKey: string }[] = [
+  { slug: 'events',    i18nKey: 'news.filter.events' },
+  { slug: 'scolarite', i18nKey: 'news.filter.scolarite' },
+  { slug: 'sport',     i18nKey: 'news.filter.sport' },
+  { slug: 'youth',     i18nKey: 'news.filter.youth' },
+  { slug: 'sponsors',  i18nKey: 'news.filter.sponsors' },
+];
 
 // ─── Loaded body ──────────────────────────────────────────────────────────────
 
@@ -180,14 +189,50 @@ const STATE_LABELS: Record<NewsState, string> = {
 export default function NewsScreen() {
   const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { t, i18n } = useTranslation();
   const [devState, setDevState] = useState<NewsState | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all');
   const [filterCategory, setFilterCategory] = useState<string | undefined>(undefined);
+  const [rawCategories, setRawCategories] = useState<NewsCategory[]>([]);
   const [scrolled, setScrolled] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const localReadIds = useMemo(() => new Set<string>(), []);
   const insets = useSafeAreaInsets();
   const router = useRouter();
+
+  // ─── Dynamic filter categories ──────────────────────────────────────────────
+  // Fetch once on mount; cache to SQLite on success; on failure fall back to the
+  // last cached set so the chips still render offline.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getNewsCategories();
+        if (cancelled) return;
+        setRawCategories(res.categories);
+        upsertNewsCategories(res.categories).catch(() => {});
+      } catch {
+        const cached = await getCachedNewsCategories().catch(() => [] as NewsCategory[]);
+        if (!cancelled && cached.length > 0) setRawCategories(cached);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Resolve each category's label to the active language. When nothing is cached
+  // (fresh offline install), degrade to the previously-hardcoded chip set.
+  const filterCategories = useMemo<FilterCategory[]>(() => {
+    const isAr = i18n.language?.startsWith('ar');
+    if (rawCategories.length > 0) {
+      return rawCategories.map((c) => ({
+        slug: c.slug,
+        label: isAr && c.nameAr ? c.nameAr : c.nameFr,
+      }));
+    }
+    return FALLBACK_CATEGORIES.map((c) => ({ slug: c.slug, label: t(c.i18nKey) }));
+  }, [rawCategories, i18n.language, t]);
 
   // ─── Offline query ──────────────────────────────────────────────────────────
 
@@ -250,7 +295,8 @@ export default function NewsScreen() {
 
   function handleFilterChange(filter: FilterKey) {
     setActiveFilter(filter);
-    const cat = filter === 'all' || filter === 'saved' ? undefined : FILTER_CATEGORY[filter];
+    // The chip value IS the category slug now ('all'/'saved' are the exceptions).
+    const cat = filter === 'all' || filter === 'saved' ? undefined : filter;
     setFilterCategory(cat);
   }
 
@@ -295,7 +341,11 @@ export default function NewsScreen() {
         }
       >
         {showFilterRow && (
-          <FilterRow activeFilter={activeFilter} onFilterChange={handleFilterChange} />
+          <FilterRow
+            categories={filterCategories}
+            activeFilter={activeFilter}
+            onFilterChange={handleFilterChange}
+          />
         )}
 
         {newsState === 'skeleton' && <NewsSkeleton />}
