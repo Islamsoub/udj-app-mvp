@@ -6,6 +6,7 @@ import { z } from 'zod';
 import prisma from '../../utils/prisma';
 import { AppError } from '../../utils/AppError';
 import { hashToken } from '../../utils/hash';
+import { env } from '../../utils/env';
 import { authRateLimiter } from '../../middleware/rateLimiter';
 import adminAuth from '../../middleware/adminAuth';
 import { audit } from '../../middleware/auditLog';
@@ -17,6 +18,24 @@ import {
 } from '../../config/adminEnv';
 
 const router = Router();
+
+// ─── Refresh-token cookie ────────────────────────────────────────────────────
+// The admin refresh token lives ONLY in an httpOnly cookie — it is never in a
+// response body and never reachable from JavaScript, so an XSS on the portal
+// cannot exfiltrate a 30-day credential. `path` scopes it to the auth routes so
+// it is not attached to every API call.
+const REFRESH_COOKIE = 'admin_refresh_token';
+const REFRESH_COOKIE_PATH = '/admin/auth';
+
+function refreshCookieOptions(maxAge: number) {
+  return {
+    httpOnly: true,
+    secure: env.NODE_ENV === 'production', // localhost has no HTTPS
+    sameSite: 'lax' as const,
+    path: REFRESH_COOKIE_PATH,
+    maxAge,
+  };
+}
 
 // Pre-computed bcrypt hash (cost 12) used to equalize response time when an
 // account is missing/inactive, so login timing can't be used to enumerate emails.
@@ -44,13 +63,9 @@ const loginSchema = z.object({
   stayConnected: z.boolean().optional(),
 });
 
-const refreshSchema = z.object({
-  refreshToken: z.string().uuid(),
-});
-
-const logoutSchema = z.object({
-  refreshToken: z.string().uuid(),
-});
+// Refresh/logout no longer take a body — the token arrives as an httpOnly
+// cookie. This validates the cookie value has the shape we issue (a UUID v4).
+const refreshTokenSchema = z.string().uuid();
 
 const passwordSchema = z.object({
   currentPassword: z.string().min(1),
@@ -109,9 +124,11 @@ router.post('/login', authRateLimiter, async (req: Request, res: Response, next:
       },
     });
 
+    res.cookie(REFRESH_COOKIE, plainRefreshToken, refreshCookieOptions(refreshMs));
+
+    // NOTE: the refresh token is deliberately absent from the body.
     res.status(200).json({
       accessToken,
-      refreshToken: plainRefreshToken,
       admin: {
         id: admin.id,
         firstName: admin.firstName,
@@ -129,13 +146,13 @@ router.post('/login', authRateLimiter, async (req: Request, res: Response, next:
 // ─── POST /admin/auth/refresh ────────────────────────────────────────────────
 router.post('/refresh', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const parsed = refreshSchema.safeParse(req.body);
+    const parsed = refreshTokenSchema.safeParse(req.cookies?.[REFRESH_COOKIE]);
     if (!parsed.success) {
-      res.status(400).json({ error: 'Refresh token required' });
+      res.status(401).json({ error: 'Invalid refresh token' });
       return;
     }
 
-    const tokenHash = hashToken(parsed.data.refreshToken);
+    const tokenHash = hashToken(parsed.data);
     const now = new Date();
 
     const stored = await prisma.adminRefreshToken.findFirst({
@@ -144,6 +161,7 @@ router.post('/refresh', async (req: Request, res: Response, next: NextFunction) 
     });
 
     if (!stored || !stored.admin.isActive) {
+      res.clearCookie(REFRESH_COOKIE, { path: REFRESH_COOKIE_PATH });
       res.status(401).json({ error: 'Invalid refresh token' });
       return;
     }
@@ -164,38 +182,32 @@ router.post('/refresh', async (req: Request, res: Response, next: NextFunction) 
       },
     });
 
-    res.status(200).json({
-      accessToken: signAccessToken(stored.admin),
-      refreshToken: newPlain,
-    });
+    // Rotation issues a new cookie; the old value is already revoked above.
+    res.cookie(REFRESH_COOKIE, newPlain, refreshCookieOptions(ADMIN_REFRESH_TTL_MS));
+
+    res.status(200).json({ accessToken: signAccessToken(stored.admin) });
   } catch (err) {
     next(err);
   }
 });
 
 // ─── POST /admin/auth/logout ─────────────────────────────────────────────────
-router.post('/logout', adminAuth, async (req: Request, res: Response, next: NextFunction) => {
+// Deliberately NOT behind `adminAuth`: the access token may already have
+// expired when the admin clicks "Se déconnecter", and logout must still clear
+// the cookie. Possession of the refresh token is the only authority needed to
+// revoke it, and SameSite=Lax blocks cross-site POSTs from carrying the cookie.
+router.post('/logout', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const parsed = logoutSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ error: 'Refresh token required' });
-      return;
+    // Always clear client-side, even if the token is unknown/already revoked.
+    res.clearCookie(REFRESH_COOKIE, { path: REFRESH_COOKIE_PATH });
+
+    const parsed = refreshTokenSchema.safeParse(req.cookies?.[REFRESH_COOKIE]);
+    if (parsed.success) {
+      await prisma.adminRefreshToken.updateMany({
+        where: { tokenHash: hashToken(parsed.data), isRevoked: false },
+        data: { isRevoked: true },
+      });
     }
-
-    const tokenHash = hashToken(parsed.data.refreshToken);
-    const stored = await prisma.adminRefreshToken.findFirst({
-      where: { tokenHash, adminId: req.admin!.adminId, isRevoked: false },
-    });
-
-    if (!stored) {
-      res.status(404).json({ error: 'Token not found' });
-      return;
-    }
-
-    await prisma.adminRefreshToken.update({
-      where: { id: stored.id },
-      data: { isRevoked: true },
-    });
 
     res.status(204).send();
   } catch (err) {
@@ -257,6 +269,9 @@ router.patch(
         where: { adminId: admin.id, isRevoked: false },
         data: { isRevoked: true },
       });
+
+      // The cookie's token was just revoked — drop the dead value too.
+      res.clearCookie(REFRESH_COOKIE, { path: REFRESH_COOKIE_PATH });
 
       res.status(200).json({ id: admin.id, message: 'Mot de passe mis à jour' });
     } catch (err) {

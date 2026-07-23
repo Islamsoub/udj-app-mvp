@@ -34,15 +34,14 @@ export interface AdminIdentity {
   facultyId: string | null;
 }
 
+/** The refresh token is absent by design — it arrives as an httpOnly cookie. */
 export interface LoginResponse {
   accessToken: string;
-  refreshToken: string;
   admin: AdminIdentity;
 }
 
 export interface RefreshResponse {
   accessToken: string;
-  refreshToken: string;
 }
 
 // ─── Pagination envelope (students, audit) ───────────────────────────────────

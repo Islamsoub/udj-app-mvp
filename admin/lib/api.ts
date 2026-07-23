@@ -22,6 +22,9 @@ export const api = axios.create({
   baseURL: BASE_URL,
   timeout: 20_000,
   headers: { 'Content-Type': 'application/json' },
+  // Send the httpOnly refresh-token cookie. It is scoped to /admin/auth
+  // server-side, so it rides along only on the auth calls that need it.
+  withCredentials: true,
 });
 
 // ─── Request: inject bearer token ────────────────────────────────────────────
@@ -39,19 +42,21 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 let refreshPromise: Promise<string | null> | null = null;
 
 async function refreshTokens(): Promise<string | null> {
-  const { refreshToken, setTokens, logout } = useAuthStore.getState();
-  if (!refreshToken) {
-    logout();
-    return null;
-  }
+  const { setAccessToken, logout } = useAuthStore.getState();
   try {
-    // Plain axios (not `api`) so this call skips the interceptors.
+    // Plain axios (not `api`) so this call skips the interceptors. No body —
+    // the browser attaches the httpOnly refresh cookie, and the rotated token
+    // comes back as a Set-Cookie we never read.
     const { data } = await axios.post<RefreshResponse>(
       `${BASE_URL}/admin/auth/refresh`,
-      { refreshToken },
-      { headers: { 'Content-Type': 'application/json' }, timeout: 15_000 }
+      {},
+      {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 15_000,
+        withCredentials: true,
+      }
     );
-    setTokens(data.accessToken, data.refreshToken);
+    setAccessToken(data.accessToken);
     return data.accessToken;
   } catch {
     logout();
