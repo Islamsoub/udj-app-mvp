@@ -40,6 +40,13 @@ export function isScopedPath(pathname: string): boolean {
 const BAR_BASE =
   'sticky top-16 z-30 flex h-[46px] items-center gap-3 border-b px-8 transition-colors';
 
+// Compact override for the Dropdown trigger so the ~40px control fits the 46px
+// strip (~32px → 7px breathing room). Dropdown's `className` prop lands on its
+// root wrapper, not the button, so target the trigger via a direct-child
+// variant (`root > trigger button`) — the popover option buttons sit one level
+// deeper and are left untouched.
+const COMPACT_DD = '[&>div>button]:py-[6px] [&>div>button]:text-[13px]';
+
 function barStyle(active: boolean): React.CSSProperties {
   return active
     ? {
@@ -125,13 +132,13 @@ function FacultyProgrammeBar() {
       <div className="flex items-center gap-[8px]">
         <CtxLabel>Faculté</CtxLabel>
         {locked ? (
-          <span className="flex items-center gap-[7px] rounded-[10px] border border-hair2 bg-surface2 px-[12px] py-[7px] text-[13px] font-semibold text-ink2">
+          <span className="flex items-center gap-[7px] rounded-[10px] border border-hair2 bg-surface2 px-[12px] py-[6px] text-[13px] font-semibold text-ink2">
             <Shield size={14} className="text-blue" />
             <span className="max-w-[160px] truncate">{lockedFacultyName}</span>
             <Lock size={12} className="text-ink3" />
           </span>
         ) : (
-          <div className="w-[210px]">
+          <div className={`w-[210px] ${COMPACT_DD}`}>
             <Dropdown
               value={facultyId}
               onChange={(v) => setFaculty(v)}
@@ -146,7 +153,7 @@ function FacultyProgrammeBar() {
 
       <div className="flex items-center gap-[8px]">
         <CtxLabel>Programme</CtxLabel>
-        <div className="w-[230px]">
+        <div className={`w-[230px] ${COMPACT_DD}`}>
           <Dropdown
             value={programmeId}
             onChange={(v) => setProgramme(v)}
@@ -200,7 +207,7 @@ function RoomTeacherBar({ mode }: { mode: 'room' | 'teacher' }) {
     <div className={BAR_BASE} style={barStyle(active)}>
       <div className="flex items-center gap-[8px]">
         <CtxLabel>{mode === 'room' ? 'Salle' : 'Enseignant'}</CtxLabel>
-        <div className="w-[260px]">
+        <div className={`w-[260px] ${COMPACT_DD}`}>
           <Dropdown
             value={value}
             onChange={(v) => (mode === 'room' ? setRoom(v) : setProfessor(v))}

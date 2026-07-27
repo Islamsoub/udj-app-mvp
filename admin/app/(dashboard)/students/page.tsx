@@ -217,7 +217,11 @@ function StudentsInner() {
     <>
       <PageHead
         title="Étudiants"
-        sub={`${total} inscrits`}
+        sub={
+          segment === 'risk'
+            ? `${rows.length} à risque · page actuelle`
+            : `${total} inscrits`
+        }
         actions={
           <>
             <Button
@@ -300,8 +304,22 @@ function StudentsInner() {
             data={rows}
             pageSize={PAGE_SIZE}
             onRowClick={(row) => router.push(`/students/${row.id}`)}
-            serverPagination={{ pageIndex, pageCount, total, onPageChange: setPageIndex }}
-            totalLabel={(_shown, t) => `${t} étudiants`}
+            // "À risque" is filtered client-side from a single server page, so
+            // server pagination totals would lie. Fall back to client pagination
+            // (one page → prev/next inert) and label the honest filtered count.
+            serverPagination={
+              segment === 'risk'
+                ? undefined
+                : { pageIndex, pageCount, total, onPageChange: setPageIndex }
+            }
+            totalLabel={
+              segment === 'risk'
+                ? () =>
+                    `Affichage de la page actuelle · ${rows.length} étudiant${
+                      rows.length !== 1 ? 's' : ''
+                    } à risque`
+                : (_shown, t) => `${t} étudiants`
+            }
             emptyState={<EmptyState icon={<Users size={20} />} message="Aucun étudiant trouvé." />}
           />
         </Card>
