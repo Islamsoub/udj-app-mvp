@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, KeyRound, Lock, Mail } from 'lucide-react';
+import { Eye, EyeOff, KeyRound, Mail, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TextInput } from '@/components/ui/input';
 import { FField } from '@/components/ui/form-helpers';
@@ -86,8 +86,8 @@ export default function LoginPage() {
             {"Portail\nd'administration"}
           </div>
           <div className="mt-3 max-w-[42ch] text-[14.5px] leading-relaxed text-jade50 opacity-85">
-            Étudiants, notes, présence, actualités et emploi du temps — le back-office de
-            l&apos;application mobile de l&apos;Université de Djibouti.
+            Gérez étudiants, emplois du temps, notes, présence et actualités de
+            l&apos;Université de Djibouti.
           </div>
         </div>
 
@@ -101,7 +101,7 @@ export default function LoginPage() {
         <div className="w-full max-w-[360px]">
           <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.02em] text-ink">Connexion</h1>
           <div className="mt-1 text-[13.5px] text-ink2">
-            Accédez au portail d&apos;administration Unipocket.
+            Accédez à votre espace administrateur.
           </div>
 
           {failed && (
@@ -176,8 +176,8 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 flex items-center justify-center gap-2 rounded-[10px] bg-surface2 px-3 py-[10px] font-mono text-[11px] text-ink2">
-            <Lock size={13} className="shrink-0 text-ink3" />
-            Connexion sécurisée · HTTPS
+            <Shield size={13} className="shrink-0 text-ink3" />
+            Connexion sécurisée · accès réservé au personnel de l&apos;UDJ
           </div>
         </div>
       </div>
