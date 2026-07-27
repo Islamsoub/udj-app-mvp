@@ -67,10 +67,11 @@ router.get(
             hoursAttended: true,
           },
         }),
-        // "Published" for GPA/distribution = final results are out (publishedNfAt).
-        // (Grade.publishedAt was replaced by dual CC/NF timestamps in Pass C.)
+        // Admin dashboard: count every grade with a computed final score,
+        // regardless of publication status. The registrar needs full visibility
+        // (unlike the student-facing route, which gates on publishedNfAt).
         prisma.grade.findMany({
-          where: { ...gradeWhere, noteFinale: { not: null }, publishedNfAt: { not: null } },
+          where: { ...gradeWhere, noteFinale: { not: null } },
           select: { studentId: true, noteFinale: true },
         }),
       ]);
