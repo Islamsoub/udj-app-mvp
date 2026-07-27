@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
-import { Lock, RotateCcw, Shield } from 'lucide-react';
+import { BookOpen, GraduationCap, Lock, Shield, X } from 'lucide-react';
 import { Dropdown } from '@/components/ui/select';
 import { useAdmin } from '@/hooks/use-admin';
 import { useFaculties, useProgrammes } from '@/hooks/queries/use-academics';
@@ -46,6 +46,10 @@ const BAR_BASE =
 // variant (`root > trigger button`) — the popover option buttons sit one level
 // deeper and are left untouched.
 const COMPACT_DD = '[&>div>button]:py-[6px] [&>div>button]:text-[13px]';
+// Same compaction plus left room for a 14px leading icon overlaid on the trigger.
+const ICON_DD = `${COMPACT_DD} [&>div>button]:pl-[34px]`;
+const DD_ICON =
+  'pointer-events-none absolute left-[11px] top-1/2 z-10 -translate-y-1/2 text-ink3';
 
 function barStyle(active: boolean): React.CSSProperties {
   return active
@@ -71,7 +75,7 @@ function ResetChip({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       className="flex shrink-0 cursor-pointer items-center gap-[6px] rounded-full border-0 bg-jade-faint px-[11px] py-[5px] text-[12px] font-semibold text-jade-text transition-colors hover:bg-jade-faint2"
     >
-      <RotateCcw size={13} />
+      <X size={13} />
       Réinitialiser
     </button>
   );
@@ -125,6 +129,12 @@ function FacultyProgrammeBar() {
     return null;
   }, [programmes, facultyId, programmeId]);
 
+  // Unscoped total across all programmes — so the default view still shows scale.
+  const totalStudents = useMemo(
+    () => (programmes ?? []).reduce((sum, p) => sum + (p._count?.students ?? 0), 0),
+    [programmes]
+  );
+
   const active = !!facultyId || !!programmeId;
 
   return (
@@ -138,7 +148,8 @@ function FacultyProgrammeBar() {
             <Lock size={12} className="text-ink3" />
           </span>
         ) : (
-          <div className={`w-[210px] ${COMPACT_DD}`}>
+          <div className={`relative w-[210px] ${ICON_DD}`}>
+            <BookOpen size={14} className={DD_ICON} />
             <Dropdown
               value={facultyId}
               onChange={(v) => setFaculty(v)}
@@ -153,7 +164,8 @@ function FacultyProgrammeBar() {
 
       <div className="flex items-center gap-[8px]">
         <CtxLabel>Programme</CtxLabel>
-        <div className={`w-[230px] ${COMPACT_DD}`}>
+        <div className={`relative w-[230px] ${ICON_DD}`}>
+          <GraduationCap size={14} className={DD_ICON} />
           <Dropdown
             value={programmeId}
             onChange={(v) => setProgramme(v)}
@@ -173,7 +185,9 @@ function FacultyProgrammeBar() {
             <ResetChip onClick={reset} />
           </>
         ) : (
-          <span className="text-[12.5px] text-ink3">Toutes les facultés · Tous les programmes</span>
+          <span className="text-[12.5px] text-ink3">
+            {programmes ? `${fmtNumber(totalStudents)} étudiants` : 'Tous les étudiants'}
+          </span>
         )}
       </div>
     </div>
