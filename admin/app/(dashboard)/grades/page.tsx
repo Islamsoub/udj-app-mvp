@@ -168,7 +168,9 @@ export default function GradesPage() {
                       <LifecycleBadge stage={stage} />
                     </div>
                     <div className="mt-3 flex items-center gap-4 border-t border-hair pt-3">
-                      <span className="font-mono text-[11px] text-ink3">{count} inscrits</span>
+                      <span className="font-mono text-[11px] text-ink3">
+                        {count} note{count !== 1 ? 's' : ''} saisie{count !== 1 ? 's' : ''}
+                      </span>
                       <span className="ml-auto h-6 w-px bg-hair2" />
                       <div className="text-right">
                         <div className="text-[19px] font-extrabold leading-none text-ink">

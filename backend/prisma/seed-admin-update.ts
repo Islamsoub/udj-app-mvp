@@ -28,7 +28,7 @@ const CATEGORY_SEED: { nameFr: string; nameAr: string; slug: string; displayOrde
   { nameFr: 'Événements', nameAr: 'فعاليات', slug: 'events', displayOrder: 1 },
   { nameFr: 'Scolarité', nameAr: 'الدراسة', slug: 'scolarite', displayOrder: 2 },
   { nameFr: 'Sport', nameAr: 'رياضة', slug: 'sport', displayOrder: 3 },
-  { nameFr: 'Youth', nameAr: 'شباب', slug: 'youth', displayOrder: 4 },
+  { nameFr: 'Jeunesse', nameAr: 'شباب', slug: 'youth', displayOrder: 4 },
   { nameFr: 'Sponsors', nameAr: 'شركاء', slug: 'sponsors', displayOrder: 5 },
 ];
 

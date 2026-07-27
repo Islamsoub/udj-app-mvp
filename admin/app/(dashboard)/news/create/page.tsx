@@ -196,7 +196,7 @@ function NewsEditor() {
             <div className="flex items-center justify-between gap-3 border-b border-hair py-3">
               <div>
                 <div className="text-[13px] font-semibold text-ink">Marquer comme urgent</div>
-                <div className="mt-[2px] text-[11.5px] text-ink3">Bannière rouge dans l&apos;app</div>
+                <div className="mt-[2px] text-[11.5px] text-ink3">Affiché en tête avec badge rouge · max. 3</div>
               </div>
               <Toggle checked={urgent} onChange={setUrgent} aria-label="Marquer comme urgent" />
             </div>
