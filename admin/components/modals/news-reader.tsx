@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Image as ImageIcon, Megaphone } from 'lucide-react';
 import { Modal } from '@/components/ui/dialog';
@@ -20,6 +21,8 @@ export function NewsReader({ article }: { article: NewsArticle }) {
   const router = useRouter();
   const { open, close } = useModal();
   const published = article.publishedAt != null;
+  const [imgError, setImgError] = useState(false);
+  const showImg = article.heroImageUrl && !imgError;
 
   return (
     <Modal
@@ -48,12 +51,13 @@ export function NewsReader({ article }: { article: NewsArticle }) {
         </>
       }
     >
-      {article.heroImageUrl ? (
+      {showImg ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={article.heroImageUrl}
+          src={article.heroImageUrl!}
           alt=""
           className="h-[200px] w-full rounded-[12px] object-cover"
+          onError={() => setImgError(true)}
         />
       ) : (
         <div

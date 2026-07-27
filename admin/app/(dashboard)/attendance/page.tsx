@@ -89,7 +89,9 @@ export default function AttendancePage() {
       .filter((c) => c.status === 'PRESENT' || c.status === 'JUSTIFIED')
       .reduce((s, c) => s + c.count, 0);
     const partial = counts.filter((c) => c.status === 'PARTIAL').reduce((s, c) => s + c.count, 0);
-    return total > 0 ? Math.round(((present + partial * 0.5) / total) * 100) : 0;
+    // null (not 0) when there are no attendance records at all — "no data",
+    // rendered as an em-dash. A real 0% (everyone absent) still returns 0.
+    return total > 0 ? Math.round(((present + partial * 0.5) / total) * 100) : null;
   }, [data]);
 
   const list = tab === 'PENDING' ? pending : tab === 'APPROVED' ? approved : rejected;
@@ -143,14 +145,14 @@ export default function AttendancePage() {
               icon={<Users size={18} />}
               tone="blue"
               label="Présence moyenne"
-              value={presencePct}
-              unit="%"
+              value={presencePct ?? '—'}
+              unit={presencePct == null ? undefined : '%'}
             />
             <StatCard
               icon={<AlertTriangle size={18} />}
               tone="danger"
               label={`Seuil ${threshold}%`}
-              value={overview ? overview.subjects.filter((s) => s.belowThreshold).length : 0}
+              value={overview ? overview.subjects.filter((s) => s.belowThreshold).length : '—'}
               sub={overview ? 'matières sous le seuil' : 'sélectionnez un programme'}
             />
           </div>

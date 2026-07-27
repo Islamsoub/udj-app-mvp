@@ -124,17 +124,7 @@ export default function NewsPage() {
                     className="flex cursor-pointer items-center gap-4 px-4 py-3 transition-colors hover:bg-surface2"
                     onClick={() => open(<NewsReader article={a} />)}
                   >
-                    <div
-                      className="flex h-[56px] w-[80px] shrink-0 items-center justify-center overflow-hidden rounded-[10px]"
-                      style={STRIPES}
-                    >
-                      {a.heroImageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={a.heroImageUrl} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        <ImageIcon size={18} className="text-ink3" />
-                      )}
-                    </div>
+                    <Thumb url={a.heroImageUrl} />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-[6px]">
                         <Badge tone={CATEGORY_TONES[a.category] ?? 'slate'}>
@@ -194,6 +184,34 @@ export default function NewsPage() {
             </div>
           )}
         </Card>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Article thumbnail — striped placeholder + icon when there's no cover URL
+ * OR when the image fails to load (onError). Local state per row so a broken
+ * URL degrades to the same placeholder as a missing one.
+ */
+function Thumb({ url }: { url: string | null }) {
+  const [errored, setErrored] = useState(false);
+  const showImg = url && !errored;
+  return (
+    <div
+      className="flex h-[56px] w-[80px] shrink-0 items-center justify-center overflow-hidden rounded-[10px]"
+      style={STRIPES}
+    >
+      {showImg ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={url}
+          alt=""
+          className="h-full w-full object-cover"
+          onError={() => setErrored(true)}
+        />
+      ) : (
+        <ImageIcon size={18} className="text-ink3" />
       )}
     </div>
   );
