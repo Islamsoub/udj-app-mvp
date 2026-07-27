@@ -7,6 +7,7 @@ import { useStudents } from '@/hooks/queries/use-students';
 import { useSubjects } from '@/hooks/queries/use-academics';
 import { useNews } from '@/hooks/queries/use-news';
 import { SectionLabel } from '@/components/shared/section-label';
+import { TextInput } from '@/components/ui/input';
 
 /**
  * GlobalSearch (impl spec §7 + supplement §1.1): 280px input (surface2,
@@ -65,20 +66,18 @@ export function GlobalSearch() {
   };
 
   return (
-    <div ref={rootRef} className="relative">
-      <div className="relative">
-        <Search size={15} className="pointer-events-none absolute left-[11px] top-1/2 -translate-y-1/2 text-ink3" />
-        <input
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-          placeholder="Rechercher…"
-          className="w-[280px] rounded-[10px] border border-transparent bg-surface2 py-[8px] pl-[34px] pr-3 text-[13.5px] text-ink outline-none transition-shadow placeholder:text-ink3 focus:border-jade focus:bg-surface focus:shadow-[0_0_0_3px_var(--jade-faint)]"
-        />
-      </div>
+    <div ref={rootRef} className="relative w-[280px]">
+      <TextInput
+        icon={<Search size={15} />}
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        placeholder="Rechercher…"
+        className="bg-surface2"
+      />
       {open && active && (
         <div className="absolute left-0 right-0 z-50 mt-[6px] max-h-[380px] overflow-y-auto rounded-[13px] border border-hair bg-surface py-2 shadow-lg">
           {nothing && (

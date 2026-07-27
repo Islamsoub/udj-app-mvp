@@ -79,12 +79,21 @@ export const COURSE_PALETTE = [
 
 export type Tone = 'jade' | 'danger' | 'amber' | 'blue' | 'exam' | 'slate';
 
-/** [foreground, background] pair per tone (impl spec §5 Badge). */
+/**
+ * [foreground, background] pair per tone (impl spec §5 Badge).
+ *
+ * The foregrounds are INTENTIONALLY darker than the spec §2 accent colors
+ * (danger #E1483D, amber #D9821A, blue #2F7DD1, exam #7C53E0, slate #5A6B7B).
+ * Those accents fail WCAG AA as small text on their own light tinted
+ * backgrounds, so each foreground is darkened for contrast while the tint
+ * (background) keeps the true accent hue. Do not "restore" the spec values
+ * here — that would regress badge legibility.
+ */
 export const TONE_COLORS: Record<Tone, [string, string]> = {
   jade: [C.jadeText, 'rgba(29, 158, 117, 0.12)'],
-  danger: ['#B3392F', 'rgba(225, 72, 61, 0.12)'],
-  amber: ['#9A5B06', 'rgba(217, 130, 26, 0.14)'],
-  blue: ['#1F5FA6', 'rgba(47, 125, 209, 0.12)'],
-  exam: ['#6034C9', 'rgba(124, 83, 224, 0.14)'],
-  slate: ['#46535F', 'rgba(90, 107, 123, 0.14)'],
+  danger: ['#B3392F', 'rgba(225, 72, 61, 0.12)'], // darkened for contrast on tint
+  amber: ['#9A5B06', 'rgba(217, 130, 26, 0.14)'], // darkened for contrast on tint
+  blue: ['#1F5FA6', 'rgba(47, 125, 209, 0.12)'], // darkened for contrast on tint
+  exam: ['#6034C9', 'rgba(124, 83, 224, 0.14)'], // darkened for contrast on tint
+  slate: ['#46535F', 'rgba(90, 107, 123, 0.14)'], // darkened for contrast on tint
 };
