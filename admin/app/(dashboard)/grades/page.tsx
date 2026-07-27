@@ -10,12 +10,14 @@ import { LifecycleBadge } from '@/components/shared/lifecycle-badge';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs } from '@/components/ui/tabs';
+import { Tooltip } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrentSemester, useSemesters } from '@/hooks/queries/use-academics';
 import { usePublishGrades } from '@/hooks/queries/use-grades';
 import { useSubjectStages } from '@/hooks/use-subject-stages';
 import { useScopeStore } from '@/stores/scope-store';
 import { fmt } from '@/lib/grade-helpers';
+import { TONE_COLORS, type Tone } from '@/lib/tokens';
 import { apiErrorMessage } from '@/lib/utils';
 import type { PublishType } from '@/lib/types';
 
@@ -45,6 +47,39 @@ export default function GradesPage() {
   );
   const publish = usePublishGrades();
 
+  // Roll-up of the per-subject stages, purely for presentation (items #26–29).
+  const stages = useMemo(() => Array.from(stageBySubject.values()), [stageBySubject]);
+  const ccCompleteCount = stages.filter((s) => s >= 3).length; // stage ≥ CC complet
+  const anyGrades = stages.some((s) => s > 1);
+  const ccMissing = stages.filter((s) => s < 3).length; // not yet CC complet
+  const nfMissing = stages.filter((s) => s < 6).length; // no final computed yet
+  // The rail's "current" dot = the least-advanced subject (the floor every
+  // subject has cleared), which is exactly what gates the next publication.
+  const currentStage = stages.length > 0 ? Math.min(...stages) : 1;
+
+  // Publish-state helper strip phase (item #29) — derived from the summary flags.
+  const phase = useMemo<{ text: string; tone: Tone; muted?: boolean }>(() => {
+    const { total, everyNfPublished, canPublishNf, everyCcPublished, canPublishCc } = summary;
+    if (everyNfPublished) return { text: 'Résultats publiés', tone: 'jade' };
+    if (canPublishNf) return { text: 'Publication des résultats finaux possible', tone: 'blue' };
+    if (everyCcPublished)
+      return {
+        text: 'Notes CC publiées — saisie des examens finaux en cours',
+        tone: 'jade',
+        muted: true,
+      };
+    if (canPublishCc)
+      return { text: 'Publication CC possible — toutes les notes CC sont saisies', tone: 'blue' };
+    if (anyGrades)
+      return {
+        text: `Saisie en cours — ${ccCompleteCount} matière${
+          ccCompleteCount !== 1 ? 's' : ''
+        } sur ${total} en CC complet`,
+        tone: 'amber',
+      };
+    return { text: 'Saisie non commencée', tone: 'slate' };
+  }, [summary, anyGrades, ccCompleteCount]);
+
   const classAverage = (subjectId: string): number | null => {
     const finals = (gradesBySubject.get(subjectId) ?? [])
       .map((g) => g.noteFinale)
@@ -72,7 +107,7 @@ export default function GradesPage() {
       );
     }
     if (summary.everyCcPublished) {
-      return (
+      const nfButton = (
         <Button
           kind="primary"
           icon={<Send size={17} />}
@@ -82,8 +117,19 @@ export default function GradesPage() {
           Publier les résultats finaux
         </Button>
       );
+      return summary.canPublishNf ? (
+        nfButton
+      ) : (
+        <Tooltip
+          label={`Publication impossible — ${nfMissing} matière${
+            nfMissing !== 1 ? 's' : ''
+          } n'${nfMissing !== 1 ? 'ont' : 'a'} pas de résultat final calculé`}
+        >
+          {nfButton}
+        </Tooltip>
+      );
     }
-    return (
+    const ccButton = (
       <Button
         kind="primary"
         icon={<Send size={17} />}
@@ -92,6 +138,17 @@ export default function GradesPage() {
       >
         Publier les notes CC
       </Button>
+    );
+    return summary.canPublishCc ? (
+      ccButton
+    ) : (
+      <Tooltip
+        label={`Publication CC impossible — ${ccMissing} matière${
+          ccMissing !== 1 ? 's' : ''
+        } n'${ccMissing !== 1 ? 'ont' : 'a'} pas toutes les notes CC saisies`}
+      >
+        {ccButton}
+      </Tooltip>
     );
   };
 
@@ -144,11 +201,50 @@ export default function GradesPage() {
               />
             </Card>
           ) : (
-            <div className="grid grid-cols-2 gap-4">
+            <>
+              {/* Publish-state helper strip + 7-stage rail (items #29, #26) */}
+              <div
+                className="mb-5 flex items-center gap-3 rounded-[12px] px-4 py-[10px] text-[13px] font-semibold"
+                style={{
+                  background: TONE_COLORS[phase.tone][1],
+                  color: phase.muted ? 'var(--ink2)' : TONE_COLORS[phase.tone][0],
+                }}
+              >
+                <span
+                  className="h-2 w-2 shrink-0 rounded-full"
+                  style={{ background: TONE_COLORS[phase.tone][0] }}
+                />
+                <span className="flex-1">{phase.text}</span>
+                <div className="flex shrink-0 items-center gap-[5px]" aria-hidden>
+                  {Array.from({ length: 7 }, (_, idx) => {
+                    const s = idx + 1;
+                    const isCurrent = s === currentStage;
+                    const isPast = s < currentStage;
+                    return (
+                      <span
+                        key={s}
+                        className="h-[6px] w-[6px] rounded-full"
+                        style={
+                          isCurrent
+                            ? { background: TONE_COLORS[phase.tone][0] }
+                            : isPast
+                              ? { background: TONE_COLORS[phase.tone][0], opacity: 0.4 }
+                              : { border: '1.5px solid var(--hair2)' }
+                        }
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
               {subjects.map((subject) => {
                 const stage = stageBySubject.get(subject.id) ?? 1;
                 const avg = classAverage(subject.id);
-                const count = gradesBySubject.get(subject.id)?.length ?? 0;
+                const subjectRows = gradesBySubject.get(subject.id) ?? [];
+                const n = subjectRows.length;
+                const ccEntered = subjectRows.filter((r) => r.noteCc != null).length;
+                const ccPct = n > 0 ? Math.round((ccEntered / n) * 100) : 0;
                 return (
                   <Card key={subject.id} hover onClick={() => router.push(`/grades/${subject.id}`)}>
                     <div className="flex items-center gap-3">
@@ -168,10 +264,18 @@ export default function GradesPage() {
                       <LifecycleBadge stage={stage} />
                     </div>
                     <div className="mt-3 flex items-center gap-4 border-t border-hair pt-3">
-                      <span className="font-mono text-[11px] text-ink3">
-                        {count} note{count !== 1 ? 's' : ''} saisie{count !== 1 ? 's' : ''}
-                      </span>
-                      <span className="ml-auto h-6 w-px bg-hair2" />
+                      <div className="min-w-0 flex-1">
+                        <div className="font-mono text-[11px] text-ink3">
+                          CC {ccEntered}/{n}
+                        </div>
+                        <span className="mt-[5px] block h-[4px] w-full max-w-[120px] overflow-hidden rounded-full bg-sunken">
+                          <span
+                            className="block h-full rounded-full"
+                            style={{ width: `${ccPct}%`, background: 'var(--jade)' }}
+                          />
+                        </span>
+                      </div>
+                      <span className="h-6 w-px bg-hair2" />
                       <div className="text-right">
                         <div className="text-[19px] font-extrabold leading-none text-ink">
                           {fmt(avg)}
@@ -183,7 +287,8 @@ export default function GradesPage() {
                   </Card>
                 );
               })}
-            </div>
+              </div>
+            </>
           )}
         </>
       )}
