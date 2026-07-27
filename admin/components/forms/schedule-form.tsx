@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertTriangle, Calendar } from 'lucide-react';
@@ -44,6 +44,7 @@ export function ScheduleForm({ entry }: { entry?: ScheduleEntry }) {
   const create = useCreateScheduleEntry();
   const update = useUpdateScheduleEntry();
   const remove = useDeleteScheduleEntry();
+  const [editSemester, setEditSemester] = useState(false);
 
   const {
     control,
@@ -116,6 +117,10 @@ export function ScheduleForm({ entry }: { entry?: ScheduleEntry }) {
     [semesters]
   );
   const dayOptions = WEEK_DAYS.map((d, i) => ({ value: String(i), label: d }));
+  const selectedSemester = useMemo(
+    () => (semesters ?? []).find((s) => s.id === semesterId) ?? null,
+    [semesters, semesterId]
+  );
 
   const onSubmit = async (values: ScheduleValues) => {
     const data: ScheduleEntryInput = {
@@ -174,7 +179,60 @@ export function ScheduleForm({ entry }: { entry?: ScheduleEntry }) {
       }
     >
       <form id="schedule-form" onSubmit={handleSubmit(onSubmit)}>
+        {/* Semester: auto-filled to the current term and rarely changed, so it
+            shows as a compact read-only chip. "changer" reveals the dropdown;
+            it also auto-reveals if the value is missing or invalid. */}
+        {selectedSemester && !editSemester && !errors.semesterId ? (
+          <div className="mb-[14px] flex items-center gap-2">
+            <span className="inline-flex items-center gap-[6px] rounded-full bg-surface2 px-[11px] py-[5px] text-[12px] font-semibold text-ink2">
+              <Calendar size={13} className="text-ink3" />
+              {`${selectedSemester.label} · ${selectedSemester.academicYear}`}
+            </span>
+            <button
+              type="button"
+              onClick={() => setEditSemester(true)}
+              className="text-[12px] font-semibold text-jade-text transition-colors hover:underline"
+            >
+              changer
+            </button>
+          </div>
+        ) : (
+          <FRow cols={1}>
+            <FField label="Semestre" required error={errors.semesterId?.message}>
+              <Controller
+                control={control}
+                name="semesterId"
+                render={({ field }) => (
+                  <Dropdown
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={semesterOptions}
+                    placeholder="Sélectionner"
+                    error={!!errors.semesterId}
+                  />
+                )}
+              />
+            </FField>
+          </FRow>
+        )}
+
         <FRow>
+          <FField label="Matière" required error={errors.subjectId?.message}>
+            <Controller
+              control={control}
+              name="subjectId"
+              render={({ field }) => (
+                <Dropdown
+                  value={field.value}
+                  onChange={field.onChange}
+                  options={subjectOptions}
+                  placeholder="Sélectionner"
+                  disabled={!programmeId}
+                  error={!!errors.subjectId}
+                />
+              )}
+            />
+          </FField>
           <FField label="Programme" required error={errors.programmeId?.message}>
             <Controller
               control={control}
@@ -189,22 +247,6 @@ export function ScheduleForm({ entry }: { entry?: ScheduleEntry }) {
                   options={programmeOptions}
                   placeholder="Sélectionner"
                   error={!!errors.programmeId}
-                />
-              )}
-            />
-          </FField>
-          <FField label="Matière" required error={errors.subjectId?.message}>
-            <Controller
-              control={control}
-              name="subjectId"
-              render={({ field }) => (
-                <Dropdown
-                  value={field.value}
-                  onChange={field.onChange}
-                  options={subjectOptions}
-                  placeholder="Sélectionner"
-                  disabled={!programmeId}
-                  error={!!errors.subjectId}
                 />
               )}
             />
@@ -234,7 +276,7 @@ export function ScheduleForm({ entry }: { entry?: ScheduleEntry }) {
           </div>
         )}
 
-        <FRow>
+        <FRow cols={4}>
           <FField label="Jour" required error={errors.dayOfWeek?.message}>
             <Controller
               control={control}
@@ -249,6 +291,12 @@ export function ScheduleForm({ entry }: { entry?: ScheduleEntry }) {
               )}
             />
           </FField>
+          <FField label="Début" required error={errors.startTime?.message}>
+            <TextInput type="time" error={!!errors.startTime} {...register('startTime')} />
+          </FField>
+          <FField label="Fin" required error={errors.endTime?.message}>
+            <TextInput type="time" error={!!errors.endTime} {...register('endTime')} />
+          </FField>
           <FField label="Type" required error={errors.type?.message}>
             <Controller
               control={control}
@@ -259,31 +307,6 @@ export function ScheduleForm({ entry }: { entry?: ScheduleEntry }) {
                   onChange={(v) => field.onChange(v as ScheduleEntryType)}
                   options={SCHEDULE_TYPES}
                   error={!!errors.type}
-                />
-              )}
-            />
-          </FField>
-        </FRow>
-        <FRow>
-          <FField label="Heure début" required error={errors.startTime?.message}>
-            <TextInput type="time" error={!!errors.startTime} {...register('startTime')} />
-          </FField>
-          <FField label="Heure fin" required error={errors.endTime?.message}>
-            <TextInput type="time" error={!!errors.endTime} {...register('endTime')} />
-          </FField>
-        </FRow>
-        <FRow cols={1}>
-          <FField label="Semestre" required error={errors.semesterId?.message}>
-            <Controller
-              control={control}
-              name="semesterId"
-              render={({ field }) => (
-                <Dropdown
-                  value={field.value}
-                  onChange={field.onChange}
-                  options={semesterOptions}
-                  placeholder="Sélectionner"
-                  error={!!errors.semesterId}
                 />
               )}
             />
