@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { Sun } from 'lucide-react';
 import { GlobalSearch } from './global-search';
 import { BellMenu } from './bell-menu';
@@ -16,7 +16,17 @@ import { crumbsFor } from '@/lib/constants';
  */
 export function TopBar() {
   const pathname = usePathname();
-  const crumbs = crumbsFor(pathname);
+  const searchParams = useSearchParams();
+  const baseCrumbs = crumbsFor(pathname);
+  // /news/create is reused for editing (with ?id=). The static crumb map
+  // always says "Nouvel article", so override the last crumb in edit mode.
+  // Derive a new array — never mutate crumbsFor's shared static trail.
+  const crumbs =
+    pathname.startsWith('/news/create') && searchParams.get('id')
+      ? baseCrumbs.map((c, i) =>
+          i === baseCrumbs.length - 1 ? { ...c, label: 'Modifier' } : c
+        )
+      : baseCrumbs;
 
   return (
     <header className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b border-hair bg-surface px-8">
