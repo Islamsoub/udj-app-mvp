@@ -96,7 +96,7 @@ export function DataTable<TData>({
                   <th
                     key={header.id}
                     className={cn(
-                      'whitespace-nowrap px-4 py-[10px] text-start font-mono text-[10.5px] font-medium uppercase tracking-[0.08em]',
+                      'whitespace-nowrap px-4 py-[10px] text-start font-mono text-[11px] font-medium uppercase tracking-[0.08em]',
                       sorted ? 'text-jade-text' : 'text-ink3',
                       canSort && 'cursor-pointer select-none'
                     )}

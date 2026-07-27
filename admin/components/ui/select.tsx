@@ -59,7 +59,7 @@ export function Dropdown({
         onClick={() => setOpen((o) => !o)}
         className={cn(
           'flex w-full cursor-pointer items-center justify-between gap-2 rounded-[10px] border bg-surface px-[13px] py-[10px] text-left text-[14px] outline-none transition-shadow',
-          mono && 'font-mono text-[13px]',
+          mono && 'font-mono',
           error ? 'border-danger' : 'border-hair2',
           open && !error && 'border-jade shadow-[0_0_0_3px_var(--jade-faint)]',
           disabled && 'cursor-not-allowed opacity-55',

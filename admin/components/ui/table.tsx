@@ -14,7 +14,7 @@ export function Th({ className, children, ...props }: ThHTMLAttributes<HTMLTable
   return (
     <th
       className={cn(
-        'whitespace-nowrap px-4 py-[10px] text-start font-mono text-[10.5px] font-medium uppercase tracking-[0.08em] text-ink3',
+        'whitespace-nowrap px-4 py-[10px] text-start font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-ink3',
         className
       )}
       {...props}

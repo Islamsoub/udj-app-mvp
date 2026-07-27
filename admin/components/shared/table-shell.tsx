@@ -28,7 +28,7 @@ export function TableShell({
           <div
             key={i}
             className={cn(
-              'font-mono text-[10.5px] font-medium uppercase tracking-[0.08em] text-ink3',
+              'font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-ink3',
               c.align === 'end' ? 'text-end' : 'text-start',
               !c.width && 'flex-1'
             )}

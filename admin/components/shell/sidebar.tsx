@@ -37,23 +37,23 @@ interface NavDef {
 const ICON = (node: React.ReactNode) => node;
 
 const MAIN: NavDef[] = [
-  { page: 'dashboard', href: '/', label: 'Tableau de bord', icon: ICON(<LayoutGrid size={19} strokeWidth={1.7} />) },
-  { page: 'students', href: '/students', label: 'Étudiants', icon: ICON(<Users size={19} strokeWidth={1.7} />) },
-  { page: 'grades', href: '/grades', label: 'Notes', icon: ICON(<GraduationCap size={19} strokeWidth={1.7} />) },
-  { page: 'attendance', href: '/attendance', label: 'Présence', icon: ICON(<CalendarCheck size={19} strokeWidth={1.7} />) },
-  { page: 'news', href: '/news', label: 'Actualités', icon: ICON(<Megaphone size={19} strokeWidth={1.7} />) },
+  { page: 'dashboard', href: '/', label: 'Tableau de bord', icon: ICON(<LayoutGrid size={20} strokeWidth={1.7} />) },
+  { page: 'students', href: '/students', label: 'Étudiants', icon: ICON(<Users size={20} strokeWidth={1.7} />) },
+  { page: 'grades', href: '/grades', label: 'Notes', icon: ICON(<GraduationCap size={20} strokeWidth={1.7} />) },
+  { page: 'attendance', href: '/attendance', label: 'Présence', icon: ICON(<CalendarCheck size={20} strokeWidth={1.7} />) },
+  { page: 'news', href: '/news', label: 'Actualités', icon: ICON(<Megaphone size={20} strokeWidth={1.7} />) },
 ];
 
 const STRUCTURE: NavDef[] = [
-  { page: 'schedule', href: '/schedule', label: 'Emploi du temps', icon: ICON(<Calendar size={19} strokeWidth={1.7} />) },
-  { page: 'academics', href: '/academics', label: 'Académique', icon: ICON(<BookOpen size={19} strokeWidth={1.7} />) },
-  { page: 'notifications', href: '/notifications', label: 'Notifications', icon: ICON(<Bell size={19} strokeWidth={1.7} />) },
+  { page: 'schedule', href: '/schedule', label: 'Emploi du temps', icon: ICON(<Calendar size={20} strokeWidth={1.7} />) },
+  { page: 'academics', href: '/academics', label: 'Académique', icon: ICON(<BookOpen size={20} strokeWidth={1.7} />) },
+  { page: 'notifications', href: '/notifications', label: 'Notifications', icon: ICON(<Bell size={20} strokeWidth={1.7} />) },
 ];
 
 const SYSTEME: NavDef[] = [
-  { page: 'admins', href: '/admins', label: 'Administrateurs', icon: ICON(<Shield size={19} strokeWidth={1.7} />) },
-  { page: 'audit', href: '/audit', label: "Journal d'audit", icon: ICON(<ListChecks size={19} strokeWidth={1.7} />) },
-  { page: 'settings', href: '/settings', label: 'Paramètres', icon: ICON(<Settings size={19} strokeWidth={1.7} />) },
+  { page: 'admins', href: '/admins', label: 'Administrateurs', icon: ICON(<Shield size={20} strokeWidth={1.7} />) },
+  { page: 'audit', href: '/audit', label: "Journal d'audit", icon: ICON(<ListChecks size={20} strokeWidth={1.7} />) },
+  { page: 'settings', href: '/settings', label: 'Paramètres', icon: ICON(<Settings size={20} strokeWidth={1.7} />) },
 ];
 
 export function Sidebar() {

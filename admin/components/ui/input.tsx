@@ -29,7 +29,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
         readOnly={readOnly}
         className={cn(
           'w-full rounded-[10px] border bg-surface px-[13px] py-[10px] text-[14px] text-ink outline-none transition-shadow placeholder:text-ink3',
-          mono && 'font-mono text-[13px]',
+          mono && 'font-mono',
           icon && 'pl-[38px]',
           iconR && 'pr-[38px]',
           error
