@@ -17,7 +17,7 @@ import { useModal } from '@/hooks/use-modal';
 import { useToast } from '@/hooks/use-toast';
 import { useCreateNews, useNews } from '@/hooks/queries/use-news';
 import { CATEGORY_LABELS, CATEGORY_TONES } from '@/lib/constants';
-import { apiErrorMessage, fmtDate, fmtNumber } from '@/lib/utils';
+import { apiErrorMessage, fmtDate } from '@/lib/utils';
 import type { NewsArticle } from '@/lib/types';
 
 const STRIPES = {
@@ -143,9 +143,9 @@ export default function NewsPage() {
                         {dateStr ? ` · ${fmtDate(dateStr)}` : ''}
                       </div>
                     </div>
-                    <div className="shrink-0 font-mono text-[12px] text-ink3">
-                      {isDraft ? 'Non publié' : `${fmtNumber(a.viewsCount ?? 0)} vues`}
-                    </div>
+                    {isDraft && (
+                      <div className="shrink-0 font-mono text-[12px] text-ink3">Non publié</div>
+                    )}
                     <button
                       type="button"
                       onClick={(e) => {

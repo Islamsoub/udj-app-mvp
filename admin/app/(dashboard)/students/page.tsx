@@ -219,8 +219,8 @@ function StudentsInner() {
         title="Étudiants"
         sub={
           segment === 'risk'
-            ? `${rows.length} à risque · page actuelle`
-            : `${total} inscrits`
+            ? `${page ? rows.length : '—'} à risque · page actuelle`
+            : `${page ? total : '—'} inscrits`
         }
         actions={
           <>

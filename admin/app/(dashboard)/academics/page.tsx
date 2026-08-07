@@ -119,10 +119,10 @@ export default function AcademicsPage() {
       <Tabs<TabKey>
         className="mb-5"
         tabs={[
-          { key: 'faculties', label: 'Facultés', count: faculties?.length ?? 0 },
-          { key: 'programmes', label: 'Programmes', count: allProgrammes?.length ?? 0 },
-          { key: 'subjects', label: 'Matières', count: subjects?.length ?? 0 },
-          { key: 'semesters', label: 'Semestres', count: semesters?.length ?? 0 },
+          { key: 'faculties', label: 'Facultés', count: faculties?.length },
+          { key: 'programmes', label: 'Programmes', count: allProgrammes?.length },
+          { key: 'subjects', label: 'Matières', count: subjects?.length },
+          { key: 'semesters', label: 'Semestres', count: semesters?.length },
         ]}
         active={tab}
         onChange={setTab}
