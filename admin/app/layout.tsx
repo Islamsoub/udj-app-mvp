@@ -28,8 +28,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="fr">
-      <body className={`${jakarta.variable} ${dmMono.variable}`}>
+    <html lang="fr" className={`${jakarta.variable} ${dmMono.variable}`}>
+      <body>
         <QueryProvider>
           <ToastProvider>
             {children}
