@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { Calendar, Download, Plus } from 'lucide-react';
+import { Calendar, Download, Lock, Plus } from 'lucide-react';
 import { PageHead } from '@/components/shell/page-head';
 import { Card } from '@/components/shared/card';
 import { EmptyState } from '@/components/shared/empty-state';
@@ -47,7 +47,6 @@ export default function SchedulePage() {
   const room = useScopeStore((s) => s.room);
   const professorName = useScopeStore((s) => s.professorName);
   const setScheduleMode = useScopeStore((s) => s.setScheduleMode);
-  const setProgramme = useScopeStore((s) => s.setProgramme);
 
   const programme = useProgramme(programmeId);
   const readOnly = mode !== 'programme';
@@ -103,11 +102,8 @@ export default function SchedulePage() {
   const loading = !currentSemester && mode === 'programme';
 
   const onBlockClick = (e: ScheduleEntry) => {
-    if (readOnly) {
-      // Jump to the entry's programme in par-programme mode, pre-selected to edit.
-      setScheduleMode('programme');
-      setProgramme(e.subject.programme.id);
-    }
+    // Read-only modes (par salle / par enseignant) are non-editable: blocks are inert.
+    if (readOnly) return;
     open(<ScheduleForm entry={e} />);
   };
 
@@ -154,24 +150,32 @@ export default function SchedulePage() {
       />
 
       {/* Segmented control (§30.7) */}
-      <div className="mb-5 inline-flex gap-[2px] rounded-[10px] bg-surface2 p-[3px]">
-        {MODES.map((m) => {
-          const active = m.key === mode;
-          return (
-            <button
-              key={m.key}
-              type="button"
-              onClick={() => setScheduleMode(m.key)}
-              className={
-                active
-                  ? 'cursor-pointer rounded-[8px] border-0 bg-surface px-[14px] py-[7px] text-[13px] font-bold text-ink shadow'
-                  : 'cursor-pointer rounded-[8px] border-0 bg-transparent px-[14px] py-[7px] text-[13px] font-semibold text-ink2 hover:bg-sunken'
-              }
-            >
-              {m.label}
-            </button>
-          );
-        })}
+      <div className="mb-5 flex items-center gap-3">
+        <div className="inline-flex gap-[2px] rounded-[10px] bg-surface2 p-[3px]">
+          {MODES.map((m) => {
+            const active = m.key === mode;
+            return (
+              <button
+                key={m.key}
+                type="button"
+                onClick={() => setScheduleMode(m.key)}
+                className={
+                  active
+                    ? 'cursor-pointer rounded-[8px] border-0 bg-surface px-[14px] py-[7px] text-[13px] font-bold text-ink shadow'
+                    : 'cursor-pointer rounded-[8px] border-0 bg-transparent px-[14px] py-[7px] text-[13px] font-semibold text-ink2 hover:bg-sunken'
+                }
+              >
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+        {readOnly && (
+          <span className="inline-flex items-center gap-1 font-mono text-[11px] text-ink3">
+            <Lock size={12} />
+            Lecture seule
+          </span>
+        )}
       </div>
 
       {!selection ? (
@@ -266,7 +270,11 @@ export default function SchedulePage() {
                           key={e.id}
                           type="button"
                           onClick={() => onBlockClick(e)}
-                          className="absolute cursor-pointer overflow-hidden text-left transition-transform duration-[120ms] hover:scale-[1.02]"
+                          className={
+                            readOnly
+                              ? 'absolute cursor-default overflow-hidden text-left'
+                              : 'absolute cursor-pointer overflow-hidden text-left transition-transform duration-[120ms] hover:scale-[1.02]'
+                          }
                           style={{
                             top,
                             height,
@@ -277,6 +285,7 @@ export default function SchedulePage() {
                             borderLeft: conflict ? '3px solid var(--danger)' : `3px solid ${color}`,
                             borderRadius: 8,
                             padding: '6px 8px',
+                            opacity: readOnly ? 0.7 : 1,
                           }}
                         >
                           <div className="flex items-center gap-1">
