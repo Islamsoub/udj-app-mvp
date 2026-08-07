@@ -2,18 +2,19 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Lock, Search, Upload } from 'lucide-react';
+import { Search, Upload } from 'lucide-react';
 import { PageHead } from '@/components/shell/page-head';
 import { Card } from '@/components/shared/card';
 import { Avatar } from '@/components/shared/avatar';
 import { GradeCell } from '@/components/shared/grade-cell';
+import { LockedValue } from '@/components/shared/locked-value';
+import { LockReason } from '@/components/shared/lock-reason';
 import { SectionLabel } from '@/components/shared/section-label';
 import { GradeImportModal } from '@/components/modals/grade-import-modal';
 import { GradeCorrectionModal } from '@/components/modals/grade-correction-modal';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { TextInput } from '@/components/ui/input';
-import { Tooltip } from '@/components/ui/tooltip';
 import { Table, THead, Th, Td } from '@/components/ui/table';
 import { useModal } from '@/hooks/use-modal';
 import { useToast } from '@/hooks/use-toast';
@@ -241,16 +242,15 @@ export default function GradeEntryPage() {
 
       {/* Publication status line (§30.3) */}
       {(ccLocked || nfLocked) && (
-        <div className="mb-5 -mt-2 flex items-center gap-[10px]">
-          <Badge tone="jade" dot>
-            <Lock size={12} strokeWidth={2} />
-            {nfLocked ? 'Résultats publiés' : 'Notes CC publiées'}
-          </Badge>
-          <span className="text-[12.5px] text-ink3">
-            {nfLocked
-              ? 'Toutes les notes sont verrouillées. Une correction passe par le journal d’audit.'
-              : 'Les notes CC sont verrouillées ; la saisie du contrôle final reste ouverte.'}
-          </span>
+        <div className="mb-5 -mt-2">
+          <LockReason
+            tone={nfLocked ? 'jade' : 'amber'}
+            text={
+              nfLocked
+                ? 'Résultats publiés · toutes les notes sont verrouillées. Une correction passe par le journal d’audit.'
+                : 'Notes CC publiées · la saisie du contrôle final reste ouverte.'
+            }
+          />
         </div>
       )}
 
@@ -364,11 +364,17 @@ export default function GradeEntryPage() {
                             aria-label={`Note CC de ${st.name}`}
                           />
                         ) : (
-                          <LockedCell
-                            value={g?.noteCc ?? null}
-                            correctable={canCorrect && !!g}
-                            onClick={() => openCorrection(st.id, 'cc')}
-                          />
+                          <LockedValue
+                            tooltip={
+                              canCorrect && g ? 'Notes publiées — cliquer pour modifier' : undefined
+                            }
+                            onClickOverride={
+                              canCorrect && g ? () => openCorrection(st.id, 'cc') : undefined
+                            }
+                            className="h-[38px] w-16 px-0 font-mono text-[14px]"
+                          >
+                            {g?.noteCc != null ? fmt(g.noteCc) : '—'}
+                          </LockedValue>
                         )}
                       </Td>
                       <Td>
@@ -382,11 +388,17 @@ export default function GradeEntryPage() {
                             aria-label={`Note CF de ${st.name}`}
                           />
                         ) : (
-                          <LockedCell
-                            value={g?.noteCf ?? null}
-                            correctable={canCorrect && !!g}
-                            onClick={() => openCorrection(st.id, 'cf')}
-                          />
+                          <LockedValue
+                            tooltip={
+                              canCorrect && g ? 'Notes publiées — cliquer pour modifier' : undefined
+                            }
+                            onClickOverride={
+                              canCorrect && g ? () => openCorrection(st.id, 'cf') : undefined
+                            }
+                            className="h-[38px] w-16 px-0 font-mono text-[14px]"
+                          >
+                            {g?.noteCf != null ? fmt(g.noteCf) : '—'}
+                          </LockedValue>
                         )}
                       </Td>
                       <Td>
@@ -442,35 +454,4 @@ export default function GradeEntryPage() {
       )}
     </div>
   );
-}
-
-/**
- * Locked grade cell (§30.3): sunken bg, no focus ring, lock glyph. When
- * correctable, a tooltip invites a click that opens the GradeCorrectionModal.
- */
-function LockedCell({
-  value,
-  correctable,
-  onClick,
-}: {
-  value: number | null;
-  correctable: boolean;
-  onClick: () => void;
-}) {
-  const inner = (
-    <button
-      type="button"
-      disabled={!correctable}
-      onClick={onClick}
-      className={cn(
-        'flex h-[38px] w-16 items-center justify-center gap-[5px] rounded-[9px] border border-transparent bg-sunken font-mono text-[14px] text-ink2',
-        correctable ? 'cursor-pointer hover:bg-hair2' : 'cursor-not-allowed'
-      )}
-    >
-      {value != null ? fmt(value) : '—'}
-      <Lock size={11} strokeWidth={2} className="text-ink3" />
-    </button>
-  );
-  if (!correctable) return inner;
-  return <Tooltip label="Notes publiées — cliquer pour modifier">{inner}</Tooltip>;
 }
