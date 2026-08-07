@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   BookOpen,
   GraduationCap,
+  Info,
   Lock,
   Mail,
   Pencil,
@@ -585,6 +586,13 @@ export default function StudentDetailPage() {
                 );
               })}
             </div>
+            {attendanceBySubject.length > 0 && (
+              <p className="mt-2 flex items-center gap-1 text-[11.5px] italic text-ink3">
+                <Info size={12} className="shrink-0" />
+                Présence pondérée : heures de présence effectives / heures programmées · les
+                absences justifiées comptent comme présence complète
+              </p>
+            )}
             <div className="mt-3 border-t border-hair pt-3">
               <button
                 type="button"

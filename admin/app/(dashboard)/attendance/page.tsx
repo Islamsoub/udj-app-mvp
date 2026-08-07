@@ -12,6 +12,7 @@ import {
   FileText,
   Image as ImageIcon,
   Inbox,
+  Info,
   Users,
 } from 'lucide-react';
 import { PageHead } from '@/components/shell/page-head';
@@ -225,6 +226,13 @@ export default function AttendancePage() {
                   </Table>
                 )}
               </Card>
+              {overview && overview.subjects.length > 0 && (
+                <p className="mt-2 flex items-center gap-1 text-[11.5px] italic text-ink3">
+                  <Info size={12} className="shrink-0" />
+                  Présence pondérée : heures de présence effectives / heures programmées · les
+                  absences justifiées comptent comme présence complète
+                </p>
+              )}
             </div>
           )}
 
