@@ -97,6 +97,17 @@ select {
   font-family: inherit;
 }
 
+/* Neutralize Chrome's lavender autofill tint — keep inputs on --surface with
+   --ink text so autofilled fields match untouched ones (login password field). */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+  -webkit-text-fill-color: var(--ink);
+  border-color: var(--hair2);
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 /* ── Keyframes (impl spec §29) ────────────────────────────────────────────── */
 @keyframes toastIn {
   from {

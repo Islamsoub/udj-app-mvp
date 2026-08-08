@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, KeyRound, Mail, Shield } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, KeyRound, Mail, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TextInput } from '@/components/ui/input';
 import { FField } from '@/components/ui/form-helpers';
@@ -63,12 +63,18 @@ export default function LoginPage() {
         style={{ background: 'var(--side-bg)' }}
       >
         <div
-          className="pointer-events-none absolute -left-[120px] -top-[120px] h-[420px] w-[420px] rounded-full"
-          style={{ background: `radial-gradient(closest-side, ${C.jade}42, transparent)` }}
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(520px circle at calc(100% + 160px) -160px, rgba(29,158,117,0.35), transparent)',
+          }}
         />
         <div
-          className="pointer-events-none absolute -bottom-[140px] -right-[100px] h-[480px] w-[480px] rounded-full"
-          style={{ background: `radial-gradient(closest-side, ${C.jade}30, transparent)` }}
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(360px circle at -100px calc(100% + 120px), rgba(29,158,117,0.25), transparent)',
+          }}
         />
 
         <div className="relative flex items-center gap-3">
@@ -78,7 +84,12 @@ export default function LoginPage() {
           >
             U
           </span>
-          <span className="text-[17px] font-bold text-white">Unipocket</span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-[17px] font-bold text-white">Unipocket</span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-white/50">
+              ADMIN · UDJ
+            </span>
+          </div>
         </div>
 
         <div className="relative">
@@ -112,7 +123,7 @@ export default function LoginPage() {
 
           <form className="mt-5" onSubmit={onSubmit} noValidate>
             <div className="mb-[14px]">
-              <FField label="Email" required error={errors.email?.message}>
+              <FField label="Adresse e-mail" error={errors.email?.message}>
                 <TextInput
                   {...register('email')}
                   type="email"
@@ -126,31 +137,42 @@ export default function LoginPage() {
               </FField>
             </div>
             <div className="mb-3">
-              <FField label="Mot de passe" required error={errors.password?.message}>
-                <TextInput
-                  {...register('password')}
-                  type={showPw ? 'text' : 'password'}
-                  icon={<KeyRound size={16} />}
-                  iconR={
-                    <button
-                      type="button"
-                      onClick={() => setShowPw((v) => !v)}
-                      className="flex cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-ink3 transition-colors hover:text-ink"
-                      aria-label={showPw ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
-                      tabIndex={-1}
-                    >
-                      {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  }
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  disabled={pending}
-                  error={!!errors.password}
-                />
-              </FField>
+              <div className="mb-[7px] flex items-center justify-between gap-3">
+                <label className="text-[12.5px] font-semibold text-ink2">Mot de passe</label>
+                <button
+                  type="button"
+                  onClick={() => open(<ForgotModal />)}
+                  className="cursor-pointer border-0 bg-transparent p-0 text-[13px] font-semibold text-jade-text hover:underline"
+                >
+                  Mot de passe oublié ?
+                </button>
+              </div>
+              <TextInput
+                {...register('password')}
+                type={showPw ? 'text' : 'password'}
+                icon={<KeyRound size={16} />}
+                iconR={
+                  <button
+                    type="button"
+                    onClick={() => setShowPw((v) => !v)}
+                    className="flex cursor-pointer items-center justify-center border-0 bg-transparent p-0 text-ink3 transition-colors hover:text-ink"
+                    aria-label={showPw ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                    tabIndex={-1}
+                  >
+                    {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                }
+                placeholder="••••••••"
+                autoComplete="current-password"
+                disabled={pending}
+                error={!!errors.password}
+              />
+              {errors.password?.message && (
+                <div className="mt-[5px] text-[11.5px] text-danger">{errors.password.message}</div>
+              )}
             </div>
 
-            <div className="mb-5 flex items-center justify-between">
+            <div className="mb-5">
               <label className="flex cursor-pointer items-center gap-2 text-[13px] text-ink2">
                 <input
                   type="checkbox"
@@ -159,18 +181,18 @@ export default function LoginPage() {
                   style={{ accentColor: 'var(--jade)' }}
                   disabled={pending}
                 />
-                Rester connecté
+                Rester connecté sur cet appareil
               </label>
-              <button
-                type="button"
-                onClick={() => open(<ForgotModal />)}
-                className="cursor-pointer border-0 bg-transparent p-0 text-[13px] font-semibold text-jade-text hover:underline"
-              >
-                Mot de passe oublié ?
-              </button>
             </div>
 
-            <Button kind="primary" size="lg" type="submit" className="w-full" disabled={pending}>
+            <Button
+              kind="primary"
+              size="lg"
+              type="submit"
+              className="w-full"
+              disabled={pending}
+              iconR={!pending ? <ArrowRight size={16} /> : undefined}
+            >
               {pending ? 'Connexion…' : 'Se connecter'}
             </Button>
           </form>
