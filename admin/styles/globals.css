@@ -40,6 +40,15 @@
   --slate: #5a6b7b;
   --slate-bg: rgba(90, 107, 123, 0.12);
 
+  /* On-tint foregrounds — darkened accents that pass WCAG AA as small text over
+     their own light tinted backgrounds. Use for badge/figure text on tints, NOT
+     for borders/icons/large text (those keep the base --danger/--amber/… above). */
+  --danger-on-tint: #b3392f;
+  --amber-on-tint: #9a5b06;
+  --blue-on-tint: #1f5fa6;
+  --exam-on-tint: #6034c9;
+  --slate-on-tint: #46535f;
+
   /* Sidebar (dark jade) */
   --side-bg: #0a3d2e;
   --side-bg2: #0e4a38;

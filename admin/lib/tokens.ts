@@ -88,12 +88,19 @@ export type Tone = 'jade' | 'danger' | 'amber' | 'blue' | 'exam' | 'slate';
  * backgrounds, so each foreground is darkened for contrast while the tint
  * (background) keeps the true accent hue. Do not "restore" the spec values
  * here — that would regress badge legibility.
+ *
+ * These darkened foregrounds are the single source of "accent text on a tint"
+ * for the whole system — they are mirrored 1:1 by the --*-on-tint CSS variables
+ * in styles/globals.css (and the text-*-on-tint Tailwind utilities). The values
+ * are referenced as `var(--*-on-tint)`: every TONE_COLORS consumer applies them
+ * via inline `style` (DOM elements), where the custom properties resolve. Keep
+ * the two layers in lockstep — there must be exactly one darkened red/amber/etc.
  */
 export const TONE_COLORS: Record<Tone, [string, string]> = {
   jade: [C.jadeText, 'rgba(29, 158, 117, 0.12)'],
-  danger: ['#B3392F', 'rgba(225, 72, 61, 0.12)'], // darkened for contrast on tint
-  amber: ['#9A5B06', 'rgba(217, 130, 26, 0.14)'], // darkened for contrast on tint
-  blue: ['#1F5FA6', 'rgba(47, 125, 209, 0.12)'], // darkened for contrast on tint
-  exam: ['#6034C9', 'rgba(124, 83, 224, 0.14)'], // darkened for contrast on tint
-  slate: ['#46535F', 'rgba(90, 107, 123, 0.14)'], // darkened for contrast on tint
+  danger: ['var(--danger-on-tint)', 'rgba(225, 72, 61, 0.12)'], // #B3392F
+  amber: ['var(--amber-on-tint)', 'rgba(217, 130, 26, 0.14)'], // #9A5B06
+  blue: ['var(--blue-on-tint)', 'rgba(47, 125, 209, 0.12)'], // #1F5FA6
+  exam: ['var(--exam-on-tint)', 'rgba(124, 83, 224, 0.14)'], // #6034C9
+  slate: ['var(--slate-on-tint)', 'rgba(90, 107, 123, 0.14)'], // #46535F
 };

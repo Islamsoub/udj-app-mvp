@@ -58,18 +58,20 @@ import type { ProgrammeLevel, StudentGrade } from '@/lib/types';
  * entry table, corrections via GradeCorrectionModal, compact save bar) +
  * per-subject attendance bars.
  */
+// On-tint figure colors so GPA/presence figures match the on-tint attendance
+// bars — one red / one amber per screen (see TONE_COLORS in lib/tokens).
 const GRADE_TEXT: Record<'danger' | 'amber' | 'ink', string> = {
-  danger: 'text-danger',
-  amber: 'text-amber',
+  danger: 'text-danger-on-tint',
+  amber: 'text-amber-on-tint',
   ink: 'text-ink',
 };
 
 const TONE_TEXT: Record<Tone, string> = {
   jade: 'text-jade-text',
-  danger: 'text-danger',
-  amber: 'text-amber',
-  blue: 'text-blue',
-  exam: 'text-exam',
+  danger: 'text-danger-on-tint',
+  amber: 'text-amber-on-tint',
+  blue: 'text-blue-on-tint',
+  exam: 'text-exam-on-tint',
   slate: 'text-ink',
 };
 

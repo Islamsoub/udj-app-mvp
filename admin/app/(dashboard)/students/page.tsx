@@ -48,9 +48,11 @@ const SEGMENT_STATUS: Record<Segment, StudentStatus | undefined> = {
   suspended: 'SUSPENDED',
 };
 
+// On-tint figure colors so GPA text matches the on-tint presence bars in the
+// same row — one red / one amber per screen (see TONE_COLORS in lib/tokens).
 const GRADE_TEXT: Record<'danger' | 'amber' | 'ink', string> = {
-  danger: 'text-danger',
-  amber: 'text-amber',
+  danger: 'text-danger-on-tint',
+  amber: 'text-amber-on-tint',
   ink: 'text-ink',
 };
 
