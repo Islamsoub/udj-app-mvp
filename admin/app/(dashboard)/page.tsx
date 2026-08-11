@@ -21,6 +21,7 @@ import {
   RotateCcw,
   Send,
   Trash2,
+  TrendingUp,
   Users,
 } from 'lucide-react';
 import { PageHead } from '@/components/shell/page-head';
@@ -37,9 +38,6 @@ import { fmt, gradeTone, listGradeTone, presenceTone } from '@/lib/grade-helpers
 import { fmtRelative } from '@/lib/utils';
 import { C, TONE_COLORS, type Tone } from '@/lib/tokens';
 import type { ActivityEntry, StudentRow } from '@/lib/types';
-
-/** 8-week presence trend — demo data (impl spec §11 Sparkline). */
-const TREND_WEEKS = [82, 85, 84, 88, 86, 89, 87, 87];
 
 // On-tint figure colors so GPA text matches the on-tint presence bars/badges on
 // this screen — one red / one amber per screen (see TONE_COLORS in lib/tokens).
@@ -59,35 +57,6 @@ function activityMeta(action: string): { tone: Tone; icon: ReactNode } {
   if (a.includes('delete') || a.includes('reject'))
     return { tone: 'danger', icon: <Trash2 size={14} /> };
   return { tone: 'slate', icon: <Dot size={14} /> };
-}
-
-function Sparkline({ data }: { data: number[] }) {
-  const w = 280;
-  const h = 72;
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const span = max - min || 1;
-  const pts = data.map((v, i) => ({
-    x: (i / (data.length - 1)) * (w - 8) + 4,
-    y: h - 6 - ((v - min) / span) * (h - 16),
-  }));
-  const poly = pts.map((p) => `${p.x},${p.y}`).join(' ');
-  const area = `M${pts[0].x},${h} L${poly.replace(/ /g, ' L')} L${pts[pts.length - 1].x},${h} Z`;
-  const last = pts[pts.length - 1];
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="mt-3 w-full" aria-hidden>
-      <path d={area} fill={C.jade} opacity={0.1} />
-      <polyline
-        points={poly}
-        fill="none"
-        stroke={C.jade}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx={last.x} cy={last.y} r={3} fill={C.jade} />
-    </svg>
-  );
 }
 
 function DashboardSkeleton() {
@@ -118,16 +87,23 @@ export default function DashboardPage() {
   const { data: activity } = useRecentActivity();
   const { data: studentsPage } = useStudents({ pageSize: 100 });
 
+  // The attendance cut-off is server config, not a constant — a hardcoded 75
+  // silently contradicted the "Seuil d'assiduité" the same page prints below.
+  const attendanceThreshold = stats?.attendanceThreshold ?? null;
+  const passMark = stats != null ? stats.gpaScale / 2 : null;
+
   const atRisk = useMemo<StudentRow[]>(() => {
+    if (attendanceThreshold == null || passMark == null) return [];
     const rows = studentsPage?.data ?? [];
     return rows
       .filter(
         (s) =>
           s.status !== 'SUSPENDED' &&
-          ((s.gpa != null && s.gpa < 10) || (s.presence != null && s.presence < 75))
+          ((s.gpa != null && s.gpa < passMark) ||
+            (s.presence != null && s.presence < attendanceThreshold))
       )
       .slice(0, 5);
-  }, [studentsPage]);
+  }, [studentsPage, attendanceThreshold, passMark]);
 
   if (!stats) {
     return (
@@ -211,7 +187,8 @@ export default function DashboardPage() {
           tone="danger"
           label="Justificatifs en attente"
           value={stats.pendingJustifications}
-          sub="À traiter cette semaine"
+          // The API returns a running total, not a week-scoped count.
+          sub="En attente de traitement"
           onClick={() => router.push('/attendance')}
         />
       </div>
@@ -250,19 +227,18 @@ export default function DashboardPage() {
 
         <Card>
           <div className="text-[15.5px] font-bold text-ink">Tendance de présence</div>
-          <div className="mt-3 flex items-center gap-3">
+          {/* Only the current average is real (stats.attendancePercentage). There is
+              no multi-semester trend endpoint yet, so the chart area stays empty
+              rather than showing an invented curve. */}
+          <div className="mt-3">
             <span className="text-[32px] font-extrabold leading-none tracking-[-0.02em] text-ink">
               {presencePct}%
             </span>
-            <Badge tone="jade" dot>
-              +2 pts vs S1
-            </Badge>
+            <div className="mt-[6px] text-[11.5px] text-ink3">Moyenne actuelle</div>
           </div>
-          <Sparkline data={TREND_WEEKS} />
-          <div className="mt-1 flex justify-between font-mono text-[10px] text-ink3">
-            {TREND_WEEKS.map((_, i) => (
-              <span key={i}>S{i + 1}</span>
-            ))}
+          <div className="mt-4 flex flex-col items-center justify-center gap-2 border-t border-hair py-8 text-center">
+            <TrendingUp size={20} className="text-ink3 opacity-60" />
+            <div className="text-[13px] text-ink3">Données de tendance insuffisantes</div>
           </div>
         </Card>
       </div>
