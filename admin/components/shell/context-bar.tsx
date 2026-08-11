@@ -180,13 +180,17 @@ function FacultyProgrammeBar() {
           <>
             <span className="text-[12.5px] font-semibold text-jade-text">
               Vue filtrée
-              {studentCount != null ? ` · ${fmtNumber(studentCount)} étudiants` : ''}
+              {studentCount != null
+                ? ` · ${fmtNumber(studentCount)} étudiant${studentCount === 1 ? '' : 's'}`
+                : ''}
             </span>
             <ResetChip onClick={reset} />
           </>
         ) : (
           <span className="text-[12.5px] text-ink3">
-            {programmes ? `${fmtNumber(totalStudents)} étudiants` : 'Tous les étudiants'}
+            {programmes
+              ? `${fmtNumber(totalStudents)} étudiant${totalStudents === 1 ? '' : 's'}`
+              : 'Tous les étudiants'}
           </span>
         )}
       </div>

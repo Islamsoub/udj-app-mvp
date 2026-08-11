@@ -214,7 +214,16 @@ export default function AttendancePage() {
                             {s.studentsAtRisk}
                           </Td>
                           <Td className="text-center">
-                            {s.belowThreshold ? (
+                            {s.totalSessions === 0 ? (
+                              // No sessions scheduled yet — zero data is not "healthy",
+                              // so never show the green check here.
+                              <span
+                                className="font-mono text-[15px] font-bold text-amber"
+                                title="Aucune séance programmée"
+                              >
+                                —
+                              </span>
+                            ) : s.belowThreshold ? (
                               <AlertTriangle size={17} className="mx-auto text-amber" />
                             ) : (
                               <CheckCircle2 size={17} className="mx-auto text-jade" />
@@ -248,7 +257,14 @@ export default function AttendancePage() {
               <div className="border-b border-hair p-3">
                 <Tabs<QueueTab>
                   tabs={[
-                    { key: 'PENDING', label: 'En attente', count: pending.length, tone: 'amber' },
+                    // Amber only when there is something waiting — an empty queue
+                    // should not be the loudest thing on the page.
+                    {
+                      key: 'PENDING',
+                      label: 'En attente',
+                      count: pending.length,
+                      tone: pending.length > 0 ? 'amber' : undefined,
+                    },
                     { key: 'APPROVED', label: 'Validés', count: approved.length },
                     { key: 'REJECTED', label: 'Rejetés', count: rejected.length },
                   ]}

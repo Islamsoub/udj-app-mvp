@@ -325,7 +325,7 @@ export default function AcademicsPage() {
                   </Button>
                 ) : (
                   <Button
-                    kind="soft"
+                    kind="ghost"
                     size="sm"
                     disabled={saveSemester.isPending}
                     onClick={() => setCurrent(s.id)}

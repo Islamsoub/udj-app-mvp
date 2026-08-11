@@ -234,7 +234,9 @@ export function StudentForm({ student }: StudentFormProps) {
                 <Button
                   kind="soft"
                   size="sm"
-                  className="shrink-0"
+                  // Bordered + stronger jade fill: `soft` alone reads as disabled next
+                  // to the input, and this is the only way to fill a required field.
+                  className="shrink-0 border-jade100 bg-jade-faint2 font-bold hover:bg-jade100"
                   onClick={() => setValue('password', randPw(12), { shouldValidate: true })}
                 >
                   Générer
