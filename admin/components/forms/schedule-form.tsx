@@ -34,8 +34,17 @@ import type { ScheduleEntry, ScheduleEntryInput, ScheduleEntryType } from '@/lib
  * shows an amber inline warning below the Salle field when the room is already
  * booked at that weekday + time in the same semester. Save is NOT blocked (soft
  * warning): amphitheatres may be intentionally shared (AD §5.2).
+ *
+ * `defaultProgrammeId` pre-fills Programme on create from the Context Bar scope,
+ * so "Nouvelle séance" opens against the programme already being viewed.
  */
-export function ScheduleForm({ entry }: { entry?: ScheduleEntry }) {
+export function ScheduleForm({
+  entry,
+  defaultProgrammeId,
+}: {
+  entry?: ScheduleEntry;
+  defaultProgrammeId?: string | null;
+}) {
   const { close } = useModal();
   const { toast } = useToast();
   const { data: programmes } = useProgrammes();
@@ -57,7 +66,7 @@ export function ScheduleForm({ entry }: { entry?: ScheduleEntry }) {
   } = useForm<ScheduleValues>({
     resolver: zodResolver(scheduleSchema),
     defaultValues: {
-      programmeId: entry?.subject.programme.id ?? '',
+      programmeId: entry?.subject.programme.id ?? defaultProgrammeId ?? '',
       subjectId: entry?.subjectId ?? '',
       semesterId: entry?.semesterId ?? '',
       professorName: entry?.professorName ?? '',

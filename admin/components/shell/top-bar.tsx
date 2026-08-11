@@ -50,7 +50,8 @@ export function TopBar() {
       <div className="flex items-center gap-3">
         <GlobalSearch />
         <Tooltip label="Portail disponible en français uniquement">
-          <span className="flex cursor-default items-center gap-[6px] rounded-full border border-hair2 px-[11px] py-[6px] text-[12px] font-bold text-ink2">
+          {/* Static indicator, not a control — no border, so it reads as a label. */}
+          <span className="flex cursor-default items-center gap-[6px] rounded-full bg-surface2 px-[11px] py-[6px] text-[12px] font-bold text-ink2">
             <Sun size={14} className="text-amber" />
             FR
           </span>

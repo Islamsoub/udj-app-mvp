@@ -16,7 +16,7 @@ import { TableShell } from '@/components/shared/table-shell';
 import { EmptyState } from '@/components/shared/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, PillFilter } from '@/components/ui/tabs';
+import { Tabs } from '@/components/ui/tabs';
 import { Menu } from '@/components/ui/dropdown-menu';
 import { FacultyForm } from '@/components/forms/faculty-form';
 import { ProgrammeForm } from '@/components/forms/programme-form';
@@ -31,6 +31,7 @@ import {
   useSemesters,
   useSubjects,
 } from '@/hooks/queries/use-academics';
+import { useScopeStore } from '@/stores/scope-store';
 import { PROGRAMME_LEVELS } from '@/lib/constants';
 import { apiErrorMessage, fmtDate } from '@/lib/utils';
 import type { Tone } from '@/lib/tokens';
@@ -67,16 +68,38 @@ export default function AcademicsPage() {
   const { open } = useModal();
   const { toast } = useToast();
   const [tab, setTab] = useState<TabKey>('faculties');
-  const [facultyFilter, setFacultyFilter] = useState('');
+
+  // The Context Bar owns Faculté → Programme scoping for the whole portal; this
+  // page reads it rather than keeping a second, contradicting filter of its own.
+  const facultyId = useScopeStore((s) => s.facultyId);
+  const programmeId = useScopeStore((s) => s.programmeId);
+  const setFaculty = useScopeStore((s) => s.setFaculty);
 
   const { data: faculties, isLoading: facultiesLoading } = useFaculties();
+  // Unscoped — the per-faculty student totals below need every programme.
   const { data: allProgrammes } = useProgrammes();
   const { data: programmes, isLoading: programmesLoading } = useProgrammes(
-    facultyFilter || undefined
+    facultyId ?? undefined
   );
-  const { data: subjects, isLoading: subjectsLoading } = useSubjects();
+  const { data: subjects, isLoading: subjectsLoading } = useSubjects(
+    programmeId ? { programme: programmeId } : {}
+  );
   const { data: semesters, isLoading: semestersLoading } = useSemesters();
   const saveSemester = useSaveSemester();
+
+  const visibleFaculties = useMemo(
+    () => (faculties ?? []).filter((f) => !facultyId || f.id === facultyId),
+    [faculties, facultyId]
+  );
+  // Subjects are already programme-scoped server-side; a faculty-only scope has
+  // to be narrowed here, since /admin/subjects takes no faculty filter.
+  const visibleSubjects = useMemo(
+    () =>
+      (subjects ?? []).filter(
+        (s) => programmeId || !facultyId || s.programme?.facultyId === facultyId
+      ),
+    [subjects, facultyId, programmeId]
+  );
 
   // Faculty student totals — summed from each faculty's programmes, since the
   // faculties endpoint only returns a programme count.
@@ -119,9 +142,9 @@ export default function AcademicsPage() {
       <Tabs<TabKey>
         className="mb-5"
         tabs={[
-          { key: 'faculties', label: 'Facultés', count: faculties?.length },
-          { key: 'programmes', label: 'Programmes', count: allProgrammes?.length },
-          { key: 'subjects', label: 'Matières', count: subjects?.length },
+          { key: 'faculties', label: 'Facultés', count: visibleFaculties.length },
+          { key: 'programmes', label: 'Programmes', count: programmes?.length },
+          { key: 'subjects', label: 'Matières', count: visibleSubjects.length },
           { key: 'semesters', label: 'Semestres', count: semesters?.length },
         ]}
         active={tab}
@@ -132,13 +155,13 @@ export default function AcademicsPage() {
       {tab === 'faculties' &&
         (facultiesLoading ? (
           <AcademicsSkeleton />
-        ) : (faculties ?? []).length === 0 ? (
+        ) : visibleFaculties.length === 0 ? (
           <Card pad={0}>
             <EmptyState icon={<BookOpen size={20} />} message="Aucune faculté enregistrée." />
           </Card>
         ) : (
           <div className="grid grid-cols-2 gap-4">
-            {(faculties ?? []).map((f) => (
+            {visibleFaculties.map((f) => (
               <Card key={f.id} hover onClick={() => open(<FacultyForm faculty={f} />)}>
                 <div className="flex items-center gap-3">
                   <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-jade-faint font-mono text-[13px] font-bold text-jade-text">
@@ -158,8 +181,9 @@ export default function AcademicsPage() {
                       {
                         icon: <Layers size={15} />,
                         label: 'Voir les programmes',
+                        // Drives the shared scope so the Context Bar reflects it too.
                         onClick: () => {
-                          setFacultyFilter(f.id);
+                          setFaculty(f.id);
                           setTab('programmes');
                         },
                       },
@@ -188,15 +212,6 @@ export default function AcademicsPage() {
       {/* ─── Programmes ──────────────────────────────────────────────────── */}
       {tab === 'programmes' && (
         <>
-          <PillFilter
-            className="mb-4"
-            options={[
-              { key: '', label: 'Toutes facultés' },
-              ...(faculties ?? []).map((f) => ({ key: f.id, label: f.code })),
-            ]}
-            active={facultyFilter}
-            onChange={setFacultyFilter}
-          />
           {programmesLoading ? (
             <AcademicsSkeleton />
           ) : (
@@ -258,10 +273,10 @@ export default function AcademicsPage() {
               { label: '', width: 40 },
             ]}
           >
-            {(subjects ?? []).length === 0 ? (
+            {visibleSubjects.length === 0 ? (
               <EmptyState icon={<GraduationCap size={20} />} message="Aucune matière enregistrée." />
             ) : (
-              (subjects ?? []).map((s) => (
+              visibleSubjects.map((s) => (
                 <div
                   key={s.id}
                   className="flex h-[56px] cursor-pointer items-center border-t border-hair px-4 transition-colors first:border-0 hover:bg-surface2"

@@ -244,7 +244,9 @@ function NewsEditor() {
                 <ImageIcon size={18} className="text-ink3" />
               </div>
               <div className="p-3">
-                <div className="flex flex-wrap items-center gap-[6px]">
+                {/* Height reserved even when empty so picking the first category
+                    does not reflow the card below it. */}
+                <div className="flex min-h-[24px] flex-wrap items-center gap-[6px]">
                   {selectedCategory && (
                     <Badge tone={CATEGORY_TONES[selectedCategory.slug] ?? 'slate'}>
                       {selectedCategory.nameFr}

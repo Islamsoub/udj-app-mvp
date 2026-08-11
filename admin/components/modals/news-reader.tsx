@@ -36,11 +36,17 @@ export function NewsReader({ article }: { article: NewsArticle }) {
           <Button kind="quiet" onClick={close}>
             Fermer
           </Button>
-          <Button kind="danger" onClick={() => open(<DeleteNewsModal article={article} />)}>
+          {/* Modifier is the expected action from a row click; Supprimer stays
+              reachable but loses its fill so it is not the visual focus. */}
+          <Button
+            kind="quiet"
+            className="text-danger hover:bg-danger-bg"
+            onClick={() => open(<DeleteNewsModal article={article} />)}
+          >
             Supprimer
           </Button>
           <Button
-            kind="ghost"
+            kind="primary"
             onClick={() => {
               close();
               router.push(`/news/create?id=${article.id}`);

@@ -141,7 +141,7 @@ export default function SchedulePage() {
               Exporter
             </Button>
             {mode === 'programme' && (
-              <Button icon={<Plus size={17} />} onClick={() => open(<ScheduleForm />)}>
+              <Button icon={<Plus size={17} />} onClick={() => open(<ScheduleForm defaultProgrammeId={programmeId} />)}>
                 Nouvelle séance
               </Button>
             )}
@@ -191,7 +191,7 @@ export default function SchedulePage() {
             message="Aucune séance pour cette sélection."
             action={
               mode === 'programme' ? (
-                <Button icon={<Plus size={17} />} onClick={() => open(<ScheduleForm />)}>
+                <Button icon={<Plus size={17} />} onClick={() => open(<ScheduleForm defaultProgrammeId={programmeId} />)}>
                   Nouvelle séance
                 </Button>
               ) : undefined
