@@ -272,7 +272,7 @@ export default function GradeEntryPage() {
               <div className="mt-1 text-[22px] font-extrabold text-ink">{roster.length}</div>
             </Card>
             <Card pad={14}>
-              <SectionLabel>Notes calculées</SectionLabel>
+              <SectionLabel>Notes saisies</SectionLabel>
               <div
                 className={cn(
                   'mt-1 text-[22px] font-extrabold',

@@ -175,7 +175,7 @@ export default function GradesPage() {
         <Card>
           <EmptyState
             icon={<GraduationCap size={20} />}
-            message="Sélectionnez un programme pour voir les matières. Utilisez la barre de contexte ci-dessus (Faculté → Programme)."
+            message="Sélectionnez un programme dans la barre de contexte pour voir les matières."
           />
         </Card>
       ) : (

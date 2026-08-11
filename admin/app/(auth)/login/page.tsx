@@ -197,9 +197,9 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 flex items-center justify-center gap-2 rounded-[10px] bg-surface2 px-3 py-[10px] font-mono text-[11px] text-ink2">
+          <div className="mt-6 flex items-center gap-2 rounded-[10px] bg-surface2 px-3 py-[10px] font-mono text-[11px] text-ink2">
             <Shield size={13} className="shrink-0 text-ink3" />
-            Connexion sécurisée · accès réservé au personnel de l&apos;UDJ
+            Connexion sécurisée · accès réservé au personnel de l&apos;UDJ.
           </div>
         </div>
       </div>

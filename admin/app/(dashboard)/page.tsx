@@ -149,7 +149,10 @@ export default function DashboardPage() {
           tone="jade"
           label="Étudiants inscrits"
           value={stats.studentsCount}
-          sub={`${stats.studentsAtRisk} à risque · ${stats.studentsSuspended} suspendu(s)`}
+          // "à risque" is invariable; only "suspendu" agrees.
+          sub={`${stats.studentsAtRisk} à risque · ${stats.studentsSuspended} suspendu${
+            stats.studentsSuspended !== 1 ? 's' : ''
+          }`}
         />
         <StatCard
           icon={<CalendarCheck size={18} />}

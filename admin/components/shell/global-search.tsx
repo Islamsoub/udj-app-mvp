@@ -75,7 +75,7 @@ export function GlobalSearch() {
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}
-        placeholder="Rechercher…"
+        placeholder="Rechercher un étudiant, une matière…"
         className="bg-surface2"
       />
       {open && active && (

@@ -154,7 +154,11 @@ export default function AttendancePage() {
               tone="danger"
               label={`Seuil ${threshold}%`}
               value={overview ? overview.subjects.filter((s) => s.belowThreshold).length : '—'}
-              sub={overview ? 'matières sous le seuil' : 'sélectionnez un programme'}
+              sub={
+                overview
+                  ? 'matières sous le seuil'
+                  : "Sélectionnez un programme dans la barre de contexte pour voir l'assiduité."
+              }
             />
           </div>
 

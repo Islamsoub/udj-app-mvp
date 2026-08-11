@@ -320,7 +320,8 @@ function StudentsInner() {
                     `Affichage de la page actuelle · ${rows.length} étudiant${
                       rows.length !== 1 ? 's' : ''
                     } à risque`
-                : (_shown, t) => `${t} étudiants`
+                : // "N sur M" makes it visible when a filter is narrowing the set.
+                  (shown, t) => `${shown} sur ${t} étudiant${t !== 1 ? 's' : ''}`
             }
             emptyState={<EmptyState icon={<Users size={20} />} message="Aucun étudiant trouvé." />}
           />
