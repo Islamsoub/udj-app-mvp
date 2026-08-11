@@ -49,7 +49,7 @@ import {
 } from '@/lib/grade-helpers';
 import { STATUS_META } from '@/lib/constants';
 import { TONE_COLORS, type Tone } from '@/lib/tokens';
-import { apiErrorMessage } from '@/lib/utils';
+import { apiErrorMessage, cn } from '@/lib/utils';
 import type { ProgrammeLevel, StudentGrade } from '@/lib/types';
 
 /**
@@ -304,15 +304,28 @@ export default function StudentDetailPage() {
     const locked = col === 'cc' ? g.publishedCcAt != null : g.publishedNfAt != null;
 
     if (editable) {
+      // This is a transcript, not the grade-entry table: an untouched, valid cell
+      // reads as plain text and only takes on the GradeCell chip on hover/focus.
+      // Dirty and invalid cells keep their own styling — never mute those signals.
+      const quiet = !isDirty(g.id, col) && !gradeInputInvalid(cellOf(g.id)[col]);
       return (
-        <GradeCell
-          ref={refFor(`${idx}-${col}`)}
-          value={cellOf(g.id)[col]}
-          dirty={isDirty(g.id, col)}
-          onChange={(v) => setCell(g.id, col, v)}
-          onNavigate={(dir) => navigate(idx, col, dir)}
-          aria-label={`Note ${col.toUpperCase()} — ${g.subject.nameFr}`}
-        />
+        <span
+          title={quiet ? 'Cliquer pour modifier' : undefined}
+          className={cn(
+            'inline-block rounded-[9px]',
+            quiet &&
+              '[&>input]:border-transparent [&>input]:bg-transparent [&>input]:transition-colors hover:[&>input]:bg-surface2 [&>input:focus]:bg-surface2'
+          )}
+        >
+          <GradeCell
+            ref={refFor(`${idx}-${col}`)}
+            value={cellOf(g.id)[col]}
+            dirty={isDirty(g.id, col)}
+            onChange={(v) => setCell(g.id, col, v)}
+            onNavigate={(dir) => navigate(idx, col, dir)}
+            aria-label={`Note ${col.toUpperCase()} — ${g.subject.nameFr}`}
+          />
+        </span>
       );
     }
     if (locked && canWrite) {

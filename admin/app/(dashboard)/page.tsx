@@ -198,7 +198,9 @@ export default function DashboardPage() {
         <Card>
           <div className="mb-2 flex items-center justify-between">
             <div className="text-[15.5px] font-bold text-ink">Répartition des moyennes</div>
-            <Badge tone="jade">{stats.studentsCount} étudiants</Badge>
+            <Badge tone="jade">
+              {stats.studentsCount} étudiant{stats.studentsCount !== 1 ? 's' : ''}
+            </Badge>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={stats.gradeDistribution} margin={{ top: 20, left: 8, right: 8 }}>
