@@ -773,6 +773,37 @@ router.post('/push-token', async (req: Request, res: Response, next: NextFunctio
   }
 });
 
+// ── DELETE /student/push-token ────────────────────────────────────────────────
+// Called on logout. Without it a signed-out device keeps its row and keeps
+// receiving that student's grade/attendance pushes — on a shared or handed-down
+// phone those land in front of whoever holds it next.
+//
+// Scoped to the authenticated student so one account cannot unregister another
+// device, and idempotent: an unknown or already-removed token still returns 204.
+
+const deletePushTokenSchema = z.object({
+  token: z.string().min(1).max(256),
+});
+
+router.delete('/push-token', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const studentId = req.studentId!;
+    const parsed = deletePushTokenSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ error: 'Invalid token' });
+      return;
+    }
+
+    await prisma.pushToken.deleteMany({
+      where: { token: parsed.data.token, studentId },
+    });
+
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ── GET /student/qr-token ─────────────────────────────────────────────────────
 
 router.get('/qr-token', async (req: Request, res: Response, next: NextFunction) => {

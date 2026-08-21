@@ -159,7 +159,7 @@
       <li><strong>Identité :</strong> numéro étudiant, nom et prénom, email universitaire</li>
       <li><strong>Informations académiques :</strong> faculté, filière, niveau, année d'inscription, notes, crédits, taux de présence, emploi du temps</li>
       <li><strong>Préférences :</strong> langue de l'application, thème (clair/sombre), paramètres de notification</li>
-      <li><strong>Appareil :</strong> jeton de notification push (FCM) pour recevoir les alertes</li>
+      <li><strong>Appareil :</strong> jeton de notification push (Expo Push) pour recevoir les alertes</li>
       <li><strong>Fichiers :</strong> justificatifs d'absence téléversés (PDF, photos) — uniquement à votre demande</li>
     </ul>
     <p>
@@ -176,7 +176,7 @@
       <li>Vous envoyer des notifications académiques (publication de notes, rappels de cours, alertes de présence)</li>
       <li>Afficher votre carte étudiante numérique avec QR code sécurisé</li>
       <li>Traiter vos justificatifs d'absence transmis à l'administration</li>
-      <li>Améliorer l'application via des données d'utilisation anonymisées (voir section 6)</li>
+      <li>Corriger les pannes de l'application via des rapports d'erreurs anonymes (voir section 6)</li>
     </ul>
   </section>
 
@@ -185,6 +185,8 @@
     <ul>
       <li><strong>Serveur :</strong> hébergé sur Render.com (région EU)</li>
       <li><strong>Base de données :</strong> Supabase (région EU) — accès restreint</li>
+      <li><strong>Notifications :</strong> Expo Inc. relaie les notifications push (titre et texte de l'alerte uniquement)</li>
+      <li><strong>Rapports d'erreurs :</strong> Sentry (ingestion EU) — voir section 6</li>
       <li><strong>Cache local :</strong> données stockées sur votre appareil via SQLite — inaccessibles aux autres applications</li>
       <li><strong>Authentification :</strong> jetons JWT (15 min) et jetons de rafraîchissement (30 jours) stockés dans le coffre sécurisé de l'appareil (expo-secure-store), jamais en texte clair</li>
       <li><strong>Mots de passe :</strong> hachés avec bcrypt (facteur 12) — jamais stockés en clair</li>
@@ -207,13 +209,24 @@
   </section>
 
   <section>
-    <h2>6. Analytique</h2>
+    <h2>6. Rapports d'erreurs et sous-traitants</h2>
     <p>
-      L'application utilise PostHog pour collecter des données d'utilisation anonymisées : vues d'écrans,
-      fonctionnalités utilisées, erreurs techniques. Ces données ne contiennent aucune information personnelle
-      identifiable (ni nom, ni numéro étudiant, ni notes).
+      L'application n'utilise <strong>aucun outil d'analyse d'audience</strong> : nous ne suivons ni vos
+      vues d'écrans, ni les fonctionnalités que vous utilisez, ni votre parcours dans l'application.
     </p>
-    <p>Elles servent uniquement à améliorer la qualité et la stabilité de l'application.</p>
+    <p>
+      En cas de plantage, un rapport technique est transmis à <strong>Sentry</strong> (ingestion en région EU) :
+      type d'erreur, ligne de code concernée, version de l'application et modèle d'appareil. Ces rapports sont
+      dépouillés de toute donnée personnelle avant l'envoi — ni nom, ni numéro étudiant, ni notes.
+      Ils sont désactivés dans les versions de développement.
+    </p>
+    <p>Les seuls sous-traitants ayant accès à une partie de vos données sont :</p>
+    <ul>
+      <li><strong>Render.com</strong> (région EU) — hébergement du serveur</li>
+      <li><strong>Supabase</strong> (région EU) — base de données et stockage des justificatifs</li>
+      <li><strong>Expo Inc.</strong> — relais des notifications push (jeton d'appareil, titre et texte de l'alerte)</li>
+      <li><strong>Sentry</strong> (ingestion EU) — rapports de plantage anonymisés</li>
+    </ul>
   </section>
 
   <section>
@@ -275,7 +288,7 @@
       <li><strong>الهوية:</strong> رقم الطالب، الاسم الكامل، البريد الإلكتروني الجامعي</li>
       <li><strong>المعلومات الأكاديمية:</strong> الكلية، التخصص، المستوى، الدرجات، الوحدات، سجل الحضور، الجدول الدراسي</li>
       <li><strong>التفضيلات:</strong> لغة التطبيق، المظهر، إعدادات الإشعارات</li>
-      <li><strong>الجهاز:</strong> رمز الإشعارات (FCM) لاستقبال التنبيهات</li>
+      <li><strong>الجهاز:</strong> رمز الإشعارات (Expo Push) لاستقبال التنبيهات</li>
       <li><strong>الملفات:</strong> مبررات الغياب (PDF أو صور) — فقط بطلب منك</li>
     </ul>
     <p>
@@ -292,7 +305,7 @@
       <li>إرسال الإشعارات الأكاديمية (نشر النتائج، تذكير بالمحاضرات، تنبيهات الحضور)</li>
       <li>عرض بطاقة الطالب الرقمية مع رمز QR مؤمَّن</li>
       <li>إيصال مبررات الغياب إلى الإدارة</li>
-      <li>تحسين التطبيق عبر بيانات استخدام مجهولة الهوية (انظر البند ٦)</li>
+      <li>إصلاح أعطال التطبيق عبر تقارير أخطاء مجهولة الهوية (انظر البند ٦)</li>
     </ul>
   </section>
 
@@ -301,6 +314,8 @@
     <ul>
       <li><strong>الخادم:</strong> مستضاف على Render.com (منطقة الاتحاد الأوروبي)</li>
       <li><strong>قاعدة البيانات:</strong> Supabase (منطقة الاتحاد الأوروبي)</li>
+      <li><strong>الإشعارات:</strong> تتولى Expo Inc. تمرير الإشعارات الفورية (عنوان التنبيه ونصه فقط)</li>
+      <li><strong>تقارير الأخطاء:</strong> Sentry (استقبال في منطقة الاتحاد الأوروبي) — انظر البند ٦</li>
       <li><strong>الذاكرة المحلية:</strong> بيانات مخزنة على جهازك عبر SQLite — لا يمكن للتطبيقات الأخرى الوصول إليها</li>
       <li><strong>المصادقة:</strong> رموز JWT (١٥ دقيقة) ورموز التحديث (٣٠ يوماً) مخزنة في الخزنة الآمنة للجهاز، لا تُحفظ أبداً بصيغة نصية عادية</li>
       <li><strong>كلمات المرور:</strong> مشفرة بـ bcrypt (معامل ١٢) — لا تُحفظ أبداً بشكل واضح</li>
@@ -321,12 +336,23 @@
   </section>
 
   <section class="ar-section">
-    <h2>٦. التحليلات</h2>
+    <h2>٦. تقارير الأخطاء والجهات المعالِجة</h2>
     <p>
-      يستخدم التطبيق PostHog لجمع بيانات استخدام مجهولة الهوية: مشاهدات الشاشات، الميزات المستخدمة،
-      الأخطاء التقنية. لا تحتوي هذه البيانات على أي معلومات شخصية (لا اسم، لا رقم طالب، لا نتائج).
+      لا يستخدم التطبيق <strong>أي أداة لتحليل سلوك المستخدمين</strong>: لا نتتبّع مشاهدات الشاشات،
+      ولا الميزات التي تستخدمها، ولا مسارك داخل التطبيق.
     </p>
-    <p>تُستخدم فقط لتحسين جودة التطبيق واستقراره.</p>
+    <p>
+      عند حدوث عطل، يُرسَل تقرير تقني إلى <strong>Sentry</strong> (استقبال في منطقة الاتحاد الأوروبي):
+      نوع الخطأ، وسطر الشيفرة المعني، وإصدار التطبيق، وطراز الجهاز. تُجرَّد هذه التقارير من كل بيانات
+      شخصية قبل الإرسال — لا اسم، ولا رقم طالب، ولا نتائج. وهي معطّلة في نسخ التطوير.
+    </p>
+    <p>الجهات المعالِجة الوحيدة التي تصل إلى جزء من بياناتك هي:</p>
+    <ul>
+      <li><strong>Render.com</strong> (منطقة الاتحاد الأوروبي) — استضافة الخادم</li>
+      <li><strong>Supabase</strong> (منطقة الاتحاد الأوروبي) — قاعدة البيانات وتخزين المبررات</li>
+      <li><strong>Expo Inc.</strong> — تمرير الإشعارات الفورية (رمز الجهاز، عنوان التنبيه ونصه)</li>
+      <li><strong>Sentry</strong> (استقبال في منطقة الاتحاد الأوروبي) — تقارير الأعطال مجهولة الهوية</li>
+    </ul>
   </section>
 
   <section class="ar-section">

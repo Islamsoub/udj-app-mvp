@@ -22,42 +22,17 @@ import { FAQItem, FAQData } from '@/components/info-center/FAQItem';
 import { PDFRow, PDFData } from '@/components/info-center/PDFRow';
 import { InfoCenterSkeleton } from '@/components/info-center/InfoCenterSkeleton';
 import { SettingsHeader } from '@/components/settings/SettingsHeader';
+import { useAuthStore } from '@/stores/authStore';
+import { useNetworkStore } from '@/stores/networkStore';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 type InfoCenterState = 'loaded' | 'skeleton' | 'error' | 'offline' | 'session';
 
-// ─── Mock data ─────────────────────────────────────────────────────────────────
-
-const MOCK_CONTACTS: ContactData[] = [
-  { id: 'c1', type: 'phone',    name: 'Scolarité',               detail: '05 00 00 00' },
-  { id: 'c2', type: 'location', name: 'Bibliothèque',            detail: 'Bât. C, RDC' },
-  { id: 'c3', type: 'email',    name: 'DSI (Support technique)', detail: 'support@udj.dj' },
-  { id: 'c4', type: 'phone',    name: 'Infirmerie',              detail: '05 00 11 22' },
-];
-
-const MOCK_FAQS: FAQData[] = [
-  {
-    id: 'f1',
-    question: 'Comment réinitialiser mon mot de passe ?',
-    answer: "Rendez-vous sur l'écran de connexion et touchez « Mot de passe oublié ». Un lien de réinitialisation sera envoyé à votre email étudiant.",
-  },
-  {
-    id: 'f2',
-    question: 'Où trouver mon relevé de notes ?',
-    answer: "Allez dans l'onglet Notes, puis appuyez sur « Relevé complet ». Vous pouvez aussi le télécharger en PDF depuis le Centre d'information.",
-  },
-  {
-    id: 'f3',
-    question: 'Comment justifier une absence ?',
-    answer: "Allez dans Présence, sélectionnez la matière concernée, puis appuyez sur « Justifier ». Joignez un document et envoyez.",
-  },
-];
-
-const MOCK_PDFS: PDFData[] = [
-  { id: 'p1', name: "Formulaire d'inscription", url: '' },
-  { id: 'p2', name: 'Demande de bourse',        url: '' },
-];
+// The campus directory is built at render time from the signed-in student's
+// faculty record (see LoadedContent). The previous hardcoded list carried
+// placeholder numbers — "05 00 00 00" for Scolarité and "05 00 11 22" for
+// Infirmerie — which students could and would actually dial.
 
 // ─── DEV switcher ──────────────────────────────────────────────────────────────
 
@@ -77,11 +52,17 @@ function InfoCenterOfflineBanner() {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
+  const lastSyncAt = useNetworkStore((s) => s.lastSyncAt);
   return (
     <View style={styles.offlineBanner}>
       <View style={styles.offlineDot} />
       <Text style={styles.offlineBannerText}>
-        {t('common.offlineBanner', { time: 'hier 14:30' })}
+        {/* Real last-sync time, formatted like components/ui/OfflineBanner. */}
+        {t('common.offlineBanner', {
+          time: lastSyncAt
+            ? new Date(lastSyncAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : '--',
+        })}
       </Text>
     </View>
   );
@@ -131,10 +112,33 @@ function LoadedContent() {
     { id: 'f3', question: t('infoCenter.faq_q3'), answer: t('infoCenter.faq_a3') },
   ];
 
+  // Real contacts from the signed-in student's faculty record. Entries with no
+  // value on file are omitted rather than shown as a placeholder — a fake
+  // number is worse than no number, because students dial it.
+  const faculty = useAuthStore((s) => s.student?.faculty);
+  const contacts: ContactData[] = useMemo(() => {
+    const rows: ContactData[] = [];
+    if (faculty?.phone) {
+      rows.push({ id: 'c-phone', type: 'phone', name: t('infoCenter.contact_scolarite'), detail: faculty.phone });
+    }
+    if (faculty?.email) {
+      rows.push({ id: 'c-email', type: 'email', name: t('infoCenter.contact_email'), detail: faculty.email });
+    }
+    if (faculty?.address) {
+      rows.push({ id: 'c-address', type: 'location', name: t('infoCenter.contact_address'), detail: faculty.address });
+    }
+    if (faculty?.hours) {
+      rows.push({ id: 'c-hours', type: 'location', name: t('infoCenter.contact_hours'), detail: faculty.hours });
+    }
+    return rows;
+  }, [faculty, t]);
+
+  // Only rows with a real download target. Both seeded entries carry an empty
+  // url, which rendered a download button that silently did nothing.
   const pdfs: PDFData[] = [
     { id: 'p1', name: t('infoCenter.pdf1'), url: '' },
     { id: 'p2', name: t('infoCenter.pdf2'), url: '' },
-  ];
+  ].filter((p) => p.url !== '');
 
   function handleContactPress(item: ContactData) {
     if (item.type === 'phone') {
@@ -160,14 +164,18 @@ function LoadedContent() {
 
       <SectionHeader labelKey="infoCenter.campusDirectory" />
       <View style={[styles.sectionCard, elevation.card]}>
-        {MOCK_CONTACTS.map((item, i) => (
-          <ContactRow
-            key={item.id}
-            item={item}
-            onPress={() => handleContactPress(item)}
-            isLast={i === MOCK_CONTACTS.length - 1}
-          />
-        ))}
+        {contacts.length > 0 ? (
+          contacts.map((item, i) => (
+            <ContactRow
+              key={item.id}
+              item={item}
+              onPress={() => handleContactPress(item)}
+              isLast={i === contacts.length - 1}
+            />
+          ))
+        ) : (
+          <Text style={styles.emptyDirectory}>{t('infoCenter.contacts_unavailable')}</Text>
+        )}
       </View>
 
       <SectionHeader labelKey="infoCenter.faq" />
@@ -183,17 +191,23 @@ function LoadedContent() {
         ))}
       </View>
 
-      <SectionHeader labelKey="infoCenter.pdfForms" />
-      <View style={[styles.sectionCard, elevation.card]}>
-        {pdfs.map((item, i) => (
-          <PDFRow
-            key={item.id}
-            item={item}
-            onDownload={() => {}}
-            isLast={i === pdfs.length - 1}
-          />
-        ))}
-      </View>
+      {/* Hidden entirely while there are no downloadable forms — an empty card
+          under a section header reads as a loading failure. */}
+      {pdfs.length > 0 && (
+        <>
+          <SectionHeader labelKey="infoCenter.pdfForms" />
+          <View style={[styles.sectionCard, elevation.card]}>
+            {pdfs.map((item, i) => (
+              <PDFRow
+                key={item.id}
+                item={item}
+                onDownload={() => Linking.openURL(item.url)}
+                isLast={i === pdfs.length - 1}
+              />
+            ))}
+          </View>
+        </>
+      )}
 
       <View style={{ height: spacing.sp64 }} />
     </KeyboardAwareScrollView>
@@ -322,6 +336,17 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     marginHorizontal: spacing.sp16,
     marginBottom: spacing.sp8,
     overflow: 'hidden',
+  },
+
+  // Shown in place of the directory rows when the faculty record carries no
+  // contact details — matches ContactRow's vertical rhythm.
+  emptyDirectory: {
+    fontFamily: fonts.sans,
+    fontSize: fz(14),
+    color: colors.textSecondary,
+    paddingHorizontal: spacing.sp16,
+    paddingVertical: spacing.sp20,
+    textAlign: 'center',
   },
 
   // ── Search bar

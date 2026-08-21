@@ -433,7 +433,8 @@
     "offline": {
       "banner": "Mode hors-ligne · Contenu en cache"
     },
-    "share": "Partager"
+    "share": "Partager",
+    "hero_label": "UDJ · UNIVERSITÉ DE DJIBOUTI"
   },
   "news": {
     "title": "Actualités",
@@ -663,7 +664,12 @@
     "faq_q3": "Comment justifier une absence ?",
     "faq_a3": "Allez dans Présence, sélectionnez la matière concernée, puis appuyez sur « Justifier ». Joignez un document et envoyez.",
     "pdf1": "Formulaire d'inscription",
-    "pdf2": "Demande de bourse"
+    "pdf2": "Demande de bourse",
+    "contact_scolarite": "Scolarité",
+    "contact_email": "Secrétariat (email)",
+    "contact_address": "Adresse",
+    "contact_hours": "Horaires d'ouverture",
+    "contacts_unavailable": "Coordonnées bientôt disponibles"
   },
   "logout": {
     "confirm_title": "Se déconnecter ?",
@@ -701,6 +707,13 @@
     "current_version": "VERSION ACTUELLE",
     "new_version": "NOUVELLE VERSION",
     "update": "Mettre à jour",
-    "loading": "Chargement"
+    "loading": "Chargement",
+    "feature_schedule": "Emploi du temps en temps réel",
+    "feature_grades": "Notes et résultats instantanés",
+    "feature_card": "Carte étudiante digitale QR",
+    "no_connection_body": "Vérifiez votre connexion Wi-Fi\nou données mobiles pour continuer.",
+    "maintenance_body": "L'application sera disponible\ndans quelques minutes. Merci de votre patience.",
+    "welcome_subtitle": "Votre application étudiante\nofficielle de l'Université de Djibouti",
+    "update_body": "Une nouvelle version de l'app est disponible.\nMettez à jour pour continuer\nà accéder à vos données."
   }
 }

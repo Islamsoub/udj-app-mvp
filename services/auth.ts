@@ -1,5 +1,6 @@
 import axios, { isAxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import * as Notifications from 'expo-notifications';
 import { API_BASE_URL, TIMEOUT } from '@/constants/api';
 import { useAuthStore, REFRESH_KEY, StudentProfile } from '@/stores/authStore';
 import api, { SECURE_OPTS } from './api';
@@ -56,6 +57,17 @@ export async function logout(): Promise<void> {
         warnRevokeFailed(err);
       }
     }
+  }
+
+  // Unregister this device's push token while the session is still valid — the
+  // call needs the access token, and it must happen before the cache is cleared.
+  // Without it a signed-out phone keeps receiving that student's grade and
+  // attendance pushes for the life of the token.
+  try {
+    const pushToken = (await Notifications.getExpoPushTokenAsync()).data;
+    await api.delete('/student/push-token', { data: { token: pushToken } });
+  } catch {
+    // Non-critical: no token issued, no network, or already removed.
   }
 
   await SecureStore.deleteItemAsync(REFRESH_KEY);

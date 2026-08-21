@@ -42,10 +42,12 @@ const JADE400_40 = withAlpha(colors.jade400, 0.4);
 type SplashState = 'loading' | 'no-connection' | 'maintenance' | 'first-install' | 'force-update';
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
 
-const FEATURES: Array<{ icon: IoniconsName; label: string }> = [
-  { icon: 'calendar-outline', label: 'Emploi du temps en temps réel' },
-  { icon: 'bar-chart-outline', label: 'Notes et résultats instantanés' },
-  { icon: 'card-outline', label: 'Carte étudiante digitale QR' },
+// Labels resolve through t() at render — the module-level array cannot hold
+// translated text, since i18n's active language isn't known at import time.
+const FEATURES: Array<{ icon: IoniconsName; labelKey: string }> = [
+  { icon: 'calendar-outline', labelKey: 'splash.feature_schedule' },
+  { icon: 'bar-chart-outline', labelKey: 'splash.feature_grades' },
+  { icon: 'card-outline', labelKey: 'splash.feature_card' },
 ];
 
 const ALL_STATES: SplashState[] = [
@@ -150,9 +152,7 @@ export default function SplashScreen() {
             <Ionicons name="cloud-offline-outline" size={32} color={BRAND_FG} />
           </View>
           <Text style={styles.stateBoldText}>{t('splash.no_connection')}</Text>
-          <Text style={styles.stateBodyText}>
-            {'Vérifiez votre connexion Wi-Fi\nou données mobiles pour continuer.'}
-          </Text>
+          <Text style={styles.stateBodyText}>{t('splash.no_connection_body')}</Text>
           <PressBox
             tier="button"
             style={styles.primaryButton}
@@ -171,9 +171,7 @@ export default function SplashScreen() {
             <Ionicons name="construct-outline" size={32} color={colors.danger} />
           </View>
           <Text style={styles.stateBoldText}>{t('splash.maintenance')}</Text>
-          <Text style={styles.stateBodyText}>
-            {"L'application sera disponible\ndans quelques minutes. Merci de votre patience."}
-          </Text>
+          <Text style={styles.stateBodyText}>{t('splash.maintenance_body')}</Text>
           <PressBox tier="button" style={styles.outlineButton} hitSlop={8}>
             <Text style={styles.outlineButtonText}>{t('splash.retry_later')}</Text>
           </PressBox>
@@ -184,14 +182,12 @@ export default function SplashScreen() {
       {splashState === 'first-install' && (
         <View style={styles.stateContent}>
           <Text style={styles.welcomeHeading}>{t('splash.welcome')}</Text>
-          <Text style={styles.welcomeSubtitle}>
-            {"Votre application étudiante\nofficielle de l'Université de Djibouti"}
-          </Text>
+          <Text style={styles.welcomeSubtitle}>{t('splash.welcome_subtitle')}</Text>
           <View style={styles.featureCard}>
-            {FEATURES.map(({ icon, label }) => (
+            {FEATURES.map(({ icon, labelKey }) => (
               <View key={icon} style={styles.featureRow}>
                 <Ionicons name={icon} size={32} color={colors.jade400} />
-                <Text style={styles.featureText}>{label}</Text>
+                <Text style={styles.featureText}>{t(labelKey)}</Text>
               </View>
             ))}
           </View>
@@ -211,9 +207,7 @@ export default function SplashScreen() {
       {splashState === 'force-update' && (
         <View style={styles.stateContent}>
           <Text style={styles.stateBoldText}>{t('splash.update_required')}</Text>
-          <Text style={styles.stateBodyText}>
-            {"Une nouvelle version de l'app est disponible.\nMettez à jour pour continuer\nà accéder à vos données."}
-          </Text>
+          <Text style={styles.stateBodyText}>{t('splash.update_body')}</Text>
           <View style={styles.versionRow}>
             <View style={styles.versionBoxCurrent}>
               <Text style={styles.versionBoxLabel}>{t('splash.current_version')}</Text>

@@ -88,6 +88,7 @@ function ArticleOfflineBanner() {
 function ArticleHero({ imageUrl }: { imageUrl?: string | null }) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { t } = useTranslation();
 
   if (imageUrl) {
     return (
@@ -104,7 +105,7 @@ function ArticleHero({ imageUrl }: { imageUrl?: string | null }) {
   return (
     <View style={styles.hero}>
       <View style={styles.heroLabelPill}>
-        <Text style={styles.heroLabelText}>UDJ · UNIVERSITÉ DE DJIBOUTI</Text>
+        <Text style={styles.heroLabelText}>{t('article.hero_label')}</Text>
       </View>
     </View>
   );

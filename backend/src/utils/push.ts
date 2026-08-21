@@ -1,7 +1,21 @@
 import { Expo, ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
+import { NotificationType, Prisma } from '@prisma/client';
 import prisma from './prisma';
 
 const expo = new Expo();
+
+/**
+ * Maps a notification category to the Student column that opts out of it.
+ *
+ * The three toggles in Settings were written to the Student row and then never
+ * read by any send path — a student who turned off grade alerts kept receiving
+ * them. NEWS and GENERAL have no toggle in the UI and are always delivered.
+ */
+const PREFERENCE_COLUMN: Partial<Record<NotificationType, keyof Prisma.StudentWhereInput>> = {
+  [NotificationType.GRADES]: 'notifGrades',
+  [NotificationType.SCHEDULE]: 'notifCourses',
+  [NotificationType.ATTENDANCE]: 'notifAttendance',
+};
 
 export async function sendPushNotifications(
   studentIds: string[],
@@ -11,9 +25,23 @@ export async function sendPushNotifications(
 ): Promise<{ sent: number; failed: number }> {
   if (studentIds.length === 0) return { sent: 0, failed: 0 };
 
-  // Get all push tokens for these students
+  // Drop recipients who opted out of this category before looking up tokens.
+  const type = data?.type as NotificationType | undefined;
+  const preferenceColumn = type ? PREFERENCE_COLUMN[type] : undefined;
+
+  let recipientIds = studentIds;
+  if (preferenceColumn) {
+    const optedIn = await prisma.student.findMany({
+      where: { id: { in: studentIds }, [preferenceColumn]: true },
+      select: { id: true },
+    });
+    recipientIds = optedIn.map((s) => s.id);
+    if (recipientIds.length === 0) return { sent: 0, failed: 0 };
+  }
+
+  // Get all push tokens for the remaining students
   const tokens = await prisma.pushToken.findMany({
-    where: { studentId: { in: studentIds } },
+    where: { studentId: { in: recipientIds } },
     select: { token: true, studentId: true },
   });
 
