@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
-import { Tabs } from 'expo-router';
+import { Tabs, Redirect } from 'expo-router';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { SvgProps } from 'react-native-svg';
 import { useColors } from '@/hooks/useColors';
+import { useAuthStore } from '@/stores/authStore';
 import { radius, elevation, spacing, withAlpha } from '@/constants/theme';
 import TabHome from '@/assets/icons/tab-home.svg';
 import TabAgenda from '@/assets/icons/tab-agenda.svg';
@@ -106,6 +107,16 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
 }
 
 export default function TabsLayout() {
+  // Guard the whole tab group. Without this, a deep link straight to a
+  // protected tab (udj:///grades) mounted the screen for an unauthenticated
+  // caller. "Continuer hors ligne" leaves isAuthenticated true off the cached
+  // profile, so offline users are unaffected.
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  if (!isAuthenticated) {
+    return <Redirect href="/(auth)/login" />;
+  }
+
   return (
     <Tabs
       screenOptions={{ headerShown: false }}

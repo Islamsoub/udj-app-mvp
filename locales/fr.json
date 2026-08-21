@@ -388,6 +388,7 @@
       "clear_confirm": "Supprimer les données en cache ?",
       "clear_confirm_message": "Tes données seront retéléchargées au prochain chargement.",
       "cleared": "Cache vidé",
+      "clear_failed": "Le cache n'a pas pu être vidé. Réessayez.",
       "profile": "Profil",
       "schedule": "Emploi du temps",
       "grades": "Notes",

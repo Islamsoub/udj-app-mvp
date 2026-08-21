@@ -28,7 +28,7 @@ export function TimelineRow({ entry, isLast, onPress }: TimelineRowProps) {
   const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
-    AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
+    AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion).catch(() => {});
     const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
     return () => sub.remove();
   }, []);

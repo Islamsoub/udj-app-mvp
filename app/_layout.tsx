@@ -2,7 +2,7 @@ import { initSentry } from '@/services/sentry';
 import i18n from '@/i18n';
 import * as Sentry from '@sentry/react-native';
 import React, { useEffect, useState } from 'react';
-import { I18nManager, StatusBar } from 'react-native';
+import { I18nManager, StatusBar, View, Text, Pressable } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -49,6 +49,55 @@ Notifications.setNotificationHandler({
     shouldShowList: true,
   }),
 });
+
+/**
+ * Expo Router picks this up by name — an `ErrorBoundary` export from a layout
+ * wraps that layout's subtree. The previous app/error.tsx was a default export,
+ * which Expo Router read as a *route* at /error: it caught nothing and was
+ * reachable as udj:///error with no error to show.
+ *
+ * Deliberately self-contained: hardcoded colours, hardcoded French, no theme
+ * hook, no i18n, no safe-area context. This renders precisely when the app is
+ * broken, and anything it depends on is something that can take it down with it.
+ */
+export function ErrorBoundary({ error, retry }: { error: Error; retry: () => void }) {
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 24,
+        backgroundColor: '#F5F7F6',
+      }}
+    >
+      <Text style={{ fontSize: 18, fontWeight: '700', marginBottom: 12, color: '#1C2320' }}>
+        Une erreur est survenue
+      </Text>
+      <Text
+        style={{ fontSize: 14, color: '#6B7B74', textAlign: 'center', marginBottom: 24 }}
+      >
+        {/* Raw messages can carry internals (URLs, ids) — devs only. */}
+        {__DEV__ ? error.message : "L'application a rencontré un problème."}
+      </Text>
+      <Pressable
+        onPress={retry}
+        style={{
+          backgroundColor: '#1D9E75',
+          paddingVertical: 12,
+          paddingHorizontal: 24,
+          borderRadius: 12,
+        }}
+      >
+        <Text style={{ color: '#FFFFFF', fontWeight: '700' }}>Réessayer</Text>
+      </Pressable>
+    </View>
+  );
+}
 
 function RootLayout() {
   const [migrationsReady, setMigrationsReady] = useState(false);
@@ -109,7 +158,9 @@ function RootLayout() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    registerForPushNotifications();
+    // Handles its own errors internally; the .catch() only stops a rejected
+    // promise from surfacing as an unhandled rejection at launch.
+    registerForPushNotifications().catch(() => {});
 
     const cleanup = setupNotificationListeners(
       (notification) => {
@@ -149,9 +200,11 @@ function RootLayout() {
       }
     }
 
-    Linking.getInitialURL().then((url) => {
-      if (url) handleDeepLink(url);
-    });
+    Linking.getInitialURL()
+      .then((url) => {
+        if (url) handleDeepLink(url);
+      })
+      .catch(() => {});
     const sub = Linking.addEventListener('url', ({ url }) => handleDeepLink(url));
     return () => sub.remove();
   }, [router]);

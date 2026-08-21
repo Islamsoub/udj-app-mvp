@@ -94,10 +94,12 @@ export function PressBox({
   const reduceMotionRef = useRef(false);
 
   useEffect(() => {
-    AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
-      reduceMotionRef.current = enabled;
-      reduceMotionSV.value = enabled ? 1 : 0;
-    });
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then((enabled) => {
+        reduceMotionRef.current = enabled;
+        reduceMotionSV.value = enabled ? 1 : 0;
+      })
+      .catch(() => {}); // Falls back to motion enabled — the listener below still applies.
     const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', (enabled) => {
       reduceMotionRef.current = enabled;
       reduceMotionSV.value = enabled ? 1 : 0;

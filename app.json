@@ -72,7 +72,7 @@
         {
           "organization": "unipocket",
           "project": "unipocket",
-          "uploadSourceMapsToSentry": false
+          "uploadSourceMapsToSentry": true
         }
       ]
     ],

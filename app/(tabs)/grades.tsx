@@ -193,7 +193,8 @@ export default function GradesScreen() {
             const currentIdx = yearSems.findIndex((s) => s.id === res.semester.id);
             setActiveSemester(currentIdx === 1 ? 2 : 1);
           }
-        });
+        })
+        .catch(() => {}); // The .catch above covers the request; this covers the handler.
 
       return mapGradesToCache(
         res.grades,

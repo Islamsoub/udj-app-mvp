@@ -273,10 +273,19 @@ export default function LoginScreen() {
       return;
     }
 
-    const result = await authenticateBiometric(
-      t('auth.biometricConfirm'),
-      t('common.cancel')
-    );
+    let result: Awaited<ReturnType<typeof authenticateBiometric>>;
+    try {
+      result = await authenticateBiometric(
+        t('auth.biometricConfirm'),
+        t('common.cancel')
+      );
+    } catch {
+      // The OS prompt can reject outright (hardware busy, enrolment changed
+      // mid-prompt). Reset so the UI doesn't sit on a dead spinner.
+      setLoginState('default');
+      Alert.alert(t('auth.biometricSetupTitle'), t('auth.biometricFailed'));
+      return;
+    }
 
     if (!result.success) {
       // Silent on user/system cancellation; alert only on a genuine failure.

@@ -101,27 +101,31 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
   const [lastSync, setLastSync] = useState('—');
 
   useEffect(() => {
-    getCacheStats().then((stats) => {
-      // Exclude bookmarks — they're a subset of news_cache, already counted.
-      const total = stats.reduce(
-        (sum, s) => (s.key === 'bookmarks' ? sum : sum + s.estimatedBytes),
-        0,
-      );
-      setCacheSize(formatBytes(total));
-    });
+    getCacheStats()
+      .then((stats) => {
+        // Exclude bookmarks — they're a subset of news_cache, already counted.
+        const total = stats.reduce(
+          (sum, s) => (s.key === 'bookmarks' ? sum : sum + s.estimatedBytes),
+          0,
+        );
+        setCacheSize(formatBytes(total));
+      })
+      .catch(() => {}); // Non-critical — the row keeps its placeholder.
   }, []);
 
   useEffect(() => {
-    getLastSyncTime().then((ts) => {
-      if (!ts) return;
-      const d = new Date(ts);
-      const now = new Date();
-      const isToday = d.toDateString() === now.toDateString();
-      const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setLastSync(
-        isToday ? `${t('common.today')} ${time}` : `${d.toLocaleDateString()} ${time}`,
-      );
-    });
+    getLastSyncTime()
+      .then((ts) => {
+        if (!ts) return;
+        const d = new Date(ts);
+        const now = new Date();
+        const isToday = d.toDateString() === now.toDateString();
+        const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        setLastSync(
+          isToday ? `${t('common.today')} ${time}` : `${d.toLocaleDateString()} ${time}`,
+        );
+      })
+      .catch(() => {}); // Non-critical — the row keeps its "—" placeholder.
   }, [t]);
 
   const handleNotifToggle =

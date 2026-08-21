@@ -154,9 +154,16 @@ export default function StorageDetailScreen() {
           text: t('settings.storage.clear_all'),
           style: 'destructive',
           onPress: async () => {
-            await clearTableCache(stat.table);
-            await loadStats();
-            Alert.alert(t('settings.storage.cleared'));
+            try {
+              await clearTableCache(stat.table);
+              await loadStats();
+              Alert.alert(t('settings.storage.cleared'));
+            } catch {
+              // A failed delete previously rejected silently and still showed
+              // the "cleared" confirmation — the cache was intact and the user
+              // was told otherwise.
+              Alert.alert(t('settings.storage.clear_failed'));
+            }
           },
         },
       ],
@@ -173,9 +180,13 @@ export default function StorageDetailScreen() {
           text: t('settings.storage.clear_all'),
           style: 'destructive',
           onPress: async () => {
-            await clearAllCache();
-            await loadStats();
-            Alert.alert(t('settings.storage.cleared'));
+            try {
+              await clearAllCache();
+              await loadStats();
+              Alert.alert(t('settings.storage.cleared'));
+            } catch {
+              Alert.alert(t('settings.storage.clear_failed'));
+            }
           },
         },
       ],

@@ -18,7 +18,7 @@ export function StatusPill({ status, style }: StatusPillProps) {
   const blinkAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
+    AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion).catch(() => {});
     const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
     return () => sub.remove();
   }, []);

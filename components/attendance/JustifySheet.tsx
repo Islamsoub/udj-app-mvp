@@ -86,24 +86,33 @@ export function JustifySheet({ visible, record, onClose, onSubmit }: JustifyShee
       Alert.alert(t('attendance.camera_denied'));
       return;
     }
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: 'images',
-      quality: 0.7,
-      allowsEditing: true,
-    });
-    if (!result.canceled && result.assets?.[0]) {
-      applyAsset(result.assets[0], 'photo.jpg');
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: 'images',
+        quality: 0.7,
+        allowsEditing: true,
+      });
+      if (!result.canceled && result.assets?.[0]) {
+        applyAsset(result.assets[0], 'photo.jpg');
+      }
+    } catch {
+      // Camera unavailable / already in use — leave the sheet as it was so the
+      // user can simply tap again or pick from the gallery instead.
     }
   }, [t, applyAsset]);
 
   const handleGallery = useCallback(async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images',
-      quality: 0.7,
-      allowsEditing: true,
-    });
-    if (!result.canceled && result.assets?.[0]) {
-      applyAsset(result.assets[0], 'image.jpg');
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        quality: 0.7,
+        allowsEditing: true,
+      });
+      if (!result.canceled && result.assets?.[0]) {
+        applyAsset(result.assets[0], 'image.jpg');
+      }
+    } catch {
+      // Picker failed to open — non-fatal, the user can retry.
     }
   }, [applyAsset]);
 

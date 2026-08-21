@@ -15,10 +15,12 @@ export function useNetworkStatus() {
     });
 
     // Fetch once on mount
-    NetInfo.fetch().then((state) => {
-      const online = state.isConnected === true && state.isInternetReachable !== false;
-      setOnline(online);
-    });
+    NetInfo.fetch()
+      .then((state) => {
+        const online = state.isConnected === true && state.isInternetReachable !== false;
+        setOnline(online);
+      })
+      .catch(() => {}); // The subscription above still delivers the next change.
 
     return () => unsubscribe();
   }, [setOnline, setLastSyncAt]);
