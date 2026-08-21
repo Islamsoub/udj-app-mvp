@@ -240,7 +240,13 @@ export default function NewsScreen() {
 
   const hook = useOfflineQuery<NewsItem[]>({
     cacheKey: isSavedTab ? 'news-saved' : `news-${filterCategory ?? 'all'}`,
-    getCached: () => isSavedTab ? getSavedArticles(20) : getCachedNews(20, filterCategory),
+    // null (not []) on an empty cache so the hook shows the skeleton.
+    getCached: async () => {
+      const r = isSavedTab
+        ? await getSavedArticles(20)
+        : await getCachedNews(20, filterCategory);
+      return r.length > 0 ? r : null;
+    },
     fetchFresh: async () => {
       if (isSavedTab) {
         return getSavedArticles(20);
@@ -281,7 +287,9 @@ export default function NewsScreen() {
 
   const hookState: NewsState = useMemo(() => {
     if (hook.isLoading && !hook.data) return 'skeleton';
-    if (hook.isOffline && hook.data) return 'offline';
+    // No `&& hook.data` — a cold offline start has no cache, and OfflineBody
+    // already renders with `hook.data ?? []`.
+    if (hook.isOffline) return 'offline';
     if (hook.data) return hook.data.length === 0 && !hook.isStale ? 'empty' : 'loaded';
     if (hook.error) return 'error';
     return 'skeleton';

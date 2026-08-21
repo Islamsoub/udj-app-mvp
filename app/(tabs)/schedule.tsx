@@ -391,7 +391,11 @@ export default function ScheduleScreen() {
 
   const hook = useOfflineQuery<Schedule[]>({
     cacheKey: 'schedule',
-    getCached: () => getFullSemesterSchedule(),
+    // null (not []) on an empty cache so the hook shows the skeleton.
+    getCached: async () => {
+      const r = await getFullSemesterSchedule();
+      return r.length > 0 ? r : null;
+    },
     fetchFresh: async () => {
       const res = await getSchedule();
       return mapScheduleToCache(res.entries, studentId, res.semesterId);
@@ -428,7 +432,9 @@ export default function ScheduleScreen() {
 
   const hookState: ScheduleState = useMemo(() => {
     if (hook.isLoading && !hook.data) return 'skeleton';
-    if (hook.isOffline && hook.data) return 'offline';
+    // No `&& hook.data` — a cold offline start has no cache, and the offline
+    // body renders fine with an empty list.
+    if (hook.isOffline) return 'offline';
     if (hook.data) {
       const isEmpty = dayEntries.length === 0;
       // Weekends never have classes — always show empty. Weekdays: only when data is confirmed fresh.

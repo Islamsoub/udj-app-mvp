@@ -46,7 +46,13 @@ export function useOfflineQuery<T>({
   const setLastSyncAt = useNetworkStore((s) => s.setLastSyncAt);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      // Release any refetch() promises awaiting this run — a disabled query
+      // never reaches the finally block below, so callers would hang forever.
+      const resolvers = pendingResolversRef.current.splice(0);
+      for (const r of resolvers) r();
+      return;
+    }
 
     let cancelled = false;
 
@@ -83,6 +89,7 @@ export function useOfflineQuery<T>({
           setIsLoading(false);
         } else {
           setIsLoading(false);
+          setIsOffline(true);
           setError(new Error('offline'));
         }
         return;
@@ -119,8 +126,13 @@ export function useOfflineQuery<T>({
         setError(null);
       } catch (err) {
         if (cancelled) return;
-        // API failed — fall back to cached data or show error
-        if (cachedData !== null) {
+        // A failed fetch is only "offline" when the network is actually down.
+        // A 500/timeout from a reachable server is an error and must surface as
+        // one — reporting it as offline sends the user to check their signal for
+        // a server-side fault. The live store value is read rather than the
+        // closed-over `isOnline`, which predates the request.
+        const networkDown = !useNetworkStore.getState().isOnline;
+        if (networkDown && cachedData !== null) {
           setIsOffline(true);
           setIsStale(false);
           setIsLoading(false);

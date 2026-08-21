@@ -675,7 +675,13 @@ export async function upsertNews(items: NewsItem[]): Promise<void> {
   const freshIds = items.map((n) => n.id);
   const placeholders = freshIds.map(() => '?').join(',');
   await db.withTransactionAsync(async () => {
-    await db.runAsync(`DELETE FROM news_cache WHERE id NOT IN (${placeholders})`, freshIds);
+    // `AND bookmarked = 0` — the home screen syncs only 5 articles while the
+    // news screen caches 20, so an unqualified prune would delete articles the
+    // user has saved. Bookmarked rows are never pruned by a list sync.
+    await db.runAsync(
+      `DELETE FROM news_cache WHERE id NOT IN (${placeholders}) AND bookmarked = 0`,
+      freshIds,
+    );
     for (const item of items) {
       await db.runAsync(
         `INSERT INTO news_cache

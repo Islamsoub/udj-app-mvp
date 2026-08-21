@@ -151,9 +151,16 @@ export default function GradesScreen() {
 
   const hook = useOfflineQuery<Grade[]>({
     cacheKey: `grades-${activeSemesterId ?? 'current'}`,
+    // null (not []) on an empty cache, for both the per-semester and the
+    // current-semester branch — a non-null result reads as a cache hit and
+    // suppresses the skeleton.
     getCached: async () => {
-      if (activeSemesterId) return getGradesForSemester(activeSemesterId);
-      return getAllCachedGrades();
+      if (activeSemesterId) {
+        const r = await getGradesForSemester(activeSemesterId);
+        return r.length > 0 ? r : null;
+      }
+      const all = await getAllCachedGrades();
+      return all.length > 0 ? all : null;
     },
     fetchFresh: async () => {
       const res = await getGrades(activeSemesterId);
@@ -284,8 +291,10 @@ export default function GradesScreen() {
   // ─── Derive screen state ────────────────────────────────────────────────────
 
   const hookState: GradesState = useMemo(() => {
-    if (hook.isLoading && !hook.data?.length) return 'skeleton';
-    if (hook.isOffline && hook.data) return 'offline';
+    if (hook.isLoading && !hook.data) return 'skeleton';
+    // No `&& hook.data` — a cold offline start has no cache, and the offline
+    // body renders fine with an empty list.
+    if (hook.isOffline) return 'offline';
     if (hook.data) return hook.data.length === 0 && !hook.isStale ? 'empty' : 'loaded';
     if (hook.error) return 'error';
     return 'skeleton';

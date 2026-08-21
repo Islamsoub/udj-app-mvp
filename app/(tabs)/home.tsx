@@ -541,7 +541,12 @@ export default function HomeScreen() {
 
   const scheduleHook = useOfflineQuery<Schedule[]>({
     cacheKey: 'schedule',
-    getCached: () => getFullSemesterSchedule(),
+    // null (not []) on an empty cache — the hook treats a non-null result as a
+    // cache hit and would skip the skeleton, rendering a blank loaded state.
+    getCached: async () => {
+      const r = await getFullSemesterSchedule();
+      return r.length > 0 ? r : null;
+    },
     fetchFresh: async () => {
       const res = await getSchedule();
       return mapScheduleToCache(res.entries, studentId, res.semesterId);
@@ -551,7 +556,10 @@ export default function HomeScreen() {
 
   const newsHook = useOfflineQuery<NewsItem[]>({
     cacheKey: 'news-home',
-    getCached: () => getCachedNews(5),
+    getCached: async () => {
+      const r = await getCachedNews(5);
+      return r.length > 0 ? r : null;
+    },
     fetchFresh: async () => {
       const res = await getNews({ limit: 5 });
       return mapNewsToCache(res.articles);
@@ -593,7 +601,9 @@ export default function HomeScreen() {
     const anyOffline = profileHook.isOffline || scheduleHook.isOffline;
     const anyData = profileHook.data != null || scheduleHook.data != null;
 
-    if (anyData && anyOffline) return 'offline';
+    // No `anyData &&` — a cold offline start has no cache, and the loaded body
+    // renders fine with a null profile and empty agenda/news lists.
+    if (anyOffline) return 'offline';
     if (anyData) {
       return 'loaded';
     }
