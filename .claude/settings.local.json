@@ -145,7 +145,8 @@
       "Bash(cp .env.tmptest .env)",
       "Bash(cp .env.backup-cors-test .env)",
       "Bash(rm -f .env.tmptest .env.backup-cors-test)",
-      "Bash(ADMIN_CORS_ORIGIN= npx tsx src/index.ts)"
+      "Bash(ADMIN_CORS_ORIGIN= npx tsx src/index.ts)",
+      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\admin\"; npx tsc --noEmit; \"ADMIN EXIT: $LASTEXITCODE\"; Pop-Location)"
     ]
   }
 }

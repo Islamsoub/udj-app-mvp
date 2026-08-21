@@ -19,6 +19,9 @@ const READ_ROLES: AdminRole[] = [
 ];
 const WRITE_ROLES: AdminRole[] = [AdminRole.SUPER_ADMIN, AdminRole.REGISTRAR];
 
+// Pass mark — must stay in step with isPassing()/mentionFor() in adminHelpers.
+const PASS_MARK = 10;
+
 async function getWeights(): Promise<GradeWeights> {
   const settings = await prisma.systemSettings.findUnique({ where: { id: 'singleton' } });
   return {
@@ -94,6 +97,19 @@ router.patch(
 
       const noteCc = parsed.data.noteCc !== undefined ? parsed.data.noteCc : existing.noteCc;
       const noteCf = parsed.data.noteCf !== undefined ? parsed.data.noteCf : existing.noteCf;
+
+      // Publication lock, enforced server-side. The admin UI greys these fields
+      // out once published, but that is only CSS — the API accepted the write.
+      // A published score may only be altered through POST /:id/change, which
+      // requires a reason and records old/new values in the audit log.
+      // Unchanged values pass so a form that echoes every field still saves.
+      if (existing.publishedCcAt && noteCc !== existing.noteCc) {
+        throw new AppError('CC already published', 409);
+      }
+      if (existing.publishedNfAt && noteCf !== existing.noteCf) {
+        throw new AppError('NF already published', 409);
+      }
+
       const weights = await getWeights();
       const noteFinale = computeNoteFinale(noteCc, noteCf, weights);
 
@@ -205,6 +221,20 @@ router.post(
       });
       const idByMatricule = new Map(students.map((s) => [s.studentIdDisplay.toUpperCase(), s.id]));
 
+      // Existing rows for this subject+semester: needed both to enforce the
+      // publication lock and to preserve fields the incoming CSV omits.
+      const existingGrades = await prisma.grade.findMany({
+        where: { subjectId, semesterId },
+        select: {
+          studentId: true,
+          noteCc: true,
+          noteCf: true,
+          publishedCcAt: true,
+          publishedNfAt: true,
+        },
+      });
+      const existingByStudent = new Map(existingGrades.map((g) => [g.studentId, g]));
+
       const report: { studentId?: string; matricule?: string; status: 'saved' | 'error'; error?: string }[] = [];
       let saved = 0;
 
@@ -214,7 +244,36 @@ router.post(
           report.push({ matricule: r.matricule, status: 'error', error: 'matricule inconnu' });
           continue;
         }
-        const noteFinale = computeNoteFinale(r.noteCc ?? null, r.noteCf ?? null, weights);
+
+        const prev = existingByStudent.get(studentId);
+
+        // `undefined` means the column was absent from the import — keep what is
+        // stored. Only an explicit `null` clears a score. The previous
+        // `r.noteCc ?? null` wiped CC on any CF-only import.
+        const nextCc = r.noteCc !== undefined ? r.noteCc : prev?.noteCc ?? null;
+        const nextCf = r.noteCf !== undefined ? r.noteCf : prev?.noteCf ?? null;
+
+        // Publication lock — a published score cannot be rewritten by import.
+        if (prev?.publishedCcAt && nextCc !== prev.noteCc) {
+          report.push({
+            studentId,
+            matricule: r.matricule,
+            status: 'error',
+            error: 'CC déjà publié — correction via la fiche note',
+          });
+          continue;
+        }
+        if (prev?.publishedNfAt && nextCf !== prev.noteCf) {
+          report.push({
+            studentId,
+            matricule: r.matricule,
+            status: 'error',
+            error: 'NF déjà publié — correction via la fiche note',
+          });
+          continue;
+        }
+
+        const noteFinale = computeNoteFinale(nextCc, nextCf, weights);
         await prisma.grade.upsert({
           where: {
             studentId_subjectId_semesterId: { studentId, subjectId, semesterId },
@@ -223,13 +282,13 @@ router.post(
             studentId,
             subjectId,
             semesterId,
-            noteCc: r.noteCc ?? null,
-            noteCf: r.noteCf ?? null,
+            noteCc: nextCc,
+            noteCf: nextCf,
             noteFinale,
           },
           update: {
-            noteCc: r.noteCc ?? null,
-            noteCf: r.noteCf ?? null,
+            noteCc: nextCc,
+            noteCf: nextCf,
             noteFinale,
           },
         });
@@ -360,13 +419,28 @@ router.post(
           : 'اطلع على كشفك الكامل في التطبيق.';
 
       const result = await prisma.$transaction(async (tx) => {
-        await tx.grade.updateMany({
-          where: gradeWhere,
-          data:
-            type === 'cc'
-              ? { publishedCcAt: now }
-              : { publishedNfAt: now, isValidated: true },
-        });
+        if (type === 'cc') {
+          await tx.grade.updateMany({ where: gradeWhere, data: { publishedCcAt: now } });
+        } else {
+          // Partitioned by result. The old blanket `isValidated: true` marked
+          // every student as having validated the subject, including failures —
+          // the flag drives the transcript, so failing students read as passed.
+          // `publishedNfAt: null` keeps an earlier publication untouched.
+          await tx.grade.updateMany({
+            where: { ...gradeWhere, publishedNfAt: null, noteFinale: { gte: PASS_MARK } },
+            data: { isValidated: true, publishedNfAt: now },
+          });
+          await tx.grade.updateMany({
+            where: { ...gradeWhere, publishedNfAt: null, noteFinale: { lt: PASS_MARK } },
+            data: { isValidated: false, publishedNfAt: now },
+          });
+          // NULL matches neither gte nor lt in SQL, so it needs its own pass.
+          // The validation above rejects null NFs, making this a backstop.
+          await tx.grade.updateMany({
+            where: { ...gradeWhere, publishedNfAt: null, noteFinale: null },
+            data: { isValidated: false, publishedNfAt: now },
+          });
+        }
         const notified = await createNotification(
           studentIds,
           NotificationType.GRADES,

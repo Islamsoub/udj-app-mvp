@@ -13,6 +13,7 @@ import adminAuth from '../../middleware/adminAuth';
 import { rbac, facultyScopeWhere } from '../../middleware/rbac';
 import { audit } from '../../middleware/auditLog';
 import { createNotification } from '../../utils/notify';
+import { supabase, JUSTIFICATION_BUCKET } from '../../utils/supabase';
 import {
   buildSessionHoursResolver,
   hoursBasedPercentage,
@@ -20,6 +21,41 @@ import {
 } from '../../utils/attendance';
 
 const router = Router();
+
+/**
+ * `justificationUrl` holds a private storage path, not a fetchable URL — an
+ * admin opening it directly gets a 400 from Supabase. This mints a 1-hour
+ * signed URL per record (same treatment as the student side in routes/student.ts)
+ * and exposes it as `justificationDocUrl`. Paths are deduped so a batch costs
+ * one signing call per distinct document.
+ */
+async function withSignedJustifications<T extends { justificationUrl: string | null }>(
+  records: T[],
+): Promise<(T & { justificationDocUrl: string | null })[]> {
+  const paths = [...new Set(records.map((r) => r.justificationUrl).filter((p): p is string => !!p))];
+
+  const signed = new Map<string, string>();
+  if (paths.length > 0) {
+    await Promise.all(
+      paths.map(async (path) => {
+        try {
+          const { data } = await supabase.storage
+            .from(JUSTIFICATION_BUCKET)
+            .createSignedUrl(path, 3600);
+          if (data?.signedUrl) signed.set(path, data.signedUrl);
+        } catch {
+          // A signing failure must not take the whole listing down — that
+          // record simply comes back with a null document URL.
+        }
+      }),
+    );
+  }
+
+  return records.map((r) => ({
+    ...r,
+    justificationDocUrl: r.justificationUrl ? signed.get(r.justificationUrl) ?? null : null,
+  }));
+}
 
 // Attendance data is off-limits to NEWS_EDITOR; only these roles may read it.
 const READ_ROLES: AdminRole[] = [
@@ -78,7 +114,7 @@ router.get('/', adminAuth, rbac(...READ_ROLES), async (req, res, next) => {
     ]);
 
     res.status(200).json({
-      records,
+      records: await withSignedJustifications(records),
       pendingJustifications,
       statusCounts: statusCounts.map((s) => ({ status: s.status, count: s._count._all })),
     });
@@ -231,7 +267,7 @@ router.get('/pending-justifications', adminAuth, rbac(...READ_ROLES), async (req
         subject: { select: { id: true, code: true, nameFr: true } },
       },
     });
-    res.status(200).json(pending);
+    res.status(200).json(await withSignedJustifications(pending));
   } catch (err) {
     next(err);
   }
@@ -337,12 +373,28 @@ router.patch(
       await assertAttendanceScope(req, record.subjectId);
 
       const approve = parsed.data.decision === 'approve';
+
+      // Only a pending request can be decided. Without this, a second call
+      // silently flips an already-approved absence back to ABSENT, and two
+      // admins reviewing the same queue race each other.
+      if (record.justificationStatus !== JustificationStatus.PENDING) {
+        throw new AppError('Already decided', 409);
+      }
+
+      // Nothing to approve without a document — approving an empty request
+      // would convert the absence to JUSTIFIED on no evidence at all.
+      if (approve && !record.justificationUrl) {
+        throw new AppError('No document submitted', 400);
+      }
+
       const updated = await prisma.attendanceRecord.update({
         where: { id: record.id },
         data: {
           justificationStatus: approve ? JustificationStatus.APPROVED : JustificationStatus.REJECTED,
-          // An approved justification converts the absence to JUSTIFIED.
-          ...(approve ? { status: AttendanceStatus.JUSTIFIED } : {}),
+          // Both branches set the status. Reject previously left it untouched,
+          // so a record submitted as JUSTIFIED stayed JUSTIFIED after rejection
+          // — the absence still didn't count against the student.
+          status: approve ? AttendanceStatus.JUSTIFIED : AttendanceStatus.ABSENT,
           ...(parsed.data.note !== undefined ? { justificationNote: parsed.data.note } : {}),
         },
       });

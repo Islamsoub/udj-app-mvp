@@ -527,6 +527,10 @@ router.post(
         matricule: string;
         status: 'created' | 'error';
         error?: string;
+        // Present only on rows where the import generated the password, so the
+        // admin can hand out credentials. Returned once, never persisted in
+        // plaintext (the audit middleware redacts it — see middleware/auditLog).
+        generatedPassword?: string;
       }[] = [];
 
       let created = 0;
@@ -553,7 +557,8 @@ router.post(
           continue;
         }
 
-        const password = r.mot_de_passe && r.mot_de_passe.length >= 8 ? r.mot_de_passe : generatePassword(12);
+        const suppliedPassword = r.mot_de_passe && r.mot_de_passe.length >= 8 ? r.mot_de_passe : null;
+        const password = suppliedPassword ?? generatePassword(12);
         const passwordHash = await bcrypt.hash(password, BCRYPT_COST);
         await prisma.student.create({
           data: {
@@ -570,7 +575,14 @@ router.post(
         usedMatricules.add(r.matricule.toUpperCase());
         usedEmails.add(r.email.toLowerCase());
         created += 1;
-        report.push({ row: line, matricule: r.matricule, status: 'created' });
+        report.push({
+          row: line,
+          matricule: r.matricule,
+          status: 'created',
+          // Echoed back only when the import minted it — a password the admin
+          // supplied in the CSV is already theirs.
+          ...(suppliedPassword === null ? { generatedPassword: password } : {}),
+        });
       }
 
       res.status(201).json({

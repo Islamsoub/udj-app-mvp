@@ -43,15 +43,36 @@ const modelReaders: Record<string, FindUnique> = {
   SystemSettings: (args) => prisma.systemSettings.findUnique(args),
 };
 
-// Strip secrets/PII before persisting a snapshot (P0: no PII / no password hashes).
-function redact(entity: unknown): unknown {
-  if (!entity || typeof entity !== 'object') return entity;
-  const clone: Record<string, unknown> = { ...(entity as Record<string, unknown>) };
-  delete clone.passwordHash;
-  delete clone.password_hash;
-  delete clone.tokenHash;
-  delete clone.newPassword;
-  delete clone.password;
+const SECRET_KEYS = new Set([
+  'passwordHash',
+  'password_hash',
+  'tokenHash',
+  'newPassword',
+  'password',
+  'generatedPassword',
+  'refreshToken',
+  'accessToken',
+]);
+
+/**
+ * Strip secrets/PII before persisting a snapshot (P0: no PII / no password
+ * hashes). Recurses into arrays and nested objects: the student-import response
+ * carries per-row generated passwords inside `report[]`, which a shallow copy
+ * would have written into the audit log in plaintext.
+ */
+function redact(entity: unknown, depth = 0): unknown {
+  if (!entity || typeof entity !== 'object' || depth > 6) return entity;
+
+  if (Array.isArray(entity)) return entity.map((item) => redact(item, depth + 1));
+
+  // Dates and other non-plain objects are passed through untouched.
+  if (entity instanceof Date) return entity;
+
+  const clone: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(entity as Record<string, unknown>)) {
+    if (SECRET_KEYS.has(key)) continue;
+    clone[key] = redact(value, depth + 1);
+  }
   return clone;
 }
 

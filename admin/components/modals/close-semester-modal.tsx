@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle } from 'lucide-react';
+import { CalendarCheck } from 'lucide-react';
 import { ConfirmModal } from '@/components/shared/confirm-modal';
 import { useToast } from '@/hooks/use-toast';
 import { useSaveSemester } from '@/hooks/queries/use-academics';
@@ -8,9 +8,13 @@ import { apiErrorMessage } from '@/lib/utils';
 import type { Semester } from '@/lib/types';
 
 /**
- * CloseSemesterModal (impl spec §28, supplement §4.5) — requireText gates the
- * button until the semester label is typed exactly. Freezes grades, archives
- * attendance and prepares the next semester.
+ * CloseSemesterModal (impl spec §28, supplement §4.5).
+ *
+ * The endpoint behind this only clears `isCurrent` — it does not freeze grades,
+ * archive attendance, or create the next semester. The copy below describes
+ * exactly that. A real archival close is tracked for v1.1; until it exists this
+ * modal must not promise it, and the danger styling/typed confirmation are gone
+ * because the action is reversible (set another semester as current).
  */
 export function CloseSemesterModal({ semester }: { semester: Semester }) {
   const { toast } = useToast();
@@ -20,23 +24,22 @@ export function CloseSemesterModal({ semester }: { semester: Semester }) {
     <ConfirmModal
       title="Clôturer le semestre"
       sub={`${semester.label} — ${semester.academicYear}`}
-      icon={<AlertTriangle size={19} />}
-      iconTone="danger"
-      requireText={semester.label}
+      icon={<CalendarCheck size={19} />}
+      iconTone="jade"
       body={
         <>
           <p className="m-0">
-            «&nbsp;{semester.label} — {semester.academicYear}&nbsp;» sera clôturé. Cette
-            action&nbsp;:
+            «&nbsp;{semester.label} — {semester.academicYear}&nbsp;» sera marqué comme
+            terminé et ne sera plus le semestre courant.
           </p>
           <ul className="mb-0 mt-2 list-disc space-y-1 ps-5">
-            <li>Fige les notes du semestre</li>
-            <li>Archive les relevés de présence</li>
-            <li>Prépare le prochain semestre</li>
+            <li>Les notes et les présences restent modifiables</li>
+            <li>Aucune donnée n’est archivée ni supprimée</li>
+            <li>Le prochain semestre doit être défini manuellement</li>
           </ul>
         </>
       }
-      confirmLabel="Clôturer"
+      confirmLabel="Marquer comme terminé"
       busy={saveSemester.isPending}
       onConfirm={async () => {
         try {
