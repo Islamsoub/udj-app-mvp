@@ -99,6 +99,14 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
       return;
     }
 
+    // Correct password, but the account must still be active. Checked after
+    // the password so a wrong password on a suspended account can't be told
+    // apart from a wrong password on an active one.
+    if (student.status !== 'ACTIVE') {
+      res.status(403).json({ error: 'Account suspended or inactive' });
+      return;
+    }
+
     await prisma.student.update({
       where: { id: student.id },
       data: { failedLoginAttempts: 0, lockedUntil: null },
@@ -180,6 +188,18 @@ router.post('/refresh', async (req: Request, res: Response, next: NextFunction) 
 
     if (!storedToken) {
       res.status(401).json({ error: 'Invalid refresh token' });
+      return;
+    }
+
+    // Checked before the rotation below, so a suspended student's token is
+    // neither revoked nor replaced — nothing is issued to an inactive account.
+    const student = await prisma.student.findUnique({
+      where: { id: storedToken.studentId },
+      select: { status: true },
+    });
+
+    if (!student || student.status !== 'ACTIVE') {
+      res.status(403).json({ error: 'Account suspended or inactive' });
       return;
     }
 

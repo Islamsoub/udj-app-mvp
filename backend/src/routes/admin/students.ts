@@ -402,10 +402,20 @@ router.post(
 
       const newPassword = generatePassword(12);
       const passwordHash = await bcrypt.hash(newPassword, BCRYPT_COST);
-      await prisma.student.update({
-        where: { id: student.id },
-        data: { passwordHash, failedLoginAttempts: 0, lockedUntil: null },
-      });
+
+      // Password change and session revocation commit together — a reset must
+      // not leave live refresh tokens behind, which would let whoever prompted
+      // the reset keep the account for up to 30 more days.
+      await prisma.$transaction([
+        prisma.student.update({
+          where: { id: student.id },
+          data: { passwordHash, failedLoginAttempts: 0, lockedUntil: null },
+        }),
+        prisma.refreshToken.updateMany({
+          where: { studentId: student.id, isRevoked: false },
+          data: { isRevoked: true },
+        }),
+      ]);
 
       // Returned once so the admin can hand it to the student (UI specs §4.1).
       res.status(200).json({
@@ -445,9 +455,23 @@ router.patch(
         throw new AppError('Insufficient permissions for this action', 403);
       }
 
-      const updated = await prisma.student.update({
-        where: { id: student.id },
-        data: { status: parsed.data.status },
+      // Moving a student off ACTIVE kills their live sessions in the same
+      // commit. Without this, an issued refresh token stays valid for its full
+      // 30-day TTL and is only stopped by the per-request status check.
+      const updated = await prisma.$transaction(async (tx) => {
+        const s = await tx.student.update({
+          where: { id: student.id },
+          data: { status: parsed.data.status },
+        });
+
+        if (parsed.data.status !== StudentStatus.ACTIVE) {
+          await tx.refreshToken.updateMany({
+            where: { studentId: student.id, isRevoked: false },
+            data: { isRevoked: true },
+          });
+        }
+
+        return s;
       });
 
       res.status(200).json({

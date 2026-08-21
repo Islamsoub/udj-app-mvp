@@ -6,6 +6,14 @@ import type { StudentProfile } from '@/stores/authStore';
 
 export type { StudentProfile } from '@/stores/authStore';
 
+// Same protection class as the SQLCipher key (services/db.ts): survives reboot
+// so background sync works, never leaves this device, never restored to another.
+// Every REFRESH_KEY write must pass these — an unqualified setItemAsync falls
+// back to the platform default, which is restorable to a new device.
+export const SECURE_OPTS: SecureStore.SecureStoreOptions = {
+  keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
+};
+
 // SQLite cache shape — flat representation stored in student_profile table
 export interface StudentProfileCache {
   studentId: string;
@@ -260,7 +268,7 @@ instance.interceptors.response.use(
       );
 
       useAuthStore.getState().setTokens(data.accessToken);
-      await SecureStore.setItemAsync(REFRESH_KEY, data.refreshToken);
+      await SecureStore.setItemAsync(REFRESH_KEY, data.refreshToken, SECURE_OPTS);
 
       processQueue(null, data.accessToken);
       original.headers.Authorization = `Bearer ${data.accessToken}`;
