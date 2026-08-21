@@ -126,7 +126,9 @@
       "Bash(uniq -c -f0)",
       "PowerShell(cd C:\\\\Users\\\\urohe\\\\documents\\\\udj-app-mvp\\\\backend; npx tsc --noEmit; \"BACKEND_EXIT=$LASTEXITCODE\")",
       "PowerShell(cd C:\\\\Users\\\\urohe\\\\documents\\\\udj-app-mvp\\\\admin; npx tsc --noEmit; \"ADMIN_EXIT=$LASTEXITCODE\")",
-      "PowerShell(git *)"
+      "PowerShell(git *)",
+      "PowerShell(npx tsc --noEmit; \"EXIT CODE: $LASTEXITCODE\")",
+      "PowerShell(if \\(Test-Path \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\admin\\\\tsconfig.json\"\\) { \"admin/tsconfig.json present\"; Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\admin\"; npx tsc --noEmit; \"ADMIN EXIT CODE: $LASTEXITCODE\"; Pop-Location } else { \"admin/tsconfig.json MISSING\" })"
     ]
   }
 }
