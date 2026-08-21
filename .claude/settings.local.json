@@ -103,7 +103,30 @@
       "PowerShell(npx tsc --noEmit; if \\($?\\) { \"TSC PASSED\" } else { \"TSC FAILED\" })",
       "PowerShell($out = npx expo config --json 2>$null | Out-String; if \\($?\\) { $cfg = $out | ConvertFrom-Json; \"config OK\"; \"plugins:\"; $cfg.exp.plugins | ForEach-Object { if \\($_ -is [array]\\) { $_[0] } else { $_ } } } else { \"config FAILED\" })",
       "PowerShell(npx expo install @sentry/react-native -- --legacy-peer-deps)",
-      "Bash(npx eas-cli@latest whoami)"
+      "Bash(npx eas-cli@latest whoami)",
+      "Bash(xargs -I{} echo \"mobile-app error count: {}\")",
+      "mcp__4707e394-de52-481e-89e3-a6ebc46cdca7__list_projects",
+      "mcp__4707e394-de52-481e-89e3-a6ebc46cdca7__list_migrations",
+      "mcp__4707e394-de52-481e-89e3-a6ebc46cdca7__execute_sql",
+      "Bash(xxd)",
+      "Bash(python -c \"import yaml,sys; d=yaml.safe_load\\(open\\('.github/workflows/ci.yml'\\)\\); print\\('jobs:', list\\(d['jobs'].keys\\(\\)\\)\\); print\\('push branches:', d[True]['push']['branches']\\)\")",
+      "Bash(echo \"BACKEND EXIT: $?\")",
+      "Bash(echo \"ADMIN EXIT: $?\")",
+      "Bash(echo \"backend exit: $?\")",
+      "Bash(echo \"admin exit: $?\")",
+      "Bash(echo \"SEED EXIT: $?\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(curl -s http://localhost:3005/ -o page.html)",
+      "Bash(curl -s http://localhost:3005/_next/static/css/app/layout.css -o layout.css)",
+      "Bash(ls .husky)",
+      "Bash(ls .git/hooks/pre-commit)",
+      "PowerShell(cd C:\\\\Users\\\\urohe\\\\documents\\\\udj-app-mvp\\\\admin; npx tsc --noEmit; \"EXIT=$LASTEXITCODE\")",
+      "PowerShell(cd C:\\\\Users\\\\urohe\\\\documents\\\\udj-app-mvp\\\\admin; npx tsc --noEmit; \"TSC_EXIT=$LASTEXITCODE\")",
+      "Bash(sort -t: -k2)",
+      "Bash(uniq -c -f0)",
+      "PowerShell(cd C:\\\\Users\\\\urohe\\\\documents\\\\udj-app-mvp\\\\backend; npx tsc --noEmit; \"BACKEND_EXIT=$LASTEXITCODE\")",
+      "PowerShell(cd C:\\\\Users\\\\urohe\\\\documents\\\\udj-app-mvp\\\\admin; npx tsc --noEmit; \"ADMIN_EXIT=$LASTEXITCODE\")",
+      "PowerShell(git *)"
     ]
   }
 }

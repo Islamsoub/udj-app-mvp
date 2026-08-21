@@ -153,8 +153,7 @@ export default function GradesScreen() {
     cacheKey: `grades-${activeSemesterId ?? 'current'}`,
     getCached: async () => {
       if (activeSemesterId) return getGradesForSemester(activeSemesterId);
-      const all = await getAllCachedGrades();
-      return all.length > 0 ? all : null;
+      return getAllCachedGrades();
     },
     fetchFresh: async () => {
       const res = await getGrades(activeSemesterId);
@@ -281,7 +280,7 @@ export default function GradesScreen() {
   // ─── Derive screen state ────────────────────────────────────────────────────
 
   const hookState: GradesState = useMemo(() => {
-    if (hook.isLoading && !hook.data) return 'skeleton';
+    if (hook.isLoading && !hook.data?.length) return 'skeleton';
     if (hook.isOffline && hook.data) return 'offline';
     if (hook.data) return hook.data.length === 0 && !hook.isStale ? 'empty' : 'loaded';
     if (hook.error) return 'error';
