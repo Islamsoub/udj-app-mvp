@@ -4,6 +4,7 @@ import {
   StudentStatus,
   ScheduleEntryType,
   AttendanceStatus,
+  JustificationStatus,
   NotificationType,
 } from '@prisma/client';
 import bcrypt from 'bcrypt';
@@ -749,7 +750,8 @@ async function main() {
     subjectId: string;
     sessionDate: Date;
     status: AttendanceStatus;
-    justificationUrl: null;
+    justificationUrl: string | null;
+    justificationStatus?: JustificationStatus;
   };
 
   const rows: AttRow[] = [];
@@ -760,9 +762,19 @@ async function main() {
   );
 
   // INF302 — 9/10, index 4 ABSENT (Wednesday)
-  wedDates.forEach((d, i) =>
-    rows.push({ studentId: ahmed.id, subjectId: inf302.id, sessionDate: d, status: i === 4 ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT, justificationUrl: null })
-  );
+  // That absence carries a REJECTED justification so the "rejected absence →
+  // resubmit" flow has real data to exercise.
+  wedDates.forEach((d, i) => {
+    const isAbsent = i === 4;
+    rows.push({
+      studentId: ahmed.id,
+      subjectId: inf302.id,
+      sessionDate: d,
+      status: isAbsent ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT,
+      justificationUrl: isAbsent ? 'rejected-sample/test.pdf' : null,
+      justificationStatus: isAbsent ? JustificationStatus.REJECTED : undefined,
+    });
+  });
 
   // MAT301 — 10/10 PRESENT (Sunday — same dates as INF301, different subject, no conflict)
   sunDates.forEach((d) =>
@@ -956,9 +968,19 @@ async function main() {
     sagalRows.push({ studentId: sagal.id, subjectId: bba201.id, sessionDate: d, status: i === 5 || i === 9 ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT, justificationUrl: null })
   );
   // BBA203 — 9/10: index 3 ABSENT (Mon)
-  monDates.forEach((d, i) =>
-    sagalRows.push({ studentId: sagal.id, subjectId: bba203.id, sessionDate: d, status: i === 3 ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT, justificationUrl: null })
-  );
+  // That absence carries a PENDING justification so testers see the
+  // "awaiting review" state next to Ahmed's REJECTED one.
+  monDates.forEach((d, i) => {
+    const isAbsent = i === 3;
+    sagalRows.push({
+      studentId: sagal.id,
+      subjectId: bba203.id,
+      sessionDate: d,
+      status: isAbsent ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT,
+      justificationUrl: isAbsent ? 'pending-sample/test.pdf' : null,
+      justificationStatus: isAbsent ? JustificationStatus.PENDING : undefined,
+    });
+  });
   // BBA204 — 9/10: index 7 ABSENT (Tue)
   tueDates.forEach((d, i) =>
     sagalRows.push({ studentId: sagal.id, subjectId: bba204.id, sessionDate: d, status: i === 7 ? AttendanceStatus.ABSENT : AttendanceStatus.PRESENT, justificationUrl: null })
