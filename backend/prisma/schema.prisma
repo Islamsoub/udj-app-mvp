@@ -332,6 +332,10 @@ model Admin {
   facultyId     String?             @map("faculty_id")
   isActive      Boolean             @default(true) @map("is_active")
   lastLoginAt   DateTime?           @map("last_login_at")
+  // Brute-force lockout: 5 attempts / 15 min (stricter than the student side's
+  // 3 / 5 min — an admin account is a higher-value target).
+  failedLoginAttempts Int           @default(0) @map("failed_login_attempts")
+  lockedUntil         DateTime?     @map("locked_until")
   createdAt     DateTime            @default(now()) @map("created_at")
   updatedAt     DateTime            @updatedAt @map("updated_at")
   faculty       Faculty?            @relation(fields: [facultyId], references: [id])

@@ -7,7 +7,7 @@ import prisma from '../../utils/prisma';
 import { AppError } from '../../utils/AppError';
 import { hashToken } from '../../utils/hash';
 import { env } from '../../utils/env';
-import { authRateLimiter } from '../../middleware/rateLimiter';
+import { authLoginLimiter } from '../../middleware/rateLimiter';
 import adminAuth from '../../middleware/adminAuth';
 import { audit } from '../../middleware/auditLog';
 import {
@@ -27,11 +27,20 @@ const router = Router();
 const REFRESH_COOKIE = 'admin_refresh_token';
 const REFRESH_COOKIE_PATH = '/admin/auth';
 
+// Brute-force lockout thresholds for admin login.
+const ADMIN_MAX_LOGIN_ATTEMPTS = 5;
+const ADMIN_LOCKOUT_MS = 15 * 60 * 1000;
+
 function refreshCookieOptions(maxAge: number) {
+  const isProd = env.NODE_ENV === 'production';
   return {
     httpOnly: true,
-    secure: env.NODE_ENV === 'production', // localhost has no HTTPS
-    sameSite: 'lax' as const,
+    // Production runs the portal (Vercel) and the API (Render) on different
+    // sites, so the cookie must be SameSite=None to be sent at all — which the
+    // browser only honours together with Secure. Locally both are on localhost,
+    // where Lax works and there is no HTTPS to mark Secure against.
+    secure: isProd,
+    sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
     path: REFRESH_COOKIE_PATH,
     maxAge,
   };
@@ -74,7 +83,7 @@ const passwordSchema = z.object({
 
 // ─── POST /admin/auth/login ──────────────────────────────────────────────────
 // Rate limited (10/min per IP, same limiter as student auth).
-router.post('/login', authRateLimiter, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/login', authLoginLimiter, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = loginSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -96,16 +105,47 @@ router.post('/login', authRateLimiter, async (req: Request, res: Response, next:
       return;
     }
 
+    const now = new Date();
+
+    // Lockout is checked before the password compare so a locked account can't
+    // be probed. 5 attempts / 15 min — stricter than the student side's 3 / 5.
+    if (admin.lockedUntil) {
+      if (admin.lockedUntil > now) {
+        res.status(423).json({ error: 'Account locked', lockedUntil: admin.lockedUntil });
+        return;
+      }
+      // Window elapsed — clear it and let this attempt through.
+      await prisma.admin.update({
+        where: { id: admin.id },
+        data: { lockedUntil: null, failedLoginAttempts: 0 },
+      });
+      admin.lockedUntil = null;
+      admin.failedLoginAttempts = 0;
+    }
+
     const valid = await bcrypt.compare(password, admin.passwordHash);
     if (!valid) {
+      const newAttempts = admin.failedLoginAttempts + 1;
+      const updateData: { failedLoginAttempts: number; lockedUntil?: Date } = {
+        failedLoginAttempts: newAttempts,
+      };
+
+      if (newAttempts >= ADMIN_MAX_LOGIN_ATTEMPTS) {
+        updateData.lockedUntil = new Date(now.getTime() + ADMIN_LOCKOUT_MS);
+      }
+
+      await prisma.admin.update({
+        where: { id: admin.id },
+        data: updateData,
+      });
+
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
 
-    const now = new Date();
     await prisma.admin.update({
       where: { id: admin.id },
-      data: { lastLoginAt: now },
+      data: { lastLoginAt: now, failedLoginAttempts: 0, lockedUntil: null },
     });
 
     const accessToken = signAccessToken(admin);

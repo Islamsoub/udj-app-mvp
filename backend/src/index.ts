@@ -18,14 +18,21 @@ const app = express();
 app.set('trust proxy', 1);
 
 app.use(helmet({
-  contentSecurityPolicy: false, // allow inline styles on public HTML pages
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      // Scoped to styles: the public privacy-policy page uses inline <style>.
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      scriptSrc: ["'self'"],
+    },
+  },
 }));
 // `credentials: true` is required so the browser sends the admin refresh-token
-// cookie. That combination forbids `origin: '*'`, so dev lists explicit origins.
+// cookie. That combination forbids `origin: '*'`, so the allowlist comes from
+// ADMIN_CORS_ORIGIN (required at boot — see utils/env.ts).
 app.use(cors({
-  origin: env.NODE_ENV === 'production'
-    ? [env.ADMIN_CORS_ORIGIN].filter(Boolean)
-    : ['http://localhost:3001', 'http://localhost:3000'],
+  origin: env.ADMIN_CORS_ORIGIN,
   methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

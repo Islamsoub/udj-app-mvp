@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AdminRole } from '@prisma/client';
+import prisma from '../utils/prisma';
 import { adminEnv } from '../config/adminEnv';
 
 /**
@@ -42,7 +43,11 @@ interface AdminAccessTokenPayload {
  * different secret and lacks `type: 'admin_access'`. Access tokens have a
  * 1-hour TTL (enforced at sign time in routes/admin/auth.ts).
  */
-export default function adminAuth(req: Request, res: Response, next: NextFunction): void {
+export default async function adminAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -69,10 +74,30 @@ export default function adminAuth(req: Request, res: Response, next: NextFunctio
     return;
   }
 
+  // The JWT is a 1-hour snapshot. Re-read the account so deactivation takes
+  // effect on the next request instead of when the token happens to expire, and
+  // so rbac() downstream authorises against the live role rather than the role
+  // baked into the token at sign time (a demotion must apply immediately).
+  let admin: { isActive: boolean; role: AdminRole; facultyId: string | null } | null;
+  try {
+    admin = await prisma.admin.findUnique({
+      where: { id: payload.adminId },
+      select: { isActive: true, role: true, facultyId: true },
+    });
+  } catch (err) {
+    next(err);
+    return;
+  }
+
+  if (!admin || !admin.isActive) {
+    res.status(403).json({ error: 'Account inactive' });
+    return;
+  }
+
   req.admin = {
     adminId: payload.adminId,
-    role: payload.role,
-    facultyId: payload.facultyId ?? null,
+    role: admin.role,
+    facultyId: admin.facultyId,
   };
 
   next();

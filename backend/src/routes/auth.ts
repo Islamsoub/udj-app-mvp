@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import { z } from 'zod';
 import prisma from '../utils/prisma';
 import { env } from '../utils/env';
-import { authRateLimiter } from '../middleware/rateLimiter';
+import { authLoginLimiter, authRefreshLimiter } from '../middleware/rateLimiter';
 import authMiddleware from '../middleware/auth';
 import { hashToken } from '../utils/hash';
 
@@ -15,8 +15,8 @@ const router = Router();
 // account is not found, so login timing can't be used to enumerate accounts.
 const DUMMY_HASH = '$2b$12$LJ3m4ys3Lf0YOm/.0RqRC.6TYnKLkRFMGpdVHw1P6W5yBxJvzNDtC';
 
-router.use(authRateLimiter);
-
+// Limiters are attached per route rather than router-wide: /refresh is hit by
+// every cold start and must not share the tight login budget.
 const loginSchema = z.object({
   studentId: z.string().min(1).max(20).trim(),
   password: z.string().min(1).max(100),
@@ -30,7 +30,7 @@ const logoutSchema = z.object({
   refreshToken: z.string().uuid(),
 });
 
-router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/login', authLoginLimiter, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = loginSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -166,7 +166,7 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
   }
 });
 
-router.post('/refresh', async (req: Request, res: Response, next: NextFunction) => {
+router.post('/refresh', authRefreshLimiter, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = refreshSchema.safeParse(req.body);
     if (!parsed.success) {

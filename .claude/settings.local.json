@@ -136,7 +136,16 @@
       "PowerShell($p=\"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\node_modules\\\\expo-system-ui\"; \"app.plugin.js exists: \" + \\(Test-Path \"$p\\\\app.plugin.js\"\\); \\(Get-Content \"$p\\\\package.json\" | Select-String -Pattern '\"version\"|\"main\"'\\); \"--- root package.json entry ---\"; \\(Get-Content \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\package.json\" | Select-String -Pattern 'expo-system-ui'\\))",
       "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\"; $c = npx expo config --type public 2>&1 | Out-String; \"EXIT: $LASTEXITCODE\"; \\($c -split \"`n\" | Select-String -Pattern \"userInterfaceStyle|expo-system-ui|Error|error\" | Select-Object -First 12\\); Pop-Location)",
       "PowerShell($root=\"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\"; foreach \\($f in @\\(\"app\\\\\\(tabs\\)\\\\home.tsx\",\"app\\\\\\(tabs\\)\\\\schedule.tsx\",\"app\\\\\\(tabs\\)\\\\grades.tsx\",\"app\\\\\\(tabs\\)\\\\news.tsx\"\\)\\) { \"=== $f ===\"; Select-String -Path \"$root\\\\$f\" -Pattern \"isOffline &&|hook\\\\.error|isLoading &&|\\\\.error\\\\\\)\" | Select-Object LineNumber, Line | Format-Table -Wrap -AutoSize })",
-      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\backend\"; npx tsc --noEmit; \"BACKEND EXIT: $LASTEXITCODE\"; Pop-Location)"
+      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\backend\"; npx tsc --noEmit; \"BACKEND EXIT: $LASTEXITCODE\"; Pop-Location)",
+      "PowerShell($root=\"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\backend\"; \\(Get-Content \"$root\\\\.env\"\\) | Where-Object { $_ -match '^\\(ADMIN_CORS_ORIGIN|NODE_ENV|PORT\\)=' })",
+      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\backend\"; npx prisma db push; \"PUSH EXIT: $LASTEXITCODE\"; Pop-Location)",
+      "PowerShell(Receive-Job *)",
+      "Bash(env -u ADMIN_CORS_ORIGIN npx tsx -e ' *)",
+      "Bash(cp .env .env.backup-cors-test)",
+      "Bash(cp .env.tmptest .env)",
+      "Bash(cp .env.backup-cors-test .env)",
+      "Bash(rm -f .env.tmptest .env.backup-cors-test)",
+      "Bash(ADMIN_CORS_ORIGIN= npx tsx src/index.ts)"
     ]
   }
 }

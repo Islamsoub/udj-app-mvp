@@ -10,10 +10,19 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   PORT: z.string().default('3000'),
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  // Defaults to production: a missing NODE_ENV should fail closed (secure
+  // cookies, strict CORS) rather than silently run the server in dev mode.
+  // Dev and CI set NODE_ENV explicitly in their .env.
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('production'),
   JWT_ADMIN_SECRET: z.string().min(32),
   JWT_ADMIN_REFRESH_SECRET: z.string().min(32),
-  ADMIN_CORS_ORIGIN: z.string().optional().default('http://localhost:3001'),
+  // Comma-separated allowlist, required in every environment. No default — a
+  // localhost fallback in production silently disabled the admin portal's CORS
+  // instead of failing loudly at boot.
+  ADMIN_CORS_ORIGIN: z
+    .string()
+    .min(1)
+    .transform((s) => s.split(',').map((o) => o.trim()).filter(Boolean)),
 });
 
 const result = envSchema.safeParse(process.env);
