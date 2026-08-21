@@ -138,6 +138,10 @@ export function SubjectForm({ subject }: { subject?: Subject }) {
             <TextInput
               {...register('coefficient')}
               type="number"
+              // Coefficients are commonly 1.5 / 2.5. Without an explicit step a
+              // number input defaults to step="1" and the browser rejects
+              // fractions on submit, before Zod ever sees the value.
+              step={0.5}
               min={1}
               max={10}
               error={!!errors.coefficient}

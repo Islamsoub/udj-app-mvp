@@ -74,6 +74,15 @@
           "project": "unipocket",
           "uploadSourceMapsToSentry": true
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
       ]
     ],
     "extra": {

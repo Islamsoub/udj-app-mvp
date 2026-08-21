@@ -44,6 +44,7 @@ import {
 import { getGreeting, isWeekend } from '@/utils/greeting';
 import { formatLocalDate } from '@/utils/dateFormat';
 import { localName } from '@/utils/i18nName';
+import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 
 type HomeState = 'loaded' | 'error' | 'empty' | 'skeleton' | 'offline';
 
@@ -348,7 +349,9 @@ function LoadedHeader({
   const dateStr = formatLocalDate(new Date());
 
   const displayName = profile?.firstName ?? '—';
-  const displayGpa = profile?.gpa != null ? profile.gpa.toFixed(1) : '--';
+  // Two decimals to match the grades screen — 14.95 read as "15.0" here and
+  // "14.95" there, which looks like two different numbers for the same GPA.
+  const displayGpa = profile?.gpa != null ? profile.gpa.toFixed(2) : '--';
   const displayMention = profile?.mention ?? '';
   const displayAttendance = profile?.attendancePercentage != null ? `${profile.attendancePercentage}%` : '--';
   const displayCredits = String(profile?.creditsEarned ?? 0);
@@ -459,38 +462,10 @@ function SimpleHeader({ topInset, isScrolled }: { topInset: number; isScrolled: 
 
 // ─── Session expired modal ────────────────────────────────────────────────────
 
-function SessionExpiredModal({ onClose }: { onClose: () => void }) {
-  const router = useRouter();
-  const { t } = useTranslation();
-  const { colors } = useColors();
-  const styles = useMemo(() => makeStyles(colors), [colors]);
-  return (
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalSheet}>
-        <View style={styles.dragHandle} />
-        <View style={styles.modalIconCircle}>
-          <Ionicons name="key-outline" size={36} color={colors.warning} />
-        </View>
-        <Text style={styles.modalTitle}>{t('common.session.title')}</Text>
-        <Text style={styles.modalBody}>{t('common.session.body')}</Text>
-        <PressBox
-          tier="button"
-          style={styles.modalPrimaryBtn}
-          onPress={() => router.replace('/(auth)/login')}
-        >
-          <Text style={styles.modalPrimaryBtnText}>{t('common.session.login')}</Text>
-        </PressBox>
-        <PressBox
-          tier="button"
-          style={styles.modalOutlineBtn}
-          onPress={onClose}
-        >
-          <Text style={styles.modalOutlineBtnText}>{t('common.session.continue_offline')}</Text>
-        </PressBox>
-      </View>
-    </View>
-  );
-}
+// A near-copy of components/ui/SessionExpiredModal used to live here. It drifted
+// (warning-amber key icon instead of exam-violet, no safe-area padding) and
+// shadowed the shared component by name. The DevSwitcher's session preview now
+// renders the shared one, so there is a single implementation to keep correct.
 
 // ─── DEV switcher ─────────────────────────────────────────────────────────────
 
@@ -792,9 +767,10 @@ export default function HomeScreen() {
         <View style={{ height: 88 + insets.bottom }} />
       </ScrollView>
 
-      {showSessionModal && (
-        <SessionExpiredModal onClose={() => setShowSessionModal(false)} />
-      )}
+      <SessionExpiredModal
+        visible={showSessionModal}
+        onContinueOffline={() => setShowSessionModal(false)}
+      />
 
       <CourseDetailSheet
         visible={courseDetailVisible}

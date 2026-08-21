@@ -83,7 +83,7 @@ Unipocket is a mobile student portal built for **Université de Djibouti (UDJ)**
 │  │  auth.ts (login/logout/restoreSession)             │       │
 │  │  db.ts (SQLite cache — 7 tables)                   │       │
 │  │  biometric.ts (expo-local-authentication)          │       │
-│  │  pushNotifications.ts (FCM)                        │       │
+│  │  pushNotifications.ts (Expo Push)                  │       │
 │  └───────────────────┬────────────────────────────────┘       │
 │                      │                                         │
 │  ┌───────────────────┴────────────────────────────────┐       │
@@ -100,7 +100,7 @@ Unipocket is a mobile student portal built for **Université de Djibouti (UDJ)**
 │  Express + TypeScript                                         │
 │  ┌──────────┐  ┌──────────┐  ┌──────────────────────────┐   │
 │  │  Routes   │  │Middleware│  │    Prisma ORM             │   │
-│  │ /auth     │  │ JWT auth │  │    12 models              │   │
+│  │ /auth     │  │ JWT auth │  │    18 models              │   │
 │  │ /student  │  │ Rate     │  │                           │   │
 │  │ /news     │  │ limiting │  └───────────┬───────────────┘   │
 │  └──────────┘  │ CORS     │              │                    │
@@ -129,7 +129,7 @@ Unipocket is a mobile student portal built for **Université de Djibouti (UDJ)**
 | expo-local-authentication | Biometric login (fingerprint/face) |
 | expo-image-picker | Justification photo upload |
 | expo-haptics | Press feedback (PressBox tiers) |
-| expo-notifications | Push notifications (FCM) |
+| expo-notifications | Push notifications (Expo Push) |
 | @sentry/react-native | Crash reporting (production/preview only) |
 | react-native-qrcode-svg | Rotating QR student ID |
 | react-native-gesture-handler | Schedule day swipe navigation |
@@ -144,7 +144,7 @@ Unipocket is a mobile student portal built for **Université de Djibouti (UDJ)**
 |------------|---------|
 | Node.js + Express | REST API server |
 | TypeScript | Type safety |
-| Prisma | ORM (12 models) |
+| Prisma | ORM (18 models) |
 | PostgreSQL (Supabase) | Production database |
 | Supabase Storage | File uploads (justification documents) |
 | JSON Web Tokens | Access (15min) + Refresh (30d) tokens |
@@ -210,7 +210,7 @@ udj-app-mvp/
 │   ├── biometric.ts              # Biometric auth service
 │   ├── db.ts                     # SQLite cache (7 tables + course_notes)
 │   ├── cacheMappers.ts           # API → SQLite mapping
-│   └── pushNotifications.ts      # FCM registration
+│   └── pushNotifications.ts      # Expo Push registration
 ├── stores/
 │   ├── authStore.ts              # Auth state (Zustand)
 │   ├── themeStore.ts             # Theme mode (persisted)
@@ -228,7 +228,7 @@ udj-app-mvp/
 ├── assets/icons/                 # SVGs, fonts, logo
 ├── backend/                      # Express API
 │   ├── prisma/
-│   │   ├── schema.prisma         # 12 models
+│   │   ├── schema.prisma         # 18 models
 │   │   └── seed.ts               # Test data seeder
 │   ├── src/
 │   │   ├── routes/
@@ -356,7 +356,7 @@ The backend is deployed on **Render.com** (free tier) and auto-deploys from the 
 
 **Supabase PostgreSQL** (free tier, EU West — Ireland)
 
-- 12 tables managed via Prisma ORM
+- 18 tables managed via Prisma ORM
 - Connection pooling via PgBouncer (`?pgbouncer=true&connection_limit=1`)
 - Supabase Storage bucket `justifications` for absence proof uploads
 
@@ -367,36 +367,56 @@ cd backend
 npx prisma db seed
 ```
 
-Seeds: 7 faculties, 10 programmes, 2 semesters, 52 subjects (S1 + S2), **5 students** across 5 programmes, plus grades, schedules, attendance records, notifications, and news articles for each.
+Seeds 7 faculties, 11 programmes, 2 semesters and 68 subjects (S1 + S2), then **6 students** across 6 programmes with their full academic record:
+
+| Entity | Rows |
+|--------|------|
+| Students | 6 |
+| Faculties / Programmes | 7 / 11 |
+| Semesters / Subjects | 2 / 68 |
+| Schedule entries | 60 |
+| Grades | 68 |
+| Attendance records | 580 |
+| News articles / categories | 15 / 6 |
+| Notifications | 33 |
+| Admin accounts | 6 |
 
 ### Test Accounts
 
 All accounts share the password **`test1234`**.
 
-| Name | Student ID | Programme | Faculty | Level |
-|------|------------|-----------|---------|-------|
-| Ahmed Omar Said | `UDJ-2024-0432` | Informatique | Faculté des Sciences | Licence |
-| Fatima Hassan Ali | `UDJ-2024-0587` | Droit | Faculté de Droit, d'Économie et de Gestion | Licence |
-| Youssouf Mohamed Daher | `UDJ-2024-0891` | Mathématiques | Faculté des Sciences | Licence |
-| Amina Abdi Farah | `UDJ-2024-1045` | Économie et Gestion | Faculté de Droit, d'Économie et de Gestion | Licence |
-| Ibrahim Moussa Aden | `UDJ-2024-1298` | Génie Civil | Faculté d'Ingénieurs | Master |
+| Name | Student ID | Programme | Faculty | Level | Sem. |
+|------|------------|-----------|---------|-------|------|
+| Ahmed Omar Said | `UDJ-2024-0432` | Informatique | Faculté des Sciences | Licence | 4 |
+| Saba Soubere Farah | `UDJ-2024-0587` | Droit | Faculté de Droit, d'Économie et de Gestion | Licence | 4 |
+| Salsabila Soubere Farah | `UDJ-2024-0891` | Mathématiques | Faculté des Sciences | Licence | 4 |
+| Sadeka Soubere Farah | `UDJ-2024-1045` | Économie et Gestion | Faculté de Droit, d'Économie et de Gestion | Licence | 4 |
+| Ibrahim Moussa Aden | `UDJ-2024-1298` | Génie Civil | Faculté d'Ingénieurs | Master | 4 |
+| Sagal Said Moussa | `UDJ-2024-1501` | Bachelor in Business Administration | Faculté de Droit, d'Économie et de Gestion | Licence | 2 |
+
+> Ahmed carries a **rejected** absence justification and Sagal a **pending** one, so both
+> review states can be exercised without touching the admin portal.
 
 ---
 
 ## Database Schema
 
 ```
-Faculty (7)        → Programme (10)    → Student (5)
-                                        → Grade
-                                        → ScheduleEntry
-                                        → AttendanceRecord
-                                        → Notification
+Faculty (7)        → Programme (11)    → Student (6)
+                                        → Grade (68)
+                                        → ScheduleEntry (60)
+                                        → AttendanceRecord (580)
+                                        → Notification (33)
                                         → QrToken
                                         → RefreshToken
+                                        → PushToken
 
-Semester (2)       → Subject (52)
+Semester (2)       → Subject (68)
 
-NewsArticle (5)    (independent)
+NewsArticle (15)   → NewsCategory (6)
+
+Admin (6)          → AdminRefreshToken
+                   → AuditLog
 ```
 
 ### Key Models
@@ -436,7 +456,8 @@ All endpoints require JWT authentication unless noted.
 | PATCH | /student/notifications/read-all | Mark all notifications as read |
 | PATCH | /student/preferences | Update notification/quiet hours preferences |
 | GET | /student/qr-token | 60-second signed QR JWT |
-| POST | /student/push-token | Register FCM push token |
+| POST | /student/push-token | Register Expo push token |
+| DELETE | /student/push-token | Unregister this device's push token (called on logout) |
 | POST | /student/attendance/:id/justification | Upload absence justification (multipart) |
 
 ### News (authenticated)
@@ -456,7 +477,7 @@ All endpoints require JWT authentication unless noted.
 
 ## Screens
 
-The app has **15 screens** with **6 states each** (Loaded, Skeleton, Empty, Error, Offline, Session Expired):
+The app has **17 route screens** (plus a global `ErrorBoundary` in `app/_layout.tsx`), most with **6 states** (Loaded, Skeleton, Empty, Error, Offline, Session Expired):
 
 | Screen | Tab | Key Features |
 |--------|-----|-------------|
@@ -468,13 +489,15 @@ The app has **15 screens** with **6 states each** (Loaded, Skeleton, Empty, Erro
 | Grades | Tab 3 | Subject cards, GPA chart, grade calculator |
 | News | Tab 4 | Category filters, bookmarks, article reader |
 | Profile | Tab 5 | Digital ID, QR card, faculty/programme detail |
-| Attendance | — | Presence rate, per-record absence list + justification upload with notes |
+| Attendance ("Mes Absences") | — | Presence rate per subject, per-record absence list, justification upload with notes, and per-record review state (pending / approved / rejected) |
+| Article Reader | — | Full article view, offline-cached body, bookmark toggle |
 | Notifications | — | Grouped by date, unread dots, tap-to-navigate |
 | Settings | — | Language, theme, notifications, cache management |
 | Info Center | — | FAQ, contacts, PDF forms |
 | Programme Detail | — | Programme info page |
 | Faculty Detail | — | Faculty info with contact/address/hours |
 | Storage Detail | — | Cache breakdown + per-table clearing |
+| Account Info | — | Account details (matricule, email, status) |
 
 ---
 

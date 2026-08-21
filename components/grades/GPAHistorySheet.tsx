@@ -372,7 +372,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontSize: fz(12),
     fontWeight: '700',
     fontFamily: fonts.mono,
-    color: colors.white,
+    // On the jade400 tooltip fill — see FilterRow.
+    color: colors.surface,
   },
 
   // ── Stats block

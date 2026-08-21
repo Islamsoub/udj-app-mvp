@@ -161,7 +161,19 @@
       "PowerShell($root=\"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\"; $f = \"$root\\\\backend\\\\public\\\\privacy-policy.html\"; \"lines: \" + \\(Get-Content $f\\).Count; \\(Get-Content $f\\) | Select-String -Pattern \"PostHog|posthog|FCM|Render|Supabase|Sentry|21 25 04|sous-traitant|analytics\" | ForEach-Object { \"$\\($_.LineNumber\\): $\\($_.Line.Trim\\(\\)\\)\" })",
       "PowerShell($root=\"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\"; $f=\"$root\\\\backend\\\\public\\\\privacy-policy.html\"; \"=== PostHog remaining ===\"; $p = \\(Get-Content $f\\) | Select-String -Pattern \"PostHog|posthog|FCM\"; if \\($p\\) { $p | ForEach-Object { \"$\\($_.LineNumber\\): $\\($_.Line\\)\" } } else { \"none\" }; \"=== section headings ===\"; \\(Get-Content $f\\) | Select-String -Pattern \"<h2>\" | ForEach-Object { $_.Line.Trim\\(\\) })",
       "Bash(python *)",
-      "PowerShell(npx tsc --noEmit; \"MOBILE EXIT: $LASTEXITCODE\")"
+      "PowerShell(npx tsc --noEmit; \"MOBILE EXIT: $LASTEXITCODE\")",
+      "PowerShell($root=\"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\"; \"=== dark palette jade + surfaces ===\"; $l = Get-Content \"$root\\\\constants\\\\theme.ts\"; for \\($i=245; $i -lt 275; $i++\\) { if \\($l[$i] -match 'jade400|jadeDM|surface|errorCircleBg|examCircleBg|dark|^export const'\\) { \"$\\($i+1\\): $\\($l[$i].Trim\\(\\)\\)\" } }; \"=== light palette around 160 ===\"; for \\($i=150; $i -lt 172; $i++\\) { if \\($l[$i] -match 'jade400|surface|errorCircleBg|examCircleBg|^export const'\\) { \"$\\($i+1\\): $\\($l[$i].Trim\\(\\)\\)\" } })",
+      "PowerShell($root=\"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\"; foreach \\($s in @\\(@\\(\"components\\\\news\\\\FilterRow.tsx\",101\\), @\\(\"components\\\\grades\\\\GradeCalculatorSheet.tsx\",373\\), @\\(\"components\\\\grades\\\\GPAHistorySheet.tsx\",375\\), @\\(\"components\\\\settings\\\\OptionRow.tsx\",48\\), @\\(\"components\\\\attendance\\\\FilterSegment.tsx\",110\\)\\)\\) { $p=$s[0]; $n=[int]$s[1]; \"=== $p : $n ===\"; $l = Get-Content \"$root\\\\$p\"; for \\($i=[Math]::Max\\(0,$n-8\\); $i -lt [Math]::Min\\($l.Count,$n+2\\); $i++\\) { \"  $\\($i+1\\): $\\($l[$i].Trim\\(\\)\\)\" } })",
+      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\"; npx expo install expo-build-properties -- --legacy-peer-deps 2>&1 | Select-Object -Last 5; \"EXIT: $LASTEXITCODE\"; Pop-Location)",
+      "PowerShell(npm *)",
+      "PowerShell(Out-Null *)",
+      "Bash(sed -i 's|  │  pushNotifications.ts \\(FCM\\)                        │       │|  │  pushNotifications.ts \\(Expo Push\\)                  │       │|' README.md)",
+      "Bash(sed -i 's/| expo-notifications | Push notifications \\(FCM\\) |/| expo-notifications | Push notifications \\(Expo Push\\) |/' README.md)",
+      "Bash(sed -i 's/| POST | \\\\/student\\\\/push-token | Register FCM push token |/| POST | \\\\/student\\\\/push-token | Register Expo push token |/' README.md)",
+      "Bash(sed -i 's/│  │    12 models              │   │/│  │    18 models              │   │/' README.md)",
+      "Bash(sed -i 's|│   │   ├── schema.prisma         # 12 models|│   │   ├── schema.prisma         # 18 models|' README.md)",
+      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\"; npx tsc --noEmit; \"MOBILE TSC: $LASTEXITCODE\"; Pop-Location; Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\backend\"; npx tsc --noEmit; \"BACKEND TSC: $LASTEXITCODE\"; Pop-Location)",
+      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\"; npx expo config --type public 2>&1 | Select-String -Pattern \"expo-build-properties|enableProguard|enableShrink|userInterfaceStyle\" | Select-Object -First 8; \"CONFIG EXIT: $LASTEXITCODE\"; Pop-Location)"
     ]
   }
 }

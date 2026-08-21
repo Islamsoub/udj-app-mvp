@@ -74,10 +74,10 @@ const BLOB_1 = withAlpha('#FFFFFF', 0.07);
 const BLOB_2 = withAlpha('#FFFFFF', 0.06);
 const BLOB_3 = withAlpha('#FFFFFF', 0.05);
 const WHITE_78 = withAlpha('#FFFFFF', 0.78); // tagline on jade hero
-const WHITE_15 = withAlpha(colors.white, 0.15);
-const WHITE_40 = withAlpha(colors.white, 0.4);
-const WHITE_60 = withAlpha(colors.white, 0.6);
-const SKELETON_BG = withAlpha(colors.skeletonBox, 0.6);
+// WHITE_15/40/60 and SKELETON_BG used to live here. The first three were dead,
+// and SKELETON_BG resolved `colors` to the static light palette at import time,
+// so the login skeleton stayed pale grey on the dark sheet. It is now derived
+// inside makeStyles from the active palette.
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -721,7 +721,9 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     borderTopRightRadius: 30, // design constant: login sheet radius
     marginTop: -28,
     // upward lift shadow
-    shadowColor: colors.textPrimary, // form sheet upward shadow
+    // black, not textPrimary: textPrimary inverts to near-white in dark mode,
+    // which rendered the sheet's upward shadow as a white glow around the form.
+    shadowColor: colors.black, // form sheet upward shadow
     shadowOffset: { width: 0, height: -10 },
     shadowRadius: 30,
     shadowOpacity: 0.07,
@@ -1032,7 +1034,7 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
 
   // ── Skeleton ──
   skeletonBox: {
-    backgroundColor: SKELETON_BG,
+    backgroundColor: withAlpha(colors.skeletonBox, 0.6),
   },
   skeletonLabel: {
     width: 138,

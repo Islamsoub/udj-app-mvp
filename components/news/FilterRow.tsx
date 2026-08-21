@@ -98,7 +98,9 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     color: colors.textSecondary,
   },
   pillTextActive: {
-    color: colors.white,
+    // surface, not white: jade400 brightens to #2ECC96 in dark mode, where
+    // white text drops to ~1.9:1. surface inverts with the theme and stays legible.
+    color: colors.surface,
     fontWeight: '700',
   },
 });

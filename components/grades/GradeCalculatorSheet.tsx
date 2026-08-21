@@ -370,7 +370,8 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontSize: fz(15),
     fontWeight: '600',
     fontFamily: fonts.sans,
-    color: colors.white,
+    // On jade400, which brightens to #2ECC96 in dark mode — see FilterRow.
+    color: colors.surface,
   },
 
   // ── Result card

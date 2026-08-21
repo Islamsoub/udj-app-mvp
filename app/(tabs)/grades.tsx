@@ -543,7 +543,9 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   semLabelActive: {
     fontWeight: '700',
-    color: '#FFFFFF', // on-jade — active segment literal
+    // On the jade400 active segment. A literal #FFFFFF stayed white while the
+    // jade brightened to #2ECC96 in dark mode; surface inverts with the theme.
+    color: colors.surface,
   },
 
   // ── Scroll

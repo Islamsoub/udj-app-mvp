@@ -256,8 +256,12 @@ export const darkColors: Palette = {
   white: '#FFFFFF',
   black: '#000000',
   skeletonBox: '#2A3D36',
-  errorCircleBg: '#F5B4B4',
-  examCircleBg: '#E0D3FE',
+  // Icon-circle fills for the error / session-expired states. These previously
+  // carried the light-palette pastels (#F5B4B4 / #E0D3FE) verbatim: a pale disc
+  // glaring out of a dark screen, with a red or violet icon on top of it at
+  // roughly 2:1. Dark tinted surfaces instead, letting the icon carry the colour.
+  errorCircleBg: '#3D1F1F',
+  examCircleBg: '#2D2145',
 
   // Category accent colors + tinted backgrounds
   blue: '#5AA0E6',

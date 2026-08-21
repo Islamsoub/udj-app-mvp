@@ -85,7 +85,9 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
               <Component
                 width={28}
                 height={28}
-                color={isFocused ? '#FFFFFF' : colors.textSecondary} // on-jade literal — white icon on jade pill
+                // On the jade400 active pill — surface inverts with the theme,
+                // where a literal #FFFFFF stayed white on brightened jade.
+                color={isFocused ? colors.surface : colors.textSecondary}
               />
               {/* 4px dot — invisible spacer when inactive, keeps icon vertically centered */}
               <View
@@ -93,7 +95,7 @@ function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
                   styles.dot,
                   {
                     backgroundColor: isFocused
-                      ? withAlpha('#FFFFFF', 0.9) // on-jade white dot
+                      ? withAlpha(colors.surface, 0.9) // on-jade — inverts with theme
                       : 'transparent',
                   },
                 ]}

@@ -43,9 +43,11 @@ export function OptionRow({
           </Text>
         ) : null}
       </View>
+      {/* Checkmark sits on the jade400 radio fill — surface, not white, so it
+          inverts with the theme (jade brightens to #2ECC96 in dark mode). */}
       <View style={[styles.radio, selected && styles.radioSelected]}>
         {selected ? (
-          <Ionicons name="checkmark" size={14} color={colors.white} />
+          <Ionicons name="checkmark" size={14} color={colors.surface} />
         ) : null}
       </View>
     </PressBox>
