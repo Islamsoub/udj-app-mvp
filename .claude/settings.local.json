@@ -128,7 +128,13 @@
       "PowerShell(cd C:\\\\Users\\\\urohe\\\\documents\\\\udj-app-mvp\\\\admin; npx tsc --noEmit; \"ADMIN_EXIT=$LASTEXITCODE\")",
       "PowerShell(git *)",
       "PowerShell(npx tsc --noEmit; \"EXIT CODE: $LASTEXITCODE\")",
-      "PowerShell(if \\(Test-Path \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\admin\\\\tsconfig.json\"\\) { \"admin/tsconfig.json present\"; Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\admin\"; npx tsc --noEmit; \"ADMIN EXIT CODE: $LASTEXITCODE\"; Pop-Location } else { \"admin/tsconfig.json MISSING\" })"
+      "PowerShell(if \\(Test-Path \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\admin\\\\tsconfig.json\"\\) { \"admin/tsconfig.json present\"; Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\admin\"; npx tsc --noEmit; \"ADMIN EXIT CODE: $LASTEXITCODE\"; Pop-Location } else { \"admin/tsconfig.json MISSING\" })",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell($f = \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\node_modules\\\\zustand\\\\middleware.js\"; $c = Get-Content $f -Raw; $i = $c.IndexOf\\(\"const hydrate = \\(\\)\"\\); $c.Substring\\($i, 1200\\))",
+      "PowerShell($f = \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\node_modules\\\\zustand\\\\middleware.js\"; $c = Get-Content $f -Raw; $i = $c.IndexOf\\(\"const hydrate = \\(\\)\"\\); $c.Substring\\($i+1200, 1100\\))",
+      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\"; npx expo install expo-system-ui -- --legacy-peer-deps; \"EXIT: $LASTEXITCODE\"; Pop-Location)",
+      "PowerShell($p=\"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\node_modules\\\\expo-system-ui\"; \"app.plugin.js exists: \" + \\(Test-Path \"$p\\\\app.plugin.js\"\\); \\(Get-Content \"$p\\\\package.json\" | Select-String -Pattern '\"version\"|\"main\"'\\); \"--- root package.json entry ---\"; \\(Get-Content \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\package.json\" | Select-String -Pattern 'expo-system-ui'\\))",
+      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\"; $c = npx expo config --type public 2>&1 | Out-String; \"EXIT: $LASTEXITCODE\"; \\($c -split \"`n\" | Select-String -Pattern \"userInterfaceStyle|expo-system-ui|Error|error\" | Select-Object -First 12\\); Pop-Location)"
     ]
   }
 }

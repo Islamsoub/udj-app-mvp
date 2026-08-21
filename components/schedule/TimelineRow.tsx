@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, I18nManager, Animated, Easing, AccessibilityInfo } from 'react-native';
+import { View, Text, StyleSheet, Animated, Easing, AccessibilityInfo } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -21,7 +21,6 @@ interface TimelineRowProps {
 
 export function TimelineRow({ entry, isLast, onPress }: TimelineRowProps) {
   const { t } = useTranslation();
-  const isRTL = I18nManager.isRTL;
   const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
@@ -103,9 +102,10 @@ export function TimelineRow({ entry, isLast, onPress }: TimelineRowProps) {
 
   return (
     <View style={styles.row}>
-      {isRTL
-        ? <>{content}{connector}</>
-        : <>{connector}{content}</>}
+      {/* Fixed order — forceRTL mirrors the row natively. Swapping the children
+          by hand as well double-flips the connector back to the wrong side. */}
+      {connector}
+      {content}
     </View>
   );
 }

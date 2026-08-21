@@ -16,6 +16,7 @@ import { isValidUUID } from '@/utils/validate';
 import { runMigrations } from '@/services/db';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useThemeStore } from '@/stores/themeStore';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { useColors } from '@/hooks/useColors';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
@@ -55,6 +56,8 @@ function RootLayout() {
   const authLoaded = useAuthStore((s) => s.loaded);
   const language = useSettingsStore((s) => s.language);
   const isRTL = useSettingsStore((s) => s.isRTL);
+  const settingsHydrated = useSettingsStore((s) => s._hasHydrated);
+  const themeHydrated = useThemeStore((s) => s._hasHydrated);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const student = useAuthStore((s) => s.student);
   const showSessionExpired = useAuthStore((s) => s.showSessionExpired);
@@ -76,7 +79,11 @@ function RootLayout() {
     'NotoNaskhArabic-Bold': require('../assets/fonts/NotoNaskhArabic-Bold.ttf'),
   });
 
+  // Language/RTL must not be applied until the persisted settings are back from
+  // AsyncStorage. Running on mount read the store defaults ('fr' / LTR) and
+  // overwrote the saved choice, so Arabic users booted into French every time.
   useEffect(() => {
+    if (!settingsHydrated) return;
     if (language && language !== i18n.language) {
       i18n.changeLanguage(language);
     }
@@ -84,7 +91,7 @@ function RootLayout() {
     if (I18nManager.isRTL !== isRTL) {
       I18nManager.forceRTL(isRTL);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [language, isRTL, settingsHydrated]);
 
   useEffect(() => {
     async function prepare() {
@@ -150,12 +157,14 @@ function RootLayout() {
   }, [router]);
 
   useEffect(() => {
-    if (fontsLoaded && migrationsReady && authLoaded) {
+    if (fontsLoaded && migrationsReady && authLoaded && settingsHydrated && themeHydrated) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, migrationsReady, authLoaded]);
+  }, [fontsLoaded, migrationsReady, authLoaded, settingsHydrated, themeHydrated]);
 
-  if (!fontsLoaded || !migrationsReady || !authLoaded) {
+  // Nothing renders until the persisted language, RTL flag and theme are back
+  // from storage — otherwise the first frame paints in the wrong locale/theme.
+  if (!fontsLoaded || !migrationsReady || !authLoaded || !settingsHydrated || !themeHydrated) {
     return null;
   }
 

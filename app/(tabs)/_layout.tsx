@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, I18nManager, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { Tabs } from 'expo-router';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -127,7 +127,9 @@ const styles = StyleSheet.create({
     right: spacing.sp14,
     height: 60,
     borderRadius: radius.rHero, // 22
-    flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row',
+    // Always 'row' — forceRTL mirrors the axis natively. A manual row-reverse
+    // on top of that double-flips the tabs back into LTR order.
+    flexDirection: 'row',
     alignItems: 'center',
   },
   cell: {

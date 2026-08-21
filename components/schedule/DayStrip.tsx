@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { PressBox } from '@/components/PressBox';
-import { toArabicNumerals } from '@/utils/dateFormat';
 
 const FR_ABBREVS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 const AR_ABBREVS = ['أحد', 'اثن', 'ثلا', 'أرب', 'خمي', 'جمع', 'سبت'];
@@ -61,7 +60,7 @@ export function DayStrip({
   // Monday-of-week anchors the week label (weekDates[1] — Sun=0, Mon=1)
   const monday = weekDates[1];
   const monthNames = isAr ? MONTHS_AR : MONTHS_FR;
-  const dayNum = isAr ? toArabicNumerals(monday.getDate()) : String(monday.getDate());
+  const dayNum = String(monday.getDate());
   const weekLabel = t('schedule.week_of', {
     date: `${dayNum} ${monthNames[monday.getMonth()]}`,
   });
@@ -113,7 +112,7 @@ export function DayStrip({
           // Djibouti weekend: Fri+Sat
           const isWeekend = WEEKEND_INDICES.has(idx);
           const isToday = weekOffset === 0 && idx === todayDayIndex;
-          const dateDisplay = isAr ? toArabicNumerals(d.getDate()) : String(d.getDate());
+          const dateDisplay = String(d.getDate());
 
           return (
             <PressBox

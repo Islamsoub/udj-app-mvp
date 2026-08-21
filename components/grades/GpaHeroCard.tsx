@@ -19,10 +19,6 @@ interface Props {
   pending?: boolean;
 }
 
-function toArabicIndic(n: number): string {
-  return n.toString().replace(/[0-9]/g, (d) => '٠١٢٣٤٥٦٧٨٩'[parseInt(d, 10)]);
-}
-
 export function GpaHeroCard({ gpa, credits, activeSemester, onPress, skeleton, pending }: Props) {
   const { t, i18n } = useTranslation();
   const { colors } = useColors();
@@ -42,8 +38,9 @@ export function GpaHeroCard({ gpa, credits, activeSemester, onPress, skeleton, p
   const earned = credits?.earned ?? 0;
   const total = credits?.total ?? 0;
   const creditPct = total > 0 ? earned / total : 0;
-  const earnedStr = lang === 'ar' ? toArabicIndic(earned) : String(earned);
-  const totalStr = lang === 'ar' ? toArabicIndic(total) : String(total);
+  // Latin digits in both languages — numbers always render in Plus Jakarta Sans.
+  const earnedStr = String(earned);
+  const totalStr = String(total);
 
   return (
     <View style={styles.shadow}>

@@ -9,7 +9,7 @@
     ],
     "orientation": "portrait",
     "icon": "./assets/icons/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/icons/icon.png",
@@ -59,6 +59,7 @@
         }
       ],
       "expo-asset",
+      "expo-system-ui",
       [
         "expo-notifications",
         {
