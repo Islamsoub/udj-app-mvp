@@ -170,19 +170,23 @@ export default function GradesScreen() {
         cachedAt: new Date().toISOString(),
       }).catch(() => {});
 
-      if (!activeSemesterId) {
-        getGradesAllSemesters()
-          .catch(() => ({ semesters: [] as SemesterSummary[] }))
-          .then((allSemRes) => {
-            setAllSemesterData(allSemRes.semesters);
+      // The all-semesters summary feeds the GPA history chart, so it must refresh
+      // on every fetch — not just the initial load — or the chart stays frozen
+      // (and empty) after a semester switch. The tab wiring below still only
+      // initialises once, so a refetch never resets the user's tab selection.
+      getGradesAllSemesters()
+        .catch(() => ({ semesters: [] as SemesterSummary[] }))
+        .then((allSemRes) => {
+          setAllSemesterData(allSemRes.semesters);
+          if (!activeSemesterId) {
             const yearSems = allSemRes.semesters
               .filter((s) => s.academicYear === res.semester.academicYear)
               .sort((a, b) => a.label.localeCompare(b.label));
             setSemesterTabIds([yearSems[0]?.id ?? null, yearSems[1]?.id ?? null]);
             const currentIdx = yearSems.findIndex((s) => s.id === res.semester.id);
             setActiveSemester(currentIdx === 1 ? 2 : 1);
-          });
-      }
+          }
+        });
 
       return mapGradesToCache(
         res.grades,
