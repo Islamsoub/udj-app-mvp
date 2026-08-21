@@ -146,7 +146,14 @@
       "Bash(cp .env.backup-cors-test .env)",
       "Bash(rm -f .env.tmptest .env.backup-cors-test)",
       "Bash(ADMIN_CORS_ORIGIN= npx tsx src/index.ts)",
-      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\admin\"; npx tsc --noEmit; \"ADMIN EXIT: $LASTEXITCODE\"; Pop-Location)"
+      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\admin\"; npx tsc --noEmit; \"ADMIN EXIT: $LASTEXITCODE\"; Pop-Location)",
+      "PowerShell(npm install *)",
+      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\admin\"; npx tsc --noEmit; \"ADMIN TSC EXIT: $LASTEXITCODE\"; Pop-Location)",
+      "PowerShell(npm run *)",
+      "PowerShell(Stop-Job *)",
+      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\backend\"; npx tsx scripts/sanitize-existing-articles.ts --dry; \"EXIT: $LASTEXITCODE\"; Pop-Location)",
+      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\backend\"; npx tsx scripts/_inspect-bodies.tmp.ts 2>&1 | Where-Object { $_ -notmatch '^prisma:query|injected env' }; Pop-Location)",
+      "PowerShell(Push-Location \"C:\\\\Users\\\\urohe\\\\Documents\\\\udj-app-mvp\\\\backend\"; npx tsx scripts/sanitize-existing-articles.ts 2>&1 | Where-Object { $_ -notmatch '^prisma:query|injected env' }; \"EXIT: $LASTEXITCODE\"; Pop-Location)"
     ]
   }
 }

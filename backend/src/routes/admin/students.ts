@@ -102,7 +102,13 @@ router.get(
         ];
       }
       if (programme) where.programmeId = programme;
-      if (faculty) where.programme = { facultyId: faculty };
+      // Intersect, never assign. `where.programme` already holds the caller's
+      // RBAC faculty scope from facultyScopeWhere() above — overwriting it let a
+      // FACULTY_ADMIN read any other faculty's full roster via ?faculty=<id>.
+      if (faculty) {
+        const existingAnd = Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : [];
+        where.AND = [...existingAnd, { programme: { facultyId: faculty } }];
+      }
       if (semester) where.currentSemester = parseInt(semester, 10);
       if (status && status in StudentStatus) where.status = status as StudentStatus;
 

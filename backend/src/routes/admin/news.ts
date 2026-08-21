@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
+import sanitize from 'sanitize-html';
 import { AdminRole, NotificationType, StudentStatus } from '@prisma/client';
 import prisma from '../../utils/prisma';
 import { AppError } from '../../utils/AppError';
@@ -20,6 +21,33 @@ const EDIT_ROLES: AdminRole[] = [AdminRole.SUPER_ADMIN, AdminRole.NEWS_EDITOR];
 
 // Max number of simultaneously-urgent articles (architecture doc §7.3).
 const MAX_URGENT = 3;
+
+/**
+ * Strips every tag, attribute and scheme outside the allow-list from article
+ * bodies before they are stored.
+ *
+ * A NEWS_EDITOR is the lowest-privilege admin role, but article bodies were
+ * rendered as HTML in the portal preview — so `<img onerror=...>` in bodyFr
+ * executed in the browser of any admin who opened it, up to and including a
+ * SUPER_ADMIN. Sanitising on write means the stored value is already safe for
+ * every present and future reader (portal preview, mobile reader, exports).
+ *
+ * `allowedSchemes: ['https']` also kills `javascript:` and `data:` hrefs.
+ * Note: sanitise-on-write does not clean rows written before this shipped —
+ * those need a one-time backfill (tracked separately).
+ */
+export function sanitizeArticleHtml(html: string): string {
+  return sanitize(html, {
+    allowedTags: [
+      'p', 'b', 'i', 'strong', 'em', 'u', 'h2', 'h3', 'h4',
+      'ul', 'ol', 'li', 'a', 'br', 'blockquote',
+    ],
+    allowedAttributes: { a: ['href'] },
+    allowedSchemes: ['https'],
+    // Drop the contents of these outright rather than leaving inner text behind.
+    nonTextTags: ['style', 'script', 'textarea', 'option', 'noscript'],
+  });
+}
 
 // Rough reading-time estimate (~200 words/min), min 1.
 function readTime(body: string): number {
@@ -115,6 +143,11 @@ router.post(
       if (!parsed.success) throw new AppError('Invalid article data', 400);
       const d = parsed.data;
 
+      // Sanitise up front so every downstream consumer — the stored row, the
+      // read-time estimate and the notification preview — sees the clean body.
+      const bodyFr = sanitizeArticleHtml(d.bodyFr);
+      const bodyAr = sanitizeArticleHtml(d.bodyAr ?? '');
+
       // Enforce the urgent limit before creating (may unpin the oldest urgent).
       const unpinned = d.isUrgent ? await enforceUrgentLimit() : null;
 
@@ -122,13 +155,13 @@ router.post(
         data: {
           titleFr: d.titleFr,
           titleAr: d.titleAr ?? '',
-          bodyFr: d.bodyFr,
-          bodyAr: d.bodyAr ?? '',
+          bodyFr,
+          bodyAr,
           category: d.category, // KEPT — dual-write with the relation below
           ...(d.categoryId !== undefined ? { categoryId: d.categoryId } : {}),
           isUrgent: d.isUrgent ?? false,
           heroImageUrl: d.heroImageUrl ?? null,
-          readTimeMinutes: readTime(d.bodyFr),
+          readTimeMinutes: readTime(bodyFr),
           publishedAt: d.publishedAt ? new Date(d.publishedAt) : new Date(),
         },
       });
@@ -168,6 +201,10 @@ router.patch(
       const existing = await prisma.newsArticle.findUnique({ where: { id: String(req.params.id) } });
       if (!existing) throw new AppError('Article not found', 404);
 
+      // Same sanitisation as create — an edit is just as good an injection point.
+      const bodyFr = d.bodyFr !== undefined ? sanitizeArticleHtml(d.bodyFr) : undefined;
+      const bodyAr = d.bodyAr !== undefined ? sanitizeArticleHtml(d.bodyAr) : undefined;
+
       // Enforce the urgent limit only when this edit sets the article urgent.
       const unpinned = d.isUrgent === true ? await enforceUrgentLimit(existing.id) : null;
 
@@ -176,8 +213,8 @@ router.patch(
         data: {
           ...(d.titleFr !== undefined ? { titleFr: d.titleFr } : {}),
           ...(d.titleAr !== undefined ? { titleAr: d.titleAr } : {}),
-          ...(d.bodyFr !== undefined ? { bodyFr: d.bodyFr, readTimeMinutes: readTime(d.bodyFr) } : {}),
-          ...(d.bodyAr !== undefined ? { bodyAr: d.bodyAr } : {}),
+          ...(bodyFr !== undefined ? { bodyFr, readTimeMinutes: readTime(bodyFr) } : {}),
+          ...(bodyAr !== undefined ? { bodyAr } : {}),
           ...(d.category !== undefined ? { category: d.category } : {}),
           ...(d.categoryId !== undefined ? { categoryId: d.categoryId } : {}),
           ...(d.isUrgent !== undefined ? { isUrgent: d.isUrgent } : {}),

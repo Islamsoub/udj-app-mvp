@@ -169,9 +169,18 @@ router.get(
   '/recent-activity',
   adminAuth,
   rbac(...READ_ROLES),
-  async (_req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     try {
+      // The audit log records entityType/entityId as free text with no faculty
+      // column, so there is no reliable way to filter it down to one faculty's
+      // scope. Rather than leak university-wide activity — including actions on
+      // students and grades outside the caller's remit — a non-SUPER_ADMIN sees
+      // only their own actions. Broader per-faculty visibility needs a faculty
+      // reference on AuditLog first.
+      const isSuperAdmin = req.admin?.role === AdminRole.SUPER_ADMIN;
+
       const logs = await prisma.auditLog.findMany({
+        where: isSuperAdmin ? {} : { adminId: req.admin?.adminId },
         orderBy: { createdAt: 'desc' },
         take: 20,
         include: {
