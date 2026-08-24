@@ -11,3 +11,8 @@ ios/
 .DS_Store
 *.log
 .idea/
+
+.claude/settings.local.json
+*.keystore
+*.jks
+*.p8
