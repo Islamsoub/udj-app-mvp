@@ -624,7 +624,7 @@ Produces a signed `.aab` for Google Play Store submission.
 
 ### Current Version
 
-- **App version:** 1.1.0
+- **App version:** 1.0.0
 - **Min Android:** API 24 (Android 7.0)
 - **Target Android:** API 35
 

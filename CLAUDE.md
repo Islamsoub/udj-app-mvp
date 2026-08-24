@@ -214,7 +214,7 @@ Root stack (app/):
 15. Faculty Detail         — faculty info page
 16. Storage Detail         — cache breakdown + per-table clearing
 17. Account Info           — account details
-    error.tsx              — global Expo Router error boundary
+    _layout.tsx            — exports ErrorBoundary, the global Expo Router error boundary
 
 Bottom-sheet modals (not routes — rendered in-screen): Course Detail Sheet, Grade Calculator Sheet, GPA History Sheet, Justify Sheet.
 
@@ -287,8 +287,8 @@ Rules:
 
 Accepted exceptions (raw Pressable/Touchable allowed):
 - Modal/scrim backdrops (tap-to-dismiss overlays — no press feedback wanted).
-- app/error.tsx (the global error boundary must not depend on theme/animation
-  infra that may itself be broken).
+- The `ErrorBoundary` export in app/_layout.tsx (the global error boundary must
+  not depend on theme/animation infra that may itself be broken).
 - The bottom tab bar (handled by the navigator's own press handling).
 
 ## Sentry (crash reporting)
@@ -299,8 +299,9 @@ Initialized in services/sentry.ts via `initSentry()`.
 - `tracesSampleRate: 0.2` — 20% performance-transaction sampling.
 - `beforeSend` hook — strips student ID/PII from events before they leave the
   device (aligns with the "No PII in logs" P0 security rule).
-- Global error boundary: app/error.tsx is the Expo Router error screen; runtime
-  crashes are captured by Sentry and surfaced through it.
+- Global error boundary: the `ErrorBoundary` named export in app/_layout.tsx is
+  the Expo Router error screen; runtime crashes are captured by Sentry and
+  surfaced through it.
 - DSN is a public ingest key (safe to ship); never add secret tokens here.
 
 ## Security decisions (v1.0 — documented accepted risks)
