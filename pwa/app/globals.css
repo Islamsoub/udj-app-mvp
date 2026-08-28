@@ -1,0 +1,96 @@
+@import 'tailwindcss';
+
+/* ────────────────────────────────────────────────────────────────────────────
+   Unipocket PWA — design tokens.
+   Reproduced verbatim from design/pwa-tokens.css, which is the source of truth
+   for the PWA's colours, radii, fonts and shadows. Do NOT take token values
+   from README.md, CLAUDE.md, the native app's constants/, or any audit
+   document — they disagree with that file and it wins.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-ar: 'Noto Naskh Arabic', serif;
+  --font-mono: 'DM Mono', monospace;
+
+  --sidebar-w: 240px;
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-2xl: 24px;
+
+  --shadow-card: 0 2px 10px rgba(30, 35, 31, .06);
+  --shadow-lg: 0 12px 32px rgba(30, 35, 31, .12);
+  --shadow-panel: 0 0 0 1px rgba(30, 35, 31, .04), -12px 0 32px rgba(30, 35, 31, .10);
+}
+
+[data-theme="light"] {
+  --bg: #F7F4EE;
+  --surface: #FFFFFF;
+  --surface2: #F8F5EF;
+  --sunken: #EFEAE0;
+
+  --ink: #1E231F;
+  --ink2: #6C7267;
+  --ink3: #9CA396;
+
+  --hair: rgba(30, 35, 31, .10);
+  --hair2: rgba(30, 35, 31, .16);
+
+  --jade: #1D9E75;
+  --jade-hover: #0F6E56;
+  --jade-text: #0F6E56;
+  --jade-faint: rgba(29, 158, 117, .10);
+
+  --danger: #EF4444;
+  --danger-bg: rgba(239, 68, 68, .10);
+  --warning: #F59E0B;
+  --warning-bg: rgba(245, 158, 11, .14);
+  --info: #3B82F6;
+  --info-bg: rgba(59, 130, 246, .12);
+  --exam: #8B5CF6;
+  --exam-bg: rgba(139, 92, 246, .12);
+}
+
+[data-theme="dark"] {
+  --bg: #15201A;
+  --surface: #1C2721;
+  --surface2: #22302A;
+  --sunken: #0F1713;
+
+  --ink: #EDF2ED;
+  --ink2: #9FB0A6;
+  --ink3: #71887C;
+
+  --hair: rgba(255, 255, 255, .08);
+  --hair2: rgba(255, 255, 255, .14);
+
+  --jade: #2BB989;
+  --jade-hover: #3FCB9A;
+  --jade-text: #5FD3A6;
+  --jade-faint: rgba(43, 185, 137, .16);
+
+  --danger: #FF6B6B;
+  --danger-bg: rgba(255, 107, 107, .15);
+  --warning: #F0A84B;
+  --warning-bg: rgba(240, 168, 75, .16);
+  --info: #5AA0E6;
+  --info-bg: rgba(90, 160, 230, .18);
+  --exam: #A98BF0;
+  --exam-bg: rgba(169, 139, 240, .18);
+}
+
+/* Motion tokens — from the interaction spec §2.
+ * These are NOT in the prototype; the prototype uses ad-hoc values
+ * (.15s/.18s/.2s/.25s/.3s). The spec values below are authoritative.
+ */
+:root {
+  --dur-instant: 100ms;
+  --dur-fast: 180ms;
+  --dur-base: 250ms;
+  --dur-slow: 450ms;
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --ease-in-out: cubic-bezier(.4, 0, .2, 1);
+}
