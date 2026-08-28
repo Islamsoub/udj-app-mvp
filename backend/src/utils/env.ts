@@ -23,6 +23,12 @@ const envSchema = z.object({
     .string()
     .min(1)
     .transform((s) => s.split(',').map((o) => o.trim()).filter(Boolean)),
+  // Shared secret the PWA's server-side proxy presents so it may declare the
+  // real client IP for rate limiting (see resolveClientIp in
+  // middleware/rateLimiter.ts). Optional with no default: unset or empty means
+  // the forwarded-IP header is never trusted and req.ip is always used, so the
+  // native app — which does not proxy — is unaffected.
+  PWA_PROXY_SECRET: z.string().optional(),
 });
 
 const result = envSchema.safeParse(process.env);
