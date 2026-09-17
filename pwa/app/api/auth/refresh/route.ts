@@ -8,6 +8,7 @@ import {
   cookieOptions,
   readJson,
 } from '@/lib/proxy';
+import { rateLimitHeaders } from '@/lib/rate-limit-headers';
 
 export const runtime = 'nodejs';
 // Long enough to sit through a Render free-tier cold start (30-50s).
@@ -54,8 +55,16 @@ export async function POST(req: Request) {
     return NextResponse.json(data ?? { error: 'Invalid refresh token' }, { status: 401 });
   }
 
+  // /auth/refresh carries its own limiter upstream (authRefreshLimiter, 30/min
+  // per IP), so 429 is reachable here too and lands in this branch. A refresh
+  // that is rate-limited rather than rejected is a wait, not a dead session —
+  // forwarding RateLimit-Reset is what lets the client tell the two apart and
+  // retry at the right moment instead of logging the student out.
   if (upstream.status !== 200) {
-    return NextResponse.json(data ?? { error: 'Refresh failed' }, { status: upstream.status });
+    return NextResponse.json(data ?? { error: 'Refresh failed' }, {
+      status: upstream.status,
+      headers: upstream.status === 429 ? rateLimitHeaders(upstream) : undefined,
+    });
   }
 
   const { accessToken, refreshToken: rotatedToken } = (data ?? {}) as {

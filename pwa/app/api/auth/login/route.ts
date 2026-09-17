@@ -8,6 +8,7 @@ import {
   cookieOptions,
   readJson,
 } from '@/lib/proxy';
+import { rateLimitHeaders } from '@/lib/rate-limit-headers';
 
 export const runtime = 'nodejs';
 // Long enough to sit through a Render free-tier cold start (30-50s).
@@ -54,8 +55,16 @@ export async function POST(req: Request) {
 
   // Passed through unchanged so the client can tell 401 (bad credentials) from
   // 423 (locked, carries lockedUntil) from 429 (rate limited).
+  //
+  // The 429 additionally carries the upstream rate-limit headers, because
+  // RateLimit-Reset is the only thing that tells the login screen how long the
+  // window actually has left. No other status forwards any header: see
+  // lib/rate-limit-headers.ts for why the list is an allow-list.
   if (upstream.status !== 200) {
-    return NextResponse.json(data ?? { error: 'Login failed' }, { status: upstream.status });
+    return NextResponse.json(data ?? { error: 'Login failed' }, {
+      status: upstream.status,
+      headers: upstream.status === 429 ? rateLimitHeaders(upstream) : undefined,
+    });
   }
 
   const { accessToken, refreshToken, student } = (data ?? {}) as {
