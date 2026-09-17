@@ -1,0 +1,58 @@
+{
+  "app": {
+    "name": "Unipocket",
+    "university": "Université de Djibouti",
+    "tagline": "Votre espace étudiant"
+  },
+  "login": {
+    "title": "Connexion requise",
+    "subtitle": "Connectez-vous à votre espace étudiant",
+    "student_id_label": "Numéro étudiant",
+    "student_id_placeholder": "UDJ-2024-0000",
+    "password_label": "Mot de passe",
+    "password_placeholder": "Votre mot de passe",
+    "show_password": "Afficher le mot de passe",
+    "hide_password": "Masquer le mot de passe",
+    "submit": "Se connecter",
+    "submitting": "Connexion en cours…",
+    "forgot_password": "Mot de passe oublié ?",
+    "help_contact": "Besoin d'aide ? Contactez la scolarité.",
+    "errors": {
+      "student_id_required": "Entrez votre numéro étudiant.",
+      "password_required": "Entrez votre mot de passe.",
+      "invalid_credentials": "Numéro étudiant ou mot de passe incorrect.",
+      "locked": "Compte bloqué. Réessayez dans {{minutes}} min.",
+      "rate_limited": "Trop de tentatives. Réessayez dans {{seconds}} s.",
+      "network": "Connexion impossible. Vérifiez votre réseau.",
+      "server": "Le serveur ne répond pas. Réessayez dans un instant.",
+      "timeout": "Le serveur met trop de temps à répondre.",
+      "unknown": "Une erreur est survenue. Réessayez."
+    }
+  },
+  "offline": {
+    "banner": "Vous êtes hors ligne. Données mises en cache affichées.",
+    "restored": "Connexion rétablie",
+    "last_sync": "Dernière synchro : {{time}}",
+    "never_synced": "jamais synchronisé"
+  },
+  "session": {
+    "expired_title": "Votre session a expiré",
+    "expired_body": "Pour votre sécurité, reconnectez-vous pour continuer.",
+    "reconnect": "Se reconnecter"
+  },
+  "actions": {
+    "retry": "Réessayer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "close": "Fermer",
+    "ok": "OK"
+  },
+  "common": {
+    "loading": "Chargement…",
+    "error": "Une erreur est survenue"
+  },
+  "language": {
+    "fr": "Français",
+    "ar": "العربية"
+  }
+}

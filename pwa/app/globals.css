@@ -94,3 +94,37 @@
   --ease-out: cubic-bezier(.16, 1, .3, 1);
   --ease-in-out: cubic-bezier(.4, 0, .2, 1);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Bilingual FR / AR.
+
+   There is no RTL stylesheet and there never should be. Mirroring is the
+   browser's job: `dir="rtl"` on <html> flips everything written with logical
+   properties (inline-start/-end, margin-inline, padding-inline, text-align:
+   start). A rule written with `left` or `right` opts out of that and has to be
+   maintained twice, which is how the two directions drift apart.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* Arabic swaps the body face only. Set by the blocking script in app/layout.tsx
+   before first paint, then kept in step by the I18nProvider. */
+html[lang="ar"] body {
+  font-family: var(--font-ar);
+}
+
+/* Numbers, times, GPAs and student IDs stay on the Latin faces in BOTH
+   languages — the Arabic face renders digits in a style the design system does
+   not use, and a GPA must look identical whichever language is active. A direct
+   rule beats the inherited body font, so no !important is needed. */
+.num {
+  font-family: var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

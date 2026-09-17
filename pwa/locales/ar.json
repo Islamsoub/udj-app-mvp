@@ -1,0 +1,58 @@
+{
+  "app": {
+    "name": "Unipocket",
+    "university": "جامعة جيبوتي",
+    "tagline": "مساحتك الطلابية"
+  },
+  "login": {
+    "title": "تسجيل الدخول مطلوب",
+    "subtitle": "سجّل دخولك إلى مساحتك الطلابية",
+    "student_id_label": "رقم الطالب",
+    "student_id_placeholder": "UDJ-2024-0000",
+    "password_label": "كلمة المرور",
+    "password_placeholder": "كلمة المرور الخاصة بك",
+    "show_password": "إظهار كلمة المرور",
+    "hide_password": "إخفاء كلمة المرور",
+    "submit": "تسجيل الدخول",
+    "submitting": "جارٍ تسجيل الدخول…",
+    "forgot_password": "نسيت كلمة المرور؟",
+    "help_contact": "تحتاج مساعدة؟ تواصل مع قسم الشؤون الطلابية.",
+    "errors": {
+      "student_id_required": "أدخل رقم الطالب.",
+      "password_required": "أدخل كلمة المرور.",
+      "invalid_credentials": "رقم الطالب أو كلمة المرور غير صحيحة.",
+      "locked": "الحساب مقفل. حاول مجدداً خلال {{minutes}} دقيقة.",
+      "rate_limited": "محاولات كثيرة جداً. حاول مجدداً خلال {{seconds}} ثانية.",
+      "network": "تعذّر الاتصال. تحقق من شبكتك.",
+      "server": "الخادم لا يستجيب. حاول مجدداً بعد قليل.",
+      "timeout": "الخادم يستغرق وقتاً طويلاً للرد.",
+      "unknown": "حدث خطأ. حاول مجدداً."
+    }
+  },
+  "offline": {
+    "banner": "أنت غير متصل بالإنترنت. يتم عرض البيانات المخزّنة مؤقتاً.",
+    "restored": "تم استعادة الاتصال",
+    "last_sync": "آخر مزامنة: {{time}}",
+    "never_synced": "لم تتم بعد"
+  },
+  "session": {
+    "expired_title": "انتهت جلستك",
+    "expired_body": "لأمانك، أعد تسجيل الدخول للمتابعة.",
+    "reconnect": "إعادة الاتصال"
+  },
+  "actions": {
+    "retry": "إعادة المحاولة",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "close": "إغلاق",
+    "ok": "حسناً"
+  },
+  "common": {
+    "loading": "جارٍ التحميل…",
+    "error": "حدث خطأ"
+  },
+  "language": {
+    "fr": "Français",
+    "ar": "العربية"
+  }
+}
