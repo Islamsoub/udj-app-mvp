@@ -18,6 +18,42 @@ export interface LoginResult {
   student: StudentSummary;
 }
 
+/** Fallback window when the upstream header is missing. Matches the backend's 60s. */
+const DEFAULT_RETRY_AFTER_SECONDS = 60;
+
+/**
+ * A 429 from the login proxy, carrying the seconds left in the rate-limit window.
+ *
+ * ApiError exposes only status and body, and the countdown lives in a HEADER —
+ * `RateLimit-Reset`, forwarded by app/api/auth/login/route.ts precisely so the
+ * screen can show a real number instead of guessing. Widening ApiError itself
+ * would put a login-specific field on every API failure in the app, so the
+ * detail is carried by a subclass: `catch (e) { if (e instanceof ApiError) }`
+ * still matches, and code that wants the countdown narrows one step further.
+ */
+export class RateLimitError extends ApiError {
+  readonly retryAfterSeconds: number;
+
+  constructor(body: unknown, retryAfterSeconds: number) {
+    super(429, body);
+    this.name = 'RateLimitError';
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+/**
+ * Seconds left in the rate-limit window. Falls back to the full window when the
+ * header is absent or unparseable — a countdown that is too long merely makes
+ * the student wait, while one that is too short walks straight into another 429.
+ */
+function retryAfterFrom(res: Response): number {
+  const raw = res.headers.get('RateLimit-Reset');
+  if (raw === null) return DEFAULT_RETRY_AFTER_SECONDS;
+
+  const seconds = Number.parseInt(raw, 10);
+  return Number.isFinite(seconds) && seconds > 0 ? seconds : DEFAULT_RETRY_AFTER_SECONDS;
+}
+
 async function parseBody(res: Response): Promise<unknown> {
   return res.json().catch(() => null);
 }
@@ -40,6 +76,7 @@ export async function login(studentId: string, password: string): Promise<LoginR
   });
 
   const body = await parseBody(res);
+  if (res.status === 429) throw new RateLimitError(body, retryAfterFrom(res));
   if (!res.ok) throw new ApiError(res.status, body);
 
   const { accessToken, student } = (body ?? {}) as {
