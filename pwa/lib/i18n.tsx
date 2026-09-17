@@ -16,33 +16,45 @@ import {
   type TranslationParams,
 } from '@/lib/i18n-types';
 
-export type Lang = 'fr' | 'ar';
-export type Dir = 'ltr' | 'rtl';
-
 /**
- * Where the language preference is persisted.
- *
- * localStorage is the right home for THIS value and the wrong home for tokens —
- * the distinction is what an attacker gains by reading it. A stolen access token
- * is an account; a stolen "the user reads Arabic" is nothing. The language must
- * also survive a reload and be readable by a blocking script before React
- * mounts (see the inline script in app/layout.tsx), which rules out holding it
- * in memory the way lib/auth-token.ts holds the access token.
- *
- * Nothing else may go in here. Tokens stay in memory and in the httpOnly cookie.
+ * Cookie name, storage key, DEFAULT_LANG and the narrowing helpers live in
+ * lib/i18n-shared.ts, not here. This module is 'use client', which turns every
+ * one of its exports into a client reference — the root layout has to resolve
+ * the language on the SERVER, and calling a client export from there fails at
+ * runtime. Only types are re-exported below; import the values from i18n-shared.
  */
-export const LANG_STORAGE_KEY = 'unipocket_lang';
+import {
+  DEFAULT_LANG,
+  LANG_COOKIE,
+  LANG_COOKIE_MAX_AGE,
+  LANG_STORAGE_KEY,
+  dirFor,
+  isLang,
+  type Dir,
+  type Lang,
+} from '@/lib/i18n-shared';
 
-export const DEFAULT_LANG: Lang = 'fr';
+export type { Dir, Lang } from '@/lib/i18n-shared';
 
 const dictionaries: Record<Lang, unknown> = { fr: frMessages, ar: arMessages };
 
-export function isLang(value: unknown): value is Lang {
-  return value === 'fr' || value === 'ar';
+function readLangCookie(): Lang | null {
+  const match = document.cookie.match(/(?:^|;\s*)unipocket_lang=([^;]*)/);
+  if (!match) return null;
+  const value = decodeURIComponent(match[1]);
+  return isLang(value) ? value : null;
 }
 
-export function dirFor(lang: Lang): Dir {
-  return lang === 'ar' ? 'rtl' : 'ltr';
+function writeLangCookie(lang: Lang): void {
+  document.cookie = `${LANG_COOKIE}=${lang}; path=/; max-age=${LANG_COOKIE_MAX_AGE}; SameSite=Lax`;
+}
+
+function writeLangStorage(lang: Lang): void {
+  try {
+    window.localStorage.setItem(LANG_STORAGE_KEY, lang);
+  } catch {
+    // Not persisting here is survivable — the cookie is the one the server reads.
+  }
 }
 
 /** Walks a dotted path. Returns null for a missing path or a non-string leaf. */
@@ -76,24 +88,57 @@ export interface I18nValue {
 
 const I18nContext = createContext<I18nValue | null>(null);
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  // Starts on the default so the server-rendered markup and the first client
-  // render agree; the stored preference is applied in the effect below. The
-  // <html> lang/dir are already correct by then — the blocking script in the
-  // root layout sets them before first paint.
-  const [lang, setLangState] = useState<Lang>(DEFAULT_LANG);
+export interface I18nProviderProps {
+  /**
+   * The language the SERVER rendered in, resolved from the cookie. Starting here
+   * rather than at DEFAULT_LANG is the whole point of the cookie: the first
+   * client render matches the HTML that was sent, so there is no French-to-Arabic
+   * swap after mount and no hydration mismatch.
+   */
+  initialLang?: Lang;
+  children: ReactNode;
+}
 
+export function I18nProvider({ initialLang = DEFAULT_LANG, children }: I18nProviderProps) {
+  const [lang, setLangState] = useState<Lang>(initialLang);
+
+  // Reconciles the two stores once on mount.
+  //
+  // The cookie is authoritative, because it is what the server just rendered
+  // from — believing localStorage over it would mean re-rendering away from the
+  // markup already on screen, which is the flash this change exists to remove.
+  //
+  // The localStorage branch is the migration path: a student who picked a
+  // language before this shipped has storage but no cookie. Adopt it, write the
+  // cookie, and every later load is server-correct.
   useEffect(() => {
-    try {
-      const stored = window.localStorage.getItem(LANG_STORAGE_KEY);
-      if (isLang(stored)) setLangState(stored);
-    } catch {
-      // Private mode or blocked storage: stay on the default.
+    const fromCookie = readLangCookie();
+
+    if (fromCookie) {
+      if (fromCookie !== lang) setLangState(fromCookie);
+      writeLangStorage(fromCookie);
+      return;
     }
+
+    let stored: string | null = null;
+    try {
+      stored = window.localStorage.getItem(LANG_STORAGE_KEY);
+    } catch {
+      // Private mode or blocked storage: nothing to migrate.
+    }
+
+    if (isLang(stored)) {
+      setLangState(stored);
+      writeLangCookie(stored);
+    }
+    // `lang` is read but intentionally not a dependency: this runs once, at
+    // mount, against the value the server chose.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Keeps the document in step with the state, including the very first pass —
-  // which corrects <html> if storage was unreadable by the blocking script.
+  // Keeps the document in step with the state. On a cookie-backed load the
+  // attributes already match and this is a no-op; it earns its keep on a
+  // switch, and on the migration path above.
   useEffect(() => {
     const el = document.documentElement;
     el.lang = lang;
@@ -102,11 +147,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const setLang = useCallback((next: Lang) => {
     setLangState(next);
-    try {
-      window.localStorage.setItem(LANG_STORAGE_KEY, next);
-    } catch {
-      // Not persisting is survivable; the session still switches.
-    }
+    // Cookie first — it is the one that decides what the next navigation renders.
+    writeLangCookie(next);
+    writeLangStorage(next);
   }, []);
 
   const t = useCallback(
