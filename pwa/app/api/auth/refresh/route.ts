@@ -10,6 +10,8 @@ import {
 } from '@/lib/proxy';
 
 export const runtime = 'nodejs';
+// Long enough to sit through a Render free-tier cold start (30-50s).
+export const maxDuration = 60;
 
 /**
  * POST /api/auth/refresh

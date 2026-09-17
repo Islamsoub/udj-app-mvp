@@ -10,8 +10,12 @@ export const REFRESH_COOKIE = 'unipocket_refresh';
 /**
  * Render's free tier cold-starts in 30-50s, so a shorter deadline would turn a
  * first login of the day into a spurious failure.
+ *
+ * Must stay strictly below the routes' `maxDuration` (60s): the route has to win
+ * the race so it can answer with its own 504 and a readable body, instead of the
+ * platform killing the function and returning an opaque FUNCTION_INVOCATION_TIMEOUT.
  */
-export const BACKEND_TIMEOUT_MS = 60_000;
+export const BACKEND_TIMEOUT_MS = 55_000;
 
 /** Thrown when a backend call exceeds BACKEND_TIMEOUT_MS, so routes can answer 504. */
 export class BackendTimeoutError extends Error {
