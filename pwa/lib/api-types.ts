@@ -1,0 +1,265 @@
+/**
+ * Response shapes for the nine endpoints reachable through /api/backend.
+ *
+ * Derived from what the Express handlers actually send (backend/src/routes/
+ * student.ts and news.ts), not from the SQLite cache shapes the native app
+ * flattens them into — the PWA has no local database, so it consumes the API
+ * shapes directly.
+ */
+
+// ── Shared ────────────────────────────────────────────────────────────────────
+
+export interface CreditTally {
+  earned: number;
+  total: number;
+}
+
+export interface SemesterRef {
+  id: string;
+  label: string;
+  academicYear: string;
+}
+
+export interface SubjectRef {
+  id: string;
+  nameFr: string;
+  nameAr: string;
+  code: string;
+}
+
+/** The trimmed student object /auth/login returns alongside the tokens. */
+export interface StudentSummary {
+  id: string;
+  firstName: string;
+  lastName: string;
+  studentIdDisplay: string;
+  email: string;
+  photoUrl: string | null;
+  currentSemester: number;
+  status: string;
+  programme: {
+    id: string;
+    nameFr: string;
+    nameAr: string;
+    code: string;
+    level: string;
+  };
+  faculty: {
+    id: string;
+    nameFr: string;
+    nameAr: string;
+    code: string;
+  };
+}
+
+// ── GET /student/me ───────────────────────────────────────────────────────────
+
+export interface StudentPreferences {
+  notifGrades: boolean;
+  notifCourses: boolean;
+  notifAttendance: boolean;
+  quietHoursStart: string | null;
+  quietHoursEnd: string | null;
+}
+
+export interface StudentStats {
+  gpa: number | null;
+  mention: string | null;
+  semesterCredits: CreditTally;
+  totalCredits: CreditTally;
+  /** Hours-based. Null when the student has no attendance records yet. */
+  attendancePercentage: number | null;
+}
+
+/** Richer than StudentSummary: /student/me adds stats, preferences and the full
+ *  programme/faculty records the profile and info screens render. */
+export interface MeResponse {
+  id: string;
+  firstName: string;
+  lastName: string;
+  studentIdDisplay: string;
+  email: string;
+  photoUrl: string | null;
+  currentSemester: number;
+  status: string;
+  programme: {
+    id: string;
+    nameFr: string;
+    nameAr: string;
+    code: string;
+    level: string;
+    durationSemesters: number;
+    totalCredits: number;
+  };
+  faculty: {
+    id: string;
+    nameFr: string;
+    nameAr: string;
+    code: string;
+    email: string;
+    phone: string;
+    address: string;
+    hours: string;
+  };
+  stats: StudentStats;
+  preferences: StudentPreferences;
+}
+
+// ── GET /student/schedule ─────────────────────────────────────────────────────
+
+export interface ScheduleEntry {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  room: string;
+  professorName: string;
+  type: string;
+  subject: SubjectRef & { coefficient: number };
+}
+
+export interface ScheduleResponse {
+  semesterId: string;
+  entries: ScheduleEntry[];
+}
+
+// ── GET /student/grades ───────────────────────────────────────────────────────
+
+/**
+ * Two-phase publication: a grade appears only once CC is published, and noteCf /
+ * noteFinale stay null (with isValidated false) until NF is published too. Null
+ * therefore means "not published yet", never "zero".
+ */
+export interface GradeItem {
+  id: string;
+  noteCc: number | null;
+  noteCf: number | null;
+  noteFinale: number | null;
+  isValidated: boolean;
+  subject: SubjectRef & { coefficient: number; credits: number };
+}
+
+export interface GradesResponse {
+  semester: SemesterRef;
+  gpa: number | null;
+  mention: string | null;
+  credits: CreditTally;
+  ccPublished: boolean;
+  nfPublished: boolean;
+  grades: GradeItem[];
+}
+
+export interface SemesterSummary extends SemesterRef {
+  gpa: number | null;
+  mention: string | null;
+  credits: CreditTally;
+}
+
+/** Same endpoint, entirely different shape — `allSemesters=true` returns the
+ *  per-semester history instead of one semester's grade list. */
+export interface AllSemestersResponse {
+  semesters: SemesterSummary[];
+}
+
+// ── GET /student/attendance ───────────────────────────────────────────────────
+
+export interface AbsenceRecord {
+  id: string;
+  date: string;
+  status: 'ABSENT' | 'JUSTIFIED';
+  subjectName: string;
+  subjectNameAr: string;
+  /** Time-limited signed Storage URL, minted per request. Do not cache it. */
+  justificationUrl: string | null;
+  justificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
+  justificationNote: string | null;
+}
+
+export interface AttendanceSubject {
+  subject: SubjectRef;
+  total: number;
+  present: number;
+  absent: number;
+  justified: number;
+  partial: number;
+  percentage: number;
+  absences: AbsenceRecord[];
+}
+
+export interface AttendanceOverall {
+  total: number;
+  present: number;
+  absent: number;
+  justified: number;
+  partial: number;
+  /** Hours-based, so null when no session lengths could be resolved. */
+  percentage: number | null;
+}
+
+/** `overall` is null when no semester is marked current. */
+export interface AttendanceResponse {
+  overall: AttendanceOverall | null;
+  subjects: AttendanceSubject[];
+}
+
+// ── GET /student/notifications ────────────────────────────────────────────────
+
+export interface ApiNotification {
+  id: string;
+  type: string;
+  titleFr: string;
+  titleAr: string;
+  bodyFr: string;
+  bodyAr: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface NotificationsResponse {
+  /** Across all notifications, not just the page returned. */
+  unreadCount: number;
+  notifications: ApiNotification[];
+}
+
+export interface MarkAllReadResponse {
+  updated: number;
+}
+
+// ── PATCH /student/preferences ────────────────────────────────────────────────
+
+/** Every field optional: the endpoint is a partial update. Quiet hours are
+ *  "HH:MM" strings, and null clears them. */
+export type PreferencesPayload = Partial<StudentPreferences>;
+
+// ── News ──────────────────────────────────────────────────────────────────────
+
+export interface NewsArticleSummary {
+  id: string;
+  titleFr: string;
+  titleAr: string;
+  category: string;
+  heroImageUrl: string | null;
+  readTimeMinutes: number;
+  isUrgent: boolean;
+  publishedAt: string;
+}
+
+export interface NewsListResponse {
+  articles: NewsArticleSummary[];
+}
+
+/** The detail endpoint returns the whole row, so it carries the bodies and the
+ *  audit timestamps the list summaries omit. */
+export interface NewsArticleDetail extends NewsArticleSummary {
+  bodyFr: string;
+  bodyAr: string;
+  categoryId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NewsQuery {
+  category?: string;
+  limit?: number;
+  offset?: number;
+}
