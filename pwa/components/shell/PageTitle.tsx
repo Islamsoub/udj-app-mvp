@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useExitBackstop } from '@/lib/useExitBackstop';
 import styles from './shell.module.css';
 
 /**
@@ -17,9 +18,10 @@ import styles from './shell.module.css';
  * both as headings would give every route two <h1>s and put the first one in the
  * wrong position in the document outline.
  *
- * The outgoing copy is dropped when its animation ends rather than on a timer,
- * so under reduced motion — where the animation collapses to 100ms — a stale
- * title does not linger for the full 180.
+ * The outgoing copy is dropped when its animation ends, so under reduced motion
+ * — where the animation collapses to 100ms — a stale title does not linger for
+ * the full 180. A backstop covers the case where that event never arrives; see
+ * useExitBackstop below.
  */
 export function PageTitle({ title }: { title: string }) {
   const [current, setCurrent] = useState(title);
@@ -41,6 +43,14 @@ export function PageTitle({ title }: { title: string }) {
       return title;
     });
   }, [title]);
+
+  /*
+   * Removal cannot depend on onAnimationEnd alone: a tab that is hidden when the
+   * navigation happens never advances the animation, so the event never fires
+   * and the OLD title stays mounted at full opacity, covering the real one.
+   * Keyed on `leaving` so a second navigation inside the window restarts it.
+   */
+  useExitBackstop(leaving, () => setLeaving(null));
 
   return (
     <div className={styles.titleStack}>
