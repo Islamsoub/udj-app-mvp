@@ -107,7 +107,7 @@
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  transition: background var(--dur-instant) var(--ease-out),
+  transition: background var(--dur-fast) var(--ease-out),
     transform var(--dur-instant) var(--ease-out);
 }
 
@@ -168,9 +168,9 @@
   /* inherit, so Arabic picks up --font-ar from the body rule automatically. */
   font-family: inherit;
   font-size: 14.5px;
-  transition: border-color var(--dur-instant) var(--ease-out),
-    background var(--dur-instant) var(--ease-out),
-    box-shadow var(--dur-instant) var(--ease-out);
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
 }
 
 .input::placeholder {
@@ -234,8 +234,8 @@
   background: transparent;
   color: var(--ink2);
   cursor: pointer;
-  transition: color var(--dur-instant) var(--ease-out),
-    background var(--dur-instant) var(--ease-out);
+  transition: color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
 }
 
 .eyeButton:hover {
@@ -265,6 +265,34 @@
   color: var(--ink2);
   font-size: 12.5px;
   line-height: 1.45;
+  /* Clips the card while it opens. Harmless once the animation is over: the
+     end state carries no max-height, so nothing can be cut off. */
+  overflow: hidden;
+  animation: errorCardIn var(--dur-fast) var(--ease-out);
+}
+
+/*
+ * §9: the card slides down above the fields, max-height technique, --dur-fast.
+ * --ease-out because it is entering the screen (§2), not resizing in place.
+ *
+ * The max-height target is deliberately larger than the card can ever be — it
+ * is the animatable stand-in for `auto`, which is what "max-height technique"
+ * means. Because the animation does not fill forwards, the card's real height
+ * governs again the moment it finishes, so a long Arabic string cannot clip.
+ * The margin animates with it, otherwise the fields below jump by 16px on the
+ * first frame instead of being pushed down smoothly.
+ */
+@keyframes errorCardIn {
+  from {
+    max-height: 0;
+    margin-bottom: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 240px;
+    margin-bottom: 16px;
+    opacity: 1;
+  }
 }
 
 .errorTitle {
@@ -446,7 +474,7 @@
   font-weight: 600;
   text-align: start;
   cursor: pointer;
-  transition: color var(--dur-instant) var(--ease-out);
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
 .linkButton:hover {
@@ -508,8 +536,23 @@
 }
 
 /*
- * The waiting style, shared by the lockout and the rate limit: neutral sunken,
- * no jade, no shadow. A disabled jade button still reads as "press me".
+ * §5 "Disabled": opacity 0.5 alongside not-allowed. It applies only to the
+ * plain unavailable case — on this screen, the offline block. Loading and the
+ * two countdown states are separate §5 rows with their own specified
+ * appearances, and dimming those would double up on styling the spec already
+ * fixed exactly.
+ */
+.submitBlocked {
+  opacity: 0.5;
+}
+
+/*
+ * 429 — network rate limit. Neutral sunken, no jade, no shadow, per the
+ * additions spec. A disabled jade button still reads as "press me".
+ *
+ * This style is for the rate limit ONLY. The additions spec is explicit that
+ * the account lockout must not be dressed the same way, so the two have
+ * separate classes even though both are "the button is counting down".
  */
 .submitWaiting {
   background: var(--sunken);
@@ -521,19 +564,59 @@
   background: var(--sunken);
 }
 
+/*
+ * 423 — account lockout. The additions spec calls this the red countdown
+ * button, twice, and forbids the 429 borrowing it: the student must be able to
+ * tell "your account is locked" from "this network is busy" at a glance.
+ *
+ * Red as tint-plus-text rather than a saturated --danger fill, mirroring how
+ * the neutral style above pairs --sunken with --ink3. A filled red button reads
+ * as a live destructive action, which is the wrong signal for a control that is
+ * disabled and waiting.
+ */
+.submitLocked {
+  background: var(--danger-bg);
+  color: var(--danger);
+  box-shadow: none;
+}
+
+.submitLocked:hover:not(:disabled) {
+  background: var(--danger-bg);
+}
+
+/*
+ * §9: "re-enabling it automatically at 0:00 with a brief button pulse to signal
+ * it's active again." Fires once, on the frame the button becomes usable —
+ * long enough to catch the eye of someone who has stopped watching the timer.
+ * --dur-base is the shortest of §2's four that reads as a pulse rather than a
+ * flinch; --dur-fast halved into an up-and-back is barely perceptible.
+ */
+.submitPulse {
+  animation: submitPulse var(--dur-base) var(--ease-out);
+}
+
+@keyframes submitPulse {
+  50% {
+    transform: scale(1.03);
+  }
+}
+
 /* Countdown digits stay on DM Mono so the number does not jitter as it ticks. */
 .countdown {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
+/* 16px and 800ms/rev linear, both per §5. The 800ms is the spec's own value for
+   this animation — it is not one of §2's four transition durations and is not
+   meant to be. */
 .spinner {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border: 2.5px solid rgba(255, 255, 255, 0.35);
   border-top-color: #fff;
   border-radius: 50%;
-  animation: spin 720ms linear infinite;
+  animation: spin 800ms linear infinite;
 }
 
 @keyframes spin {
@@ -592,10 +675,23 @@
     transform: translateY(-50%);
   }
 
-  /* The spinner still has to convey "working", so it slows rather than stops. */
-  .spinner {
-    animation-duration: 2s;
+  /*
+   * §2: collapse to --dur-instant with no easing curve. The error card still
+   * opens and the button still pulses — they just stop travelling.
+   */
+  .errorCard,
+  .submitPulse {
+    animation-duration: var(--dur-instant);
+    animation-timing-function: linear;
   }
+
+  /*
+   * The spinner keeps its 800ms/rev. §2's reduced-motion rule covers
+   * transform/opacity transitions and the skeleton shimmer; a loading indicator
+   * is neither, and it is the only thing telling the student the request is
+   * still in flight. Slowing it to an invented duration was both outside the
+   * token set and counter to what the rule is for.
+   */
 }
 
 /* Screen-reader-only text. */

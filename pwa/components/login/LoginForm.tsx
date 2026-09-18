@@ -35,6 +35,19 @@ export function LoginForm() {
   const waiting = waitSeconds > 0;
   const disabled = submitting || waiting || !online;
 
+  // The two countdowns look and read differently, so the kind has to reach both
+  // the button's style and its label. A lockout is about this account and shows
+  // a red m:ss timer; a rate limit is about the network and shows a neutral
+  // "Réessayer dans {n} s".
+  const locked = waiting && error?.kind === 'locked';
+
+  // §5 "Disabled" — opacity 0.5 — is only the plain unavailable case. Loading
+  // and the countdowns are their own states with their own specified styling.
+  const blocked = !online && !submitting && !waiting;
+
+  // One-shot pulse when a countdown hands the button back (§9).
+  const [pulsing, setPulsing] = useState(false);
+
   /**
    * Clears the error as soon as either field is edited — but not while a
    * countdown is running.
@@ -50,11 +63,25 @@ export function LoginForm() {
   };
 
   // Self-clearing: when the countdown expires the card goes with the disable.
+  //
+  // This is also the moment the button becomes usable again, which §9 asks to
+  // be signalled with a brief pulse. Setting it here rather than watching
+  // `disabled` means it can only fire after a countdown actually ran — it
+  // cannot go off on mount, or when the network comes back.
   useEffect(() => {
     if (error !== null && deadlineOf(error) !== null && waitSeconds === 0) {
       setError(null);
+      setPulsing(true);
     }
   }, [error, waitSeconds]);
+
+  // Removing the class is what makes the animation re-runnable; left on, the
+  // button would pulse once and never again.
+  useEffect(() => {
+    if (!pulsing) return;
+    const id = window.setTimeout(() => setPulsing(false), PULSE_MS);
+    return () => window.clearTimeout(id);
+  }, [pulsing]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -169,12 +196,20 @@ export function LoginForm() {
 
       <button
         type="submit"
-        className={`${styles.submit} ${waiting ? styles.submitWaiting : ''}`}
+        className={[
+          styles.submit,
+          waiting ? (locked ? styles.submitLocked : styles.submitWaiting) : '',
+          blocked ? styles.submitBlocked : '',
+          pulsing ? styles.submitPulse : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
         disabled={disabled}
       >
         <SubmitLabel
           submitting={submitting}
           waitSeconds={waitSeconds}
+          locked={locked}
           online={online}
           t={t}
         />
@@ -194,11 +229,13 @@ export function LoginForm() {
 function SubmitLabel({
   submitting,
   waitSeconds,
+  locked,
   online,
   t,
 }: {
   submitting: boolean;
   waitSeconds: number;
+  locked: boolean;
   online: boolean;
   t: ReturnType<typeof useI18n>['t'];
 }) {
@@ -213,14 +250,43 @@ function SubmitLabel({
   }
 
   if (waitSeconds > 0) {
-    // DM Mono with tabular figures, so the digits do not jitter as they tick.
-    return <span className={styles.countdown}>{t('login.retry_in', { seconds: waitSeconds })}</span>;
+    // Both run on DM Mono with tabular figures, so digits do not jitter as they
+    // tick. What differs is the form, and it is not cosmetic:
+    //
+    //   Lockout (§9) — a live mono timer, m:ss. The wait is five minutes, and
+    //   "Réessayer dans 300 s" is not a number anyone reads as time.
+    //   Rate limit (additions spec) — "Réessayer dans {n} s". The wait is tens
+    //   of seconds and the sentence is quoted verbatim there.
+    return (
+      <span className={styles.countdown}>
+        {locked ? formatTimer(waitSeconds) : t('login.retry_in', { seconds: waitSeconds })}
+      </span>
+    );
   }
 
   if (!online) return <>{t('login.submit_offline')}</>;
 
   return <>{t('login.submit')}</>;
 }
+
+/**
+ * Seconds as m:ss — the lockout timer's form per §9.
+ *
+ * No translated string: the output is digits and a colon, identical in French
+ * and Arabic. Latin digits in both, which is what `.countdown`'s mono face
+ * already enforces and what the design system requires of every number.
+ *
+ * The lockout's own explanation lives in the error card above the button, which
+ * is announced, so the bare timer is not the only thing a screen reader gets.
+ */
+function formatTimer(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
+
+/** Matches --dur-base, the pulse animation's length in login.module.css. */
+const PULSE_MS = 250;
 
 /**
  * Live connectivity.
