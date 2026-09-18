@@ -64,11 +64,32 @@
   inset-inline-end: -50px;
 }
 
+/*
+ * The Unipocket mark.
+ *
+ * CENTRING. Tailwind's preflight sets `img, svg, video, … { display: block }`,
+ * so this is a block-level box. `text-align: center` on the hero only centres
+ * INLINE content within a line box — a block with a definite width ignores it
+ * and sits at the inline-start edge of its containing block, which is why the
+ * placeholder rendered hard against the hero's 32px padding. `margin-inline:
+ * auto` is the block-centring mechanism: the browser splits the leftover inline
+ * space equally between the two sides. Symmetric, so it is centring rather than
+ * a nudge in one direction, and logical, so Arabic needs no separate rule.
+ *
+ * SIZE. 92px tall, which is what the native app's own login screen uses
+ * (app/(auth)/login.tsx renders it 63x92). `width: auto` lets the intrinsic
+ * 99x143 viewBox set the width — 63.7px — so the portrait proportions are kept
+ * and nothing is squashed into a square or cropped.
+ *
+ * COLOUR. None here: the file already carries fill="white" and stroke="white"
+ * on every path, which is exactly what the jade gradient needs, so it needs no
+ * filter and no currentColor — and its paths stay untouched.
+ */
 .mark {
   position: relative;
-  width: 64px;
-  height: 64px;
-  color: #fff;
+  height: 92px;
+  width: auto;
+  margin-inline: auto;
 }
 
 .brand {
