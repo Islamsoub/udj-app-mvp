@@ -44,6 +44,24 @@
       "unknown": "Une erreur est survenue. Réessayez."
     }
   },
+  "nav": {
+    "dashboard": "Accueil",
+    "schedule": "Emploi du temps",
+    "grades": "Notes",
+    "attendance": "Assiduité",
+    "news": "Actualités",
+    "profile": "Profil"
+  },
+  "shell": {
+    "skip_to_content": "Aller au contenu principal",
+    "main_nav": "Navigation principale",
+    "collapse": "Réduire",
+    "expand": "Développer",
+    "account": "Mon compte",
+    "logout": "Se déconnecter",
+    "restoring_session": "Connexion à votre espace…",
+    "placeholder": "Cet écran arrive bientôt."
+  },
   "offline": {
     "banner": "Vous êtes hors ligne. Données mises en cache affichées.",
     "restored": "Connexion rétablie",
@@ -53,7 +71,8 @@
   "session": {
     "expired_title": "Votre session a expiré",
     "expired_body": "Pour votre sécurité, reconnectez-vous pour continuer.",
-    "reconnect": "Se reconnecter"
+    "reconnect": "Se reconnecter",
+    "continue_offline": "Continuer hors ligne"
   },
   "actions": {
     "retry": "Réessayer",
