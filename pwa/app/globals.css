@@ -1,6 +1,98 @@
 @import 'tailwindcss';
 
 /* ────────────────────────────────────────────────────────────────────────────
+   Self-hosted faces.
+
+   The .woff2 files in public/fonts/ are lossless conversions of the .ttf files
+   the native app loads from assets/fonts/ — same glyph count, same cmap, same
+   tables, just brotli-compressed (949 KB -> 328 KB). They are NOT subset. The
+   Naskh face in particular needs its whole glyph set: Arabic shapes letters
+   contextually, so dropping "unused" glyphs breaks words rather than single
+   characters.
+
+   No unicode-range anywhere. It would only pay off as a way to skip a download,
+   and the one face where that is tempting — Naskh — also carries 335 codepoints
+   outside the Arabic blocks (Latin, punctuation, digits). A range covering just
+   Arabic would drop those with no error, so it is left off.
+
+   CLAUDE.md forbids fetching fonts at runtime from Google Fonts or any other
+   host; everything here is same-origin.
+   ──────────────────────────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/fonts/PlusJakartaSans-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/fonts/PlusJakartaSans-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/fonts/PlusJakartaSans-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/fonts/PlusJakartaSans-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/fonts/PlusJakartaSans-ExtraBold.woff2') format('woff2');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  src: url('/fonts/DMMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'DM Mono';
+  src: url('/fonts/DMMono-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Naskh Arabic';
+  src: url('/fonts/NotoNaskhArabic-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Naskh Arabic';
+  src: url('/fonts/NotoNaskhArabic-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+/* ────────────────────────────────────────────────────────────────────────────
    Unipocket PWA — design tokens.
    Reproduced verbatim from design/pwa-tokens.css, which is the source of truth
    for the PWA's colours, radii, fonts and shadows. Do NOT take token values
@@ -9,9 +101,19 @@
    ──────────────────────────────────────────────────────────────────────────── */
 
 :root {
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
-  --font-ar: 'Noto Naskh Arabic', serif;
-  --font-mono: 'DM Mono', monospace;
+  /* Each stack names real faces behind the self-hosted one, so a failed or slow
+     woff2 degrades to something with the right shape rather than to whatever the
+     generic happens to resolve to. The generic at the end is the terminal
+     fallback CSS requires, not the fallback we expect to hit.
+
+     --font-ar is the case that matters: `serif` alone sends Arabic to a system
+     serif, which on most platforms is a Latin face with no Arabic coverage, so
+     the text lands on an arbitrary last-resort font. The named faces below are
+     the Naskh-style Arabic each platform actually ships — Android/ChromeOS,
+     macOS/iOS, then Windows. */
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-ar: 'Noto Naskh Arabic', 'Noto Naskh Arabic UI', 'Droid Arabic Naskh', 'Geeza Pro', 'Al Bayan', 'Traditional Arabic', 'Simplified Arabic', 'Segoe UI', serif;
+  --font-mono: 'DM Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
 
   --sidebar-w: 240px;
 

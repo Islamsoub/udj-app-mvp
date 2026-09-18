@@ -46,6 +46,26 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     // hydrates, in the migration case described above.
     <html lang={lang} dir={dirFor(lang)} data-theme="light" suppressHydrationWarning>
       <head>
+        {/* Only the faces the first paint actually needs. Preloading all nine
+            would put 328 KB of fonts ahead of the CSS and JS in the queue and
+            make that paint later, not sooner — the other seven are fetched
+            normally, when a rule first uses them.
+
+            The two Latin weights are needed in both languages, not just French:
+            Arabic swaps the body face to Naskh, but the `.num` rule in
+            globals.css keeps every number, time, GPA and student ID on Plus
+            Jakarta Sans, and 700 carries headings and chips either way.
+
+            `crossOrigin` is required even though these are same-origin: fonts
+            are fetched in CORS mode, and a preload whose mode does not match is
+            simply downloaded twice. */}
+        <link rel="preload" href="/fonts/PlusJakartaSans-Regular.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/PlusJakartaSans-Bold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        {/* The Arabic face is only in the critical path when the server already
+            resolved Arabic from the cookie. French sessions never fetch it. */}
+        {lang === 'ar' && (
+          <link rel="preload" href="/fonts/NotoNaskhArabic-Regular.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        )}
         <script dangerouslySetInnerHTML={{ __html: LANG_BOOTSTRAP }} />
       </head>
       <body>
