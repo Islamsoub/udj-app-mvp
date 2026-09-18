@@ -1,0 +1,641 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Dashboard — six cards, the §4 staggered entrance, and the six screen states.
+
+   Every colour, radius, shadow, duration and easing is a token from
+   app/globals.css. No new ones.
+
+   Logical properties only: no `left`/`right`, no `[dir="rtl"]` selector. The
+   grid, the card internals and the ring all mirror from `dir` on <html> alone.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.heading {
+  margin: 0 0 20px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+}
+
+/*
+ * Two columns from 900px, one below. `auto-fit` with a minimum rather than a
+ * fixed count so the cards reflow while the sidebar is collapsing, instead of
+ * snapping at a breakpoint the sidebar animation passes through.
+ */
+.grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-items: start;
+}
+
+/* ── Card ──────────────────────────────────────────────────────────────────── */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 148px;
+  padding: 16px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+/*
+ * §3: clickable cards lift 1px and deepen to --shadow-lg over --dur-fast.
+ * Applied only to cards that actually navigate — a hover response on a card
+ * that does nothing is a promise the card cannot keep.
+ */
+.cardLink {
+  transition: transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.cardLink:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+/*
+ * The stretched link. The <a> is the title, and this overlay extends its hit
+ * area to the whole card — §3's clickable-card affordance without wrapping
+ * anything interactive inside an anchor.
+ *
+ * z-index 1 puts it above the card's static content but below anything that
+ * opts out by raising itself, which is how the retry button stays clickable.
+ */
+.cardTitleLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.cardTitleLink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: var(--r-lg);
+  /* §3: pointer on anything clickable. The overlay is what the student's
+     cursor is actually over, so it carries the cursor, not the title. */
+  cursor: pointer;
+}
+
+/* No :active scale on the card: §3 gives cards a hover lift and reserves the
+   0.97 press for buttons. The retry button inside keeps its own. */
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+.cardIcon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--ink3);
+}
+
+/*
+ * The body is a single grid cell that every state shares. Stacking them is what
+ * makes §5's "crossfade into real content" possible — the outgoing skeleton and
+ * the incoming content occupy the same box at the same time, so neither the
+ * card nor the page below it moves during the swap.
+ */
+.cardBody {
+  display: grid;
+  flex: 1;
+}
+
+.cardLayer {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+/* §5: content crossfades in over --dur-fast. */
+.layerEntering {
+  animation: layerIn var(--dur-fast) var(--ease-out);
+}
+
+.layerLeaving {
+  animation: layerOut var(--dur-fast) var(--ease-out) forwards;
+  pointer-events: none;
+}
+
+@keyframes layerIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes layerOut {
+  to {
+    opacity: 0;
+  }
+}
+
+/* ── §4 staggered entrance ─────────────────────────────────────────────────── */
+
+/*
+ * opacity 0->1 and translateY(8px->0) over --dur-base with --ease-out, 40ms
+ * apart in reading order. The delay arrives as an inline custom property from
+ * the card's index, so the order lives in one array rather than in six rules.
+ *
+ * `backwards` fill is load-bearing: without it a card is fully visible during
+ * its own delay and then jumps to opacity 0 when the animation starts, which
+ * makes the stagger flicker rather than cascade.
+ */
+.cardEnter {
+  animation: cardEnter var(--dur-base) var(--ease-out) backwards;
+  animation-delay: var(--enter-delay, 0ms);
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ── Skeletons (§5) ────────────────────────────────────────────────────────── */
+
+/*
+ * Blocks match the footprint of the element they stand in for, so the card does
+ * not resize when real content arrives.
+ *
+ * The shimmer is a lighter band swept across a gradient by moving
+ * background-position, looping every 900ms — §5's "--dur-slow x2". All blocks
+ * share one animation name and therefore one timeline, so they sweep in
+ * parallel rather than each starting from its own mount.
+ */
+.skeleton {
+  border-radius: var(--r-sm);
+  background-image: linear-gradient(
+    90deg,
+    var(--sunken) 0%,
+    var(--surface2) 20%,
+    var(--sunken) 40%,
+    var(--sunken) 100%
+  );
+  background-size: 300% 100%;
+  animation: shimmer 900ms linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+.skeletonStack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skeletonLine {
+  height: 12px;
+}
+
+.skeletonLineWide {
+  width: 100%;
+}
+
+.skeletonLineMedium {
+  width: 70%;
+}
+
+.skeletonLineShort {
+  width: 40%;
+}
+
+.skeletonHero {
+  width: 96px;
+  height: 34px;
+}
+
+.skeletonRing {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+}
+
+.skeletonRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── Empty / error / offline (§5, §8) ──────────────────────────────────────── */
+
+.stateBox {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.stateTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.stateText {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
+/*
+ * Offline and error are toned differently on purpose. Error is the app's fault
+ * and offers a retry; offline is the network's, and saying so in warning tones
+ * — the same colour as the shell's banner — connects the card to the banner
+ * already on screen instead of reading as a second, unrelated failure.
+ */
+.stateOffline {
+  color: var(--ink2);
+}
+
+.retryButton {
+  position: relative;
+  z-index: 2;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 12px;
+  border: 1px solid var(--hair2);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--jade-text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+.retryButton:hover {
+  background: var(--jade-faint);
+}
+
+.retryButton:active {
+  transform: scale(0.97);
+}
+
+/* ── Next class ────────────────────────────────────────────────────────────── */
+
+.nextClassTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.subjectName {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+/*
+ * §9: the pill swaps its text every 60s with NO transition. There is
+ * deliberately no `transition` or `animation` on this rule — a ticking timer
+ * that animates draws the eye away from whatever the student is actually doing.
+ */
+.countdownPill {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: var(--jade-faint);
+  color: var(--jade-text);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--ink2);
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.metaIcon {
+  width: 14px;
+  height: 14px;
+  color: var(--ink3);
+}
+
+/* ── Hero stats ────────────────────────────────────────────────────────────── */
+
+.heroRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.heroValue {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.heroNumber {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.heroScale {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink3);
+}
+
+.heroCaption {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink2);
+}
+
+.mention {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 8px;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: var(--jade-faint);
+  color: var(--jade-text);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+/* ── Attendance ring (§5) ──────────────────────────────────────────────────── */
+
+.ring {
+  flex-shrink: 0;
+  width: 84px;
+  height: 84px;
+  /*
+   * The SVG is drawn with 0% at 12 o'clock going clockwise. Rotating -90deg puts
+   * the start there; the sweep direction is not mirrored in RTL because a gauge
+   * is a dial, not a line of text — clockwise means "more" in both directions.
+   */
+  transform: rotate(-90deg);
+}
+
+.ringTrack {
+  fill: none;
+  stroke: var(--sunken);
+}
+
+/*
+ * §5: fills from 0% to its value once, on first paint of the view, over
+ * --dur-slow with --ease-in-out.
+ *
+ * Done with stroke-dashoffset in CSS rather than in JS so that
+ * prefers-reduced-motion can switch it off with one rule and leave the final
+ * value rendered — the number stays correct, only the travel goes.
+ */
+.ringValue {
+  fill: none;
+  stroke: var(--jade);
+  stroke-linecap: round;
+  stroke-dasharray: var(--ring-circumference);
+  stroke-dashoffset: var(--ring-offset);
+}
+
+.ringFilling {
+  animation: ringFill var(--dur-slow) var(--ease-in-out);
+}
+
+@keyframes ringFill {
+  from {
+    stroke-dashoffset: var(--ring-circumference);
+  }
+}
+
+/* Counter-rotated so the label reads horizontally inside the rotated SVG. */
+.ringLabel {
+  font-size: 17px;
+  font-weight: 800;
+  fill: var(--ink);
+  transform: rotate(90deg);
+  transform-origin: center;
+}
+
+/* ── Notifications ─────────────────────────────────────────────────────────── */
+
+.unreadCount {
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.notificationList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notificationItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--ink2);
+}
+
+.unreadDot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--jade);
+}
+
+.notificationTitle {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ── Quick links ───────────────────────────────────────────────────────────── */
+
+.quickGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.quickLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding-inline: 10px;
+  border-radius: var(--r-sm);
+  background: var(--surface2);
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.quickLink:hover {
+  background: var(--jade-faint);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.quickLink:active {
+  transform: scale(0.97);
+}
+
+.quickIcon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--jade-text);
+}
+
+/* ── News ──────────────────────────────────────────────────────────────────── */
+
+.newsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.newsItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.newsTitle {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.newsMeta {
+  font-size: 11.5px;
+  color: var(--ink3);
+}
+
+.urgentTag {
+  display: inline-flex;
+  align-items: center;
+  margin-inline-end: 6px;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Focus ring (§3, §10) ──────────────────────────────────────────────────── */
+
+.cardTitleLink:focus-visible,
+.retryButton:focus-visible,
+.quickLink:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
+/* ── Reduced motion (§2) ───────────────────────────────────────────────────── */
+
+/*
+ * §2: collapse transform/opacity transitions to --dur-instant with no easing,
+ * and replace the skeleton shimmer with a static tone.
+ *
+ * The entrance and the ring fill are removed outright rather than shortened.
+ * Both exist purely to draw the eye — a 100ms cascade of six cards is a flash,
+ * not a cascade — and their end state is the correct rendering, so dropping the
+ * animation loses nothing but the motion.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .cardEnter,
+  .ringFilling {
+    animation: none;
+  }
+
+  .skeleton {
+    background-image: none;
+    background-color: var(--sunken);
+    animation: none;
+  }
+
+  .cardLink,
+  .quickLink,
+  .retryButton {
+    transition-duration: var(--dur-instant);
+    transition-timing-function: linear;
+  }
+
+  .layerEntering,
+  .layerLeaving {
+    animation-duration: var(--dur-instant);
+    animation-timing-function: linear;
+  }
+
+  .cardLink:hover,
+  .quickLink:hover {
+    transform: none;
+  }
+
+  .quickLink:active,
+  .retryButton:active {
+    transform: none;
+  }
+}

@@ -62,6 +62,47 @@
     "restoring_session": "Connexion à votre espace…",
     "placeholder": "Cet écran arrive bientôt."
   },
+  "dashboard": {
+    "heading": "Accueil",
+    "state": {
+      "error": "Impossible de charger cette section.",
+      "offline": "Indisponible hors ligne."
+    },
+    "next_class": {
+      "title": "Prochain cours",
+      "empty": "Aucun cours à venir cette semaine.",
+      "starting_now": "Maintenant",
+      "in_minutes": "Dans {{count}} min",
+      "in_hours": "Dans {{hours}} h",
+      "in_hours_minutes": "Dans {{hours}} h {{minutes}}",
+      "in_days": "Dans {{count}} j"
+    },
+    "gpa": {
+      "title": "Moyenne générale",
+      "scale": "/ 20",
+      "empty_title": "Résultats non publiés",
+      "empty_body": "Votre moyenne apparaîtra ici dès la publication de vos notes."
+    },
+    "attendance": {
+      "title": "Assiduité",
+      "empty": "Aucune séance enregistrée pour le moment.",
+      "sessions": "{{present}} séances suivies sur {{total}}"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "unread": "{{count}} non lues",
+      "unread_one": "1 non lue",
+      "none": "Aucune nouvelle notification."
+    },
+    "quick_links": {
+      "title": "Accès rapide"
+    },
+    "news": {
+      "title": "À la une",
+      "empty": "Aucune actualité pour le moment.",
+      "read_time": "{{count}} min de lecture"
+    }
+  },
   "offline": {
     "banner": "Vous êtes hors ligne. Données mises en cache affichées.",
     "restored": "Connexion rétablie",

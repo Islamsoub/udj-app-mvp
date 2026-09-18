@@ -62,6 +62,47 @@
     "restoring_session": "جارٍ الاتصال بفضائك…",
     "placeholder": "هذه الشاشة قادمة قريباً."
   },
+  "dashboard": {
+    "heading": "الرئيسية",
+    "state": {
+      "error": "تعذّر تحميل هذا القسم.",
+      "offline": "غير متاح دون اتصال."
+    },
+    "next_class": {
+      "title": "الحصة القادمة",
+      "empty": "لا توجد حصص قادمة هذا الأسبوع.",
+      "starting_now": "الآن",
+      "in_minutes": "بعد {{count}} دقيقة",
+      "in_hours": "بعد {{hours}} ساعة",
+      "in_hours_minutes": "بعد {{hours}} س {{minutes}} د",
+      "in_days": "بعد {{count}} يوم"
+    },
+    "gpa": {
+      "title": "المعدل العام",
+      "scale": "/ 20",
+      "empty_title": "النتائج غير منشورة بعد",
+      "empty_body": "سيظهر معدلك هنا بمجرد نشر درجاتك."
+    },
+    "attendance": {
+      "title": "الحضور",
+      "empty": "لا توجد حصص مسجّلة حالياً.",
+      "sessions": "حضرت {{present}} حصة من أصل {{total}}"
+    },
+    "notifications": {
+      "title": "الإشعارات",
+      "unread": "{{count}} غير مقروءة",
+      "unread_one": "إشعار واحد غير مقروء",
+      "none": "لا توجد إشعارات جديدة."
+    },
+    "quick_links": {
+      "title": "وصول سريع"
+    },
+    "news": {
+      "title": "أبرز الأخبار",
+      "empty": "لا توجد أخبار حالياً.",
+      "read_time": "{{count}} دقيقة قراءة"
+    }
+  },
   "offline": {
     "banner": "أنت غير متصل بالإنترنت. يتم عرض البيانات المخزّنة مؤقتاً.",
     "restored": "تم استعادة الاتصال",
