@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import { NAV_ITEMS, isActivePath } from './nav-items';
-import { ChevronIcon, NavIcon, UnipocketMark } from './icons';
+import { ChevronIcon, NavIcon } from './icons';
 import styles from './shell.module.css';
 
 /**
@@ -34,8 +34,30 @@ export function Sidebar({
   return (
     <div className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ''}`}>
       <div className={styles.brand}>
-        <UnipocketMark className={styles.brandMark} />
-        <span className={`${styles.brandName} ${collapsed ? styles.navLabelHidden : styles.navLabel}`}>
+        {/*
+          LABELLED, NOT DECORATIVE — the opposite of the login hero's choice, and
+          for the opposite reason. There the <h1> beside the mark names the
+          university, so a label would have said the same thing twice. Here the
+          only other place the app is named is the span below, and collapsing
+          the rail takes that span out of the accessibility tree along with
+          every other nav label. A decorative mark would mean the collapsed
+          sidebar names the application nowhere at all.
+
+          The visible span is therefore aria-hidden and the name lives on the
+          mark, which is exactly what the nav links below do: the accessible
+          name on the element that survives the collapse, the visible text
+          hidden from assistive tech so it is never announced twice. One
+          "Unipocket", in both states and throughout the animation between them.
+        */}
+        <span
+          className={`${styles.logoMark} ${styles.brandMark}`}
+          role="img"
+          aria-label={t('app.name')}
+        />
+        <span
+          className={`${styles.brandName} ${collapsed ? styles.navLabelHidden : styles.navLabel}`}
+          aria-hidden="true"
+        >
           {t('app.name')}
         </span>
       </div>

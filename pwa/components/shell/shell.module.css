@@ -124,10 +124,67 @@
   overflow: hidden;
 }
 
+/*
+ * The real Unipocket mark, from public/logo.svg — the same file the login hero
+ * renders, byte-identical to assets/icons/Logo.svg.
+ *
+ * DRAWN AS A MASK, NOT AN <img>. Every path in that file carries fill="white"
+ * or stroke="white", which is exactly right on the login screen's jade hero and
+ * invisible on both of the surfaces it lands on here: the sidebar's --surface
+ * and the booting screen's --bg are light in the light theme. The file itself
+ * must not be edited — it is shared with the login screen and with the native
+ * app — and recolouring an <img> would mean a brightness/invert filter chain,
+ * which is a colour computed by arithmetic rather than a colour from the design
+ * system, and a different arithmetic per theme.
+ *
+ * So the artwork is used for its SHAPE and the colour comes from the token: the
+ * SVG becomes an alpha mask over a currentColor fill. Both call sites already
+ * set `color: var(--jade)`, so light and dark are handled by the same token
+ * indirection every other colour on this screen uses, and the .svg on disk is
+ * untouched. The mark is monochrome by construction — one flat silhouette in
+ * white — so a single-colour mask reproduces it exactly, with jade where the
+ * login screen has white.
+ *
+ * -webkit- prefixes for iOS Safari before 15.4, which shipped the unprefixed
+ * properties late. Android/Chrome uses the standard ones.
+ *
+ * ASPECT RATIO. A masked box has no intrinsic size, so the 99:143 viewBox is
+ * declared here and every instance below sets a height alone. Nothing can
+ * squash the mark into a square by setting the wrong pair.
+ */
+.logoMark {
+  display: block;
+  aspect-ratio: 99 / 143;
+  background-color: currentColor;
+  -webkit-mask-image: url('/logo.svg');
+  mask-image: url('/logo.svg');
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/*
+ * 32px tall, so 22px wide — and THE SAME IN BOTH RAIL STATES.
+ *
+ * The collapsed rail is 72px, less the sidebar's 12px padding each side and the
+ * brand row's own 10px each side, which leaves 28px. At 22px the mark clears
+ * that with room to spare, so the portrait proportions cost the narrow rail
+ * nothing and it never forces the rail wider. It also lands at almost exactly
+ * the 20px width of the nav icons below it, on the same inline-start edge,
+ * because .brand and .navItem share the 10px inline padding.
+ *
+ * Holding one height through the collapse is deliberate. §7 animates the rail's
+ * width and fades the labels; a mark that also resized would add a third motion
+ * the spec does not ask for, in the one row the student is looking at while the
+ * rail moves. And 32px inside .brand's fixed 44px row cannot clip: 6px clear
+ * above and below, well inside the overflow: hidden.
+ */
 .brandMark {
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
+  height: 32px;
 }
 
 .brandName {
@@ -777,8 +834,16 @@
   font-size: 13px;
 }
 
+/*
+ * Height only — .logoMark carries the 99:143 ratio, so the width follows at
+ * 28px. The 40px is the height the placeholder already occupied, kept because
+ * this is a centred column with nothing beside it to crowd: the constraint that
+ * drove the sidebar's size does not exist here, so there is no reason to move
+ * it.
+ *
+ * `color` stays: it is what the mask fills with.
+ */
 .bootingMark {
-  width: 40px;
   height: 40px;
   color: var(--jade);
 }

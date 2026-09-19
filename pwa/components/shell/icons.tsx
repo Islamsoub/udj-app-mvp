@@ -134,24 +134,3 @@ export function LogoutIcon({ className }: IconProps) {
     </svg>
   );
 }
-
-/** The Unipocket mark, reused in the sidebar brand and the loading state. */
-export function UnipocketMark({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 64 64" aria-hidden="true" fill="none">
-      <rect x="8" y="14" width="48" height="36" rx="9" stroke="currentColor" strokeWidth="3.5" />
-      <path
-        d="M8 30h14a4 4 0 0 1 4 4 6 6 0 0 0 12 0 4 4 0 0 1 4-4h14"
-        stroke="currentColor"
-        strokeWidth="3.5"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M24 14V9a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v5"
-        stroke="currentColor"
-        strokeWidth="3.5"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}

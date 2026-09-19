@@ -13,7 +13,6 @@ import { Sidebar } from './Sidebar';
 import { TabBar } from './TabBar';
 import { Toast } from './Toast';
 import { Topbar } from './Topbar';
-import { UnipocketMark } from './icons';
 import { titleKeyFor } from './nav-items';
 import { useLayoutMode } from './useLayoutMode';
 import { useOnline } from './useOnline';
@@ -188,7 +187,15 @@ export function AppShell({ children }: { children: ReactNode }) {
 function Booting({ label }: { label: string }) {
   return (
     <div className={styles.booting} role="status" aria-live="polite">
-      <UnipocketMark className={styles.bootingMark} />
+      {/*
+        DECORATIVE here, unlike the sidebar's copy. This whole box is a
+        role="status" live region, and the line beneath already tells the
+        student what is happening. Labelling the mark would prepend "Unipocket"
+        to that announcement — the app's own name read out as part of a progress
+        message, in a state that lasts a moment and may end in a redirect to
+        /login. The name is not information the student is missing here.
+      */}
+      <span className={`${styles.logoMark} ${styles.bootingMark}`} aria-hidden="true" />
       <span className={styles.bootingSpinner} aria-hidden="true" />
       <span>{label}</span>
     </div>
