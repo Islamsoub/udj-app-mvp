@@ -103,6 +103,56 @@
       "read_time": "{{count}} min de lecture"
     }
   },
+  "grades": {
+    "heading": "Notes",
+    "semester_tabs": "Choisir un semestre",
+    "academic_year": "Année universitaire {{year}}",
+    "state": {
+      "error": "Impossible de charger vos notes.",
+      "offline": "Vos notes ne sont pas disponibles hors ligne."
+    },
+    "hero": {
+      "label": "Moyenne du semestre",
+      "scale": "/ 20",
+      "credits": "{{earned}} / {{total}} crédits validés",
+      "no_gpa": "Moyenne non publiée",
+      "ring_label": "Moyenne du semestre : {{gpa}} sur 20"
+    },
+    "mention": {
+      "tres_bien": "Très bien",
+      "bien": "Bien",
+      "assez_bien": "Assez bien",
+      "passable": "Passable",
+      "insuffisant": "Insuffisant"
+    },
+    "table": {
+      "label": "Notes du semestre",
+      "subject": "Matière",
+      "code": "Code",
+      "coefficient": "Coef.",
+      "credits": "Crédits",
+      "cc": "CC",
+      "cf": "CF",
+      "final": "Finale",
+      "status": "Statut",
+      "pending": "non publiée",
+      "legend": "CC : contrôle continu · CF : contrôle final · Finale : moyenne de la matière"
+    },
+    "status": {
+      "validated": "Validée",
+      "failed": "Non validée",
+      "pending": "En attente"
+    },
+    "notice": {
+      "cc_only": "Seules les notes de contrôle continu sont publiées pour ce semestre. Les notes finales suivront."
+    },
+    "empty": {
+      "title": "Résultats non publiés",
+      "body": "Les notes du semestre {{semester}} ne sont pas encore publiées par votre faculté. Elles apparaîtront ici dès leur publication.",
+      "other_available": "Vos résultats du semestre {{semester}} sont disponibles.",
+      "other_action": "Voir le semestre {{semester}}"
+    }
+  },
   "offline": {
     "banner": "Vous êtes hors ligne. Données mises en cache affichées.",
     "restored": "Connexion rétablie",

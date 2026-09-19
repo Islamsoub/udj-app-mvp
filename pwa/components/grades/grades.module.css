@@ -1,0 +1,868 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Grades — semester tabs, GPA hero, the grades table, and the screen's states.
+
+   Every colour, radius, shadow, duration and easing is a token from
+   app/globals.css. No new ones. The two literal durations in this file are the
+   100ms / 150ms that interaction-spec §9 states outright for the hero crossfade;
+   they are quoted values, not tokens, and appear nowhere else.
+
+   Logical properties only: no `left`/`right`, no `[dir="rtl"]` selector. The tab
+   strip, the table, the cards and the empty state all mirror from `dir` on
+   <html> alone. The one thing that genuinely cannot be expressed logically — the
+   direction the pill slides — reads `dir` at animation time through a custom
+   property set in JS, which is what §6 prescribes.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.heading {
+  margin: 0 0 20px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+}
+
+/*
+ * A single grid cell that every screen state shares, so the skeleton and what
+ * replaces it occupy the same box at the same time and nothing below moves
+ * during §5's crossfade. Same arrangement inside .panel, one level down.
+ */
+.screen,
+.panel {
+  display: grid;
+}
+
+.panel:focus {
+  outline: none;
+}
+
+.panel:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 4px;
+  border-radius: var(--r-md);
+}
+
+.layer {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* §5: content crossfades in over --dur-fast. */
+.layerEntering {
+  animation: layerIn var(--dur-fast) var(--ease-out);
+}
+
+.layerLeaving {
+  animation: layerOut var(--dur-fast) var(--ease-out) forwards;
+  pointer-events: none;
+}
+
+@keyframes layerIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes layerOut {
+  to {
+    opacity: 0;
+  }
+}
+
+/* ── Semester tabs (§5 sliding pill, §10 tablist) ──────────────────────────── */
+
+/*
+ * No border. The pill is absolutely positioned against this box's padding edge
+ * while SemesterTabs measures border-box rects; with no border the two are the
+ * same box, and adding one here would shift the pill by its width.
+ */
+.tabs {
+  position: relative;
+  align-self: flex-start;
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 9999px;
+  background: var(--sunken);
+}
+
+/*
+ * ONE pill for the whole control, per §5 — "the active pill background slides
+ * between options rather than the whole control repainting". Its geometry
+ * arrives from JS as two custom properties; the sign of --pill-x carries the
+ * direction, since a transform is never mirrored by `dir`.
+ */
+.tabPill {
+  position: absolute;
+  inset-block: 4px;
+  inset-inline-start: 0;
+  width: var(--pill-w);
+  transform: translateX(var(--pill-x));
+  border-radius: 9999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+/* Applied one frame after the first measurement, so the pill appears under the
+   selected tab instead of sliding in from the strip's start edge on mount. */
+.tabPillSettled {
+  transition: transform var(--dur-fast) var(--ease-in-out),
+    width var(--dur-fast) var(--ease-in-out);
+}
+
+.tab {
+  position: relative;
+  /* Above the pill, which is a background and must never cover the label. */
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 20px;
+  border: 0;
+  border-radius: 9999px;
+  background: none;
+  color: var(--ink2);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  /* §5: "Text color crossfades in place, not on a delay." */
+  transition: color var(--dur-fast) var(--ease-in-out);
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tabSelected {
+  color: var(--jade-text);
+}
+
+/* ── GPA hero (§5 hero stats, §9 crossfade) ────────────────────────────────── */
+
+.hero {
+  display: grid;
+  padding: 20px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.heroLayer {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+
+/*
+ * §9: "old value fades out 100ms, new fades in over the next 150ms -- slight
+ * overlap avoids a 'blank' flash".
+ *
+ * The overlap is the 80ms delay on the entrance against the 100ms exit: the new
+ * figure starts appearing while the old is still 20% visible, so there is never
+ * a frame with neither on screen. --dur-instant is exactly the 100ms the spec
+ * asks for; the 150ms and its 80ms delay have no token and are written out.
+ *
+ * THE CURVES ARE NOT INTERCHANGEABLE HERE, and 20ms of overlap is too little to
+ * survive the wrong pair. Both --ease-out and --ease-in-out are front-loaded, so
+ * putting either on the EXIT empties the outgoing figure within about 30ms and
+ * reopens the blank window the overlap exists to close — measured at 3% combined
+ * opacity for a frame. So the exit runs linear, which is also what §5 prescribes
+ * for an exit ("reverse ... no easing"), holding the old value until the new one
+ * has something on screen; the entrance keeps --ease-out, the curve §2 gives for
+ * a crossfade and the one the skeleton layers above already use, so it becomes
+ * legible early rather than creeping up from zero.
+ */
+.heroLeaving {
+  animation: heroOut var(--dur-instant) linear forwards;
+  pointer-events: none;
+}
+
+.heroEntering {
+  animation: heroIn 150ms var(--ease-out) 80ms backwards;
+}
+
+@keyframes heroOut {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes heroIn {
+  from {
+    opacity: 0;
+  }
+}
+
+.heroText {
+  min-width: 0;
+}
+
+.heroLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+.heroValue {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 6px 0 0;
+}
+
+.heroNumber {
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.heroScale {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink3);
+}
+
+/* No average yet. Plain text, no warning colour and no zero — this is the
+   ordinary state of the screen, not a fault. */
+.heroNoGpa {
+  margin: 8px 0 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink2);
+}
+
+.heroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin: 10px 0 0;
+}
+
+.mention {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: var(--jade-faint);
+  color: var(--jade-text);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.heroCredits {
+  font-size: 12.5px;
+  color: var(--ink2);
+}
+
+.heroYear {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  color: var(--ink3);
+}
+
+/* ── GPA ring (§5) ─────────────────────────────────────────────────────────── */
+
+.ring {
+  flex-shrink: 0;
+  width: 104px;
+  height: 104px;
+  /*
+   * The SVG is drawn with 0 at 12 o'clock going clockwise. Rotating -90deg puts
+   * the start there; the sweep is not mirrored in RTL because a gauge is a dial,
+   * not a line of text — clockwise means "more" in both directions.
+   */
+  transform: rotate(-90deg);
+}
+
+.ringTrack {
+  fill: none;
+  stroke: var(--sunken);
+}
+
+/*
+ * §5: fills from 0 to its value once, on first paint of the view, over
+ * --dur-slow with --ease-in-out.
+ *
+ * Done with stroke-dashoffset in CSS rather than in JS so prefers-reduced-motion
+ * can switch it off with one rule and leave the final value rendered — the gauge
+ * stays correct, only the travel goes.
+ */
+.ringValue {
+  fill: none;
+  stroke: var(--jade);
+  stroke-linecap: round;
+  stroke-dasharray: var(--ring-circumference);
+  stroke-dashoffset: var(--ring-offset);
+}
+
+.ringFilling {
+  animation: ringFill var(--dur-slow) var(--ease-in-out);
+}
+
+@keyframes ringFill {
+  from {
+    stroke-dashoffset: var(--ring-circumference);
+  }
+}
+
+/* ── Notice ────────────────────────────────────────────────────────────────── */
+
+/* CC out, finals not. Informational, not a warning: nothing has gone wrong. */
+.notice {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  background: var(--surface2);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
+/* ── Table (§5 data tables) ────────────────────────────────────────────────── */
+
+/*
+ * The table's surface lives on a wrapper, not on the table: `overflow` and
+ * `border-radius` are not reliable on a table box, so a rounded, clipped card
+ * has to be the element around it.
+ *
+ * `overflow-x: auto` is the tablet safety net. Cards take over below 640px per
+ * the responsive rule, but between there and roughly 900px the content column
+ * is narrower than eight columns of marks — the sidebar is collapsed but still
+ * 72px — and scrolling that band is better than either breaking the layout or
+ * overriding the breakpoint the spec gives.
+ */
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table thead {
+  background: var(--surface2);
+}
+
+.table th {
+  padding: 0;
+  border-bottom: 1px solid var(--hair);
+  font-weight: 700;
+  text-align: start;
+}
+
+.thEnd {
+  text-align: end;
+}
+
+/*
+ * The header cell's whole box is the sort control, so the click target is the
+ * column rather than the word inside it — §3 wants "table headers that sort" to
+ * carry a pointer, and a 40px-wide word in a 90px column would not.
+ */
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  min-height: 44px;
+  padding-inline: 12px;
+  border: 0;
+  background: none;
+  color: var(--ink3);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  text-align: inherit;
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.thEnd .sortButton {
+  justify-content: flex-end;
+}
+
+.sortButton:hover {
+  color: var(--ink);
+}
+
+.sortActive {
+  color: var(--jade-text);
+}
+
+/* §5: "the clicked column header's sort caret rotates 180° over --dur-fast". */
+.caret {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  /* Visible but recessive on the seven columns that are not sorting, so the
+     affordance is discoverable without seven carets competing with the data. */
+  opacity: 0.35;
+  transition: transform var(--dur-fast) var(--ease-in-out),
+    opacity var(--dur-fast) var(--ease-out);
+}
+
+.sortActive .caret {
+  opacity: 1;
+}
+
+.caretUp {
+  transform: rotate(180deg);
+}
+
+/*
+ * The FLIP transition (§5). useRowFlip inverts each row with an inline
+ * transform and then clears it; this is what carries it home. Keeping the
+ * duration and easing here rather than in JS is what lets the reduced-motion
+ * block below reach them.
+ *
+ * Background is on the same rule so hover tints over --dur-instant with no
+ * delay, per §5 — tables are scanned quickly and should feel responsive.
+ */
+.row {
+  transition: transform var(--dur-base) var(--ease-in-out),
+    background-color var(--dur-instant) linear;
+}
+
+.table .row:hover {
+  background-color: var(--surface2);
+}
+
+.table td {
+  padding: 12px;
+  border-top: 1px solid var(--hair);
+  color: var(--ink2);
+  white-space: nowrap;
+}
+
+.tdEnd {
+  text-align: end;
+}
+
+.tdSubject {
+  color: var(--ink);
+  font-weight: 600;
+  /* The only column allowed to wrap: a subject name is the row's identity and
+     must not be truncated to keep a numeric column on one line. */
+  white-space: normal;
+  min-width: 180px;
+}
+
+/*
+ * Not published. A word in the body face, never a figure and never a dash — a
+ * dash in a column of marks is read as a mark.
+ */
+.unpublished {
+  color: var(--ink3);
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* §5: status pill colour "never animates on its own". Nothing here transitions. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pillValidated {
+  background: var(--jade-faint);
+  color: var(--jade-text);
+}
+
+.pillFailed {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* Neutral on purpose. Pending is not a failure, and §10 forbids colour as the
+   only signal anyway — the label says which of the three this is. */
+.pillPending {
+  background: var(--sunken);
+  color: var(--ink2);
+}
+
+.legend {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ink3);
+}
+
+/* ── Stacked cards (below 640px) ───────────────────────────────────────────── */
+
+/*
+ * Both renderings are in the DOM and the breakpoint picks one. `display: none`
+ * also removes the hidden copy from the accessibility tree, so the rows are
+ * never announced twice.
+ */
+.cards {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  padding: 14px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.cardHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cardSubject {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 0;
+}
+
+.cardField {
+  min-width: 0;
+}
+
+.cardLabel {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+.cardValue {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+@media (max-width: 639px) {
+  .tableWrap {
+    display: none;
+  }
+
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .heroLayer {
+    /* The gauge and the figures stop fitting side by side well before the
+       column does; stacking keeps the number at its full size. */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+}
+
+/* ── Empty / error / offline (§5, §8) ──────────────────────────────────────── */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 24px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.emptyBody {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink2);
+}
+
+/* The way out of an empty semester. A real action, styled as one — the student
+   with results has them one tab away and no other reason to look. */
+.emptyAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 4px;
+  padding-inline: 16px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--jade);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+.emptyAction:hover {
+  background: var(--jade-hover);
+}
+
+/* §3: on :active, buttons scale to 0.97 over --dur-instant. */
+.emptyAction:active {
+  transform: scale(0.97);
+}
+
+/*
+ * The glyph points toward the inline-end, and a transform is never mirrored by
+ * `dir`. The flip therefore arrives as a custom property the component sets from
+ * the active direction — the same mechanism §6 prescribes for the pill's slide,
+ * and the reason there is still no [dir="rtl"] selector in this file.
+ */
+.emptyArrow {
+  width: 16px;
+  height: 16px;
+  transform: scaleX(var(--arrow-flip, 1));
+}
+
+.stateBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 24px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.stateText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
+.retryButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 14px;
+  border: 1px solid var(--hair2);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--jade-text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+.retryButton:hover {
+  background: var(--jade-faint);
+}
+
+.retryButton:active {
+  transform: scale(0.97);
+}
+
+/* ── Skeletons (§5) ────────────────────────────────────────────────────────── */
+
+.skeleton {
+  border-radius: var(--r-sm);
+  background-image: linear-gradient(
+    90deg,
+    var(--sunken) 0%,
+    var(--surface2) 20%,
+    var(--sunken) 40%,
+    var(--sunken) 100%
+  );
+  background-size: 300% 100%;
+  /* --dur-slow x2, per §5. One animation name for every block, so they share a
+     timeline and sweep in parallel rather than each from its own mount. */
+  animation: shimmer 900ms linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+.skeletonTabs {
+  display: flex;
+  align-self: flex-start;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 9999px;
+  background: var(--sunken);
+}
+
+.skeletonTab {
+  width: 76px;
+  height: 44px;
+  border-radius: 9999px;
+}
+
+.skeletonHero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.skeletonRing {
+  flex-shrink: 0;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+}
+
+.skeletonHeroText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.skeletonLineShort {
+  width: 40%;
+  height: 12px;
+}
+
+.skeletonLineMedium {
+  width: 70%;
+  height: 12px;
+}
+
+.skeletonLineHero {
+  width: 140px;
+  height: 36px;
+}
+
+.skeletonRows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonRow {
+  height: 46px;
+  border-radius: var(--r-md);
+}
+
+/* ── Focus ring (§3, §10) ──────────────────────────────────────────────────── */
+
+/* 2px jade, 2px offset, :focus-visible only — never on a mouse click. */
+.tab:focus-visible,
+.sortButton:focus-visible,
+.retryButton:focus-visible,
+.emptyAction:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
+/* ── Reduced motion (§2) ───────────────────────────────────────────────────── */
+
+/*
+ * §2: collapse every transform/opacity transition to --dur-instant with no
+ * easing curve, and show a static tone instead of the shimmer sweep.
+ *
+ * The ring fill and the row FLIP are removed outright rather than shortened.
+ * Both exist purely to draw the eye, and their end state is the correct
+ * rendering, so dropping them loses nothing but the motion. useRowFlip checks
+ * the same media query and does not even invert the rows, so there is no
+ * leftover inline transform waiting for a transition that is not coming.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .ringFilling {
+    animation: none;
+  }
+
+  .skeleton {
+    background-image: none;
+    background-color: var(--sunken);
+    animation: none;
+  }
+
+  .row {
+    transition: background-color var(--dur-instant) linear;
+  }
+
+  .tabPillSettled,
+  .tab,
+  .sortButton,
+  .caret,
+  .retryButton,
+  .emptyAction {
+    transition-duration: var(--dur-instant);
+    transition-timing-function: linear;
+  }
+
+  .layerEntering,
+  .layerLeaving,
+  .heroEntering,
+  .heroLeaving {
+    animation-duration: var(--dur-instant);
+    animation-delay: 0ms;
+    animation-timing-function: linear;
+  }
+
+  .retryButton:active,
+  .emptyAction:active {
+    transform: none;
+  }
+}
