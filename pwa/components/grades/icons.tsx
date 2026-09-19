@@ -40,3 +40,14 @@ export function ArrowIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+/** Calculator — the grade-calculator trigger. */
+export function CalculatorIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
+      <rect x="4.5" y="3" width="15" height="18" rx="2.5" />
+      <path d="M8 7.5h8" />
+      <path d="M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01" />
+    </svg>
+  );
+}

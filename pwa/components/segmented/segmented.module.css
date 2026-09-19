@@ -1,0 +1,92 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   §5 sliding-pill segmented control.
+
+   Every colour, radius, shadow, duration and easing is a token from
+   app/globals.css. No new ones.
+
+   Logical properties only: no `left`/`right`, no `[dir="rtl"]` selector. The one
+   thing that cannot be expressed logically — the direction the pill travels —
+   arrives as a signed --pill-x set from `dir` in JS, which is what §6
+   prescribes.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/*
+ * No border. The pill is absolutely positioned against this box's padding edge
+ * while the component measures border-box rects; with no border the two are the
+ * same box, and adding one here would shift the pill by its width.
+ */
+.strip {
+  position: relative;
+  align-self: flex-start;
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 9999px;
+  background: var(--sunken);
+}
+
+/*
+ * ONE pill for the whole control, per §5 — "the active pill background slides
+ * between options rather than the whole control repainting".
+ */
+.pill {
+  position: absolute;
+  inset-block: 4px;
+  inset-inline-start: 0;
+  width: var(--pill-w);
+  transform: translateX(var(--pill-x));
+  border-radius: 9999px;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+/* Applied one frame after the first measurement, so the pill appears under the
+   selected option instead of sliding in from the strip's start edge on mount. */
+.pillSettled {
+  transition: transform var(--dur-fast) var(--ease-in-out),
+    width var(--dur-fast) var(--ease-in-out);
+}
+
+.option {
+  position: relative;
+  /* Above the pill, which is a background and must never cover the label. */
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 20px;
+  border: 0;
+  border-radius: 9999px;
+  background: none;
+  color: var(--ink2);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  /* §5: "Text color crossfades in place, not on a delay." */
+  transition: color var(--dur-fast) var(--ease-in-out);
+}
+
+.option:hover {
+  color: var(--ink);
+}
+
+.optionSelected {
+  color: var(--jade-text);
+}
+
+/* §3, §10: 2px jade, 2px offset, :focus-visible only — never on a mouse click. */
+.option:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
+/* §2: collapse transitions to --dur-instant with no easing curve. */
+@media (prefers-reduced-motion: reduce) {
+  .pillSettled,
+  .option {
+    transition-duration: var(--dur-instant);
+    transition-timing-function: linear;
+  }
+}

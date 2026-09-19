@@ -804,13 +804,233 @@
   border-radius: var(--r-md);
 }
 
+/* ── Grade calculator (§9) ─────────────────────────────────────────────────── */
+
+/* The trigger's row. Sits above the table at the inline-end, so it reads as an
+   action on the results rather than as part of them. */
+.resultsBar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.calcTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding-inline: 14px;
+  border: 1px solid var(--hair2);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--jade-text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+.calcTrigger:hover {
+  background: var(--jade-faint);
+}
+
+/* §3: on :active, buttons scale to 0.97 over --dur-instant. */
+.calcTrigger:active {
+  transform: scale(0.97);
+}
+
+.calcTriggerIcon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Panel body ────────────────────────────────────────────────────────────── */
+
+.calcBody {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Both finals already published, so this is a simulation of a settled result.
+   Informational tone: nothing has gone wrong. */
+.calcNote {
+  margin: 0 0 20px;
+  padding: 10px 14px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  background: var(--surface2);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
+.calcLabel {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+.calcLabel:not(:first-child) {
+  margin-top: 20px;
+}
+
+.calcSelect,
+.calcInput {
+  width: 100%;
+  min-height: 48px;
+  padding-inline: 14px;
+  border: 1px solid var(--hair2);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14px;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+/* Subject names, so it follows the body face and switches to Naskh in Arabic. */
+.calcSelect {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/*
+ * The target field holds a MARK, so it stays on the Latin face in Arabic like
+ * every other figure in the product. The element carries `.num` too, but the
+ * family is restated here for a reason: a form control does not inherit
+ * font-family from its parent, so something has to name one — and `font-family:
+ * inherit` in the shared rule above is the same specificity as the global
+ * `.num`, which loads first, so it silently won and put the digits in Naskh.
+ */
+.calcInput {
+  font-family: var(--font-sans);
+}
+
+/* §5, inputs: "border color -> jade, 3px jade-faint glow ring appears via
+   box-shadow, over --dur-fast". */
+.calcSelect:focus-visible,
+.calcInput:focus-visible {
+  outline: none;
+  border-color: var(--jade);
+  box-shadow: 0 0 0 3px var(--jade-faint);
+}
+
+.calcInput:disabled {
+  /* §3: disabled controls drop to 0.5 opacity and refuse the cursor. */
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.calcHint {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  color: var(--ink3);
+}
+
+/* The read-only CC, shown as a figure with its scale — not an input, because it
+   is a fact about the semester rather than something to change. */
+.calcCurrent {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+}
+
+.calcCurrentValue {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.calcSuffix {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink3);
+}
+
+/* ── Result ────────────────────────────────────────────────────────────────── */
+
+/*
+ * A grid, so the outgoing and incoming layers share one cell and the block does
+ * not change height mid-crossfade — the same arrangement the GPA hero uses.
+ */
+.calcResult {
+  display: grid;
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface2);
+}
+
+.calcResultLayer {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+/*
+ * §9: "the result number using the same crossfade technique" as the GPA hero.
+ * Not a copy of its timings — the SAME keyframes, so the two cannot drift, with
+ * the same linear exit and eased entrance and the same 80ms overlap that keeps a
+ * blank frame out of the swap.
+ */
+.resultLeaving {
+  animation: heroOut var(--dur-instant) linear forwards;
+  pointer-events: none;
+}
+
+.resultEntering {
+  animation: heroIn 150ms var(--ease-out) 80ms backwards;
+}
+
+.calcResultValue {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.calcResultAchieved,
+.calcResultAchievable {
+  color: var(--ink);
+}
+
+/*
+ * NOT the danger colour. "Impossible" is the commonest answer a struggling
+ * student will get from this panel, and it is a fact about arithmetic rather
+ * than something she did wrong — painting it like a failed request would turn
+ * information into an accusation. §10 also forbids colour as the only signal,
+ * and the verdict line underneath carries the meaning either way.
+ */
+.calcResultImpossible {
+  color: var(--ink2);
+}
+
+.calcResultVerdict {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
 /* ── Focus ring (§3, §10) ──────────────────────────────────────────────────── */
 
 /* 2px jade, 2px offset, :focus-visible only — never on a mouse click. */
 .tab:focus-visible,
 .sortButton:focus-visible,
 .retryButton:focus-visible,
-.emptyAction:focus-visible {
+.emptyAction:focus-visible,
+.calcTrigger:focus-visible {
   outline: 2px solid var(--jade);
   outline-offset: 2px;
 }
@@ -847,7 +1067,10 @@
   .sortButton,
   .caret,
   .retryButton,
-  .emptyAction {
+  .emptyAction,
+  .calcTrigger,
+  .calcSelect,
+  .calcInput {
     transition-duration: var(--dur-instant);
     transition-timing-function: linear;
   }
@@ -855,14 +1078,17 @@
   .layerEntering,
   .layerLeaving,
   .heroEntering,
-  .heroLeaving {
+  .heroLeaving,
+  .resultEntering,
+  .resultLeaving {
     animation-duration: var(--dur-instant);
     animation-delay: 0ms;
     animation-timing-function: linear;
   }
 
   .retryButton:active,
-  .emptyAction:active {
+  .emptyAction:active,
+  .calcTrigger:active {
     transform: none;
   }
 }

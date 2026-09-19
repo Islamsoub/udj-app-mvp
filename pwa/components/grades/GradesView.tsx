@@ -4,6 +4,7 @@ import { Interpolated } from '@/components/dashboard/Interpolated';
 import type { GradesResponse, SemesterSummary } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
 import { GpaHero } from './GpaHero';
+import { GradeCalculator } from './GradeCalculator';
 import { GradesTable } from './GradesTable';
 import { ArrowIcon } from './icons';
 import { suggestedSemester, type Published } from './model';
@@ -157,6 +158,16 @@ function SemesterResults({
           {t('grades.notice.cc_only')}
         </p>
       )}
+
+      {/*
+        Mounted with the table, and only with it. A semester with nothing
+        published has no `grades` at all — the API omits unpublished rows — so
+        the calculator would open onto an empty subject picker; the empty state
+        below already explains why there is nothing to work from.
+      */}
+      <div className={styles.resultsBar}>
+        <GradeCalculator grades={data.grades} published={published} />
+      </div>
 
       <GradesTable
         // Keyed by semester: a tab switch mounts a fresh table, so the sort

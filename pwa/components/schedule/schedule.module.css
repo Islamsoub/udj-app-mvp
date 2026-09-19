@@ -1,0 +1,814 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Schedule — Day/Week toggle, week navigation, the proportional week grid, the
+   day list, and the course detail panel's body.
+
+   Every colour, radius, shadow, duration and easing is a token from
+   app/globals.css. No new ones: the four class types reuse the existing semantic
+   hues (--info, --jade, --warning, --exam) with their matching *-bg tints.
+
+   Logical properties only: no `left`/`right`, no `[dir="rtl"]` selector. The
+   week is a CSS grid, and grid tracks follow `dir`, so Arabic puts the gutter
+   and the first teaching day at the right-hand edge with no second rule. The
+   blocks are placed on the BLOCK axis (inset-block-start), which does not mirror
+   — 09:00 is below 08:00 in both languages. The one thing that cannot be
+   expressed logically, the chevrons' flip, arrives as a signed --chevron-flip
+   set from `dir` in JS, per §6.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.heading {
+  margin: 0 0 20px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+}
+
+/*
+ * A single grid cell every screen state shares, so the skeleton and what
+ * replaces it occupy the same box at the same time and nothing below moves
+ * during §5's crossfade. Grades' StateLayers supplies the layers.
+ */
+.screen {
+  display: grid;
+}
+
+.viewport:focus {
+  outline: none;
+}
+
+.viewport:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 4px;
+  border-radius: var(--r-md);
+}
+
+/* ── Toolbar ───────────────────────────────────────────────────────────────── */
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.navButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--hair2);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--ink2);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+.navButton:hover {
+  background: var(--jade-faint);
+  color: var(--jade-text);
+}
+
+/* §3: on :active, buttons scale to 0.97 over --dur-instant. */
+.navButton:active {
+  transform: scale(0.97);
+}
+
+.navIcon {
+  width: 18px;
+  height: 18px;
+  /* Points toward the inline-end; --chevron-flip mirrors that for Arabic. */
+  transform: scaleX(var(--chevron-flip, 1));
+}
+
+/* "Previous" is the same glyph the other way round, in whichever direction
+   "the other way round" currently means. */
+.navIconPrev {
+  transform: scaleX(calc(var(--chevron-flip, 1) * -1));
+}
+
+.navLabel {
+  min-width: 13ch;
+  margin: 0;
+  padding-inline: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--ink);
+}
+
+.todayButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-inline-start: 4px;
+  padding-inline: 14px;
+  border: 1px solid var(--hair2);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--jade-text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+.todayButton:hover:not(:disabled) {
+  background: var(--jade-faint);
+}
+
+.todayButton:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* §3: disabled controls drop to 0.5 opacity and refuse the cursor. */
+.todayButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Notice ────────────────────────────────────────────────────────────────── */
+
+/* Informational, not a warning: the timetable shown is simply the current one. */
+.notice {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  background: var(--surface2);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
+/* ── Week grid ─────────────────────────────────────────────────────────────── */
+
+.week {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+/*
+ * The gutter track plus five equal day tracks. `1fr` with `minmax(0, 1fr)`
+ * semantics via min-width on the children, so a long subject name cannot push a
+ * column wider than its share and skew the whole week.
+ */
+.weekHead,
+.weekBody {
+  display: grid;
+  grid-template-columns: 56px repeat(5, minmax(0, 1fr));
+}
+
+.weekHead {
+  border-bottom: 1px solid var(--hair);
+  background: var(--surface2);
+}
+
+.gutterHead {
+  display: block;
+}
+
+.dayHead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  border-inline-start: 1px solid var(--hair);
+}
+
+/* Today's column, marked here and on the body below. Paired with
+   aria-current="date" so the tint is never the only signal (§10). */
+.dayHeadToday {
+  background: var(--jade-faint);
+}
+
+.dayName {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+.dayHeadToday .dayName,
+.dayHeadToday .dayDate {
+  color: var(--jade-text);
+}
+
+.dayDate {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.weekBody {
+  position: relative;
+}
+
+.gutter {
+  position: relative;
+}
+
+/*
+ * Hour labels sit ON their rule, so each is pulled up by half its own line to
+ * read as marking the line rather than the space beneath it. The first one would
+ * otherwise be clipped by the grid's top edge, which is why the gutter is not
+ * overflow-hidden.
+ */
+.gutterLabel {
+  position: absolute;
+  inset-inline-end: 8px;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink3);
+}
+
+.dayColumn {
+  position: relative;
+  border-inline-start: 1px solid var(--hair);
+  /*
+   * Hour rules as a repeating gradient rather than N elements: the spacing is
+   * uniform by construction, so there is nothing for a list of divs to get out
+   * of step with the blocks' scale. `to bottom` is the block axis, which does
+   * not mirror.
+   */
+  background-image: repeating-linear-gradient(
+    to bottom,
+    var(--hair) 0,
+    var(--hair) 1px,
+    transparent 1px,
+    transparent var(--hour-px)
+  );
+}
+
+.dayColumnToday {
+  background-color: var(--jade-faint);
+}
+
+/* ── Course blocks ─────────────────────────────────────────────────────────── */
+
+/*
+ * Absolutely positioned from real minutes. `inset-inline` handles the horizontal
+ * inset in both directions; `top` and `height` come from the component, because
+ * they are the proportional part and there is nothing to mirror about them.
+ */
+.block {
+  position: absolute;
+  inset-inline: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  padding: 5px 7px;
+  border: 1px solid;
+  border-inline-start-width: 3px;
+  border-radius: var(--r-sm);
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+/* §3: clickable cards lift 1px and deepen to --shadow-lg over --dur-fast. */
+.block:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.block:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
+.blockType {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.blockSubject {
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--ink);
+  /* Two lines then ellipsis: a block is 96px tall at 90 minutes, and a third
+     line would push the room out of the box entirely. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.blockMeta {
+  margin-top: auto;
+  font-size: 10px;
+  color: var(--ink2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Class types ───────────────────────────────────────────────────────────── */
+
+/*
+ * Existing semantic tokens, no new colours. Each type's tint fills the block and
+ * its solid hue rules the inline-start edge and titles the three-letter code —
+ * which is always present, so colour is never the only signal (§10).
+ */
+.typeCm {
+  border-color: var(--info);
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.typeTd {
+  border-color: var(--jade);
+  background: var(--jade-faint);
+  color: var(--jade-text);
+}
+
+.typeTp {
+  border-color: var(--warning);
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.typeExam {
+  border-color: var(--exam);
+  background: var(--exam-bg);
+  color: var(--exam);
+}
+
+.typePill {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border: 0;
+  border-radius: 9999px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/* ── Crossfade (§9) ────────────────────────────────────────────────────────── */
+
+/*
+ * Both layers share one cell for the length of the swap, so nothing reflows
+ * while it runs. `display: contents` on the layers would be simpler but would
+ * strand the absolutely positioned blocks, so the layers are real boxes pinned
+ * over the column instead.
+ */
+.crossfade {
+  display: grid;
+}
+
+/* Inside a week column: pinned over it, so the absolutely positioned blocks have
+   a containing block with the column's full height. */
+.crossfadeFill {
+  position: absolute;
+  inset: 0;
+}
+
+.crossfadeLayer {
+  grid-area: 1 / 1;
+  position: relative;
+  min-width: 0;
+}
+
+/* §9: "crossfades the week grid's course blocks out and back in over
+   --dur-fast". Exit linear, entrance eased — the same pairing the GPA hero uses,
+   for the same reason: a front-loaded exit empties the old content before the
+   new one is legible. */
+.crossfadeEntering {
+  animation: blocksIn var(--dur-fast) var(--ease-out);
+}
+
+.crossfadeLeaving {
+  animation: blocksOut var(--dur-fast) linear forwards;
+  pointer-events: none;
+}
+
+@keyframes blocksIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes blocksOut {
+  to {
+    opacity: 0;
+  }
+}
+
+.legend {
+  margin: 0;
+  padding: 10px 14px;
+  border-top: 1px solid var(--hair);
+  font-size: 11.5px;
+  color: var(--ink3);
+}
+
+/* ── Day view ──────────────────────────────────────────────────────────────── */
+
+.dayHeading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.dayHeadingDate {
+  color: var(--ink2);
+}
+
+.todayPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: var(--jade-faint);
+  color: var(--jade-text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* The day view's crossfade wraps flow content, not absolute blocks, so it is
+   laid out normally rather than pinned. */
+.dayList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dayItem {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.dayItem:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.dayItem:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
+.dayTime {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  gap: 2px;
+  width: 6ch;
+}
+
+.dayStart {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.dayEnd {
+  font-size: 11.5px;
+  color: var(--ink3);
+}
+
+/* The type's colour as a rule down the inline-start edge of the body. */
+.dayRule {
+  flex-shrink: 0;
+  width: 3px;
+  border: 0;
+  border-radius: 9999px;
+  background: currentColor;
+}
+
+.dayBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dayTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.daySubject {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.dayMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 12px;
+  color: var(--ink2);
+}
+
+.dayMetaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.dayMetaIcon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: var(--ink3);
+}
+
+/* ── Detail panel body ─────────────────────────────────────────────────────── */
+
+.detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.detailSubject {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.detailType {
+  margin: 10px 0 0;
+}
+
+.detailList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 24px 0 0;
+}
+
+.detailRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detailLabel {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+.detailIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.detailValue {
+  margin: 0;
+  /* Aligns the value with the label's text rather than with its icon. */
+  margin-inline-start: 21px;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.detailMuted {
+  color: var(--ink2);
+  font-size: 12.5px;
+}
+
+/* ── Empty / error / offline (§5, §8) ──────────────────────────────────────── */
+
+.emptyBox,
+.stateBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 24px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.emptyText {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink2);
+}
+
+.retryButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 14px;
+  border: 1px solid var(--hair2);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--jade-text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+.retryButton:hover {
+  background: var(--jade-faint);
+}
+
+.retryButton:active {
+  transform: scale(0.97);
+}
+
+.retryButton:focus-visible,
+.navButton:focus-visible,
+.todayButton:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
+/* ── Skeletons (§5) ────────────────────────────────────────────────────────── */
+
+.skeleton {
+  border-radius: var(--r-sm);
+  background-image: linear-gradient(
+    90deg,
+    var(--sunken) 0%,
+    var(--surface2) 20%,
+    var(--sunken) 40%,
+    var(--sunken) 100%
+  );
+  background-size: 300% 100%;
+  /* --dur-slow x2, per §5. One animation name for every block, so they share a
+     timeline and sweep in parallel rather than each from its own mount. */
+  animation: shimmer 900ms linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+.skeletonToggle {
+  width: 168px;
+  height: 52px;
+  border-radius: 9999px;
+}
+
+.skeletonNav {
+  width: 260px;
+  height: 44px;
+}
+
+.skeletonDayHead {
+  width: 70%;
+  height: 30px;
+}
+
+.skeletonBlock {
+  position: absolute;
+  inset-inline: 3px;
+  border-radius: var(--r-sm);
+}
+
+/* ── Responsive (below 640px) ──────────────────────────────────────────────── */
+
+/*
+ * The week grid is never rendered at this width — ScheduleView forces the day
+ * view and drops the toggle, so there is no five-column layout to squeeze. What
+ * is left is the toolbar, which stops trying to sit on one line.
+ */
+@media (max-width: 639px) {
+  .toolbar {
+    justify-content: flex-start;
+  }
+
+  .nav {
+    flex: 1;
+    justify-content: space-between;
+  }
+
+  .navLabel {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .dayItem {
+    gap: 10px;
+    padding: 10px;
+  }
+}
+
+/* ── Reduced motion (§2) ───────────────────────────────────────────────────── */
+
+/*
+ * §2: collapse every transform/opacity transition to --dur-instant with no
+ * easing curve, and show a static tone instead of the shimmer sweep.
+ *
+ * The block crossfade is removed outright rather than shortened. It exists
+ * purely to draw the eye to a week that has changed, its end state is the
+ * correct rendering, and the nav label beside the arrows already says which week
+ * is on screen — so dropping it loses the motion and nothing else.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .crossfadeEntering,
+  .crossfadeLeaving {
+    animation: none;
+  }
+
+  .skeleton {
+    background-image: none;
+    background-color: var(--sunken);
+    animation: none;
+  }
+
+  .block,
+  .dayItem,
+  .navButton,
+  .todayButton,
+  .retryButton {
+    transition-duration: var(--dur-instant);
+    transition-timing-function: linear;
+  }
+
+  .block:hover,
+  .dayItem:hover {
+    transform: none;
+  }
+
+  .navButton:active,
+  .todayButton:active,
+  .retryButton:active {
+    transform: none;
+  }
+}

@@ -151,6 +151,80 @@
       "body": "Les notes du semestre {{semester}} ne sont pas encore publiées par votre faculté. Elles apparaîtront ici dès leur publication.",
       "other_available": "Vos résultats du semestre {{semester}} sont disponibles.",
       "other_action": "Voir le semestre {{semester}}"
+    },
+    "calculator": {
+      "open": "Calculatrice",
+      "title": "Calculatrice de notes",
+      "subtitle": "Simulez votre moyenne du semestre",
+      "subject": "Matière",
+      "current_cc": "Note CC actuelle",
+      "target": "Note finale visée",
+      "range_hint": "Entre 0 et {{max}}. Flèches haut et bas pour ajuster d'un demi-point.",
+      "already_final": "Les notes de ce semestre sont déjà publiées : ce calcul est une simulation, il ne change pas vos résultats.",
+      "needs_cc": "Le calcul a besoin de votre note de contrôle continu. Elle n'est pas encore publiée pour cette matière.",
+      "needs_target": "Saisissez la moyenne que vous visez pour cette matière.",
+      "out_of_range": "Une note se situe entre 0 et {{max}}.",
+      "verdict_achieved": "Objectif déjà acquis : votre contrôle continu y suffit, quelle que soit votre note à l'examen final.",
+      "verdict_achievable": "Note à obtenir à l'examen final pour atteindre cet objectif.",
+      "verdict_impossible": "Au-delà du barème : même avec {{scale}}/{{scale}} à l'examen final, votre moyenne dans cette matière serait de {{max}}."
+    }
+  },
+  "schedule": {
+    "heading": "Emploi du temps",
+    "legend": "CM : cours magistral · TD : travaux dirigés · TP : travaux pratiques",
+    "today_label": "Aujourd'hui",
+    "other_week_notice": "L'emploi du temps affiché est celui en vigueur actuellement, reporté sur cette semaine.",
+    "state": {
+      "error": "Impossible de charger votre emploi du temps.",
+      "offline": "Votre emploi du temps n'est pas disponible hors ligne."
+    },
+    "view": {
+      "label": "Choisir l'affichage",
+      "week": "Semaine",
+      "day": "Jour"
+    },
+    "nav": {
+      "prev_week": "Semaine précédente",
+      "next_week": "Semaine suivante",
+      "prev_day": "Jour précédent",
+      "next_day": "Jour suivant",
+      "this_week": "Cette semaine",
+      "today": "Aujourd'hui",
+      "week_of": "Semaine du {{day}} {{month}} {{year}}",
+      "day_of": "{{weekday}} {{day}} {{month}} {{year}}"
+    },
+    "days": {
+      "sunday": "Dimanche",
+      "monday": "Lundi",
+      "tuesday": "Mardi",
+      "wednesday": "Mercredi",
+      "thursday": "Jeudi"
+    },
+    "days_short": {
+      "sunday": "Dim",
+      "monday": "Lun",
+      "tuesday": "Mar",
+      "wednesday": "Mer",
+      "thursday": "Jeu"
+    },
+    "type": {
+      "cm": "Cours magistral",
+      "td": "Travaux dirigés",
+      "tp": "Travaux pratiques",
+      "exam": "Examen"
+    },
+    "detail": {
+      "when": "Horaire",
+      "room": "Salle",
+      "professor": "Enseignant",
+      "code": "Matière",
+      "coefficient": "coefficient"
+    },
+    "empty": {
+      "title": "Emploi du temps non publié",
+      "body": "Votre faculté n'a pas encore publié l'emploi du temps de ce semestre. Il apparaîtra ici dès sa publication.",
+      "day": "Aucun cours ce jour-là.",
+      "week": "Aucun cours cette semaine."
     }
   },
   "offline": {

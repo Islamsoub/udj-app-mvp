@@ -1,0 +1,344 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   §5 slide-in detail panel — the shared chrome for the calculator, and for the
+   course-detail and justification panels that follow it.
+
+   Every colour, radius, shadow, duration and easing is a token from
+   app/globals.css. The one literal is the scrim's rgba(30, 35, 31, .4), which is
+   §5's "0->0.4 opacity" and is the exact value the shell's existing modal scrim
+   already uses — the same colour reused, not a new one.
+
+   Logical properties only: no `left`/`right`, no `[dir="rtl"]` selector. The
+   panel's edge, its radii and its padding all mirror from `dir` on <html>. The
+   one thing that cannot be expressed logically — the direction a transform
+   travels — arrives as a sign in --panel-slide, set from `dir` in JS, which is
+   what §6 prescribes.
+
+   RULE ORDER IS LOAD-BEARING in this file. .panel, .panelLeaving and the drag
+   classes are all single-class selectors, so nothing but source order decides
+   which animation the sheet ends on; the mobile block therefore comes after
+   every desktop rule it has to override, and reduced motion comes last.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/*
+ * z-index sits below the shell's session-expired scrim at 80. That modal is a
+ * decision the student has to make; if the session dies while this panel is
+ * open, the modal must land on top of it, not behind.
+ */
+.scrim {
+  position: fixed;
+  z-index: 70;
+  inset: 0;
+  display: flex;
+  /* Anchors the panel to the inline-end edge, and mirrors in Arabic with no
+     second rule — flex-end follows `dir`. */
+  justify-content: flex-end;
+  background: rgba(30, 35, 31, 0.4);
+  animation: scrimIn var(--dur-base) var(--ease-out);
+}
+
+/* §5: "Closing reverses the entrance transition." */
+.scrimLeaving {
+  animation: scrimOut var(--dur-base) var(--ease-out) forwards;
+}
+
+@keyframes scrimIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes scrimOut {
+  to {
+    opacity: 0;
+  }
+}
+
+/* ── The panel ─────────────────────────────────────────────────────────────── */
+
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(420px, 100%);
+  height: 100%;
+  background: var(--surface);
+  /*
+   * --shadow-panel is the token written for this element. Its -12px offset is
+   * physical, so in Arabic it falls on the outer edge rather than toward the
+   * content; at a 32px blur that is not visible, and correcting it would mean
+   * inventing a second shadow value, which the design system does not have.
+   */
+  box-shadow: var(--shadow-panel);
+  animation: panelIn var(--dur-base) var(--ease-out);
+}
+
+.panel:focus {
+  outline: none;
+}
+
+.panelLeaving {
+  animation: panelOut var(--dur-base) var(--ease-out) forwards;
+  /* Beats .panelDragged's spring, which would otherwise fight the exit. */
+  transition: none;
+  pointer-events: none;
+}
+
+/*
+ * §5: translateX(100%)->0, "mirrored to -100%->0 in RTL". The sign comes from
+ * --panel-slide; calc(1 * 100%) and calc(-1 * 100%) are the two ends.
+ */
+@keyframes panelIn {
+  from {
+    transform: translateX(calc(var(--panel-slide, 1) * 100%));
+  }
+}
+
+@keyframes panelOut {
+  to {
+    transform: translateX(calc(var(--panel-slide, 1) * 100%));
+  }
+}
+
+/* ── Drag ──────────────────────────────────────────────────────────────────── */
+
+/*
+ * Applied once the sheet has been moved. `animation: none` hands the transform
+ * back from the entrance keyframe to the drag, and the transition is what
+ * springs the sheet home when the drag ends short of the 40% threshold.
+ */
+.panelDragged {
+  animation: none;
+  transform: translateY(var(--drag-y));
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+/* While the finger is down the sheet must track it exactly, so the spring is
+   off. It comes back on release, when the offset returns to 0. */
+.panelDragging {
+  transition: none;
+}
+
+/* ── Head ──────────────────────────────────────────────────────────────────── */
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--hair);
+}
+
+.headText {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
+/* Hidden until the panel is a sheet — there is nothing to grab on desktop. */
+.grabber {
+  display: none;
+}
+
+.close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-block-start: -4px;
+  margin-inline-end: -4px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--ink2);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+.close:hover {
+  background: var(--surface2);
+  color: var(--ink);
+}
+
+/* §3: on :active, buttons scale to 0.97 over --dur-instant. */
+.close:active {
+  transform: scale(0.97);
+}
+
+.close:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
+.closeIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ── Body ──────────────────────────────────────────────────────────────────── */
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* ── Bottom sheet (§5, below 640px) ────────────────────────────────────────── */
+
+@media (max-width: 639px) {
+  .scrim {
+    /* Bottom edge instead of the inline-end one. */
+    align-items: flex-end;
+    justify-content: stretch;
+  }
+
+  .panel {
+    width: 100%;
+    height: auto;
+    /* Leaves the scrim visible above the sheet, which is what keeps the
+       tap-to-dismiss target reachable. */
+    max-height: 88vh;
+    max-height: 88dvh;
+    border-start-start-radius: var(--r-2xl);
+    border-start-end-radius: var(--r-2xl);
+    box-shadow: var(--shadow-lg);
+    animation: sheetIn var(--dur-base) var(--ease-out);
+  }
+
+  .panelLeaving {
+    animation: sheetOut var(--dur-base) var(--ease-out) forwards;
+  }
+
+  .head {
+    /* Room above the title for the grab handle. */
+    padding-block-start: 16px;
+  }
+
+  /*
+   * The affordance for the drag, centred over the head — the surface that
+   * listens for the gesture. Decorative: the x button beside it is the
+   * accessible way out, and a handle announced to a screen reader would offer a
+   * gesture it cannot perform.
+   */
+  .grabber {
+    position: absolute;
+    display: block;
+    top: 8px;
+    inset-inline: 0;
+    width: 36px;
+    height: 4px;
+    margin-inline: auto;
+    border-radius: 9999px;
+    background: var(--hair2);
+  }
+
+  .body {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/*
+ * The sheet's travel is vertical, so it needs no direction sign — down is down
+ * in both languages.
+ *
+ * The exit starts from --drag-y rather than from 0. When the sheet is dismissed
+ * by a drag the finger has already carried it part of the way down, and
+ * beginning the animation at its resting place would snap it back up for a frame
+ * before sliding it away.
+ */
+@keyframes sheetIn {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes sheetOut {
+  from {
+    transform: translateY(var(--drag-y, 0px));
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+/* ── Reduced motion (§2) ───────────────────────────────────────────────────── */
+
+/*
+ * §2: collapse every transform/opacity transition to --dur-instant with no
+ * easing curve. The panel therefore APPEARS rather than slides — the travel is
+ * the whole of what is removed, and its end state is the correct rendering, so
+ * nothing is lost but the motion. The keyframes are redefined rather than
+ * switched off: a cancelled entrance would leave the panel with no animation to
+ * end, and SlidePanel's exit is driven by animationend.
+ *
+ * The scrim keeps its fade, shortened. It is an opacity change with no
+ * translation, and removing it outright would make a full-screen dim appear
+ * between two frames.
+ *
+ * The drag is untouched on purpose. It is direct manipulation — a sheet
+ * following a finger is not an animation played at the student — and a reduced
+ * motion preference is not a reason to take a gesture away. Only its spring-back
+ * shortens.
+ */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes panelIn {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes panelOut {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes sheetIn {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes sheetOut {
+    to {
+      opacity: 0;
+    }
+  }
+
+  .panel,
+  .panelLeaving,
+  .scrim,
+  .scrimLeaving {
+    animation-duration: var(--dur-instant);
+    animation-timing-function: linear;
+  }
+
+  .panelDragged,
+  .close {
+    transition-duration: var(--dur-instant);
+    transition-timing-function: linear;
+  }
+
+  .close:active {
+    transform: none;
+  }
+}
