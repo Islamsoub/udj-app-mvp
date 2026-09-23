@@ -227,6 +227,89 @@
       "week": "Aucun cours cette semaine."
     }
   },
+  "attendance": {
+    "heading": "Assiduité",
+    "hero": {
+      "label": "Présence ce semestre",
+      "ring_label": "Présence : {{value}} %",
+      "sessions": "{{present}} séances suivies sur {{total}}",
+      "threshold": "Seuil requis : {{threshold}} %",
+      "below": "Sous le seuil requis de {{threshold}} %",
+      "absences": "Absences : {{count}}",
+      "justified": "Dont justifiées : {{count}}",
+      "partial": "Dont partielles : {{count}}"
+    },
+    "subjects": {
+      "title": "Par matière",
+      "note": "Le seuil de présence requis est de {{threshold}} %.",
+      "sessions": "{{present}} séances suivies sur {{total}}",
+      "below": "Sous le seuil",
+      "bar_label": "Présence en {{subject}}"
+    },
+    "absences": {
+      "title": "Absences",
+      "count": "Affichées : {{shown}} sur {{total}}",
+      "none_todo": "Toutes vos absences ont été traitées.",
+      "none_at_all": "Vous n'avez aucune absence ce semestre. Vous avez assisté à toutes vos séances."
+    },
+    "absence": {
+      "date": "{{day}} {{month}} {{year}}"
+    },
+    "filter": {
+      "label": "Filtrer les absences",
+      "todo": "À justifier",
+      "all": "Tout"
+    },
+    "status": {
+      "none": "À justifier",
+      "pending": "En attente",
+      "approved": "Justifiée",
+      "rejected": "Refusée"
+    },
+    "panel": {
+      "session": "Séance",
+      "note_sent": "Motif transmis",
+      "note_reason": "Motif du refus",
+      "no_document": "Aucun document joint.",
+      "open_document": "Ouvrir le justificatif",
+      "none": {
+        "title": "Aucun justificatif transmis",
+        "body": "Cette absence compte dans votre taux de présence tant qu'aucun justificatif n'a été accepté.",
+        "file_label": "Justificatif",
+        "file_hint": "Formats acceptés : JPEG, PNG, WebP ou PDF.",
+        "note_label": "Motif (facultatif)",
+        "note_hint": "80 caractères maximum.",
+        "disabled_reason": "L'envoi de justificatifs depuis l'application web n'est pas encore disponible. Déposez votre justificatif au secrétariat de votre faculté.",
+        "submit": "Envoyer le justificatif"
+      },
+      "pending": {
+        "title": "Justificatif en cours d'examen",
+        "body": "Votre faculté n'a pas encore rendu sa décision. Cette absence reste comptée tant qu'elle n'est pas acceptée."
+      },
+      "approved": {
+        "title": "Justificatif accepté",
+        "body": "Cette absence est justifiée et ne compte pas dans votre taux de présence."
+      },
+      "excused": {
+        "title": "Absence excusée",
+        "body": "Cette absence a été excusée directement par votre faculté : aucun justificatif n'a été déposé. Elle ne compte pas dans votre taux de présence."
+      },
+      "rejected": {
+        "title": "Justificatif refusé",
+        "body": "Votre faculté n'a pas retenu ce justificatif. Cette absence compte dans votre taux de présence."
+      }
+    },
+    "empty": {
+      "none": {
+        "title": "Aucune séance enregistrée",
+        "body": "Votre assiduité n'a pas encore été saisie pour ce semestre. Elle apparaîtra ici dès que vos enseignants auront enregistré vos séances."
+      }
+    },
+    "state": {
+      "error": "Impossible de charger votre assiduité.",
+      "offline": "Votre assiduité n'est pas disponible hors ligne."
+    }
+  },
   "offline": {
     "banner": "Vous êtes hors ligne. Données mises en cache affichées.",
     "restored": "Connexion rétablie",

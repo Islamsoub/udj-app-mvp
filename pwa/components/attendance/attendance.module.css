@@ -1,0 +1,979 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Attendance — the presence gauge, the per-subject breakdown, the absence list
+   and the justification panel's four bodies.
+
+   Every colour, radius, shadow, duration and easing is a token from
+   app/globals.css. No new ones.
+
+   Logical properties only: no `left`/`right`, no `[dir="rtl"]` selector. The
+   bars, the rows, the chips and the panel bodies all mirror from `dir` on <html>
+   alone. The two things that genuinely cannot be expressed logically — the
+   direction the row chevron points, and the threshold marker's offset along the
+   bar — read the active direction at render time through custom properties set
+   in JS, which is what §6 prescribes.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.heading {
+  margin: 0 0 20px;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+}
+
+/*
+ * A single grid cell that every screen state shares, so the skeleton and what
+ * replaces it occupy the same box at the same time and nothing below moves
+ * during §5's crossfade. Grades' StateLayers supplies the layers, and its
+ * `.layer` rule is what stacks and spaces them.
+ */
+.screen {
+  display: grid;
+}
+
+/* ── Hero (§5 hero stats, §9 "the hero moment of this screen") ─────────────── */
+
+.hero {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.heroText {
+  min-width: 0;
+}
+
+.heroLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+.heroValue {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  margin: 6px 0 0;
+}
+
+.heroNumber {
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.heroUnit {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink3);
+}
+
+.heroSessions {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--ink2);
+}
+
+.heroThreshold {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink2);
+}
+
+/* Under the line. The tint is ONE of three signals — the triangle beside it and
+   the wording itself carry the same meaning (§10). */
+.heroThresholdBelow {
+  color: var(--warning);
+  font-weight: 700;
+}
+
+.heroThresholdIcon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.heroCounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 10px 0 0;
+}
+
+.heroCount {
+  font-size: 12px;
+  color: var(--ink3);
+}
+
+/* ── Presence ring (§5) ────────────────────────────────────────────────────── */
+
+.ring {
+  flex-shrink: 0;
+  width: 132px;
+  height: 132px;
+  /*
+   * The SVG is drawn with 0 at 12 o'clock going clockwise. Rotating -90deg puts
+   * the start there; the sweep is not mirrored in RTL because a gauge is a dial,
+   * not a line of text — clockwise means "more" in both directions.
+   */
+  transform: rotate(-90deg);
+}
+
+.ringTrack {
+  fill: none;
+  stroke: var(--sunken);
+}
+
+/*
+ * §5: fills from 0 to its value once, on first paint of the view, over
+ * --dur-slow with --ease-in-out.
+ *
+ * Done with stroke-dashoffset in CSS rather than in JS so prefers-reduced-motion
+ * can switch it off with one rule and leave the final value rendered — the gauge
+ * stays correct, only the travel goes.
+ */
+.ringValue {
+  fill: none;
+  stroke: var(--jade);
+  stroke-linecap: round;
+  stroke-dasharray: var(--ring-circumference);
+  stroke-dashoffset: var(--ring-offset);
+}
+
+.ringFilling {
+  animation: ringFill var(--dur-slow) var(--ease-in-out);
+}
+
+@keyframes ringFill {
+  from {
+    stroke-dashoffset: var(--ring-circumference);
+  }
+}
+
+/* ── Sections ──────────────────────────────────────────────────────────────── */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.sectionNote {
+  margin: -4px 0 0;
+  font-size: 12.5px;
+  color: var(--ink2);
+}
+
+/* ── Per-subject breakdown ─────────────────────────────────────────────────── */
+
+.subjects {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.subject {
+  padding: 14px 16px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+/*
+ * Below the threshold. A tinted surface AND a warning border — but never on its
+ * own: the row carries the triangle glyph and the words "Sous le seuil" as well,
+ * because §10 forbids colour as the only signal.
+ */
+.subjectBelow {
+  border-color: var(--warning);
+  background: var(--warning-bg);
+}
+
+.subjectHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.subjectName {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.subjectCode {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink3);
+}
+
+.subjectValue {
+  flex-shrink: 0;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.subjectValueBelow {
+  color: var(--warning);
+}
+
+/* ── Bars ──────────────────────────────────────────────────────────────────── */
+
+/*
+ * The track. `position: relative` so the fill and the threshold marker can be
+ * placed against it, and `overflow: hidden` so the fill's rounded end is clipped
+ * to the track rather than sticking out at 100%.
+ */
+.bar {
+  position: relative;
+  overflow: hidden;
+  height: 8px;
+  margin: 10px 0 0;
+  border-radius: 9999px;
+  background: var(--sunken);
+}
+
+/*
+ * Anchored to the inline-start and sized by a percentage, so it grows from the
+ * start edge in French and from the right-hand edge in Arabic with no second
+ * rule. A transform would have needed a direction sign; a width does not.
+ */
+.barFill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: var(--bar-value);
+  border-radius: 9999px;
+  background: var(--jade);
+}
+
+.subjectBelow .barFill {
+  background: var(--warning);
+}
+
+/* The threshold, at the same inline offset on every bar — which is what makes
+   "below the line" visible as a comparison rather than as eight separate
+   readings. */
+.barThreshold {
+  position: absolute;
+  inset-block: -2px;
+  inset-inline-start: var(--bar-threshold);
+  width: 2px;
+  background: var(--ink2);
+  opacity: 0.55;
+}
+
+.subjectMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 12px;
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  color: var(--ink2);
+}
+
+.subjectFlag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--warning);
+  font-weight: 700;
+}
+
+.subjectFlagIcon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Absence list ──────────────────────────────────────────────────────────── */
+
+.absencesHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.absencesPanel:focus {
+  outline: none;
+}
+
+.absencesPanel:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 4px;
+  border-radius: var(--r-md);
+}
+
+.absences {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.absence {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 14px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  color: inherit;
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+  /* §3: clickable cards lift 1px on hover and deepen their shadow over
+     --dur-fast. */
+  transition: transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.absence:hover {
+  transform: translateY(-1px);
+  background: var(--surface2);
+  box-shadow: var(--shadow-lg);
+}
+
+/* §3: on :active, buttons scale to 0.97 over --dur-instant. */
+.absence:active {
+  transform: scale(0.97);
+}
+
+.absenceIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.absenceText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.absenceSubject {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.absenceCode {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink3);
+}
+
+.absenceDate {
+  font-size: 12px;
+  color: var(--ink2);
+}
+
+.absenceChevron {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--ink3);
+  /* "Forward" points end-ward, and a transform is never mirrored by `dir`, so
+     the sign arrives from JS. */
+  transform: scaleX(var(--chevron-flip, 1));
+}
+
+.absencesCount {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ink3);
+}
+
+/* Both filtered views can be empty, and both are good news rather than a fault
+   — so this is plain text at the body colour, with no warning tone. */
+.filterEmpty {
+  margin: 0;
+  padding: 20px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink2);
+}
+
+/* ── Status chips and glyph colours ────────────────────────────────────────── */
+
+/* §5: status pill colour "never animates on its own". Nothing here transitions. */
+.chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/*
+ * Nothing filed. NEUTRAL, not danger: an unjustified absence is a fact about the
+ * record rather than a fault the student has been found in, and the student may
+ * well have a perfectly good reason they have not sent yet. §10 forbids colour
+ * as the only signal anyway — the label says which of the four this is.
+ */
+.chipNone {
+  background: var(--sunken);
+  color: var(--ink2);
+}
+
+.chipPending {
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.chipApproved {
+  background: var(--jade-faint);
+  color: var(--jade-text);
+}
+
+.chipRejected {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.iconNone {
+  color: var(--ink3);
+}
+
+.iconPending {
+  color: var(--info);
+}
+
+.iconApproved {
+  color: var(--jade);
+}
+
+.iconRejected {
+  color: var(--danger);
+}
+
+/* ── Justification panel bodies ────────────────────────────────────────────── */
+
+.panelBody {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.panelDate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+}
+
+.panelDateLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+.panelDateValue {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.bannerIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.bannerNeutral {
+  background: var(--surface2);
+  color: var(--ink2);
+}
+
+.bannerPending {
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.bannerApproved {
+  background: var(--jade-faint);
+  color: var(--jade-text);
+}
+
+.bannerRejected {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.panelText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink2);
+}
+
+.note {
+  padding: 12px 14px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  background: var(--surface2);
+}
+
+.noteLabel {
+  margin: 0 0 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+/* Free text from a person, so it wraps and preserves the line breaks they typed
+   rather than collapsing them into one paragraph. */
+.noteText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+}
+
+/* ── The attached document ─────────────────────────────────────────────────── */
+
+.document {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 12px 14px;
+  border: 1px solid var(--hair2);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--jade-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+.document:hover {
+  background: var(--jade-faint);
+}
+
+.document:active {
+  transform: scale(0.97);
+}
+
+.documentIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.documentText {
+  flex: 1;
+  min-width: 0;
+}
+
+.documentExternal {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--ink3);
+}
+
+.noDocument {
+  margin: 0;
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--ink3);
+}
+
+/* ── The inert upload form ─────────────────────────────────────────────────── */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formLabel {
+  margin: 8px 0 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink3);
+}
+
+.formHint {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
+/*
+ * A PICTURE OF A DROP ZONE. §5 describes a dragover tint and a progress bar for
+ * this element; neither exists yet, and neither should be suggested by the
+ * styling — so there is no dashed jade border waiting to light up, no pointer
+ * cursor, and the whole block is dimmed to the same 0.5 §3 gives a disabled
+ * control. It reads as unavailable because it is.
+ */
+.dropZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 16px;
+  border: 1px dashed var(--hair2);
+  border-radius: var(--r-md);
+  background: var(--surface2);
+  opacity: 0.5;
+}
+
+.dropIcon {
+  width: 28px;
+  height: 28px;
+  color: var(--ink3);
+}
+
+.dropText {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--ink2);
+}
+
+/* The reason the submit is disabled. Stated before the button in the DOM so it
+   is read on the way to it, and pointed at by aria-describedby so a screen
+   reader gets it from the control itself as well. */
+.disabledReason {
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  background: var(--surface2);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
+.submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  margin-top: 4px;
+  padding-inline: 16px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--jade);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* §3: disabled controls drop to 0.5 opacity and refuse the cursor, with hover
+   and press disabled. */
+.submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Empty / error / offline (§5, §8) ──────────────────────────────────────── */
+
+.emptyBox,
+.stateBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 24px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.emptyText,
+.stateText {
+  margin: 0;
+  max-width: 52ch;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink2);
+}
+
+.retryButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 14px;
+  border: 1px solid var(--hair2);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--jade-text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+.retryButton:hover {
+  background: var(--jade-faint);
+}
+
+.retryButton:active {
+  transform: scale(0.97);
+}
+
+/* ── Skeletons (§5) ────────────────────────────────────────────────────────── */
+
+.skeleton {
+  border-radius: var(--r-sm);
+  background-image: linear-gradient(
+    90deg,
+    var(--sunken) 0%,
+    var(--surface2) 20%,
+    var(--sunken) 40%,
+    var(--sunken) 100%
+  );
+  background-size: 300% 100%;
+  /* --dur-slow x2, per §5. One animation name for every block, so they share a
+     timeline and sweep in parallel rather than each from its own mount. */
+  animation: shimmer 900ms linear infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+.skeletonHero {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.skeletonRing {
+  flex-shrink: 0;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+}
+
+.skeletonHeroText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.skeletonLineShort {
+  width: 40%;
+  height: 12px;
+}
+
+.skeletonLineMedium {
+  width: 70%;
+  height: 12px;
+}
+
+.skeletonLineHero {
+  width: 140px;
+  height: 40px;
+}
+
+.skeletonHeading {
+  width: 180px;
+  height: 20px;
+}
+
+.skeletonStrip {
+  width: 200px;
+  height: 44px;
+  border-radius: 9999px;
+}
+
+.skeletonRows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* The real footprints, so nothing resizes when the data lands. */
+.skeletonSubject {
+  height: 92px;
+  border-radius: var(--r-md);
+}
+
+.skeletonAbsence {
+  height: 66px;
+  border-radius: var(--r-md);
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+
+@media (max-width: 639px) {
+  .hero,
+  .skeletonHero {
+    /* The gauge and the figures stop fitting side by side well before the
+       column does; stacking keeps the number at its full size. */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .absencesHead {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+/* ── Focus ring (§3, §10) ──────────────────────────────────────────────────── */
+
+/* 2px jade, 2px offset, :focus-visible only — never on a mouse click. */
+.absence:focus-visible,
+.retryButton:focus-visible,
+.document:focus-visible,
+.submit:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
+/* ── Reduced motion (§2) ───────────────────────────────────────────────────── */
+
+/*
+ * §2: collapse every transform/opacity transition to --dur-instant with no
+ * easing curve, and show a static tone instead of the shimmer sweep.
+ *
+ * The ring fill is removed outright rather than shortened. It exists purely to
+ * draw the eye, and its end state is the correct rendering, so dropping it loses
+ * nothing but the motion. The filter crossfade is Schedule's, and its own
+ * stylesheet collapses it under the same query — one rule, one place.
+ *
+ * The hover LIFT goes too. A 1px translate over 100ms is not a shortened
+ * animation, it is a twitch, and the background change carries the hover state
+ * on its own.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .ringFilling {
+    animation: none;
+  }
+
+  .skeleton {
+    background-image: none;
+    background-color: var(--sunken);
+    animation: none;
+  }
+
+  .absence,
+  .retryButton,
+  .document {
+    transition-duration: var(--dur-instant);
+    transition-timing-function: linear;
+  }
+
+  .absence:hover {
+    transform: none;
+  }
+
+  .absence:active,
+  .retryButton:active,
+  .document:active {
+    transform: none;
+  }
+}
