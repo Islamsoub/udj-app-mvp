@@ -16,6 +16,7 @@ import type {
   PreferencesPayload,
   ScheduleResponse,
   StudentPreferences,
+  UploadJustificationResponse,
 } from '@/lib/api-types';
 
 /**
@@ -136,9 +137,25 @@ function buildHeaders(init: RequestInit): Headers {
   const token = getAccessToken();
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
-  // Only for requests that actually carry one — a GET with a Content-Type is
-  // noise, and the proxy would forward it unchanged.
-  if (init.body !== undefined && init.body !== null && !headers.has('Content-Type')) {
+  /*
+   * Only for requests that actually carry one — a GET with a Content-Type is
+   * noise, and the proxy would forward it unchanged.
+   *
+   * FormData IS EXCLUDED, and this is load-bearing rather than tidiness. A
+   * multipart body is delimited by a boundary string that only the browser
+   * knows; it sets `multipart/form-data; boundary=...` itself when it sees a
+   * FormData body and no explicit header. Setting `application/json` here would
+   * win, the boundary would never be sent, and multer would parse the upload as
+   * JSON and report a missing file — with no error anywhere that points at this
+   * line. The upload helper below therefore passes FormData and no header at
+   * all, and depends on this branch leaving it alone.
+   */
+  if (
+    init.body !== undefined &&
+    init.body !== null &&
+    !(init.body instanceof FormData) &&
+    !headers.has('Content-Type')
+  ) {
     headers.set('Content-Type', 'application/json');
   }
 
@@ -244,3 +261,43 @@ export const getNews = (params: NewsQuery = {}) =>
 
 export const getNewsArticle = (id: string) =>
   apiFetch<NewsArticleDetail>(`/news/${encodeURIComponent(id)}`);
+
+/**
+ * Uploads one justification document for an absence.
+ *
+ * NO Content-Type IS SET HERE, deliberately. `fetch` sets
+ * `multipart/form-data; boundary=...` from the FormData itself, and the boundary
+ * it generates is the only thing that tells the backend's multer where the parts
+ * begin. `buildHeaders` above has a matching exclusion; between them, nothing in
+ * this file ever names a Content-Type for this call.
+ *
+ * The field name is `justification` because that is what
+ * `upload.single('justification')` expects in backend/src/routes/student.ts —
+ * any other name and the handler answers 400 "Missing file field".
+ *
+ * `note` is optional free text, capped at 80 characters server-side. It is
+ * appended only when non-empty: multer's text fields arrive as '' rather than
+ * undefined, and an empty string would be stored as a note the student never
+ * wrote.
+ *
+ * Goes through `apiFetch`, so an expired access token is refreshed and the call
+ * retried exactly once, like every other endpoint. That is also why this does
+ * not use XMLHttpRequest despite XHR being the only way to get real upload
+ * progress events — see the progress note in JustificationForm.
+ */
+export function uploadJustification(
+  recordId: string,
+  file: File,
+  note?: string
+): Promise<UploadJustificationResponse> {
+  const form = new FormData();
+  form.append('justification', file);
+
+  const trimmed = note?.trim();
+  if (trimmed) form.append('note', trimmed);
+
+  return apiFetch<UploadJustificationResponse>(
+    `/student/attendance/${encodeURIComponent(recordId)}/justification`,
+    { method: 'POST', body: form }
+  );
+}

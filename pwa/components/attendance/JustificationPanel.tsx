@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import type { AbsenceRecord } from '@/lib/api-types';
+import type { AbsenceRecord, UploadJustificationResponse } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
 import { AbsenceDate } from './AbsenceDate';
 import {
@@ -12,6 +12,7 @@ import {
   RejectedIcon,
   UploadIcon,
 } from './icons';
+import { JustificationForm } from './JustificationForm';
 import { justificationState } from './model';
 import styles from './attendance.module.css';
 
@@ -26,15 +27,21 @@ import styles from './attendance.module.css';
  * between branches and no crossfade: the panel's own entrance is the only motion
  * involved, and by the time it plays the branch is already decided.
  *
- * ── NOTHING HERE SUBMITS ─────────────────────────────────────────────────────
+ * ── THE UPLOAD BRANCH IS THE ONLY ONE THAT WRITES ───────────────────────────
  *
- * The upload branch renders the form and disables its submit with the reason
- * stated beside it. There is no file input wired to anything, no drag-and-drop
- * target, and no request — POST /student/attendance/:recordId/justification is
- * untouched by this screen. A control that accepted a file and then dropped it
- * would be worse than one that plainly says it is not ready.
+ * It POSTs to /student/attendance/:recordId/justification and, on success,
+ * hands the response up through `onUploaded` so the record can be patched in
+ * place. The other three are read-only views of a decision already taken.
  */
-export function JustificationPanel({ record }: { record: AbsenceRecord }) {
+export function JustificationPanel({
+  record,
+  onUploaded,
+}: {
+  record: AbsenceRecord;
+  /** Hands the server response up so the screen behind can patch this record
+   *  in place — the list must reflect the new PENDING state without a refetch. */
+  onUploaded: (result: UploadJustificationResponse) => void;
+}) {
   const state = justificationState(record);
 
   switch (state) {
@@ -45,20 +52,26 @@ export function JustificationPanel({ record }: { record: AbsenceRecord }) {
     case 'rejected':
       return <RejectedBody record={record} />;
     default:
-      return <UploadBody record={record} />;
+      return <UploadBody record={record} onUploaded={onUploaded} />;
   }
 }
 
 // ── The four bodies ───────────────────────────────────────────────────────────
 
 /**
- * No justification on file. The form, inert.
+ * No justification on file — the upload form.
  *
- * The reason lives in a paragraph the button points at with aria-describedby, so
- * a screen reader that lands on a disabled control is told why it is disabled
- * instead of being left with a dead end.
+ * The form itself lives in JustificationForm: selection, validation, the request
+ * and its failures are a state machine of their own, and keeping it out of here
+ * leaves this file as the four-way switch it is meant to be.
  */
-function UploadBody({ record }: { record: AbsenceRecord }) {
+function UploadBody({
+  record,
+  onUploaded,
+}: {
+  record: AbsenceRecord;
+  onUploaded: (result: UploadJustificationResponse) => void;
+}) {
   const { t } = useI18n();
 
   return (
@@ -69,38 +82,7 @@ function UploadBody({ record }: { record: AbsenceRecord }) {
 
       <p className={styles.panelText}>{t('attendance.panel.none.body')}</p>
 
-      <div className={styles.form}>
-        <p className={styles.formLabel}>{t('attendance.panel.none.file_label')}</p>
-
-        {/*
-          A DESCRIPTION OF THE DROP ZONE, not a drop zone. §5 specifies a dragover
-          state and a progress bar for this element; building either would mean
-          building the upload, which this change does not. So it is rendered as
-          the inert placeholder it is — no input, no drop handlers, no pointer
-          cursor — and the accepted formats are still stated, because they are
-          what the student needs to know before walking to the faculty office.
-        */}
-        <div className={styles.dropZone} aria-hidden="true">
-          <DocumentIcon className={styles.dropIcon} />
-          <p className={styles.dropText}>{t('attendance.panel.none.file_hint')}</p>
-        </div>
-
-        <p className={styles.formLabel}>{t('attendance.panel.none.note_label')}</p>
-        <p className={styles.formHint}>{t('attendance.panel.none.note_hint')}</p>
-
-        <p id={DISABLED_REASON_ID} className={styles.disabledReason}>
-          {t('attendance.panel.none.disabled_reason')}
-        </p>
-
-        <button
-          type="button"
-          className={styles.submit}
-          disabled
-          aria-describedby={DISABLED_REASON_ID}
-        >
-          {t('attendance.panel.none.submit')}
-        </button>
-      </div>
+      <JustificationForm recordId={record.id} onUploaded={onUploaded} />
     </Body>
   );
 }
@@ -267,5 +249,3 @@ function Attachment({ url }: { url: string | null }) {
     </a>
   );
 }
-
-const DISABLED_REASON_ID = 'justification-submit-reason';

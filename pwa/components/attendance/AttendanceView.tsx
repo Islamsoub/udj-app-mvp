@@ -12,7 +12,12 @@ import { SlidePanel } from '@/components/panel/SlidePanel';
 import { Crossfade } from '@/components/schedule/Crossfade';
 import { SegmentedControl } from '@/components/segmented/SegmentedControl';
 import { Interpolated } from '@/components/dashboard/Interpolated';
-import type { AttendanceOverall, AttendanceSubject } from '@/lib/api-types';
+import type {
+  AbsenceRecord,
+  AttendanceOverall,
+  AttendanceSubject,
+  UploadJustificationResponse,
+} from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
 import { AbsenceList } from './AbsenceList';
 import { Hero } from './Hero';
@@ -49,15 +54,56 @@ export function AttendanceView({
   const [selected, setSelected] = useState<FlatAbsence | null>(null);
 
   /*
+   * Records the student has just uploaded for, keyed by id.
+   *
+   * A LOCAL OVERLAY RATHER THAN A REFETCH. Re-running the attendance query
+   * would drop the whole screen back to its skeleton for 400ms and replay
+   * nothing the student needs to see again — the only thing that changed is one
+   * record's justification, and the server told us exactly what it now is. The
+   * overall counts are deliberately NOT touched: an upload leaves the record
+   * ABSENT and only sets justificationStatus to PENDING, so the percentage and
+   * the absence tallies are unchanged by construction.
+   */
+  const [patches, setPatches] = useState<Record<string, Partial<AbsenceRecord>>>({});
+
+  const patched = useMemo(
+    () =>
+      Object.keys(patches).length === 0
+        ? subjects
+        : subjects.map((entry) => ({
+            ...entry,
+            absences: entry.absences.map((a) =>
+              patches[a.id] === undefined ? a : { ...a, ...patches[a.id] }
+            ),
+          })),
+    [subjects, patches]
+  );
+
+  /*
    * Flattened once per response rather than per render. The list is small, but
    * a fresh array every render would hand Crossfade new children on every
    * unrelated re-render — the panel opening, for instance — and it compares
    * children by identity to decide whether a swap is a filter change or noise.
    */
-  const all = useMemo(() => flattenAbsences(subjects), [subjects]);
+  const all = useMemo(() => flattenAbsences(patched), [patched]);
   const todo = useMemo(() => all.filter((entry) => needsAction(entry.record)), [all]);
 
   const shown = filter === 'todo' ? todo : all;
+
+  /*
+   * The open panel reads the record back out of the patched list rather than
+   * holding the snapshot it was opened with. Without this the upload would
+   * update the row behind the panel while the panel itself carried on showing
+   * the form it was opened with — the student would send a justification and see
+   * no change until they closed and reopened it.
+   *
+   * Falls back to the snapshot so closing the panel still has a title to render
+   * during its exit animation, after the record has gone from the list.
+   */
+  const openRecord =
+    selected === null
+      ? null
+      : (all.find((entry) => entry.record.id === selected.record.id)?.record ?? selected.record);
 
   const reducedMotion = useReducedMotion();
 
@@ -147,14 +193,34 @@ export function AttendanceView({
         open={selected !== null}
         onClose={() => setSelected(null)}
         title={
-          selected === null
+          openRecord === null
             ? ''
             : lang === 'ar'
-              ? selected.record.subjectNameAr
-              : selected.record.subjectName
+              ? openRecord.subjectNameAr
+              : openRecord.subjectName
         }
       >
-        {selected !== null && <JustificationPanel record={selected.record} />}
+        {openRecord !== null && (
+          <JustificationPanel
+            record={openRecord}
+            onUploaded={(result) =>
+              /*
+                Exactly the three fields the upload changes, taken from the
+                server's own response rather than assumed. `status` stays ABSENT
+                — only an admin approval moves it — which is why the hero and
+                the per-subject percentages need no adjustment.
+              */
+              setPatches((current) => ({
+                ...current,
+                [openRecord.id]: {
+                  justificationStatus: result.justificationStatus,
+                  justificationUrl: result.justificationUrl,
+                  justificationNote: result.justificationNote,
+                },
+              }))
+            }
+          />
+        )}
       </SlidePanel>
     </>
   );

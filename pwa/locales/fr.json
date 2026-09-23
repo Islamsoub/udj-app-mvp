@@ -276,10 +276,8 @@
         "title": "Aucun justificatif transmis",
         "body": "Cette absence compte dans votre taux de présence tant qu'aucun justificatif n'a été accepté.",
         "file_label": "Justificatif",
-        "file_hint": "Formats acceptés : JPEG, PNG, WebP ou PDF.",
         "note_label": "Motif (facultatif)",
         "note_hint": "80 caractères maximum.",
-        "disabled_reason": "L'envoi de justificatifs depuis l'application web n'est pas encore disponible. Déposez votre justificatif au secrétariat de votre faculté.",
         "submit": "Envoyer le justificatif"
       },
       "pending": {
@@ -297,6 +295,29 @@
       "rejected": {
         "title": "Justificatif refusé",
         "body": "Votre faculté n'a pas retenu ce justificatif. Cette absence compte dans votre taux de présence."
+      }
+    },
+    "upload": {
+      "drop_hint": "Glissez votre justificatif ici, ou cliquez pour le choisir",
+      "formats": "JPEG, PNG, WebP ou PDF · {{size}} Mo maximum",
+      "note_placeholder": "Ex. certificat médical",
+      "progress_label": "Envoi du justificatif",
+      "sending": "Envoi en cours…",
+      "sent": "Justificatif envoyé",
+      "offline": "L'envoi nécessite une connexion. Un justificatif ne peut pas être mis en attente.",
+      "error": {
+        "type": "Format non accepté. Choisissez un fichier JPEG, PNG, WebP ou PDF.",
+        "too_large": "Fichier trop volumineux. La taille maximale est de {{size}} Mo.",
+        "empty": "Ce fichier est vide. Choisissez un autre document.",
+        "multiple": "Un seul fichier à la fois.",
+        "network": "L'envoi a échoué. Vérifiez votre connexion, puis réessayez.",
+        "rejected": "Le serveur a refusé ce justificatif. Réessayez avec un autre fichier.",
+        "not_found": "Cette absence est introuvable. Fermez le panneau et rouvrez la liste.",
+        "deadline": "Le délai pour justifier cette absence est dépassé. Adressez-vous au secrétariat de votre faculté.",
+        "not_absent": "Cette absence a déjà été traitée. Fermez le panneau et rouvrez la liste.",
+        "rate_limited": "Trop de tentatives. Patientez une minute avant de réessayer.",
+        "storage": "Le serveur n'a pas pu enregistrer le fichier. Réessayez dans quelques instants.",
+        "unavailable": "Le service est momentanément indisponible. Réessayez dans quelques instants."
       }
     },
     "empty": {

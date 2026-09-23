@@ -263,3 +263,24 @@ export interface NewsQuery {
   limit?: number;
   offset?: number;
 }
+
+// ── POST /student/attendance/:recordId/justification ──────────────────────────
+
+/**
+ * What the backend answers on a successful upload.
+ *
+ * `justificationStatus` is always 'PENDING' here — the handler writes that
+ * literal, and only an admin review can move it on — but it is typed as the full
+ * union so the value can be spliced straight into an AbsenceRecord without a
+ * cast or a re-fetch.
+ *
+ * `justificationUrl` is a FRESH signed Supabase Storage URL, minted in the same
+ * request with a one-hour life. Like the ones on the attendance response it must
+ * be used exactly as received and never cached.
+ */
+export interface UploadJustificationResponse {
+  success: true;
+  justificationUrl: string;
+  justificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+  justificationNote: string | null;
+}

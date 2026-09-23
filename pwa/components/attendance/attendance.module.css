@@ -684,11 +684,8 @@
 }
 
 /*
- * A PICTURE OF A DROP ZONE. §5 describes a dragover tint and a progress bar for
- * this element; neither exists yet, and neither should be suggested by the
- * styling — so there is no dashed jade border waiting to light up, no pointer
- * cursor, and the whole block is dimmed to the same 0.5 §3 gives a disabled
- * control. It reads as unavailable because it is.
+ * The drop zone. A <label> wrapping a visually-hidden file input, so the whole
+ * box opens the picker and the keyboard still reaches a real control.
  */
 .dropZone {
   display: flex;
@@ -699,7 +696,62 @@
   border: 1px dashed var(--hair2);
   border-radius: var(--r-md);
   background: var(--surface2);
+  /* §5: the dragover swap happens over --dur-instant. */
+  transition: border-color var(--dur-instant) linear,
+    background-color var(--dur-instant) linear;
+}
+
+/* Live, as opposed to the disabled placeholder this used to be. */
+.dropZoneLive {
+  cursor: pointer;
+}
+
+/* §5: "dragover state adds a jade dashed border + jade-faint background over
+   --dur-instant". */
+.dropZoneDragging {
+  border-color: var(--jade);
+  background: var(--jade-faint);
+}
+
+.dropZoneBusy {
   opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/*
+ * Visually hidden, NOT display:none and NOT hidden. Either of those removes the
+ * input from the accessibility tree and the tab order, and the label would then
+ * point at nothing a keyboard could reach. This keeps it focusable and lets the
+ * focus ring land on the zone through :focus-within.
+ */
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.dropFileName {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  /* A filename is one long token often enough that it has to be allowed to
+     break mid-word, or it pushes the panel wider than the viewport. */
+  overflow-wrap: anywhere;
+  color: var(--ink);
+}
+
+.dropFileSize {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ink3);
 }
 
 .dropIcon {
@@ -752,6 +804,110 @@
 .submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ── Upload: note field, error, progress, confirmation ─────────────────────── */
+
+.noteInput {
+  width: 100%;
+  min-height: 44px;
+  padding-inline: 12px;
+  border: 1px solid var(--hair2);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink);
+  /* A form control inherits no font, so the body face is named explicitly —
+     the note is the student's own words and follows the active language. */
+  font-family: inherit;
+  font-size: 13.5px;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+/* §5, inputs: "border color -> jade, 3px jade-faint glow ring appears via
+   box-shadow, over --dur-fast". */
+.noteInput:focus-visible {
+  outline: none;
+  border-color: var(--jade);
+  box-shadow: 0 0 0 3px var(--jade-faint);
+}
+
+.noteInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/*
+ * A rejected file or a failed request. §5's inline field error: danger border,
+ * danger-tinted background. The icon-free wording carries the meaning on its
+ * own, so colour is never the only signal (§10).
+ */
+.formError {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--danger);
+  border-radius: var(--r-md);
+  background: var(--danger-bg);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--danger);
+}
+
+/* §5's upload progress bar. Same track geometry as the subject bars, so the two
+   read as the same component rather than two different ideas of a bar. */
+.progress {
+  position: relative;
+  overflow: hidden;
+  height: 8px;
+  margin: 4px 0;
+  border-radius: 9999px;
+  background: var(--sunken);
+}
+
+/*
+ * Anchored inline-start and sized by width, so it fills from the right in
+ * Arabic with no second rule. The transition is what makes the discrete
+ * 20%-per-tick jumps read as a fill rather than a stutter.
+ */
+.progressFill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: var(--progress, 0%);
+  border-radius: 9999px;
+  background: var(--jade);
+  transition: width var(--dur-fast) var(--ease-in-out);
+}
+
+/* §5: the bar "crossfades to a doc-chip confirmation". */
+.confirmChip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--jade-faint);
+  color: var(--jade-text);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.confirmChipEntering {
+  animation: confirmIn var(--dur-fast) var(--ease-out);
+}
+
+@keyframes confirmIn {
+  from {
+    opacity: 0;
+  }
+}
+
+.confirmIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
 }
 
 /* ── Empty / error / offline (§5, §8) ──────────────────────────────────────── */
@@ -926,6 +1082,7 @@
 /* ── Focus ring (§3, §10) ──────────────────────────────────────────────────── */
 
 /* 2px jade, 2px offset, :focus-visible only — never on a mouse click. */
+.dropZone:has(.fileInput:focus-visible),
 .absence:focus-visible,
 .retryButton:focus-visible,
 .document:focus-visible,
@@ -960,9 +1117,23 @@
     animation: none;
   }
 
+  .confirmChipEntering {
+    animation-duration: var(--dur-instant);
+    animation-timing-function: linear;
+  }
+
+  /* The bar still fills — it is information, not decoration — but it steps
+     instead of gliding. */
+  .progressFill {
+    transition-duration: var(--dur-instant);
+    transition-timing-function: linear;
+  }
+
   .absence,
   .retryButton,
-  .document {
+  .document,
+  .dropZone,
+  .noteInput {
     transition-duration: var(--dur-instant);
     transition-timing-function: linear;
   }
