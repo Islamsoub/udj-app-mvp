@@ -11,8 +11,12 @@ import authMiddleware from '../middleware/auth';
 import { AppError } from '../utils/AppError';
 import {
   buildSessionHoursResolver,
+  canSubmitJustification,
   hoursBasedPercentage,
+  justificationDeadline,
   AttendanceInput,
+  DEFAULT_ATTENDANCE_THRESHOLD,
+  DEFAULT_JUSTIFICATION_DEADLINE_DAYS,
 } from '../utils/attendance';
 
 const router = Router();
@@ -454,9 +458,44 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
   try {
     const studentId = req.studentId!;
 
-    const currentSemester = await prisma.semester.findFirst({ where: { isCurrent: true } });
+    /*
+     * The two rules this endpoint enforces but has never disclosed.
+     *
+     * Both live on SystemSettings and are admin-editable, so a client that
+     * hardcodes them drifts silently the moment the slider moves — which is
+     * exactly what happened: the PWA carried its own 75, and the native app
+     * carries its own 0.85. Sending them makes the server the single source.
+     *
+     * Fetched in parallel with the semester: they are independent reads and
+     * serialising them would add a round trip to every load of this screen.
+     */
+    const [currentSemester, settings] = await Promise.all([
+      prisma.semester.findFirst({ where: { isCurrent: true } }),
+      prisma.systemSettings.findUnique({ where: { id: 'singleton' } }),
+    ]);
+
+    const attendanceThreshold = settings?.attendanceThreshold ?? DEFAULT_ATTENDANCE_THRESHOLD;
+    const deadlineDays =
+      settings?.justificationDeadlineDays ?? DEFAULT_JUSTIFICATION_DEADLINE_DAYS;
+
+    /*
+     * One clock reading for the whole response. Calling `new Date()` per record
+     * would judge a long list against slightly different instants, so a record
+     * sitting exactly on its deadline could come back submittable in one row and
+     * not in the next — rare, but a genuinely inconsistent payload.
+     */
+    const now = new Date();
+
     if (!currentSemester) {
-      res.status(200).json({ overall: null, subjects: [] });
+      // The new fields are on this branch too. A client that reads them must not
+      // have to handle their absence just because no semester is current — the
+      // rules are true regardless of whether there is data to apply them to.
+      res.status(200).json({
+        overall: null,
+        subjects: [],
+        attendanceThreshold,
+        justificationDeadlineDays: deadlineDays,
+      });
       return;
     }
 
@@ -515,6 +554,18 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
       justificationUrl: string | null;
       justificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
       justificationNote: string | null;
+      /**
+       * Whether POST .../justification would be accepted for this record right
+       * now — the server's own verdict, not a hint.
+       *
+       * The client could in principle derive this from `date` and
+       * `justificationDeadlineDays`, and that is precisely the problem: its
+       * clock, its timezone handling and its idea of "a day" would all have to
+       * match the server's, and any mismatch shows a student a form that is
+       * guaranteed to be refused. Computed here with the same function the POST
+       * handler enforces with (utils/attendance.ts), so the two cannot disagree.
+       */
+      canSubmitJustification: boolean;
     };
     const subjectMap = new Map<
       string,
@@ -566,6 +617,12 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
             : null,
           justificationStatus: r.justificationStatus,
           justificationNote: r.justificationNote,
+          canSubmitJustification: canSubmitJustification(
+            r.status,
+            r.sessionDate,
+            deadlineDays,
+            now
+          ),
         });
       }
     }
@@ -601,6 +658,13 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
         percentage: percentageAll,
       },
       subjects,
+      /*
+       * APPENDED, never interleaved. `overall` and `subjects` keep their exact
+       * shapes and positions; these two are new keys beside them, so an existing
+       * client sees a strict superset of what it saw before.
+       */
+      attendanceThreshold,
+      justificationDeadlineDays: deadlineDays,
     });
   } catch (err) {
     next(err);
@@ -893,16 +957,32 @@ router.post(
       }
 
       if (record.status !== 'ABSENT') {
-        throw new AppError('Justification can only be uploaded for ABSENT records', 409);
+        // The sentence is untouched; only the third argument is new. Anything
+        // already reading `error` keeps working byte for byte.
+        throw new AppError(
+          'Justification can only be uploaded for ABSENT records',
+          409,
+          'NOT_ABSENT'
+        );
       }
 
       // Enforce the configurable justification deadline (Pass C §4.4): students
       // cannot submit after N days from the absence date.
       const settings = await prisma.systemSettings.findUnique({ where: { id: 'singleton' } });
-      const deadlineDays = settings?.justificationDeadlineDays ?? 8;
-      const deadline = new Date(record.sessionDate.getTime() + deadlineDays * 24 * 60 * 60 * 1000);
+      const deadlineDays =
+        settings?.justificationDeadlineDays ?? DEFAULT_JUSTIFICATION_DEADLINE_DAYS;
+      /*
+       * Shared with GET /student/attendance, which now reports the same verdict
+       * per record. Inlining it in both places is exactly how the two would
+       * drift — see utils/attendance.ts.
+       */
+      const deadline = justificationDeadline(record.sessionDate, deadlineDays);
       if (new Date() > deadline) {
-        throw new AppError(`Délai de soumission dépassé (${deadlineDays} jours)`, 409);
+        throw new AppError(
+          `Délai de soumission dépassé (${deadlineDays} jours)`,
+          409,
+          'DEADLINE_PASSED'
+        );
       }
 
       const ext = EXT_BY_MIME[contentType];

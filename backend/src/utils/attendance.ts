@@ -126,3 +126,63 @@ export function hoursBasedPercentage(
   if (total <= 0) return null;
   return Math.round((attended / total) * 100);
 }
+
+// ── Justification deadline (Pass C §4.4) ──────────────────────────────────────
+
+/**
+ * Fallback when SystemSettings has not been seeded. Matches the Prisma default
+ * on `SystemSettings.justificationDeadlineDays`, so a missing row behaves like a
+ * default one rather than like no deadline at all.
+ */
+export const DEFAULT_JUSTIFICATION_DEADLINE_DAYS = 8;
+
+/**
+ * Minimum attendance percentage, as a whole number out of 100.
+ *
+ * Matches the Prisma default on `SystemSettings.attendanceThreshold` and the
+ * `?? 75` the two admin routes already fall back to; naming it here means the
+ * three places that need it stop repeating a literal.
+ *
+ * NOT A NEW RULE AND NOT A NEW VALUE — the threshold is still whatever the
+ * settings row says, and this is only what to use when that row is missing.
+ */
+export const DEFAULT_ATTENDANCE_THRESHOLD = 75;
+
+/**
+ * The instant after which a justification for `sessionDate` is refused.
+ *
+ * EXTRACTED SO THE TWO CALLERS CANNOT DISAGREE. The POST handler enforces this
+ * deadline and the GET handler now reports whether it has passed; if each did
+ * its own date arithmetic, a client could be told a record is still submittable
+ * and then be refused by the very next request. One function, both callers.
+ *
+ * Deliberately the same millisecond arithmetic the POST handler has always
+ * used — `getTime() + days * 86_400_000` — rather than a calendar-aware
+ * addition. Switching to calendar days would move the boundary across a DST
+ * change and would be a behaviour change, not a refactor; this is additive work
+ * and the existing rule is left exactly as it was.
+ */
+export function justificationDeadline(sessionDate: Date, deadlineDays: number): Date {
+  return new Date(sessionDate.getTime() + deadlineDays * 24 * 60 * 60 * 1000);
+}
+
+/**
+ * Whether a student may still upload a justification for one record.
+ *
+ * Both conditions the POST handler applies, in the same order: the record has to
+ * be an absence, and it has to be inside the window. A JUSTIFIED record is
+ * already excused and a PRESENT one was never missed, so neither is submittable
+ * — which is what the POST's 409 says.
+ *
+ * `now` is injectable so this stays a pure function and can be reasoned about
+ * without freezing the clock.
+ */
+export function canSubmitJustification(
+  status: AttendanceStatus,
+  sessionDate: Date,
+  deadlineDays: number,
+  now: Date = new Date()
+): boolean {
+  if (status !== AttendanceStatus.ABSENT) return false;
+  return now <= justificationDeadline(sessionDate, deadlineDays);
+}
