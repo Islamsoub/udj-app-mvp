@@ -381,6 +381,87 @@
       }
     }
   },
+  "profile": {
+    "heading": "Profil",
+    "state": {
+      "error": "Impossible de charger votre profil.",
+      "offline": "Votre profil n'est pas disponible hors ligne. L'apparence et la déconnexion restent disponibles ci-dessous."
+    },
+    "status": {
+      "active": "Inscrit",
+      "suspended": "Inscription suspendue",
+      "graduated": "Diplômé",
+      "unknown": "Statut inconnu"
+    },
+    "level": {
+      "dut": "DUT",
+      "licence": "Licence",
+      "master": "Master",
+      "doctorat": "Doctorat",
+      "unknown": "—"
+    },
+    "studies": {
+      "title": "Études",
+      "programme": "Filière",
+      "level": "Niveau",
+      "semester": "Semestre",
+      "semester_value": "{{current}} sur {{total}}",
+      "faculty": "Faculté"
+    },
+    "progress": {
+      "title": "Parcours",
+      "gpa": "Moyenne du semestre",
+      "gpa_unpublished": "Non publiée",
+      "semester_credits": "Crédits du semestre",
+      "total_credits": "Crédits du cursus",
+      "credits_value": "{{earned}} / {{total}}",
+      "attendance": "Présence",
+      "none": "Aucune séance enregistrée"
+    },
+    "contact": {
+      "title": "Contacter ma faculté",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "address": "Adresse",
+      "hours": "Horaires"
+    },
+    "notifs": {
+      "title": "Notifications",
+      "intro": "Ces réglages concernent l'application mobile Unipocket sur votre téléphone : ils décident des notifications qu'elle reçoit. Ce navigateur n'affiche aucune notification. Ils sont liés à votre compte et s'appliquent sur tous vos téléphones.",
+      "grades": "Notes",
+      "grades_hint": "Publication de vos notes de contrôle continu et d'examen.",
+      "courses": "Emploi du temps",
+      "courses_hint": "Changements de salle, d'horaire ou annulations de cours.",
+      "attendance": "Assiduité",
+      "attendance_hint": "Absences enregistrées et décisions sur vos justificatifs.",
+      "offline": "Connexion requise pour modifier vos notifications."
+    },
+    "quiet": {
+      "title": "Heures calmes",
+      "hint": "Format 24 h (HH:MM). Pendant cette plage, l'application mobile masque les notifications qu'elle reçoit. Les heures sont celles de votre téléphone.",
+      "same": "Début et fin identiques : aucune plage calme n'est appliquée.",
+      "start": "Début",
+      "end": "Fin",
+      "unset": "Non définie"
+    },
+    "save": {
+      "saving": "Enregistrement…",
+      "saved": "Enregistré",
+      "error": "Échec de l'enregistrement. Votre réglage n'a pas été modifié ; réessayez."
+    },
+    "appearance": {
+      "title": "Apparence",
+      "intro": "Enregistrés sur ce navigateur uniquement.",
+      "theme": "Thème",
+      "light": "Clair",
+      "dark": "Sombre",
+      "system": "Système",
+      "language": "Langue"
+    },
+    "account": {
+      "title": "Compte"
+    }
+  },
   "offline": {
     "banner": "Vous êtes hors ligne. Données mises en cache affichées.",
     "restored": "Connexion rétablie",

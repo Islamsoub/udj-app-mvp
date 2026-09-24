@@ -129,6 +129,10 @@
 }
 
 [data-theme="light"] {
+  /* Tells the browser which palette its own chrome should use — scrollbars,
+     <select> popups, the time field's picker — so they follow the theme. */
+  color-scheme: light;
+
   --bg: #F7F4EE;
   --surface: #FFFFFF;
   --surface2: #F8F5EF;
@@ -157,6 +161,8 @@
 }
 
 [data-theme="dark"] {
+  color-scheme: dark;
+
   --bg: #15201A;
   --surface: #1C2721;
   --surface2: #22302A;
@@ -195,6 +201,43 @@
   --dur-slow: 450ms;
   --ease-out: cubic-bezier(.16, 1, .3, 1);
   --ease-in-out: cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Theme switch crossfade — §6.
+
+   "A single CSS rule on * scoped to these three properties, removed immediately
+   after the transition ends to avoid interfering with hover/focus timing."
+
+   The attribute exists only for the length of one switch: lib/theme.tsx sets
+   it, swaps data-theme, and removes it once --dur-slow has elapsed. While it is
+   present it overrides every component's own transition — that is the point,
+   and it is also why it must not outlive the switch.
+
+   !important because component rules like `.chip:hover` out-specify any
+   universal selector, and a card whose hover transition survived would snap
+   while the page around it faded.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+html[data-theme-switching],
+html[data-theme-switching] *,
+html[data-theme-switching] *::before,
+html[data-theme-switching] *::after {
+  transition-property: background-color, color, border-color !important;
+  transition-duration: var(--dur-slow) !important;
+  transition-timing-function: var(--ease-in-out) !important;
+  transition-delay: 0s !important;
+}
+
+/* §2: collapsed to --dur-instant with no easing curve. */
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme-switching],
+  html[data-theme-switching] *,
+  html[data-theme-switching] *::before,
+  html[data-theme-switching] *::after {
+    transition-duration: var(--dur-instant) !important;
+    transition-timing-function: linear !important;
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

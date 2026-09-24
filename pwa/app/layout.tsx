@@ -5,6 +5,8 @@ import { I18nProvider } from '@/lib/i18n';
 // Values, not types, so they must come from the non-client module — every export
 // of lib/i18n.tsx is a client reference and cannot be called while rendering here.
 import { LANG_COOKIE, dirFor, resolveLang } from '@/lib/i18n-shared';
+import { ThemeProvider } from '@/lib/theme';
+import { THEME_BOOTSTRAP, THEME_COOKIE, resolveThemePref, serverTheme } from '@/lib/theme-shared';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -40,11 +42,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // other junk resolves to French rather than being indexed into a dictionary.
   const store = await cookies();
   const lang = resolveLang(store.get(LANG_COOKIE)?.value);
+  // Same cookie-first arrangement as the language: an explicit light or dark is
+  // in the first byte of HTML. `system` renders light here and THEME_BOOTSTRAP
+  // corrects it from prefers-color-scheme before first paint.
+  const themePref = resolveThemePref(store.get(THEME_COOKIE)?.value);
 
   return (
-    // suppressHydrationWarning: LANG_BOOTSTRAP may rewrite lang/dir before React
-    // hydrates, in the migration case described above.
-    <html lang={lang} dir={dirFor(lang)} data-theme="light" suppressHydrationWarning>
+    // suppressHydrationWarning: LANG_BOOTSTRAP may rewrite lang/dir, and
+    // THEME_BOOTSTRAP data-theme, before React hydrates.
+    <html lang={lang} dir={dirFor(lang)} data-theme={serverTheme(themePref)} suppressHydrationWarning>
       <head>
         {/* Only the faces the first paint actually needs. Preloading all nine
             would put 328 KB of fonts ahead of the CSS and JS in the queue and
@@ -67,12 +73,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <link rel="preload" href="/fonts/NotoNaskhArabic-Regular.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         )}
         <script dangerouslySetInnerHTML={{ __html: LANG_BOOTSTRAP }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
       </head>
       <body>
         {/* The Arabic body face comes from the `html[lang="ar"] body` rule in
             globals.css, so the server-rendered lang attribute already selects the
             right stack at first paint — no client pass needed. */}
-        <I18nProvider initialLang={lang}>{children}</I18nProvider>
+        <I18nProvider initialLang={lang}>
+          <ThemeProvider initialPref={themePref}>{children}</ThemeProvider>
+        </I18nProvider>
       </body>
     </html>
   );
