@@ -110,8 +110,14 @@ function StatusDot({ state }: { state: JustificationState }) {
   }
 }
 
+/*
+ * `expired` shares `none`'s styling: it is the same unjustified absence, and
+ * only the word changes — "À justifier" on a row the "À justifier" filter
+ * leaves out would contradict it.
+ */
 const CHIP_KEY: Record<JustificationState, TranslationKey> = {
   none: 'attendance.status.none',
+  expired: 'attendance.status.expired',
   pending: 'attendance.status.pending',
   approved: 'attendance.status.approved',
   rejected: 'attendance.status.rejected',
@@ -119,6 +125,7 @@ const CHIP_KEY: Record<JustificationState, TranslationKey> = {
 
 const CHIP_CLASS: Record<JustificationState, string> = {
   none: styles.chipNone,
+  expired: styles.chipNone,
   pending: styles.chipPending,
   approved: styles.chipApproved,
   rejected: styles.chipRejected,
@@ -126,6 +133,7 @@ const CHIP_CLASS: Record<JustificationState, string> = {
 
 const ICON_CLASS: Record<JustificationState, string> = {
   none: styles.iconNone,
+  expired: styles.iconNone,
   pending: styles.iconPending,
   approved: styles.iconApproved,
   rejected: styles.iconRejected,

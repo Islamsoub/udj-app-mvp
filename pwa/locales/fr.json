@@ -249,7 +249,7 @@
     "absences": {
       "title": "Absences",
       "count": "Affichées : {{shown}} sur {{total}}",
-      "none_todo": "Toutes vos absences ont été traitées.",
+      "none_todo": "Aucune absence ne peut être justifiée pour le moment.",
       "none_at_all": "Vous n'avez aucune absence ce semestre. Vous avez assisté à toutes vos séances."
     },
     "absence": {
@@ -262,6 +262,7 @@
     },
     "status": {
       "none": "À justifier",
+      "expired": "Délai dépassé",
       "pending": "En attente",
       "approved": "Justifiée",
       "rejected": "Refusée"
@@ -279,6 +280,10 @@
         "note_label": "Motif (facultatif)",
         "note_hint": "80 caractères maximum.",
         "submit": "Envoyer le justificatif"
+      },
+      "expired": {
+        "title": "Délai de justification dépassé",
+        "body": "Les justificatifs sont acceptés pendant un délai de {{days}} jour(s) après la séance. Ce délai est écoulé : cette absence ne peut plus être justifiée en ligne et reste comptée dans votre taux de présence. Pour toute question, adressez-vous au secrétariat de votre faculté."
       },
       "pending": {
         "title": "Justificatif en cours d'examen",
@@ -315,6 +320,7 @@
         "not_found": "Cette absence est introuvable. Fermez le panneau et rouvrez la liste.",
         "deadline": "Le délai pour justifier cette absence est dépassé. Adressez-vous au secrétariat de votre faculté.",
         "not_absent": "Cette absence a déjà été traitée. Fermez le panneau et rouvrez la liste.",
+        "conflict": "Cette absence ne peut plus recevoir de justificatif. Fermez le panneau et rouvrez la liste.",
         "rate_limited": "Trop de tentatives. Patientez une minute avant de réessayer.",
         "storage": "Le serveur n'a pas pu enregistrer le fichier. Réessayez dans quelques instants.",
         "unavailable": "Le service est momentanément indisponible. Réessayez dans quelques instants."

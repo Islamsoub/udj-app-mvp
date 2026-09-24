@@ -4,7 +4,7 @@ import { Interpolated } from '@/components/dashboard/Interpolated';
 import type { AttendanceSubject } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
 import { WarningIcon } from './icons';
-import { ATTENDANCE_THRESHOLD, sortSubjects } from './model';
+import { sortSubjects } from './model';
 import styles from './attendance.module.css';
 
 /**
@@ -25,7 +25,14 @@ import styles from './attendance.module.css';
  * signal the design system does not define. A labelled progressbar gives the
  * same semantics with a bar the stylesheet owns.
  */
-export function SubjectBreakdown({ subjects }: { subjects: AttendanceSubject[] }) {
+export function SubjectBreakdown({
+  subjects,
+  threshold,
+}: {
+  subjects: AttendanceSubject[];
+  /** From the response; see model.ts for why there is no local default. */
+  threshold: number;
+}) {
   const { t, lang } = useI18n();
 
   const ordered = sortSubjects(subjects);
@@ -37,7 +44,7 @@ export function SubjectBreakdown({ subjects }: { subjects: AttendanceSubject[] }
       <p className={styles.sectionNote}>
         <Interpolated
           template={t('attendance.subjects.note')}
-          values={{ threshold: ATTENDANCE_THRESHOLD }}
+          values={{ threshold }}
         />
       </p>
 
@@ -45,7 +52,7 @@ export function SubjectBreakdown({ subjects }: { subjects: AttendanceSubject[] }
         {ordered.map((entry) => {
           const name = lang === 'ar' ? entry.subject.nameAr : entry.subject.nameFr;
           const value = Math.round(entry.percentage);
-          const below = entry.percentage < ATTENDANCE_THRESHOLD;
+          const below = entry.percentage < threshold;
 
           return (
             <li
@@ -79,7 +86,7 @@ export function SubjectBreakdown({ subjects }: { subjects: AttendanceSubject[] }
                 style={
                   {
                     '--bar-value': `${Math.max(0, Math.min(100, value))}%`,
-                    '--bar-threshold': `${ATTENDANCE_THRESHOLD}%`,
+                    '--bar-threshold': `${threshold}%`,
                   } as React.CSSProperties
                 }
               >

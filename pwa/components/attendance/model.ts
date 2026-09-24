@@ -1,35 +1,23 @@
-import type { AbsenceRecord, AttendanceSubject } from '@/lib/api-types';
+import type { AbsenceRecord, AttendanceResponse, AttendanceSubject } from '@/lib/api-types';
 
 /**
- * The attendance rules the screen needs and the API does not send.
- *
- * ── THE THRESHOLD ────────────────────────────────────────────────────────────
- *
- * 75%, and it is a constant here because it cannot be anything else yet.
- *
- * The real value lives on the server: `SystemSettings.attendanceThreshold`,
- * `Int @default(75)` in backend/prisma/schema.prisma, changeable by an admin
- * through PATCH /admin/settings/attendance-threshold within 50-100. The live row
- * currently holds exactly the default. But GET /student/attendance does not
- * return it — only the admin routes read it (routes/admin/attendance.ts and
- * routes/admin/dashboard.ts, both `settings?.attendanceThreshold ?? 75`), so a
- * student client has no way to ask.
- *
- * THIS WILL DRIFT. The moment an admin moves that slider, the admin portal and
- * this screen disagree about who is at risk, and nothing here will notice. The
- * fix is one field on the student response, which is a backend change and does
- * not belong in a screen commit; until then the constant is kept in one place
- * with the server named as its source, so there is exactly one line to change.
+ * The attendance rules — the threshold and the justification window — are NOT
+ * defined here. Both are admin-editable on the server and arrive on every
+ * GET /student/attendance response; `checkAttendanceContract` below refuses a
+ * response that lacks them rather than substituting a local value.
  */
-export const ATTENDANCE_THRESHOLD = 75;
 
 /**
- * Which of the justification panel's four sub-states a record is in.
+ * Which of the justification panel's sub-states a record is in.
  *
  * Mutually exclusive SERVER states, not something the student toggles — which is
  * why §9 has the panel route straight to one of them with no transition between.
+ *
+ * `expired` is §9's upload-form state with the server's `canSubmitJustification`
+ * verdict against it: nothing was filed and the window has closed, so the panel
+ * explains that instead of offering a form the POST is certain to refuse.
  */
-export type JustificationState = 'none' | 'pending' | 'approved' | 'rejected';
+export type JustificationState = 'none' | 'expired' | 'pending' | 'approved' | 'rejected';
 
 /**
  * Reads the sub-state off a record.
@@ -56,29 +44,54 @@ export function justificationState(record: AbsenceRecord): JustificationState {
     case 'REJECTED':
       return 'rejected';
     default:
-      return record.status === 'JUSTIFIED' ? 'approved' : 'none';
+      if (record.status === 'JUSTIFIED') return 'approved';
+      return record.canSubmitJustification ? 'none' : 'expired';
   }
 }
 
 /**
  * "Is this one still on the student's plate?"
  *
- * Nothing filed yet, or filed and turned down. Pending is off the list because
- * the student has already done their part and is waiting on the faculty, and
- * approved is off it because it is settled.
- *
- * NOT DEADLINE-AWARE, and that is a known gap. The server enforces a submission
- * window — `SystemSettings.justificationDeadlineDays`, 8 by default, checked in
- * POST /student/attendance/:recordId/justification — after which an absence can
- * no longer be justified at all. That field is not in the attendance response
- * either, so the filter cannot tell a still-actionable absence from one that has
- * timed out. It over-counts rather than under-counts, which is the safer
- * direction: the student sees the absence and can ask, instead of it quietly
- * disappearing from the list.
+ * Nothing filed yet, or filed and turned down — AND the server still accepts a
+ * submission for it. Pending is off the list because the student has already
+ * done their part, approved because it is settled, and anything past its window
+ * because there is nothing left the student can do in the app; its panel says so
+ * and points to the faculty.
  */
 export function needsAction(record: AbsenceRecord): boolean {
   const state = justificationState(record);
-  return state === 'none' || state === 'rejected';
+  return (state === 'none' || state === 'rejected') && record.canSubmitJustification;
+}
+
+/**
+ * Throws when a response lacks the rules this screen is built on.
+ *
+ * NO LOCAL FALLBACK, deliberately. A default threshold here would be exactly the
+ * hardcoded 75 this replaced, silently disagreeing with the admin portal the day
+ * the setting moves; a missing `canSubmitJustification` read as falsy would mark
+ * every absence expired. A response without these fields means the PWA is
+ * talking to a backend older than 15ecfe7 — a deployment bug — so it is logged
+ * by name and the screen shows its error state rather than guessing.
+ */
+export function checkAttendanceContract(data: AttendanceResponse): AttendanceResponse {
+  const missing: string[] = [];
+
+  if (typeof data.attendanceThreshold !== 'number') missing.push('attendanceThreshold');
+  if (typeof data.justificationDeadlineDays !== 'number') {
+    missing.push('justificationDeadlineDays');
+  }
+  const recordsOk = data.subjects.every((entry) =>
+    entry.absences.every((a) => typeof a.canSubmitJustification === 'boolean')
+  );
+  if (!recordsOk) missing.push('absences[].canSubmitJustification');
+
+  if (missing.length > 0) {
+    const message = `GET /student/attendance is missing ${missing.join(', ')}`;
+    console.error(`[attendance] ${message}`);
+    throw new Error(message);
+  }
+
+  return data;
 }
 
 /** A record plus the subject it belongs to — the absence list is flat and

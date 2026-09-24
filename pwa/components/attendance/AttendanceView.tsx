@@ -42,11 +42,17 @@ export function AttendanceView({
   overall,
   subjects,
   percentage,
+  threshold,
+  deadlineDays,
 }: {
   overall: AttendanceOverall;
   subjects: AttendanceSubject[];
   /** Non-null by construction: the caller renders an empty state without one. */
   percentage: number;
+  /** `attendanceThreshold` from the response — the server's, never a local one. */
+  threshold: number;
+  /** `justificationDeadlineDays` from the response, stated by the expired panel. */
+  deadlineDays: number;
 }) {
   const { t, lang } = useI18n();
 
@@ -110,10 +116,11 @@ export function AttendanceView({
   const list =
     shown.length === 0 ? (
       /*
-        BOTH EMPTIES HERE ARE GOOD NEWS, and they are still two different pieces
-        of it. No absences at all is a perfect semester; nothing left to justify
-        is a semester whose absences are all settled. A student with nine
-        absences and every one of them excused must not be told they have none.
+        TWO DIFFERENT EMPTIES. No absences at all is a perfect semester and is
+        written as good news. Nothing left to justify covers settled absences AND
+        ones whose window has closed, so its copy claims only that nothing is
+        actionable — not that everything was dealt with. A student with nine
+        absences must not be told they have none.
 
         Neither is the screen's "nothing recorded" state, which is real missing
         data and is handled one level up in Attendance.tsx.
@@ -129,9 +136,9 @@ export function AttendanceView({
 
   return (
     <>
-      <Hero overall={overall} percentage={percentage} />
+      <Hero overall={overall} percentage={percentage} threshold={threshold} />
 
-      <SubjectBreakdown subjects={subjects} />
+      <SubjectBreakdown subjects={subjects} threshold={threshold} />
 
       <section className={styles.section}>
         <div className={styles.absencesHead}>
@@ -203,6 +210,7 @@ export function AttendanceView({
         {openRecord !== null && (
           <JustificationPanel
             record={openRecord}
+            deadlineDays={deadlineDays}
             onUploaded={(result) =>
               /*
                 Exactly the three fields the upload changes, taken from the

@@ -13,6 +13,7 @@ import { getAttendance } from '@/lib/api-client';
 import type { AttendanceResponse } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
 import { AttendanceView } from './AttendanceView';
+import { checkAttendanceContract } from './model';
 import { AttendanceSkeleton } from './skeletons';
 import styles from './attendance.module.css';
 
@@ -20,9 +21,12 @@ import styles from './attendance.module.css';
  * Module scope, so the reference is stable: useCardData holds its fetcher in a
  * ref and re-runs only on retry or reconnect, and an inline arrow here would be
  * a new function on every render for no benefit.
+ *
+ * The contract check runs here, at the boundary, so a response without the
+ * server's rules lands in the error state instead of reaching the view.
  */
 function loadAttendance(): Promise<AttendanceResponse> {
-  return getAttendance();
+  return getAttendance().then(checkAttendanceContract);
 }
 
 /**
@@ -119,6 +123,12 @@ function Settled({ data }: { data: AttendanceResponse }) {
   }
 
   return (
-    <AttendanceView overall={overall} subjects={data.subjects} percentage={percentage} />
+    <AttendanceView
+      overall={overall}
+      subjects={data.subjects}
+      percentage={percentage}
+      threshold={data.attendanceThreshold}
+      deadlineDays={data.justificationDeadlineDays}
+    />
   );
 }

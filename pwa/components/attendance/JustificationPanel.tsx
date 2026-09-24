@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { Interpolated } from '@/components/dashboard/Interpolated';
 import type { AbsenceRecord, UploadJustificationResponse } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
 import { AbsenceDate } from './AbsenceDate';
@@ -10,6 +11,7 @@ import {
   ExternalIcon,
   PendingIcon,
   RejectedIcon,
+  UnjustifiedIcon,
   UploadIcon,
 } from './icons';
 import { JustificationForm } from './JustificationForm';
@@ -22,6 +24,8 @@ import styles from './attendance.module.css';
  * §9: "Opening the justification panel routes to one of four sub-states (upload
  * form / pending / approved / rejected) with no transition between them since
  * they're mutually exclusive server states, not something a user toggles."
+ * The upload-form state splits in two on the server's `canSubmitJustification`:
+ * the form while the window is open, an explanation once it has closed.
  *
  * So this is a switch and nothing more. There is no shared shell that animates
  * between branches and no crossfade: the panel's own entrance is the only motion
@@ -35,9 +39,12 @@ import styles from './attendance.module.css';
  */
 export function JustificationPanel({
   record,
+  deadlineDays,
   onUploaded,
 }: {
   record: AbsenceRecord;
+  /** The response's `justificationDeadlineDays`, stated by the expired body. */
+  deadlineDays: number;
   /** Hands the server response up so the screen behind can patch this record
    *  in place — the list must reflect the new PENDING state without a refetch. */
   onUploaded: (result: UploadJustificationResponse) => void;
@@ -45,6 +52,8 @@ export function JustificationPanel({
   const state = justificationState(record);
 
   switch (state) {
+    case 'expired':
+      return <ExpiredBody record={record} deadlineDays={deadlineDays} />;
     case 'pending':
       return <PendingBody record={record} />;
     case 'approved':
@@ -83,6 +92,29 @@ function UploadBody({
       <p className={styles.panelText}>{t('attendance.panel.none.body')}</p>
 
       <JustificationForm recordId={record.id} onUploaded={onUploaded} />
+    </Body>
+  );
+}
+
+/**
+ * Nothing filed, and the server no longer accepts a submission.
+ *
+ * Says why instead of showing an inert form: the window, in days, as the
+ * server states it, and where to turn instead. The figure goes through
+ * Interpolated so it stays on the Latin face in Arabic.
+ */
+function ExpiredBody({ record, deadlineDays }: { record: AbsenceRecord; deadlineDays: number }) {
+  const { t } = useI18n();
+
+  return (
+    <Body record={record}>
+      <Banner tone="neutral" icon={<UnjustifiedIcon className={styles.bannerIcon} />}>
+        {t('attendance.panel.expired.title')}
+      </Banner>
+
+      <p className={styles.panelText}>
+        <Interpolated template={t('attendance.panel.expired.body')} values={{ days: deadlineDays }} />
+      </p>
     </Body>
   );
 }

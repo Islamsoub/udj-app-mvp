@@ -173,6 +173,13 @@ export interface AbsenceRecord {
   justificationUrl: string | null;
   justificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
   justificationNote: string | null;
+  /**
+   * Whether POST .../justification would be accepted for this record right now:
+   * ABSENT and still inside the deadline window. The server's verdict, computed
+   * with the same helper its POST handler enforces with, so the client never
+   * re-derives it from `date` and its own clock.
+   */
+  canSubmitJustification: boolean;
 }
 
 export interface AttendanceSubject {
@@ -196,10 +203,15 @@ export interface AttendanceOverall {
   percentage: number | null;
 }
 
-/** `overall` is null when no semester is marked current. */
+/** `overall` is null when no semester is marked current. The two rules are
+ *  sent on that branch too, so they are never optional. */
 export interface AttendanceResponse {
   overall: AttendanceOverall | null;
   subjects: AttendanceSubject[];
+  /** Minimum presence, a whole number out of 100 (`SystemSettings`, admin-editable). */
+  attendanceThreshold: number;
+  /** Days after the session during which a justification is accepted (1-30). */
+  justificationDeadlineDays: number;
 }
 
 // ── GET /student/notifications ────────────────────────────────────────────────
@@ -283,4 +295,16 @@ export interface UploadJustificationResponse {
   justificationUrl: string;
   justificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
   justificationNote: string | null;
+}
+
+/**
+ * The backend's error body. `error` is a human sentence in whatever language the
+ * thrower wrote it and is never shown to a student. `code` is present only on
+ * errors the backend declares deliberately (backend/src/utils/AppError.ts) —
+ * today the two 409s of the upload above — and is absent on older deployments,
+ * so every reader must handle it missing.
+ */
+export interface ApiErrorBody {
+  error: string;
+  code?: 'NOT_ABSENT' | 'DEADLINE_PASSED';
 }

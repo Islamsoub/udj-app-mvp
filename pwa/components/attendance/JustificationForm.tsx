@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Interpolated } from '@/components/dashboard/Interpolated';
 import { useOnline } from '@/components/shell/useOnline';
 import { ApiError, uploadJustification } from '@/lib/api-client';
-import type { UploadJustificationResponse } from '@/lib/api-types';
+import type { ApiErrorBody, UploadJustificationResponse } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n-types';
 import { CheckIcon, DocumentIcon, UploadIcon } from './icons';
@@ -353,19 +353,21 @@ export function JustificationForm({
 // ── Failure mapping ───────────────────────────────────────────────────────────
 
 /**
- * Turns a thrown request error into a translation key. The raw message is NEVER
- * rendered — it is only read here to pick between keys.
+ * Turns a thrown request error into a translation key. The backend's `error`
+ * sentence is NEVER rendered.
  *
- * ── THE BACKEND SENDS NO ERROR CODE ──────────────────────────────────────────
+ * ── 409: BY `code` ───────────────────────────────────────────────────────────
  *
- * Its error handler emits `{ error: <human sentence> }` and nothing else (see
- * backend/src/middleware/errorHandler.ts), so two distinct 400s — a rejected
- * file type and an oversized file — and two distinct 409s — a record that is not
- * an absence and one past its submission deadline — are indistinguishable by
- * status alone. Matching on the sentence is the only option available, and it
- * is done defensively: an unrecognised message falls through to the generic
- * message for that status rather than to a wrong specific one. A machine-
- * readable `code` on the backend's error body would remove this entirely.
+ * The two 409s carry a machine-readable `code` (NOT_ABSENT, DEADLINE_PASSED —
+ * backend/src/utils/AppError.ts), and that is the only thing read to tell them
+ * apart. A 409 with no recognised code — an older deployment — gets a generic
+ * conflict message rather than a guess at one of the two.
+ *
+ * ── 400: STILL BY SENTENCE ───────────────────────────────────────────────────
+ *
+ * The 400s have no codes yet, so a rejected type and an oversized file are
+ * still told apart by matching the English sentence, defensively: anything
+ * unrecognised falls through to the generic rejection, never a wrong specific.
  */
 function errorKey(err: unknown): TranslationKey {
   if (!(err instanceof ApiError)) {
@@ -386,15 +388,18 @@ function errorKey(err: unknown): TranslationKey {
 
     case 409:
       /*
-       * The deadline case, and it is the one this data will hit: the backend
-       * refuses a justification more than `justificationDeadlineDays` (8) after
-       * the session, and that field is not in the attendance response, so the
-       * form cannot grey itself out in advance.
+       * The form is only offered while the server says `canSubmitJustification`,
+       * so these are races: the window closed, or an admin acted on the record,
+       * between the list loading and the upload landing.
        */
-      if (/d[ée]lai|deadline|d[ée]pass/i.test(message)) {
-        return 'attendance.upload.error.deadline';
+      switch (codeOf(err.body)) {
+        case 'DEADLINE_PASSED':
+          return 'attendance.upload.error.deadline';
+        case 'NOT_ABSENT':
+          return 'attendance.upload.error.not_absent';
+        default:
+          return 'attendance.upload.error.conflict';
       }
-      return 'attendance.upload.error.not_absent';
 
     case 413:
       // Vercel's platform limit, answered before the function runs. Reachable
@@ -422,6 +427,15 @@ function messageOf(body: unknown): string {
   if (typeof body !== 'object' || body === null) return '';
   const value = (body as { error?: unknown }).error;
   return typeof value === 'string' ? value : '';
+}
+
+/** The `code` out of a parsed body when it is one this client knows, else null.
+ *  An unknown string is null too, so a future code cannot be mistaken for one of
+ *  these two. */
+function codeOf(body: unknown): ApiErrorBody['code'] | null {
+  if (typeof body !== 'object' || body === null) return null;
+  const value = (body as { code?: unknown }).code;
+  return value === 'NOT_ABSENT' || value === 'DEADLINE_PASSED' ? value : null;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────

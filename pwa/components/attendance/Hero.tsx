@@ -4,7 +4,6 @@ import { Interpolated } from '@/components/dashboard/Interpolated';
 import type { AttendanceOverall } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
 import { WarningIcon } from './icons';
-import { ATTENDANCE_THRESHOLD } from './model';
 import { PresenceRing } from './PresenceRing';
 import styles from './attendance.module.css';
 
@@ -13,7 +12,7 @@ import styles from './attendance.module.css';
  * percentage is measured against.
  *
  * THE THRESHOLD IS STATED HERE, not only implied by a colour on the subject
- * rows. A student who is at 92% needs to know 75% is the line before the number
+ * rows. A student who is at 92% needs to know where the line is before the number
  * means anything, and §10 forbids colour as the only signal anyway — so the
  * requirement is a sentence, and being under it adds an icon and a word on top
  * of the tint rather than instead of it.
@@ -22,10 +21,19 @@ import styles from './attendance.module.css';
  * 0% to its target value", and a gauge pinned at zero reads as "you attended
  * nothing" — a different and much worse claim than "nothing has been recorded".
  */
-export function Hero({ overall, percentage }: { overall: AttendanceOverall; percentage: number }) {
+export function Hero({
+  overall,
+  percentage,
+  threshold,
+}: {
+  overall: AttendanceOverall;
+  percentage: number;
+  /** From the response; see model.ts for why there is no local default. */
+  threshold: number;
+}) {
   const { t } = useI18n();
 
-  const below = percentage < ATTENDANCE_THRESHOLD;
+  const below = percentage < threshold;
 
   return (
     <section className={styles.hero}>
@@ -59,7 +67,7 @@ export function Hero({ overall, percentage }: { overall: AttendanceOverall; perc
           {below && <WarningIcon className={styles.heroThresholdIcon} />}
           <Interpolated
             template={t(below ? 'attendance.hero.below' : 'attendance.hero.threshold')}
-            values={{ threshold: ATTENDANCE_THRESHOLD }}
+            values={{ threshold }}
           />
         </p>
 
