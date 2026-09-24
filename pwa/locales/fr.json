@@ -337,6 +337,50 @@
       "offline": "Votre assiduité n'est pas disponible hors ligne."
     }
   },
+  "news": {
+    "heading": "Actualités",
+    "date": "{{day}} {{month}} {{year}}",
+    "read_time": "{{count}} min de lecture",
+    "urgent": "Urgent",
+    "count": "Articles affichés : {{shown}} sur {{total}}",
+    "filter": {
+      "label": "Filtrer par catégorie",
+      "all": "Tout"
+    },
+    "category": {
+      "official": "Officiel",
+      "events": "Événements",
+      "scolarite": "Scolarité",
+      "sport": "Sport",
+      "youth": "Jeunesse",
+      "sponsors": "Sponsors",
+      "other": "Actualité"
+    },
+    "empty": {
+      "none": {
+        "title": "Aucune actualité publiée",
+        "body": "L'université n'a publié aucun article pour le moment. Les annonces apparaîtront ici dès leur publication."
+      },
+      "filter": {
+        "title": "Aucun article dans cette catégorie",
+        "body": "Aucun article publié ne correspond à cette catégorie pour le moment.",
+        "action": "Voir tous les articles"
+      }
+    },
+    "state": {
+      "error": "Impossible de charger les actualités.",
+      "offline": "Les actualités ne sont pas disponibles hors ligne."
+    },
+    "reader": {
+      "back": "Retour",
+      "error": "Impossible de charger cet article.",
+      "offline": "Cet article n'est pas disponible hors ligne.",
+      "not_found": {
+        "title": "Article introuvable",
+        "body": "Cet article n'existe pas ou a été retiré. Revenez à la liste des actualités."
+      }
+    }
+  },
   "offline": {
     "banner": "Vous êtes hors ligne. Données mises en cache affichées.",
     "restored": "Connexion rétablie",
