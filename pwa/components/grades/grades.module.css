@@ -209,7 +209,7 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 .heroValue {
@@ -230,7 +230,7 @@
 .heroScale {
   font-size: 15px;
   font-weight: 600;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 /* No average yet. Plain text, no warning colour and no zero — this is the
@@ -269,7 +269,7 @@
 .heroYear {
   margin: 6px 0 0;
   font-size: 11.5px;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 /* ── GPA ring (§5) ─────────────────────────────────────────────────────────── */
@@ -387,7 +387,7 @@
   padding-inline: 12px;
   border: 0;
   background: none;
-  color: var(--ink3);
+  color: var(--ink2);
   font-family: inherit;
   font-size: 11.5px;
   font-weight: 700;
@@ -473,7 +473,7 @@
  * dash in a column of marks is read as a mark.
  */
 .unpublished {
-  color: var(--ink3);
+  color: var(--ink2);
   font-size: 12px;
   font-style: italic;
 }
@@ -509,7 +509,7 @@
 .legend {
   margin: 0;
   font-size: 11.5px;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 /* ── Stacked cards (below 640px) ───────────────────────────────────────────── */
@@ -566,7 +566,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 .cardValue {
@@ -637,7 +637,7 @@
   border: 0;
   border-radius: var(--r-md);
   background: var(--jade);
-  color: #fff;
+  color: var(--on-jade);
   font-family: inherit;
   font-size: 13.5px;
   font-weight: 700;
@@ -871,7 +871,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 .calcLabel:not(:first-child) {
@@ -928,7 +928,7 @@
 .calcHint {
   margin: 8px 0 0;
   font-size: 11.5px;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 /* The read-only CC, shown as a figure with its scale — not an input, because it
@@ -951,7 +951,7 @@
 .calcSuffix {
   font-size: 13px;
   font-weight: 600;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 /* ── Result ────────────────────────────────────────────────────────────────── */

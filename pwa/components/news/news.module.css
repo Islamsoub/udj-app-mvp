@@ -152,7 +152,7 @@
 .count {
   margin: 0;
   font-size: 12px;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 /* ── Hero image frame ──────────────────────────────────────────────────────── */
@@ -264,7 +264,7 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 /* ── Reader (§9: slides in from the inline-end over --dur-base) ────────────── */

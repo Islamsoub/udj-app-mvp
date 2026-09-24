@@ -54,7 +54,7 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 .heroValue {
@@ -75,7 +75,7 @@
 .heroUnit {
   font-size: 20px;
   font-weight: 700;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 .heroSessions {
@@ -115,7 +115,7 @@
 
 .heroCount {
   font-size: 12px;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 /* ── Presence ring (§5) ────────────────────────────────────────────────────── */
@@ -236,7 +236,7 @@
 .subjectCode {
   font-size: 11px;
   font-weight: 600;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 .subjectValue {
@@ -412,7 +412,7 @@
 .absenceCode {
   font-size: 11px;
   font-weight: 600;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 .absenceDate {
@@ -433,7 +433,7 @@
 .absencesCount {
   margin: 0;
   font-size: 11.5px;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 /* Both filtered views can be empty, and both are good news rather than a fault
@@ -526,7 +526,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 .panelDateValue {
@@ -593,7 +593,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 /* Free text from a person, so it wraps and preserves the line breaks they typed
@@ -656,7 +656,7 @@
   margin: 0;
   font-size: 12.5px;
   font-style: italic;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 /* ── The inert upload form ─────────────────────────────────────────────────── */
@@ -673,7 +673,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 .formHint {
@@ -751,7 +751,7 @@
 .dropFileSize {
   margin: 0;
   font-size: 11.5px;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 .dropIcon {
@@ -792,7 +792,7 @@
   border: 0;
   border-radius: var(--r-md);
   background: var(--jade);
-  color: #fff;
+  color: var(--on-jade);
   font-family: inherit;
   font-size: 13.5px;
   font-weight: 700;

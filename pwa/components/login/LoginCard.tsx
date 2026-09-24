@@ -22,12 +22,16 @@ export function LoginCard() {
             app imports — read only, never edited). Served as an SVG file rather
             than inlined so it stays sharp at any size and on any pixel density.
 
-            alt="" — decorative. The hero's <h1> underneath names the university
-            and the document title carries "Unipocket", so the mark adds nothing
-            a screen reader would otherwise miss; announcing it would just put a
-            brand name in front of a login form that already identifies itself.
+            Drawn as a MASK coloured --on-jade, the way the shell draws it, not
+            as an <img>: the file's paths are white, and white on the jade hero
+            is under 3:1 against the gradient's lighter stop. The file itself is
+            shared with the native app and stays untouched.
+
+            aria-hidden — decorative. The hero's <h1> underneath names the
+            university and the document title carries "Unipocket", so the mark
+            adds nothing a screen reader would otherwise miss.
           */}
-          <img className={styles.mark} src="/logo.svg" alt="" />
+          <span className={styles.mark} aria-hidden="true" />
           <h1 className={styles.brand}>{t('app.university')}</h1>
           <p className={styles.tagline}>{t('login.subtitle')}</p>
         </header>

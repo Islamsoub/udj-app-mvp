@@ -123,9 +123,8 @@
   --r-xl: 20px;
   --r-2xl: 24px;
 
-  --shadow-card: 0 2px 10px rgba(30, 35, 31, .06);
-  --shadow-lg: 0 12px 32px rgba(30, 35, 31, .12);
-  --shadow-panel: 0 0 0 1px rgba(30, 35, 31, .04), -12px 0 32px rgba(30, 35, 31, .10);
+  /* Shadows and the scrim are per theme, in the blocks below: a dark-ink
+     shadow is invisible on a dark surface. */
 }
 
 [data-theme="light"] {
@@ -139,16 +138,32 @@
   --sunken: #EFEAE0;
 
   --ink: #1E231F;
-  --ink2: #6C7267;
-  --ink3: #9CA396;
+  /* --ink2 carries every piece of informational secondary text: hints, meta,
+     table headers, timestamps, placeholders. 4.58:1 on --sunken, the darkest
+     surface it sits on. */
+  --ink2: #656B60;
+  /* --ink3 is for non-text or exempt uses ONLY — decorative icons, arrows,
+     dividers, disabled labels. It is under AA for text and must not carry
+     information. */
+  --ink3: #80867A;
 
   --hair: rgba(30, 35, 31, .10);
   --hair2: rgba(30, 35, 31, .16);
 
   --jade: #1D9E75;
-  --jade-hover: #0F6E56;
+  /* A background, never text: it is lighter than --jade so --on-jade clears AA
+     on it too (5.8:1). Text hovers use --jade-text. */
+  --jade-hover: #22B083;
   --jade-text: #0F6E56;
   --jade-faint: rgba(29, 158, 117, .10);
+  /* Text and marks on a solid jade surface — buttons, the login hero. 4.71:1
+     on --jade. Replaces white, which was 3.39:1. */
+  --on-jade: #1E231F;
+
+  --shadow-card: 0 2px 10px rgba(30, 35, 31, .06);
+  --shadow-lg: 0 12px 32px rgba(30, 35, 31, .12);
+  --shadow-panel: 0 0 0 1px rgba(30, 35, 31, .04), -12px 0 32px rgba(30, 35, 31, .10);
+  --scrim: rgba(30, 35, 31, .40);
 
   --danger: #EF4444;
   --danger-bg: rgba(239, 68, 68, .10);
@@ -179,6 +194,15 @@
   --jade-hover: #3FCB9A;
   --jade-text: #5FD3A6;
   --jade-faint: rgba(43, 185, 137, .16);
+  /* 7.3:1 on --jade. White was 2.5:1 here. */
+  --on-jade: #0F1713;
+
+  /* A 1px light ring does the edge work a shadow cannot on a dark page; the
+     black blur underneath gives the lift. */
+  --shadow-card: 0 0 0 1px rgba(255, 255, 255, .06), 0 2px 8px rgba(0, 0, 0, .40);
+  --shadow-lg: 0 0 0 1px rgba(255, 255, 255, .08), 0 16px 40px rgba(0, 0, 0, .55);
+  --shadow-panel: 0 0 0 1px rgba(255, 255, 255, .08), -16px 0 40px rgba(0, 0, 0, .60);
+  --scrim: rgba(0, 0, 0, .60);
 
   --danger: #FF6B6B;
   --danger-bg: rgba(255, 107, 107, .15);

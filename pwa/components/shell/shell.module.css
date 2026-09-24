@@ -75,7 +75,7 @@
   padding: 0 16px;
   border-radius: var(--r-sm);
   background: var(--jade);
-  color: #fff;
+  color: var(--on-jade);
   font-size: 13.5px;
   font-weight: 700;
   text-decoration: none;
@@ -626,7 +626,7 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: rgba(30, 35, 31, 0.4);
+  background: var(--scrim);
   animation: scrimIn var(--dur-base) var(--ease-out);
 }
 
@@ -710,7 +710,7 @@
   border: none;
   border-radius: var(--r-md);
   background: var(--jade);
-  color: #fff;
+  color: var(--on-jade);
   font-family: inherit;
   font-size: 14.5px;
   font-weight: 700;
@@ -783,7 +783,7 @@
   gap: 3px;
   min-height: 56px;
   padding: 8px 2px;
-  color: var(--ink3);
+  color: var(--ink2);
   font-size: 10px;
   font-weight: 500;
   text-decoration: none;
@@ -830,7 +830,7 @@
   justify-content: center;
   gap: 16px;
   background: var(--bg);
-  color: var(--ink3);
+  color: var(--ink2);
   font-size: 13px;
 }
 

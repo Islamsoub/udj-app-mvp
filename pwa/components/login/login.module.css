@@ -39,7 +39,7 @@
   overflow: hidden;
   padding: 40px 32px 30px;
   text-align: center;
-  color: #fff;
+  color: var(--on-jade);
   background: linear-gradient(155deg, var(--jade), var(--jade-hover));
 }
 
@@ -81,15 +81,28 @@
  * 99x143 viewBox set the width — 63.7px — so the portrait proportions are kept
  * and nothing is squashed into a square or cropped.
  *
- * COLOUR. None here: the file already carries fill="white" and stroke="white"
- * on every path, which is exactly what the jade gradient needs, so it needs no
- * filter and no currentColor — and its paths stay untouched.
+ * COLOUR. --on-jade, through a mask — the shell's .logoMark technique. The
+ * file's paths are white, which is 2.8:1 against the gradient's --jade-hover
+ * stop: under 3:1 for a graphic. The mask keeps the file untouched (the native
+ * app shares it) and takes the colour from the token in both themes. A masked
+ * box has no intrinsic size, so the 99:143 ratio is declared and the height
+ * alone sets the size — the same 63.7 x 92 box the <img> had.
  */
 .mark {
   position: relative;
+  display: block;
   height: 92px;
-  width: auto;
+  aspect-ratio: 99 / 143;
   margin-inline: auto;
+  background-color: var(--on-jade);
+  -webkit-mask-image: url('/logo.svg');
+  mask-image: url('/logo.svg');
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
 }
 
 .brand {
@@ -104,7 +117,10 @@
   position: relative;
   margin-top: 5px;
   font-size: 13.5px;
-  color: rgba(255, 255, 255, 0.82);
+  /* Solid, not a translucent white: the hierarchy under the 800-weight brand
+     line comes from weight, not opacity. */
+  font-weight: 500;
+  color: var(--on-jade);
 }
 
 /* ── Language chip ─────────────────────────────────────────────────────────── */
@@ -123,7 +139,7 @@
   border: none;
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.16);
-  color: #fff;
+  color: var(--on-jade);
   font-family: inherit;
   font-size: 11px;
   font-weight: 700;
@@ -195,7 +211,7 @@
 }
 
 .input::placeholder {
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 .input:focus {
@@ -470,8 +486,11 @@
   background: var(--jade);
 }
 
+/* On, the thumb sits on jade, where white is 2.5:1 in the dark theme — under
+   3:1 for a control. Off, it stays white on the neutral track. */
 .switchOn::after {
   inset-inline-start: 18.5px;
+  background: var(--on-jade);
 }
 
 /* ── Forgot password ───────────────────────────────────────────────────────── */
@@ -498,8 +517,10 @@
   transition: color var(--dur-fast) var(--ease-out);
 }
 
+/* --jade-text, not --jade-hover: the hover jade is a background colour now and
+   too light for text. The underline carries the hover state. */
 .linkButton:hover {
-  color: var(--jade-hover);
+  color: var(--jade-text);
   text-decoration: underline;
 }
 
@@ -533,7 +554,7 @@
   border: none;
   border-radius: var(--r-md);
   background: var(--jade);
-  color: #fff;
+  color: var(--on-jade);
   font-family: inherit;
   font-size: 15px;
   font-weight: 700;
@@ -634,8 +655,10 @@
 .spinner {
   width: 16px;
   height: 16px;
-  border: 2.5px solid rgba(255, 255, 255, 0.35);
-  border-top-color: #fff;
+  /* It spins inside the jade submit button, so it is drawn in --on-jade: the
+     track a faint wash of it, the moving arc solid. */
+  border: 2.5px solid color-mix(in srgb, var(--on-jade) 35%, transparent);
+  border-top-color: var(--on-jade);
   border-radius: 50%;
   animation: spin 800ms linear infinite;
 }
@@ -650,7 +673,7 @@
   margin-top: 16px;
   text-align: center;
   font-size: 12.5px;
-  color: var(--ink3);
+  color: var(--ink2);
 }
 
 /* ── Focus ring ────────────────────────────────────────────────────────────── */
@@ -666,9 +689,9 @@
   outline-offset: 2px;
 }
 
-/* The chip sits on jade; white reads where jade would not. */
+/* The chip sits on jade, where a jade ring would vanish; --on-jade reads. */
 .langChip:focus-visible {
-  outline-color: #fff;
+  outline-color: var(--on-jade);
 }
 
 /* ── Reduced motion ────────────────────────────────────────────────────────── */

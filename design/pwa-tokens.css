@@ -3,6 +3,10 @@
  * This file is the source of truth for the PWA's colours, radii, fonts and
  * shadows. Do NOT take token values from README.md, CLAUDE.md, the native
  * app's constants, or any audit document — they disagree with this file.
+ *
+ * Amended for contrast (Claude Design): --on-jade and --scrim added; light
+ * --jade-hover, --ink2 and --ink3 changed; shadows made per theme. The brand
+ * jade itself is unchanged.
  */
 
 :root {
@@ -18,9 +22,7 @@
   --r-xl: 20px;
   --r-2xl: 24px;
 
-  --shadow-card: 0 2px 10px rgba(30, 35, 31, .06);
-  --shadow-lg: 0 12px 32px rgba(30, 35, 31, .12);
-  --shadow-panel: 0 0 0 1px rgba(30, 35, 31, .04), -12px 0 32px rgba(30, 35, 31, .10);
+  /* Shadows and the scrim are per theme, in the blocks below. */
 }
 
 [data-theme="light"] {
@@ -30,16 +32,28 @@
   --sunken: #EFEAE0;
 
   --ink: #1E231F;
-  --ink2: #6C7267;
-  --ink3: #9CA396;
+  /* Every piece of informational secondary text: hints, meta, table headers,
+     timestamps, placeholders. 4.58:1 on --sunken. */
+  --ink2: #656B60;
+  /* Non-text or exempt uses ONLY: decorative icons, arrows, dividers, disabled
+     labels. Never text that carries information. */
+  --ink3: #80867A;
 
   --hair: rgba(30, 35, 31, .10);
   --hair2: rgba(30, 35, 31, .16);
 
   --jade: #1D9E75;
-  --jade-hover: #0F6E56;
+  /* A background only; text hovers use --jade-text. */
+  --jade-hover: #22B083;
   --jade-text: #0F6E56;
   --jade-faint: rgba(29, 158, 117, .10);
+  /* Text and marks on a solid jade surface. 4.71:1 on --jade. */
+  --on-jade: #1E231F;
+
+  --shadow-card: 0 2px 10px rgba(30, 35, 31, .06);
+  --shadow-lg: 0 12px 32px rgba(30, 35, 31, .12);
+  --shadow-panel: 0 0 0 1px rgba(30, 35, 31, .04), -12px 0 32px rgba(30, 35, 31, .10);
+  --scrim: rgba(30, 35, 31, .40);
 
   --danger: #EF4444;
   --danger-bg: rgba(239, 68, 68, .10);
@@ -68,6 +82,13 @@
   --jade-hover: #3FCB9A;
   --jade-text: #5FD3A6;
   --jade-faint: rgba(43, 185, 137, .16);
+  /* 7.3:1 on --jade. */
+  --on-jade: #0F1713;
+
+  --shadow-card: 0 0 0 1px rgba(255, 255, 255, .06), 0 2px 8px rgba(0, 0, 0, .40);
+  --shadow-lg: 0 0 0 1px rgba(255, 255, 255, .08), 0 16px 40px rgba(0, 0, 0, .55);
+  --shadow-panel: 0 0 0 1px rgba(255, 255, 255, .08), -16px 0 40px rgba(0, 0, 0, .60);
+  --scrim: rgba(0, 0, 0, .60);
 
   --danger: #FF6B6B;
   --danger-bg: rgba(255, 107, 107, .15);
