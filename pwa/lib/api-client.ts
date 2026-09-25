@@ -94,9 +94,26 @@ export async function refreshAccessToken(): Promise<string> {
 }
 
 /**
+ * Whether a refresh failure means the session is over.
+ *
+ * Only a 401 does: app/api/auth/refresh answers 401 when there is no cookie or
+ * the backend rejected the token, and deletes the cookie in that branch alone.
+ * Everything else says nothing about the session — a thrown TypeError is a
+ * request that never arrived, 502/504 is a backend that is down or cold-starting,
+ * 429 is a wait. Reading those as expiry would clear a valid session and send the
+ * student to log in again because of a network blip.
+ */
+function isSessionDead(err: unknown): boolean {
+  return err instanceof ApiError && err.status === 401;
+}
+
+/**
  * Resolves with a fresh access token, starting a refresh only if one is not
- * already in flight. On failure the token is cleared, every waiter is rejected,
- * and the session-expired handler fires exactly once for the whole batch.
+ * already in flight. On failure every waiter is rejected with the same error.
+ * If the session is dead the token is cleared and the session-expired handler
+ * fires exactly once for the whole batch; any other failure leaves the session
+ * as it was and reaches the caller as an ordinary error, which its screen shows
+ * as an error — or as offline, if the browser reports no connection.
  */
 function refreshOnce(): Promise<string> {
   if (isRefreshing) {
@@ -114,9 +131,11 @@ function refreshOnce(): Promise<string> {
       return token;
     })
     .catch((err: unknown) => {
-      setAccessToken(null);
       flushWaiters(err, null);
-      notifySessionExpired();
+      if (isSessionDead(err)) {
+        setAccessToken(null);
+        notifySessionExpired();
+      }
       throw err;
     })
     .finally(() => {
@@ -187,8 +206,9 @@ async function request<T>(path: string, init: RequestInit, retried: boolean): Pr
   // Drain the body before reissuing so the connection is not left half-read.
   await parseBody(res);
 
-  // Throws if the refresh failed, which is the terminal case: the caller sees the
-  // refresh error and onSessionExpired has already fired.
+  // Throws if the refresh failed, and the caller sees the refresh error. A 401
+  // there has already fired onSessionExpired; any other failure has not, and
+  // the next request will try the refresh again.
   await refreshOnce();
 
   return request<T>(path, init, true);

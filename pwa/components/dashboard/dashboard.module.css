@@ -570,20 +570,6 @@
   color: var(--ink2);
 }
 
-.urgentTag {
-  display: inline-flex;
-  align-items: center;
-  margin-inline-end: 6px;
-  padding: 1px 7px;
-  border-radius: 9999px;
-  background: var(--danger-bg);
-  color: var(--danger);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
 /* ── Focus ring (§3, §10) ──────────────────────────────────────────────────── */
 
 .cardTitleLink:focus-visible,

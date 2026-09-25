@@ -10,10 +10,21 @@
    contextually, so dropping "unused" glyphs breaks words rather than single
    characters.
 
-   No unicode-range anywhere. It would only pay off as a way to skip a download,
-   and the one face where that is tempting — Naskh — also carries 335 codepoints
-   outside the Arabic blocks (Latin, punctuation, digits). A range covering just
-   Arabic would drop those with no error, so it is left off.
+   unicode-range appears on Naskh only, and not to skip a download: it decides
+   which characters Naskh may render. Naskh also carries 335 codepoints outside
+   the Arabic blocks (Latin, punctuation, digits), and because font fallback
+   picks the first face in the stack with a glyph, Naskh used to claim all of
+   them in Arabic mode — names, rooms, course codes and "Français" came out in
+   its serif Latin beside Plus Jakarta Sans everywhere else. The range hands
+   those to Jakarta, which --font-ar names next.
+
+   The range still includes U+0020. That keeps Arabic word spacing on Naskh's
+   space, and keeps Naskh as the "first available font" CSS takes line metrics
+   from, so no Arabic line changes height. The trade-off is that spaces inside
+   a Latin string in Arabic mode stay on Naskh's slightly wider space, as they
+   always have been.
+
+   Font files are still not subset; unicode-range does not change the file.
 
    CLAUDE.md forbids fetching fonts at runtime from Google Fonts or any other
    host; everything here is same-origin.
@@ -75,12 +86,17 @@
   font-display: swap;
 }
 
+/* Naskh's unicode-range: the four Arabic blocks, plus the characters Arabic
+   text itself is made of that are not in them — the space and no-break space,
+   ZWNJ/ZWJ and the LRM/RLM marks. See the header above for why this range
+   covers characters rather than subsetting the file. */
 @font-face {
   font-family: 'Noto Naskh Arabic';
   src: url('/fonts/NotoNaskhArabic-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
+  unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF;
 }
 
 @font-face {
@@ -89,6 +105,7 @@
   font-weight: 700;
   font-style: normal;
   font-display: swap;
+  unicode-range: U+0020, U+00A0, U+0600-06FF, U+0750-077F, U+08A0-08FF, U+200C-200F, U+FB50-FDFF, U+FE70-FEFF;
 }
 
 
@@ -110,9 +127,16 @@
      serif, which on most platforms is a Latin face with no Arabic coverage, so
      the text lands on an arbitrary last-resort font. The named faces below are
      the Naskh-style Arabic each platform actually ships — Android/ChromeOS,
-     macOS/iOS, then Windows. */
+     macOS/iOS, then Windows.
+
+     Plus Jakarta Sans sits directly after the self-hosted Naskh, whose
+     unicode-range (see its @font-face above) stops it claiming Latin. Anything
+     outside that range — Latin letters, Western digits, Latin punctuation —
+     falls through to Jakarta instead of Naskh's serif Latin, in both languages
+     and with no per-element opt-in. It comes before the platform Arabic faces so
+     that a failed Naskh download still leaves Latin on Jakarta. */
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-ar: 'Noto Naskh Arabic', 'Noto Naskh Arabic UI', 'Droid Arabic Naskh', 'Geeza Pro', 'Al Bayan', 'Traditional Arabic', 'Simplified Arabic', 'Segoe UI', serif;
+  --font-ar: 'Noto Naskh Arabic', 'Plus Jakarta Sans', 'Noto Naskh Arabic UI', 'Droid Arabic Naskh', 'Geeza Pro', 'Al Bayan', 'Traditional Arabic', 'Simplified Arabic', 'Segoe UI', serif;
   --font-mono: 'DM Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
 
   --sidebar-w: 240px;

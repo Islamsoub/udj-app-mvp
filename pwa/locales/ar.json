@@ -120,10 +120,10 @@
     },
     "mention": {
       "tres_bien": "ممتاز",
-      "bien": "جيد جداً",
-      "assez_bien": "جيد",
+      "bien": "جيد",
+      "assez_bien": "مستحسن",
       "passable": "مقبول",
-      "insuffisant": "ضعيف"
+      "insuffisant": "غير كافٍ"
     },
     "table": {
       "label": "درجات الفصل",

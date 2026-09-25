@@ -1,5 +1,6 @@
 'use client';
 
+import { mentionKey } from '@/components/grades/model';
 import { getMe } from '@/lib/api-client';
 import type { MeResponse } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
@@ -45,6 +46,9 @@ export function GpaCard({ index, animate, online }: { index: number; animate: bo
       >
         {(data) => {
           const { gpa, mention, totalCredits } = data.stats;
+          // The backend sends the French label; the Grades screen's own mapping
+          // turns it into a locale key, so both screens say the same word.
+          const labelKey = mention === null ? null : mentionKey(mention);
 
           if (gpa === null) {
             return (
@@ -67,7 +71,11 @@ export function GpaCard({ index, animate, online }: { index: number; animate: bo
                 <span className={`${styles.heroScale} num`}>{t('dashboard.gpa.scale')}</span>
               </div>
 
-              {mention !== null && <span className={styles.mention}>{mention}</span>}
+              {mention !== null && (
+                <span className={styles.mention}>
+                  {labelKey === null ? mention : t(labelKey)}
+                </span>
+              )}
 
               <p className={styles.heroCaption}>
                 <span className="num">
