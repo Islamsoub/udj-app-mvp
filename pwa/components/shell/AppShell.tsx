@@ -9,6 +9,7 @@ import { useI18n } from '@/lib/i18n';
 import { OfflineBanner } from './OfflineBanner';
 import { ProgressBar } from './ProgressBar';
 import { SessionExpiredModal } from './SessionExpiredModal';
+import { SessionWaiting } from './SessionWaiting';
 import { Sidebar } from './Sidebar';
 import { TabBar } from './TabBar';
 import { Toast } from './Toast';
@@ -21,7 +22,12 @@ import styles from './shell.module.css';
 /** Where an unauthenticated visitor, or a student who signs out, is sent. */
 const LOGIN_PATH = '/login';
 
-type Gate = 'checking' | 'authed';
+/**
+ * 'waiting' is a session that could not be checked — the server did not answer —
+ * as opposed to one that was checked and found dead. It is not sent to /login:
+ * signing in again would fail against the same unreachable server.
+ */
+type Gate = 'checking' | 'authed' | 'waiting';
 
 /**
  * The authenticated shell: route guard, chrome, and the two global surfaces
@@ -38,6 +44,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   const [gate, setGate] = useState<Gate>('checking');
+  const [check, setCheck] = useState(0);
   const [expired, setExpired] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -58,10 +65,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    ensureSession().then((ok) => {
+    ensureSession().then((outcome) => {
       if (cancelled) return;
-      if (ok) {
+      if (outcome === 'restored') {
         setGate('authed');
+        return;
+      }
+      if (outcome === 'unknown') {
+        setGate('waiting');
         return;
       }
       // replace, not push: a failed session check must not leave an entry that
@@ -72,7 +83,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [router]);
+    // `check` is not read: bumping it is how the waiting state asks for the
+    // check to run again.
+  }, [router, check]);
+
+  const retryCheck = useCallback(() => {
+    setGate('checking');
+    setCheck((n) => n + 1);
+  }, []);
 
   // ── Session expiry ────────────────────────────────────────────────────────
 
@@ -114,6 +132,10 @@ export function AppShell({ children }: { children: ReactNode }) {
    * promise honest: rendering before the width is known would mean guessing, and
    * a wrong guess mounts a sidebar on a phone for one frame.
    */
+  if (gate === 'waiting') {
+    return <SessionWaiting onRetry={retryCheck} />;
+  }
+
   if (gate !== 'authed' || layout === null) {
     return <Booting label={t('shell.restoring_session')} />;
   }

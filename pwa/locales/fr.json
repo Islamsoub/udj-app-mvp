@@ -472,7 +472,9 @@
     "expired_title": "Votre session a expiré",
     "expired_body": "Pour votre sécurité, reconnectez-vous pour continuer.",
     "reconnect": "Se reconnecter",
-    "continue_offline": "Continuer hors ligne"
+    "continue_offline": "Continuer hors ligne",
+    "waiting_title": "Le serveur démarre",
+    "waiting_body": "Vous restez connecté, inutile de vous reconnecter. Le serveur peut mettre une minute à répondre : réessayez dans un instant."
   },
   "actions": {
     "retry": "Réessayer",

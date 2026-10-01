@@ -117,19 +117,42 @@ export async function logout(): Promise<void> {
 }
 
 /**
+ * What one attempt to restore the session established.
+ *
+ *   'restored' — a fresh access token is in memory.
+ *   'dead'     — the refresh route answered 401: there is no cookie, or the
+ *                backend rejected the token. Logging in is the only way forward.
+ *   'unknown'  — the attempt said nothing about the session: the request never
+ *                arrived, or the backend is down or cold-starting (502/504), or
+ *                it is rate-limited. The cookie is untouched and may be perfectly
+ *                good; the student's password cannot fix any of these.
+ */
+export type SessionRestore = 'restored' | 'dead' | 'unknown';
+
+/**
  * Re-establishes the session on page load, when the access token is gone (it
  * only ever lived in memory) but the refresh cookie may still be valid.
  *
- * Returns false rather than throwing, and deliberately does not fire
+ * Resolves with the outcome rather than throwing, and deliberately does not fire
  * onSessionExpired: on a cold load "no valid cookie" means the visitor is simply
  * logged out, which is a routing decision, not an interruption to announce.
+ *
+ * The dead/unknown split is the rule lib/api-client's isSessionDead applies to a
+ * mid-session refresh — only a 401 ends a session — restated here because that
+ * helper is private to its module. The two must not drift apart.
+ *
+ * The in-memory token is cleared on 'dead' alone. On 'unknown' there is usually
+ * none to clear, and if there is one it is still valid.
  */
-export async function restoreSession(): Promise<boolean> {
+export async function restoreSession(): Promise<SessionRestore> {
   try {
     setAccessToken(await refreshAccessToken());
-    return true;
-  } catch {
-    setAccessToken(null);
-    return false;
+    return 'restored';
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 401) {
+      setAccessToken(null);
+      return 'dead';
+    }
+    return 'unknown';
   }
 }
