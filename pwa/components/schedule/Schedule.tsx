@@ -15,7 +15,7 @@ import { useI18n } from '@/lib/i18n';
 import { StateLayers } from '@/components/grades/StateLayers';
 import { ScheduleView } from './ScheduleView';
 import { ScheduleSkeleton } from './skeletons';
-import { startOfDay } from './week';
+import { startOfDay } from '@/lib/teaching-week';
 import styles from './schedule.module.css';
 
 /**

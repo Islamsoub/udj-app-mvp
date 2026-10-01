@@ -73,8 +73,7 @@
       "empty": "لا توجد حصص قادمة هذا الأسبوع.",
       "starting_now": "الآن",
       "in_minutes": "بعد {{count}} دقيقة",
-      "in_hours": "بعد {{hours}} ساعة",
-      "in_hours_minutes": "بعد {{hours}} س {{minutes}} د",
+      "today_at": "اليوم · {{time}}",
       "in_days": "بعد {{count}} يوم"
     },
     "gpa": {
@@ -237,7 +236,7 @@
       "below": "أقل من الحد الأدنى المطلوب {{threshold}}",
       "absences": "الغيابات: {{count}}",
       "justified": "منها مبرَّرة: {{count}}",
-      "partial": "منها جزئية: {{count}}"
+      "partial": "حصص جزئية: {{count}}"
     },
     "subjects": {
       "title": "حسب المادة",

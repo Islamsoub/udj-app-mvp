@@ -5,17 +5,8 @@ import { useI18n } from '@/lib/i18n';
 import { DAY_SHORT_KEYS } from './CourseDetail';
 import { courseType, typeClass, typeLabelKey } from './course-type';
 import { Crossfade } from './Crossfade';
-import {
-  HOUR_PX,
-  TEACHING_DAYS,
-  blockBox,
-  dateForDay,
-  entriesForDay,
-  formatTime,
-  hourMarks,
-  sameDay,
-  timeBounds,
-} from './week';
+import { TEACHING_DAYS, dateForDay, formatTime, sameDay } from '@/lib/teaching-week';
+import { HOUR_PX, blockBox, entriesForDay, hourMarks, timeBounds } from './week';
 import styles from './schedule.module.css';
 
 /**

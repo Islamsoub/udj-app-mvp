@@ -73,8 +73,7 @@
       "empty": "Aucun cours à venir cette semaine.",
       "starting_now": "Maintenant",
       "in_minutes": "Dans {{count}} min",
-      "in_hours": "Dans {{hours}} h",
-      "in_hours_minutes": "Dans {{hours}} h {{minutes}}",
+      "today_at": "Aujourd'hui · {{time}}",
       "in_days": "Dans {{count}} j"
     },
     "gpa": {
@@ -237,7 +236,7 @@
       "below": "Sous le seuil requis de {{threshold}}",
       "absences": "Absences : {{count}}",
       "justified": "Dont justifiées : {{count}}",
-      "partial": "Dont partielles : {{count}}"
+      "partial": "Séances partielles : {{count}}"
     },
     "subjects": {
       "title": "Par matière",

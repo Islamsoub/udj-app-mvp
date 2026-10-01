@@ -44,7 +44,7 @@ export function NextClassCard({ index, animate, online }: { index: number; anima
             <div>
               <div className={styles.nextClassTop}>
                 <p className={styles.subjectName}>{subject}</p>
-                <Countdown startsAt={next.startsAt} />
+                <Countdown startsAt={next.startsAt} startTime={next.entry.startTime} />
               </div>
 
               <div className={styles.meta}>
@@ -84,7 +84,7 @@ export function NextClassCard({ index, animate, online }: { index: number; anima
  * The first timeout is aligned to the next whole minute so the text changes when
  * the minute does, rather than 60s after the component happened to mount.
  */
-function Countdown({ startsAt }: { startsAt: number }) {
+function Countdown({ startsAt, startTime }: { startsAt: number; startTime: string }) {
   const { t } = useI18n();
   const [parts, setParts] = useState<CountdownParts>(() => countdownParts(startsAt, Date.now()));
 
@@ -108,16 +108,18 @@ function Countdown({ startsAt }: { startsAt: number }) {
 
   return (
     <span className={styles.countdownPill}>
-      <CountdownText parts={parts} t={t} />
+      <CountdownText parts={parts} startTime={startTime} t={t} />
     </span>
   );
 }
 
 function CountdownText({
   parts,
+  startTime,
   t,
 }: {
   parts: CountdownParts;
+  startTime: string;
   t: ReturnType<typeof useI18n>['t'];
 }) {
   switch (parts.kind) {
@@ -127,16 +129,11 @@ function CountdownText({
       return (
         <Interpolated template={t('dashboard.next_class.in_minutes')} values={{ count: parts.count }} />
       );
-    case 'hours':
+    case 'today':
+      // Later today: the start time, not a duration. "Today · 13:00" is the
+      // thing a student plans around; "in 0 days" or "in 4 h 12" is not.
       return (
-        <Interpolated template={t('dashboard.next_class.in_hours')} values={{ hours: parts.hours }} />
-      );
-    case 'hoursMinutes':
-      return (
-        <Interpolated
-          template={t('dashboard.next_class.in_hours_minutes')}
-          values={{ hours: parts.hours, minutes: parts.minutes }}
-        />
+        <Interpolated template={t('dashboard.next_class.today_at')} values={{ time: startTime }} />
       );
     case 'days':
       return <Interpolated template={t('dashboard.next_class.in_days')} values={{ count: parts.count }} />;

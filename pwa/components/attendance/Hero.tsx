@@ -78,17 +78,26 @@ export function Hero({
         </p>
 
         {/*
-          The three counts behind the percentage. Justified absences are listed
-          separately because they do NOT reduce it — the server credits a
-          justified session at its full length (utils/attendance.ts), so a
-          student looking at "3 justified" and wondering why the figure did not
-          move has the answer on the same line.
+          The counts behind the percentage.
+
+          "Absences" IS EVERY MISSED SESSION — unjustified and justified alike —
+          because that is what the list further down holds: the endpoint puts
+          each ABSENT and each JUSTIFIED record in `absences`, and nothing else.
+          `overall.absent` on its own is only the unjustified ones, and printing
+          it here put "6" above a list of nine, with "of which justified: 3"
+          beside it claiming three of those six.
+
+          Justified absences are then broken out because they do NOT reduce the
+          percentage — the server credits a justified session at its full length
+          (utils/attendance.ts) — so a student wondering why the figure did not
+          move has the answer on the same line. What still needs their action is
+          the list's own filter, not this line.
         */}
         <p className={styles.heroCounts}>
           <span className={styles.heroCount}>
             <Interpolated
               template={t('attendance.hero.absences')}
-              values={{ count: overall.absent }}
+              values={{ count: overall.absent + overall.justified }}
             />
           </span>
           <span className={styles.heroCount}>
@@ -101,6 +110,8 @@ export function Hero({
             PARTIAL sessions exist in the schema and are counted by the same
             endpoint, but no record in the database uses the status yet. Shown
             only when there is one, so the line does not carry a permanent zero.
+            Worded as its own count, not "of which": a partial session is not in
+            the absences total above and is not in the list.
           */}
           {overall.partial > 0 && (
             <span className={styles.heroCount}>

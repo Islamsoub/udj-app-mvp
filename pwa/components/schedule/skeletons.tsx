@@ -1,4 +1,5 @@
-import { HOUR_PX, TEACHING_DAYS } from './week';
+import { TEACHING_DAYS } from '@/lib/teaching-week';
+import { HOUR_PX } from './week';
 import styles from './schedule.module.css';
 
 /**

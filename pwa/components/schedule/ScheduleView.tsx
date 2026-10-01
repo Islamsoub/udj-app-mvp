@@ -11,14 +11,8 @@ import { CourseDetail, DAY_KEYS, courseTitle } from './CourseDetail';
 import { DayList } from './DayList';
 import { ChevronIcon } from './icons';
 import { WeekGrid } from './WeekGrid';
-import {
-  TEACHING_DAYS,
-  addDays,
-  dateForDay,
-  defaultFocus,
-  sameDay,
-  startOfWeek,
-} from './week';
+import { TEACHING_DAYS, addDays, dateForDay, sameDay, startOfWeek } from '@/lib/teaching-week';
+import { defaultFocus } from './week';
 import styles from './schedule.module.css';
 
 type ViewMode = 'week' | 'day';
