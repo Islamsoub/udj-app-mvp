@@ -445,7 +445,27 @@
   visibility: hidden;
 }
 
-/* 38x22 visual switch; ::after below extends the target to 44x44. */
+/*
+ * 38x22 visual switch; ::before below extends the target to 44x44.
+ *
+ * The state is carried three ways, none of them colour alone: whether the track
+ * is FILLED, the knob's SIZE, and the knob's POSITION.
+ *
+ *   off — an empty track drawn as a 2px --ink2 outline, a 16px --ink2 knob
+ *   on  — a solid --jade track, a 22px --on-jade knob
+ *
+ * Off is an outline rather than a filled neutral so that it cannot out-shine
+ * the on state: the old white knob on --sunken was the brightest thing in the
+ * row while off. --ink2 is the body-text colour, so the outline and the knob
+ * clear text contrast against the card they sit on in both themes, and off
+ * still reads as neutral, never as a warning.
+ *
+ * THE OUTLINE IS AN INSET RING, NOT A `border`. A border is snapped to whole
+ * device pixels — at 125% display scaling a 2px border is laid out as 1.6px —
+ * and it moves the padding box the knob is positioned from, so the full-height
+ * knob would sit a fraction of a pixel off the track. An inset ring is drawn
+ * inside a box that stays exactly 38x22, and the knob's coordinates are plain.
+ */
 .switch {
   position: relative;
   flex-shrink: 0;
@@ -454,11 +474,11 @@
   margin-top: 1px;
   border: none;
   border-radius: 9999px;
-  /* Off is neutral, not a warning: --sunken, never --danger or --warning. The
-     default is off, and a default must not read as something being wrong. */
-  background: var(--sunken);
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--ink2);
   cursor: pointer;
-  transition: background var(--dur-instant) var(--ease-out);
+  transition: background var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
 }
 
 /* 22px tall + 11px either side = a 44px target, without inflating the box. */
@@ -469,29 +489,44 @@
   inset-inline: -11px;
 }
 
+/*
+ * Off: 16px, 1px clear of the 2px outline on three sides.
+ *
+ * Position and size move together — four properties, one duration, one curve —
+ * so growing and sliding read as a single motion. inset-inline-start rather
+ * than a transform, so Arabic mirrors the travel with no second rule.
+ */
 .switch::after {
   content: '';
   position: absolute;
-  top: 2.5px;
-  inset-inline-start: 2.5px;
-  width: 17px;
-  height: 17px;
+  top: 3px;
+  inset-inline-start: 3px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  /* --surface in BOTH states. --on-jade is for text on jade; on the knob it
-     made the on state the darker one, which reads as disabled. The state is
-     carried by the track's colour and the knob's position, not by the knob
-     changing colour. */
-  background: var(--surface);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transition: inset-inline-start var(--dur-instant) var(--ease-out);
+  background: var(--ink2);
+  transition: top var(--dur-fast) var(--ease-out),
+    inset-inline-start var(--dur-fast) var(--ease-out),
+    width var(--dur-fast) var(--ease-out),
+    height var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
 }
 
+/* The ring takes the track's jade rather than disappearing, so its colour
+   fades with the fill instead of snapping. */
 .switchOn {
   background: var(--jade);
+  box-shadow: inset 0 0 0 2px var(--jade);
 }
 
+/* On: 22px, the full height of the track and flush with its inline end
+   (38 - 22 = 16), so nothing is cut off and nothing hangs outside. */
 .switchOn::after {
-  inset-inline-start: 18.5px;
+  top: 0;
+  inset-inline-start: 16px;
+  width: 22px;
+  height: 22px;
+  background: var(--on-jade);
 }
 
 /* ── Forgot password ───────────────────────────────────────────────────────── */

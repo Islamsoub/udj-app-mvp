@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 import styles from './profile.module.css';
 
@@ -9,19 +8,17 @@ import styles from './profile.module.css';
  * aria-checked, labelled by the row, its 44px target made by a pseudo-element
  * rather than by inflating the box.
  *
- * ── §9: "thumb translateX over --dur-instant with a slight easing overshoot" ─
+ * ── Motion ───────────────────────────────────────────────────────────────────
  *
- * The login switch moves its thumb by transitioning inset-inline-start. This
- * one uses a transform, as §9 asks — compositor-only, no layout per frame — and
- * RTL is handled by a sign read from `dir` (§6), because a transform is not
- * mirrored by the direction on its own.
+ * The thumb is larger when on than when off, and it travels. Both are a single
+ * transform — translate and scale together, over --dur-fast — so they read as
+ * one motion and cost no layout per frame. RTL is handled by a sign read from
+ * `dir` (§6), because a transform is not mirrored by the direction on its own.
+ * The login switch gets the same result from logical properties instead.
  *
- * The overshoot is NOT a new easing. §2 allows two curves and neither
- * overshoots, so it is built from the tokens: a keyframe that runs a couple of
- * pixels past the end and settles, over --dur-instant on --ease-out. It plays
- * only after a change the student made — never on mount, where a thumb
- * bouncing into its saved position would announce a change that did not
- * happen.
+ * It is a transition, not a keyframe animation, so it runs only when the state
+ * changes — never on mount, where a thumb sliding into its saved position would
+ * announce a change that did not happen.
  */
 export function Switch({
   checked,
@@ -48,7 +45,6 @@ export function Switch({
   busy?: boolean;
 }) {
   const { dir } = useI18n();
-  const [moved, setMoved] = useState(false);
 
   return (
     <button
@@ -60,17 +56,10 @@ export function Switch({
       aria-busy={busy || undefined}
       aria-disabled={locked || undefined}
       disabled={disabled}
-      className={[
-        styles.switch,
-        checked ? styles.switchOn : '',
-        moved ? (checked ? styles.switchMovedOn : styles.switchMovedOff) : '',
-      ]
-        .filter(Boolean)
-        .join(' ')}
+      className={`${styles.switch} ${checked ? styles.switchOn : ''}`}
       style={{ '--switch-dir': dir === 'rtl' ? -1 : 1 } as React.CSSProperties}
       onClick={() => {
         if (locked) return;
-        setMoved(true);
         onChange(!checked);
       }}
     >

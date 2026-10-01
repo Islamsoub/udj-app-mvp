@@ -3,9 +3,7 @@
    and sign-out.
 
    Every colour, radius, shadow, duration and easing is a token from
-   app/globals.css. The one exception is the switch thumb's white and its
-   shadow, taken verbatim from the login screen's switch so the two toggles in
-   the product are the same object.
+   app/globals.css.
 
    Logical properties only. The switch thumb's travel is the one thing that
    cannot be logical — a transform is never mirrored by `dir` — so it reads the
@@ -296,6 +294,12 @@
 
 /* ── Switch (login's pattern, §9's motion) ─────────────────────────────────── */
 
+/*
+ * The same object as the login screen's switch — see login.module.css for why
+ * off is an outline. Off: a 2px --ink2 outline and a 16px --ink2 knob. On: a
+ * solid --jade track and a 22px --on-jade knob. Filled or not, knob size, and
+ * knob position each carry the state on their own.
+ */
 .switch {
   position: relative;
   flex-shrink: 0;
@@ -305,10 +309,12 @@
   padding: 0;
   border: none;
   border-radius: 9999px;
-  /* Off is neutral, never a warning, as on the login screen. */
-  background: var(--sunken);
+  background: transparent;
+  /* The outline, as an inset ring rather than a border — see the login switch. */
+  box-shadow: inset 0 0 0 2px var(--ink2);
   cursor: pointer;
-  transition: background var(--dur-instant) var(--ease-out);
+  transition: background var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
 }
 
 /* 22px tall + 11px either side = a 44px target, without inflating the box. */
@@ -321,6 +327,7 @@
 
 .switchOn {
   background: var(--jade);
+  box-shadow: inset 0 0 0 2px var(--jade);
 }
 
 .switch:disabled,
@@ -341,61 +348,34 @@
   outline-offset: 2px;
 }
 
+/*
+ * A 22px box at the track's inline start, drawn at 16/22 while off. Its centre
+ * is then 11px from the edge, so the 16px knob sits 1px clear of the 2px
+ * outline on three sides.
+ *
+ * SIZE AND POSITION ARE ONE TRANSFORM, so growing and sliding cannot come apart
+ * into two motions: one property, one duration, one curve, and no layout per
+ * frame.
+ */
 .switchThumb {
   position: absolute;
-  top: 2.5px;
-  inset-inline-start: 2.5px;
-  width: 17px;
-  height: 17px;
+  top: 0;
+  inset-inline-start: 0;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  /* --surface in both states, as on the login switch: the track's colour and
-     the thumb's position carry the state, not the thumb's own colour. */
-  background: var(--surface);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transform: translateX(0);
-  transition: transform var(--dur-instant) var(--ease-out);
+  background: var(--ink2);
+  transform: translateX(0) scale(calc(16 / 22));
+  transition: transform var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
 }
 
-/* 38 - 17 - 2 x 2.5 = 16px of travel, toward the inline-end. */
+/* 38 - 22 = 16px of travel, toward the inline-end, where the full-size knob is
+   flush with the end of the track. No overshoot: flush leaves it nowhere to
+   run to without leaving the track. */
 .switchOn .switchThumb {
-  transform: translateX(calc(var(--switch-dir, 1) * 16px));
-}
-
-/*
- * §9's "slight easing overshoot", made from the tokens rather than a new curve:
- * the thumb runs 2px past its stop and settles, all inside --dur-instant on
- * --ease-out. Two keyframe names, so every flip restarts the animation.
- */
-.switchMovedOn .switchThumb {
-  animation: thumbOn var(--dur-instant) var(--ease-out);
-}
-
-.switchMovedOff .switchThumb {
-  animation: thumbOff var(--dur-instant) var(--ease-out);
-}
-
-@keyframes thumbOn {
-  from {
-    transform: translateX(0);
-  }
-  70% {
-    transform: translateX(calc(var(--switch-dir, 1) * 18px));
-  }
-  to {
-    transform: translateX(calc(var(--switch-dir, 1) * 16px));
-  }
-}
-
-@keyframes thumbOff {
-  from {
-    transform: translateX(calc(var(--switch-dir, 1) * 16px));
-  }
-  70% {
-    transform: translateX(calc(var(--switch-dir, 1) * -2px));
-  }
-  to {
-    transform: translateX(0);
-  }
+  background: var(--on-jade);
+  transform: translateX(calc(var(--switch-dir, 1) * 16px)) scale(1);
 }
 
 /* ── Quiet hours ───────────────────────────────────────────────────────────── */
@@ -593,15 +573,13 @@
     animation: none;
   }
 
-  /* The thumb still moves — its position is the state — but in one step, with
-     no overshoot. */
-  .switchMovedOn .switchThumb,
-  .switchMovedOff .switchThumb {
-    animation: none;
+  /* The thumb still changes place and size — they are the state — but in one
+     step, with no slide, as on the login switch. */
+  .switchThumb {
+    transition: none;
   }
 
   .switch,
-  .switchThumb,
   .select,
   .logout,
   .retryButton {
