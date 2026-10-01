@@ -37,8 +37,19 @@ export function mentionFor(noteFinale: number | null): string | null {
   return 'Insuffisant';
 }
 
+/**
+ * The pass mark, on the /20 scale — the same line `mentionFor` draws between
+ * 'Insuffisant' and 'Passable'.
+ *
+ * Exported for the one caller that cannot use `isPassing()` directly: a bulk
+ * `updateMany` has to express the test as a SQL filter, and it must filter on
+ * THIS number rather than on a second copy of it.
+ */
+export const PASS_MARK = 10;
+
+/** Passed: a final mark exists and reaches the pass mark. No mark is not a pass. */
 export function isPassing(noteFinale: number | null): boolean {
-  return noteFinale != null && noteFinale >= 10;
+  return noteFinale != null && noteFinale >= PASS_MARK;
 }
 
 // ─── Passwords ───────────────────────────────────────────────────────────────

@@ -6,7 +6,13 @@ import { AppError } from '../../utils/AppError';
 import adminAuth from '../../middleware/adminAuth';
 import { rbac, facultyScopeWhere } from '../../middleware/rbac';
 import { audit } from '../../middleware/auditLog';
-import { computeNoteFinale, mentionFor, isPassing, GradeWeights } from '../../utils/adminHelpers';
+import {
+  computeNoteFinale,
+  mentionFor,
+  isPassing,
+  PASS_MARK,
+  GradeWeights,
+} from '../../utils/adminHelpers';
 import { createNotification } from '../../utils/notify';
 
 const router = Router();
@@ -19,8 +25,27 @@ const READ_ROLES: AdminRole[] = [
 ];
 const WRITE_ROLES: AdminRole[] = [AdminRole.SUPER_ADMIN, AdminRole.REGISTRAR];
 
-// Pass mark — must stay in step with isPassing()/mentionFor() in adminHelpers.
-const PASS_MARK = 10;
+/**
+ * The `isValidated` write for any route that recomputes a final mark.
+ *
+ * `isValidated` means "final result published AND passed" — it is what the
+ * student API counts credits from. Publication sets it; but a published mark can
+ * still move afterwards (a correction through POST /:id/change, or a recompute
+ * under changed weights), and a flag written once at publication would then
+ * disagree with the mark beside it: a grade corrected from 12 to 8 would keep
+ * its credits.
+ *
+ * So every write of `noteFinale` to a row whose final result is published
+ * re-derives the flag from `isPassing()`. An unpublished row is left alone —
+ * returning nothing makes Prisma skip the column — because publication decides
+ * it then.
+ */
+function validationFor(
+  publishedNfAt: Date | null | undefined,
+  noteFinale: number | null
+): { isValidated?: boolean } {
+  return publishedNfAt ? { isValidated: isPassing(noteFinale) } : {};
+}
 
 async function getWeights(): Promise<GradeWeights> {
   const settings = await prisma.systemSettings.findUnique({ where: { id: 'singleton' } });
@@ -115,7 +140,12 @@ router.patch(
 
       const grade = await prisma.grade.update({
         where: { id: existing.id },
-        data: { noteCc, noteCf, noteFinale },
+        data: {
+          noteCc,
+          noteCf,
+          noteFinale,
+          ...validationFor(existing.publishedNfAt, noteFinale),
+        },
       });
 
       res.status(200).json({
@@ -167,7 +197,13 @@ router.post(
 
       const grade = await prisma.grade.update({
         where: { id: existing.id },
-        data: { noteCc, noteCf, noteFinale },
+        data: {
+          noteCc,
+          noteCf,
+          noteFinale,
+          // A correction can carry a published mark across the pass line.
+          ...validationFor(existing.publishedNfAt, noteFinale),
+        },
       });
 
       // The audit middleware persists this response body as the `after`
@@ -290,6 +326,7 @@ router.post(
             noteCc: nextCc,
             noteCf: nextCf,
             noteFinale,
+            ...validationFor(prev?.publishedNfAt, noteFinale),
           },
         });
         saved += 1;
@@ -426,6 +463,11 @@ router.post(
           // every student as having validated the subject, including failures —
           // the flag drives the transcript, so failing students read as passed.
           // `publishedNfAt: null` keeps an earlier publication untouched.
+          //
+          // Filtered in SQL rather than by calling isPassing() on the rows read
+          // above: those were read outside this transaction, and a mark edited
+          // in between would be judged on its old value. PASS_MARK is the same
+          // constant isPassing() tests, so the two cannot drift.
           await tx.grade.updateMany({
             where: { ...gradeWhere, publishedNfAt: null, noteFinale: { gte: PASS_MARK } },
             data: { isValidated: true, publishedNfAt: now },
