@@ -5,6 +5,7 @@ import { useCardData } from '@/components/dashboard/useCardData';
 import { useOnline } from '@/components/shell/useOnline';
 import { ApiError, getNewsArticle } from '@/lib/api-client';
 import type { NewsArticleDetail, NewsArticleSummary } from '@/lib/api-types';
+import { isolateLtrRuns } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { ArticleMeta, ArticleTags } from './ArticleMeta';
 import { HeroImage } from './HeroImage';
@@ -104,7 +105,9 @@ export function Reader({
             <header className={styles.readerHead}>
               <HeroImage src={head.heroImageUrl} className={styles.readerHero} eager />
               <ArticleTags category={head.category} urgent={head.isUrgent} />
-              <h1 className={styles.readerTitle}>{lang === 'ar' ? head.titleAr : head.titleFr}</h1>
+              <h1 className={styles.readerTitle}>
+                {isolateLtrRuns(lang === 'ar' ? head.titleAr : head.titleFr)}
+              </h1>
               <ArticleMeta publishedAt={head.publishedAt} readTime={head.readTimeMinutes} />
             </header>
           )}
@@ -164,7 +167,7 @@ function ReaderBody({ text }: { text: string }) {
     <div className={styles.readerBody}>
       {paragraphs.map((paragraph, index) => (
         <p key={index} className={styles.readerParagraph}>
-          {paragraph}
+          {isolateLtrRuns(paragraph)}
         </p>
       ))}
     </div>

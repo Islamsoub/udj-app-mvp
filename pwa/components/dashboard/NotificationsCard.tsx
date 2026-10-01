@@ -2,6 +2,7 @@
 
 import { getNotifications } from '@/lib/api-client';
 import type { NotificationsResponse } from '@/lib/api-types';
+import { isolateLtrRuns } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { Card, CardStates, EmptyState } from './Card';
 import { Interpolated } from './Interpolated';
@@ -62,7 +63,7 @@ export function NotificationsCard({ index, animate, online }: { index: number; a
                         the dot is decorative rather than a second announcement. */}
                     {!notification.isRead && <span className={styles.unreadDot} aria-hidden="true" />}
                     <span className={notification.isRead ? undefined : styles.notificationTitle}>
-                      {lang === 'ar' ? notification.titleAr : notification.titleFr}
+                      {isolateLtrRuns(lang === 'ar' ? notification.titleAr : notification.titleFr)}
                     </span>
                   </li>
                 ))}

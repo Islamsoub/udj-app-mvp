@@ -348,16 +348,16 @@
   width: 17px;
   height: 17px;
   border-radius: 50%;
-  background: #fff;
+  /* --surface in both states, as on the login switch: the track's colour and
+     the thumb's position carry the state, not the thumb's own colour. */
+  background: var(--surface);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transform: translateX(0);
   transition: transform var(--dur-instant) var(--ease-out);
 }
 
-/* 38 - 17 - 2 x 2.5 = 16px of travel, toward the inline-end. On jade the
-   thumb is --on-jade, as on the login switch: white there is 2.5:1 in dark. */
+/* 38 - 17 - 2 x 2.5 = 16px of travel, toward the inline-end. */
 .switchOn .switchThumb {
-  background: var(--on-jade);
   transform: translateX(calc(var(--switch-dir, 1) * 16px));
 }
 

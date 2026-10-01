@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getSchedule } from '@/lib/api-client';
 import type { ScheduleResponse } from '@/lib/api-types';
+import { fmtRange } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { Card, CardStates, EmptyState } from './Card';
 import { ClockIcon, PersonIcon, PinIcon } from './icons';
@@ -49,9 +50,10 @@ export function NextClassCard({ index, animate, online }: { index: number; anima
               <div className={styles.meta}>
                 <span className={styles.metaItem}>
                   <ClockIcon className={styles.metaIcon} />
-                  {/* .num: times stay on the Latin face in Arabic. */}
+                  {/* .num: times stay on the Latin face in Arabic. fmtRange:
+                      and in start-to-end order there, too. */}
                   <span className="num">
-                    {next.entry.startTime} – {next.entry.endTime}
+                    {fmtRange(next.entry.startTime, next.entry.endTime)}
                   </span>
                 </span>
                 <span className={styles.metaItem}>

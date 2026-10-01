@@ -2,6 +2,7 @@
 
 import { Interpolated } from '@/components/dashboard/Interpolated';
 import type { AttendanceSubject } from '@/lib/api-types';
+import { fmtPercent } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { WarningIcon } from './icons';
 import { sortSubjects } from './model';
@@ -44,7 +45,7 @@ export function SubjectBreakdown({
       <p className={styles.sectionNote}>
         <Interpolated
           template={t('attendance.subjects.note')}
-          values={{ threshold }}
+          values={{ threshold: fmtPercent(threshold) }}
         />
       </p>
 
@@ -67,7 +68,7 @@ export function SubjectBreakdown({
                 </p>
 
                 <p className={`${styles.subjectValue} ${below ? styles.subjectValueBelow : ''} num`}>
-                  {value}%
+                  {fmtPercent(value)}
                 </p>
               </div>
 

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Interpolated } from '@/components/dashboard/Interpolated';
 import { mentionKey } from '@/components/grades/model';
 import type { MeResponse } from '@/lib/api-types';
+import { fmtPercent } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n-types';
 import styles from './profile.module.css';
@@ -104,7 +105,7 @@ export function StudentCard({ me }: { me: MeResponse }) {
             {attendancePercentage === null ? (
               t('profile.progress.none')
             ) : (
-              <span className="num">{Math.round(attendancePercentage)} %</span>
+              <span className="num">{fmtPercent(attendancePercentage)}</span>
             )}
           </Fact>
         </dl>

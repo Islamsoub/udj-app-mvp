@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import type { ScheduleEntry } from '@/lib/api-types';
+import { fmtRange } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n-types';
 import { courseType, typeClass, typeLabelKey } from './course-type';
@@ -44,9 +45,7 @@ export function CourseDetail({ entry, dayLabel }: { entry: ScheduleEntry; dayLab
           {/* Day name from the locale files; the clock times on the Latin face,
               like every other figure in the product. */}
           <span>{dayLabel}</span>{' '}
-          <span className="num">
-            {entry.startTime} – {entry.endTime}
-          </span>
+          <span className="num">{fmtRange(entry.startTime, entry.endTime)}</span>
         </DetailRow>
 
         <DetailRow icon={<RoomIcon className={styles.detailIcon} />} label={t('schedule.detail.room')}>

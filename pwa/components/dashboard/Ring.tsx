@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { percentText } from '@/lib/bidi';
 import { takeOnce } from './session-flags';
 import styles from './dashboard.module.css';
 
@@ -60,7 +61,9 @@ export function Ring({ percentage, label }: { percentage: number; label: string 
         textAnchor="middle"
         dominantBaseline="central"
       >
-        {Math.round(clamped)}%
+        {/* An SVG <text> cannot hold a <bdi>, and does not need one: with no
+            Arabic letter before it in the element, "92%" keeps its order. */}
+        {percentText(clamped)}
       </text>
     </svg>
   );

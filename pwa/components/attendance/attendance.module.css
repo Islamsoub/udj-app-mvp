@@ -59,9 +59,16 @@
 
 .heroValue {
   display: flex;
+  margin: 6px 0 0;
+}
+
+/* The number and its sign, laid out inside the LTR isolate that keeps "92%" in
+   that order in Arabic. The gap and baseline live here, on the element that
+   actually holds the two spans. */
+.heroFigure {
+  display: inline-flex;
   align-items: baseline;
   gap: 2px;
-  margin: 6px 0 0;
 }
 
 .heroNumber {

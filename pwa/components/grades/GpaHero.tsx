@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Interpolated } from '@/components/dashboard/Interpolated';
 import type { SemesterSummary } from '@/lib/api-types';
+import { fmtLtr } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { useExitBackstop } from '@/lib/useExitBackstop';
 import { GpaRing } from './GpaRing';
@@ -120,7 +121,9 @@ function HeroFigures({ semester }: { semester: SemesterSummary }) {
         <p className={styles.heroYear}>
           <Interpolated
             template={t('grades.academic_year')}
-            values={{ year: semester.academicYear }}
+            // "2024-2025" arrives as one string; isolated so Arabic does not
+            // draw it as "2025-2024".
+            values={{ year: fmtLtr(semester.academicYear) }}
           />
         </p>
       </div>

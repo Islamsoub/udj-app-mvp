@@ -23,7 +23,7 @@
     "language_switch": "Changer de langue",
     "offline_cache": {
       "label": "Garder mes données hors ligne sur cet appareil",
-      "hint_off": "Recommandé sur un poste partagé (salle info, bibliothèque)",
+      "hint_off": "Déconseillé sur un poste partagé (salle info, bibliothèque)",
       "hint_on": "Notes, horaires et présence dispo hors ligne — effacés à la déconnexion"
     },
     "errors": {
@@ -231,17 +231,17 @@
     "heading": "Assiduité",
     "hero": {
       "label": "Présence ce semestre",
-      "ring_label": "Présence : {{value}} %",
+      "ring_label": "Présence : {{value}}",
       "sessions": "{{present}} séances suivies sur {{total}}",
-      "threshold": "Seuil requis : {{threshold}} %",
-      "below": "Sous le seuil requis de {{threshold}} %",
+      "threshold": "Seuil requis : {{threshold}}",
+      "below": "Sous le seuil requis de {{threshold}}",
       "absences": "Absences : {{count}}",
       "justified": "Dont justifiées : {{count}}",
       "partial": "Dont partielles : {{count}}"
     },
     "subjects": {
       "title": "Par matière",
-      "note": "Le seuil de présence requis est de {{threshold}} %.",
+      "note": "Le seuil de présence requis est de {{threshold}}.",
       "sessions": "{{present}} séances suivies sur {{total}}",
       "below": "Sous le seuil",
       "bar_label": "Présence en {{subject}}"

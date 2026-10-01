@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { Interpolated } from '@/components/dashboard/Interpolated';
 import type { NewsArticleSummary } from '@/lib/api-types';
+import { isolateLtrRuns } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { ArticleMeta, ArticleTags } from './ArticleMeta';
 import { HeroImage } from './HeroImage';
@@ -98,7 +99,7 @@ export function NewsList({
                   <span className={styles.cardBody}>
                     <ArticleTags category={article.category} urgent={article.isUrgent} />
                     <span className={styles.cardTitle}>
-                      {lang === 'ar' ? article.titleAr : article.titleFr}
+                      {isolateLtrRuns(lang === 'ar' ? article.titleAr : article.titleFr)}
                     </span>
                     <ArticleMeta
                       publishedAt={article.publishedAt}

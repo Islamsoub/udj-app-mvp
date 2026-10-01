@@ -18,16 +18,20 @@ const PLACEHOLDER = /\{\{(\w+)\}\}/g;
  * provider deliberately leaves unmatched ones in place — and this splits on
  * them, emitting the words as plain text and each value inside a `.num` span.
  *
- * Direction needs no handling: the parts are emitted in template order and the
- * browser's bidi algorithm places them, so the same template reads correctly in
- * both directions without a mirrored variant.
+ * Direction needs no handling for a single number: the parts are emitted in
+ * template order and the browser's bidi algorithm places them, so the same
+ * template reads correctly in both directions without a mirrored variant. A
+ * value that is itself a pair — a range, a percentage — is the exception, and
+ * is passed in already isolated by the helpers in lib/bidi.
  */
 export function Interpolated({
   template,
   values,
 }: {
   template: string;
-  values: Record<string, string | number>;
+  /** A node as well as a string or number, so a value can arrive already
+   *  formatted — a percentage or a range from lib/bidi, isolated as LTR. */
+  values: Record<string, ReactNode>;
 }) {
   const parts: ReactNode[] = [];
   let lastIndex = 0;

@@ -3,6 +3,7 @@
 import { ArticleTags } from '@/components/news/ArticleMeta';
 import { getNews } from '@/lib/api-client';
 import type { NewsListResponse } from '@/lib/api-types';
+import { isolateLtrRuns } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { Card, CardStates, EmptyState } from './Card';
 import { Interpolated } from './Interpolated';
@@ -52,7 +53,7 @@ export function NewsCard({ index, animate, online }: { index: number; animate: b
                 <li key={article.id} className={styles.newsItem}>
                   <ArticleTags category={article.category} urgent={article.isUrgent} />
                   <span className={styles.newsTitle}>
-                    {lang === 'ar' ? article.titleAr : article.titleFr}
+                    {isolateLtrRuns(lang === 'ar' ? article.titleAr : article.titleFr)}
                   </span>
                   <span className={styles.newsMeta}>
                     <Interpolated

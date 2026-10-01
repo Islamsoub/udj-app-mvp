@@ -2,6 +2,7 @@
 
 import { Interpolated } from '@/components/dashboard/Interpolated';
 import type { AttendanceOverall } from '@/lib/api-types';
+import { fmtPercent, percentText } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { WarningIcon } from './icons';
 import { PresenceRing } from './PresenceRing';
@@ -39,7 +40,7 @@ export function Hero({
     <section className={styles.hero}>
       <PresenceRing
         percentage={percentage}
-        label={t('attendance.hero.ring_label', { value: Math.round(percentage) })}
+        label={t('attendance.hero.ring_label', { value: percentText(percentage) })}
       />
 
       <div className={styles.heroText}>
@@ -47,9 +48,14 @@ export function Hero({
 
         <p className={styles.heroValue}>
           {/* The figure stays on the Latin face in Arabic, like every other
-              number in the product. */}
-          <span className={`${styles.heroNumber} num`}>{Math.round(percentage)}</span>
-          <span className={`${styles.heroUnit} num`}>%</span>
+              number in the product — and in one LTR isolate, so the sign
+              follows the number there instead of leading it. Number and sign
+              are two sizes, hence two spans rather than fmtPercent; the form
+              is the same "92%". */}
+          <bdi dir="ltr" className={styles.heroFigure}>
+            <span className={`${styles.heroNumber} num`}>{Math.round(percentage)}</span>
+            <span className={`${styles.heroUnit} num`}>%</span>
+          </bdi>
         </p>
 
         <p className={styles.heroSessions}>
@@ -67,7 +73,7 @@ export function Hero({
           {below && <WarningIcon className={styles.heroThresholdIcon} />}
           <Interpolated
             template={t(below ? 'attendance.hero.below' : 'attendance.hero.threshold')}
-            values={{ threshold }}
+            values={{ threshold: fmtPercent(threshold) }}
           />
         </p>
 

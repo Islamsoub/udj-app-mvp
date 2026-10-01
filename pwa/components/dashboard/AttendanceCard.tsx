@@ -2,6 +2,7 @@
 
 import { getAttendance } from '@/lib/api-client';
 import type { AttendanceResponse } from '@/lib/api-types';
+import { percentText } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { Card, CardStates, EmptyState } from './Card';
 import { Interpolated } from './Interpolated';
@@ -56,7 +57,7 @@ export function AttendanceCard({ index, animate, online }: { index: number; anim
             <div className={styles.heroRow}>
               <Ring
                 percentage={percentage}
-                label={t('dashboard.attendance.title') + ' ' + Math.round(percentage) + '%'}
+                label={t('dashboard.attendance.title') + ' ' + percentText(percentage)}
               />
               <p className={styles.stateText}>
                 {/* Interpolated, not t(...) with params: the two counts have to
