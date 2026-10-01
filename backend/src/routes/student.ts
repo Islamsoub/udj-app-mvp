@@ -18,6 +18,14 @@ import {
   DEFAULT_ATTENDANCE_THRESHOLD,
   DEFAULT_JUSTIFICATION_DEADLINE_DAYS,
 } from '../utils/attendance';
+import { earnedCredits, CreditGrade } from '../utils/credits';
+
+/** The columns earnedCredits() needs, for queries that exist only to count them. */
+const CREDIT_GRADE_SELECT = {
+  isValidated: true,
+  publishedNfAt: true,
+  subject: { select: { credits: true } },
+} as const;
 
 const router = Router();
 router.use(authMiddleware);
@@ -106,8 +114,8 @@ router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
 
     const [
       semesterGrades,
-      semesterValidatedGrades,
-      allValidatedGrades,
+      semesterCreditGrades,
+      allCreditGrades,
       semesterSubjects,
       attendanceRecords,
       scheduleSlots,
@@ -125,16 +133,18 @@ router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
           })
         : Promise.resolve([] as { noteFinale: number | null; subject: { coefficient: number } }[]),
 
+      // Read with the fields earnedCredits() tests, not pre-filtered on
+      // isValidated: validation alone is not an earned credit (utils/credits.ts).
       currentSemester
         ? prisma.grade.findMany({
-            where: { studentId, semesterId: currentSemester.id, isValidated: true },
-            select: { subject: { select: { credits: true } } },
+            where: { studentId, semesterId: currentSemester.id },
+            select: CREDIT_GRADE_SELECT,
           })
-        : Promise.resolve([] as { subject: { credits: number } }[]),
+        : Promise.resolve([] as CreditGrade[]),
 
       prisma.grade.findMany({
-        where: { studentId, isValidated: true },
-        select: { subject: { select: { credits: true } } },
+        where: { studentId },
+        select: CREDIT_GRADE_SELECT,
       }),
 
       currentSemester
@@ -173,12 +183,9 @@ router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
     const gpa = computeGPA(semesterGrades);
     const mention = gpa !== null ? computeMention(gpa) : null;
 
-    const semesterCreditsEarned = semesterValidatedGrades.reduce(
-      (s, g) => s + g.subject.credits,
-      0
-    );
+    const semesterCreditsEarned = earnedCredits(semesterCreditGrades);
     const semesterCreditsTotal = semesterSubjects.reduce((s, sub) => s + sub.credits, 0);
-    const totalCreditsEarned = allValidatedGrades.reduce((s, g) => s + g.subject.credits, 0);
+    const totalCreditsEarned = earnedCredits(allCreditGrades);
 
     let attendancePercentage: number | null = null;
     if (attendanceRecords.length > 0) {
@@ -356,9 +363,7 @@ router.get('/grades', async (req: Request, res: Response, next: NextFunction) =>
         const nfGrades = semGrades.filter((g) => g.publishedNfAt !== null);
         const gpa = computeGPA(nfGrades);
         const mention = gpa !== null ? computeMention(gpa) : null;
-        const earned = nfGrades
-          .filter((g) => g.isValidated)
-          .reduce((s, g) => s + g.subject.credits, 0);
+        const earned = earnedCredits(semGrades);
         const total = totalCreditsBySem.get(semId) ?? 0;
         return {
           id: semInfo.id,
@@ -432,9 +437,7 @@ router.get('/grades', async (req: Request, res: Response, next: NextFunction) =>
     const nfGrades = visible.filter((g) => g.publishedNfAt !== null);
     const gpa = computeGPA(nfGrades);
     const mention = gpa !== null ? computeMention(gpa) : null;
-    const earned = nfGrades
-      .filter((g) => g.isValidated)
-      .reduce((s, g) => s + g.subject.credits, 0);
+    const earned = earnedCredits(grades);
     const total = semesterSubjects.reduce((s, sub) => s + sub.credits, 0);
 
     res.status(200).json({
