@@ -101,9 +101,14 @@
 }
 
 /* Under the line. The tint is ONE of three signals — the triangle beside it and
-   the wording itself carry the same meaning (§10). */
+   the wording itself carry the same meaning (§10).
+   Text on the card surface, so --warning-ink: --warning is 2.15:1 on it in
+   light. The triangle follows it through currentColor on purpose — unlike the
+   danger and info icons, --warning cannot reach even the 3:1 a graphic needs
+   on a light surface, so this icon is not split back to the hue. The same
+   holds for .subjectFlag. */
 .heroThresholdBelow {
-  color: var(--warning);
+  color: var(--warning-ink);
   font-weight: 700;
 }
 
@@ -256,7 +261,7 @@
 }
 
 .subjectValueBelow {
-  color: var(--warning);
+  color: var(--warning-ink);
 }
 
 /* ── Bars ──────────────────────────────────────────────────────────────────── */
@@ -339,7 +344,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: var(--warning);
+  color: var(--warning-ink);
   font-weight: 700;
 }
 
@@ -586,7 +591,7 @@
 
 .bannerPending {
   background: var(--info-bg);
-  color: var(--info);
+  color: var(--info-ink);
 }
 
 .bannerApproved {
@@ -596,6 +601,16 @@
 
 .bannerRejected {
   background: var(--danger-bg);
+  color: var(--danger-ink);
+}
+
+/* The banner's text takes the -ink (4.5:1 on the tint); its icon is a graphic
+   and keeps the status hue (3:1) instead of following it through currentColor. */
+.bannerPending .bannerIcon {
+  color: var(--info);
+}
+
+.bannerRejected .bannerIcon {
   color: var(--danger);
 }
 
@@ -876,7 +891,7 @@
   background: var(--danger-bg);
   font-size: 12.5px;
   line-height: 1.5;
-  color: var(--danger);
+  color: var(--danger-ink);
 }
 
 /* §5's upload progress bar. Same track geometry as the subject bars, so the two

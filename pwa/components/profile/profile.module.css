@@ -283,7 +283,7 @@
 }
 
 .rowStatusError {
-  color: var(--danger);
+  color: var(--danger-ink);
 }
 
 .offlineHint {

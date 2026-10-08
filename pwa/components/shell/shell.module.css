@@ -796,14 +796,20 @@
   transform: scale(0.97);
 }
 
+/* The label is 10px text, so it takes --jade-text (--jade is 3.39:1 on the bar
+   in light); the icon is a graphic and keeps the brand --jade. */
 .tabActive {
-  color: var(--jade);
+  color: var(--jade-text);
   font-weight: 700;
 }
 
 .tabIcon {
   width: 22px;
   height: 22px;
+}
+
+.tabActive .tabIcon {
+  color: var(--jade);
 }
 
 .tabLabel {

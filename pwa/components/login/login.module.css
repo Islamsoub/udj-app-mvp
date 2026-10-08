@@ -338,7 +338,7 @@
 .errorTitle {
   display: block;
   margin-bottom: 2px;
-  color: var(--danger);
+  color: var(--danger-ink);
   font-size: 13.5px;
   font-weight: 700;
 }
@@ -354,7 +354,7 @@
 }
 
 .errorCardInfo .errorTitle {
-  color: var(--info);
+  color: var(--info-ink);
 }
 
 /* 502/504: the backend is cold-starting. Neutral, not accusatory. */
@@ -634,10 +634,13 @@
  * This style is for the rate limit ONLY. The additions spec is explicit that
  * the account lockout must not be dressed the same way, so the two have
  * separate classes even though both are "the button is counting down".
+ *
+ * --ink2, not --ink3: the countdown is information, and --ink3 is for non-text
+ * only (3.12:1 on --sunken in light).
  */
 .submitWaiting {
   background: var(--sunken);
-  color: var(--ink3);
+  color: var(--ink2);
   box-shadow: none;
 }
 
@@ -651,13 +654,14 @@
  * tell "your account is locked" from "this network is busy" at a glance.
  *
  * Red as tint-plus-text rather than a saturated --danger fill, mirroring how
- * the neutral style above pairs --sunken with --ink3. A filled red button reads
+ * the neutral style above pairs --sunken with --ink2. A filled red button reads
  * as a live destructive action, which is the wrong signal for a control that is
- * disabled and waiting.
+ * disabled and waiting. The text — only ever the DM Mono m:ss timer — is
+ * --danger-ink: --danger is 3.3:1 on its own tint.
  */
 .submitLocked {
   background: var(--danger-bg);
-  color: var(--danger);
+  color: var(--danger-ink);
   box-shadow: none;
 }
 
