@@ -1,0 +1,126 @@
+/* ── Install banner (§8) ─────────────────────────────────────────────────────── */
+
+/*
+ * "height: 0→auto + fade over --dur-base". A grid row animating 0fr → 1fr is the
+ * height-to-auto that CSS can interpolate; the inner box clips the content while
+ * the row grows. In normal flow, so it pushes the page down instead of covering
+ * the topbar.
+ */
+.install {
+  display: grid;
+  grid-template-rows: 1fr;
+  background: var(--jade-faint);
+  border-block-end: 1px solid var(--hair);
+  animation: installIn var(--dur-base) var(--ease-out);
+}
+
+@keyframes installIn {
+  from {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  to {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+}
+
+.installClip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.installInner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 8px 24px;
+}
+
+.installText {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.installActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.installPrimary,
+.installLater {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 16px;
+  border: none;
+  border-radius: var(--r-sm);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+.installPrimary {
+  background: var(--jade);
+  color: var(--on-jade);
+}
+
+.installPrimary:hover:not(:disabled) {
+  background: var(--jade-hover);
+}
+
+.installPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* §8: a text "Plus tard" — no fill until hovered. */
+.installLater {
+  background: none;
+  color: var(--jade-text);
+}
+
+.installLater:hover {
+  background: var(--jade-faint);
+}
+
+.installPrimary:active:not(:disabled),
+.installLater:active {
+  transform: scale(0.97);
+}
+
+.installPrimary:focus-visible,
+.installLater:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
+@media (max-width: 639px) {
+  .installInner {
+    padding-inline: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .install {
+    animation: none;
+  }
+
+  .installPrimary,
+  .installLater {
+    transition: none;
+  }
+
+  .installPrimary:active:not(:disabled),
+  .installLater:active {
+    transform: none;
+  }
+}

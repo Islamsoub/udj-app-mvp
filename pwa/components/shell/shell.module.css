@@ -611,6 +611,47 @@
   animation: toastOut var(--dur-fast) var(--ease-out) forwards;
 }
 
+/* A toast with an action: the button needs the clicks the layer lets through,
+   and a 44px target sets the height, so the pill's own padding shrinks to keep
+   it the same size. */
+.toastWithAction {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-block: 4px;
+  padding-inline: 18px 4px;
+  pointer-events: auto;
+}
+
+.toastAction {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding-inline: 16px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--jade);
+  color: var(--on-jade);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+.toastAction:hover {
+  background: var(--jade-hover);
+}
+
+.toastAction:active {
+  transform: scale(0.97);
+}
+
+.toastAction:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
 @keyframes toastIn {
   from {
     opacity: 0;
@@ -949,6 +990,7 @@
   .bannerHidden,
   .buttonPrimary,
   .buttonSecondary,
+  .toastAction,
   .tab {
     transition-duration: var(--dur-instant);
     transition-timing-function: linear;

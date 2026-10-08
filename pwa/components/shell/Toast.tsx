@@ -20,16 +20,30 @@ const VISIBLE_MS = 2200;
  * blocks input" promise — the toast floats over the content without swallowing
  * a click meant for what is underneath.
  */
-export function Toast({ message, onDone }: { message: string | null; onDone: () => void }) {
+export function Toast({
+  message,
+  onDone,
+  action,
+}: {
+  message: string | null;
+  onDone: () => void;
+  /**
+   * A toast with an action stays until it is used: an offer the student has
+   * 2200ms to notice is not an offer. Its button takes clicks; the rest of the
+   * layer still lets them through. Used for the service-worker update prompt.
+   */
+  action?: { label: string; onClick: () => void };
+}) {
   const [leaving, setLeaving] = useState(false);
+  const persistent = action !== undefined;
 
   useEffect(() => {
-    if (message === null) return;
+    if (message === null || persistent) return;
 
     setLeaving(false);
     const id = window.setTimeout(() => setLeaving(true), VISIBLE_MS);
     return () => window.clearTimeout(id);
-  }, [message]);
+  }, [message, persistent]);
 
   /*
    * Dismissal cannot depend on onAnimationEnd alone: a tab that is hidden when
@@ -45,7 +59,9 @@ export function Toast({ message, onDone }: { message: string | null; onDone: () 
   return (
     <div className={styles.toastLayer}>
       <div
-        className={`${styles.toast} ${leaving ? styles.toastLeaving : ''}`}
+        className={[styles.toast, persistent ? styles.toastWithAction : '', leaving ? styles.toastLeaving : '']
+          .filter(Boolean)
+          .join(' ')}
         role="status"
         aria-live="polite"
         // The fast path: tying the unmount to the animation that is actually
@@ -56,6 +72,11 @@ export function Toast({ message, onDone }: { message: string | null; onDone: () 
         }}
       >
         {message}
+        {action !== undefined && (
+          <button type="button" className={styles.toastAction} onClick={action.onClick}>
+            {action.label}
+          </button>
+        )}
       </div>
     </div>
   );

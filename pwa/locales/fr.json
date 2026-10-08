@@ -470,6 +470,18 @@
       "title": "Compte"
     }
   },
+  "pwa": {
+    "install": {
+      "label": "Installer l'application",
+      "message": "Installer Unipocket pour un accès plus rapide",
+      "action": "Installer",
+      "later": "Plus tard"
+    },
+    "update": {
+      "message": "Une nouvelle version est disponible",
+      "action": "Recharger"
+    }
+  },
   "offline": {
     "banner": "Vous êtes hors ligne. Données mises en cache affichées.",
     "restored": "Connexion rétablie",

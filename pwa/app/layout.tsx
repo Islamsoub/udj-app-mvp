@@ -1,6 +1,7 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { cookies } from 'next/headers';
 import type { ReactNode } from 'react';
+import { PwaLayer } from '@/components/pwa/PwaLayer';
 import { I18nProvider } from '@/lib/i18n';
 // Values, not types, so they must come from the non-client module — every export
 // of lib/i18n.tsx is a client reference and cannot be called while rendering here.
@@ -12,6 +13,17 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Unipocket PWA',
   description: 'Unipocket — Université de Djibouti.',
+  // The installable app: public/manifest.json, icons generated from the logo.
+  manifest: '/manifest.json',
+  icons: {
+    icon: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+    apple: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+  },
+};
+
+/** The browser chrome colour while the app runs installed: --jade, as in the manifest. */
+export const viewport: Viewport = {
+  themeColor: '#1D9E75',
 };
 
 /**
@@ -80,7 +92,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             globals.css, so the server-rendered lang attribute already selects the
             right stack at first paint — no client pass needed. */}
         <I18nProvider initialLang={lang}>
-          <ThemeProvider initialPref={themePref}>{children}</ThemeProvider>
+          <ThemeProvider initialPref={themePref}>
+            {/* Install banner, service worker and its update toast — on every
+                route, the login screen included. */}
+            <PwaLayer>{children}</PwaLayer>
+          </ThemeProvider>
         </I18nProvider>
       </body>
     </html>
