@@ -91,8 +91,13 @@ export function SlidePanel({
     // trigger and not the panel's own first control.
     returnFocusTo.current = document.activeElement as HTMLElement | null;
 
-    const first = panelRef.current?.querySelector<HTMLElement>(FOCUSABLE);
-    (first ?? panelRef.current)?.focus();
+    /*
+     * The dialog itself takes focus (it is tabIndex -1), not its first control.
+     * Focusing the close button put a focus ring on it whenever a panel was
+     * opened with the mouse. From the dialog, Tab enters the panel at its first
+     * control — the close button — and Shift+Tab wraps to the last (below).
+     */
+    panelRef.current?.focus();
   }, [open]);
 
   /*

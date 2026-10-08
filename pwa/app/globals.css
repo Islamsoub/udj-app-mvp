@@ -188,8 +188,11 @@
      different KINDS of surface, not two shades of one: in light the hero is the
      brand's jade; in dark a bright surface means "act here", and a header is
      not an action. Text on it is --ink in both, which is also what --on-jade
-     resolves to here. */
-  --hero-bg: linear-gradient(155deg, var(--jade), var(--jade-hover));
+     resolves to here.
+     Flat, not a gradient: no second stop works for both near-black text (a
+     darker stop costs contrast at the bottom) and dark-mode glare (a lighter
+     one adds it). And never --jade-hover, which is for hover states only. */
+  --hero-bg: var(--jade);
   /* The logo mark on that hero. Ink on jade here; the brand's jade on the
      neutral dark hero. A token rather than a theme selector in the login
      stylesheet, so which colour each theme uses is decided here only. */

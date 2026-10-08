@@ -83,9 +83,8 @@
  * 99x143 viewBox set the width — 63.7px — so the portrait proportions are kept
  * and nothing is squashed into a square or cropped.
  *
- * COLOUR. --on-jade, through a mask — the shell's .logoMark technique. The
- * file's paths are white, which is 2.8:1 against the gradient's --jade-hover
- * stop: under 3:1 for a graphic. The mask keeps the file untouched (the native
+ * COLOUR. --hero-mark, through a mask — the shell's .logoMark technique. The
+ * file's paths are white, which is under 3:1 for a graphic on the jade hero. The mask keeps the file untouched (the native
  * app shares it) and takes the colour from the token in both themes. A masked
  * box has no intrinsic size, so the 99:143 ratio is declared and the height
  * alone sets the size — the same 63.7 x 92 box the <img> had.
@@ -236,10 +235,9 @@
   letter-spacing: 0.02em;
 }
 
-/* Password sits on a jade tint, per the mock. */
+/* Same fill and border as the student ID field — .input's — so the two fields
+   read as one form. The jade tint the mock gave this field alone is gone. */
 .inputPassword {
-  background: var(--jade-faint);
-  border-color: transparent;
   /* Room for the eye toggle, on whichever side the direction puts it. */
   padding-inline-end: 48px;
 }
@@ -247,6 +245,33 @@
 .inputError {
   background: var(--danger-bg);
   border-color: var(--danger);
+}
+
+/*
+ * Chrome paints an autofilled field its own pale yellow through a UA rule that
+ * `background` cannot override, and recolours the text. An inset shadow covering
+ * the whole box repaints the field's own fill over it, and the text fill is set
+ * back to ink. The focus and error states repeat their own fill and ring here,
+ * because this shadow replaces theirs.
+ */
+.input:-webkit-autofill {
+  -webkit-text-fill-color: var(--ink);
+  caret-color: var(--ink);
+  box-shadow: inset 0 0 0 100vmax var(--surface);
+}
+
+.input:-webkit-autofill:focus {
+  box-shadow: inset 0 0 0 100vmax var(--surface), 0 0 0 3px var(--jade-faint);
+}
+
+/* The error tint is translucent, so it is laid over the surface, not the yellow. */
+.inputError:-webkit-autofill {
+  box-shadow: inset 0 0 0 100vmax var(--danger-bg), inset 0 0 0 100vmax var(--surface);
+}
+
+.inputError:-webkit-autofill:focus {
+  box-shadow: inset 0 0 0 100vmax var(--danger-bg), inset 0 0 0 100vmax var(--surface),
+    0 0 0 3px var(--jade-faint);
 }
 
 .passwordWrap {

@@ -50,7 +50,14 @@
     "grades": "Notes",
     "attendance": "Assiduité",
     "news": "Actualités",
-    "profile": "Profil"
+    "profile": "Profil",
+    "tab": {
+      "dashboard": "Accueil",
+      "schedule": "Planning",
+      "grades": "Notes",
+      "attendance": "Assiduité",
+      "news": "Actualités"
+    }
   },
   "shell": {
     "skip_to_content": "Aller au contenu principal",

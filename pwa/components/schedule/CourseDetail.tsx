@@ -22,15 +22,16 @@ import styles from './schedule.module.css';
  * out and reported as spec-without-backend.
  */
 export function CourseDetail({ entry, dayLabel }: { entry: ScheduleEntry; dayLabel: string }) {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
 
   const type = courseType(entry.type);
-  const subject = lang === 'ar' ? entry.subject.nameAr : entry.subject.nameFr;
 
+  /*
+   * No subject heading here: the panel's own title is the subject (courseTitle,
+   * below), and naming it twice in one panel was noise.
+   */
   return (
     <div className={styles.detail}>
-      <h3 className={styles.detailSubject}>{subject}</h3>
-
       {/*
         The type, as a coloured pill AND as a word — §10 forbids colour as the
         only signal, and this is the one place there is room for the long form

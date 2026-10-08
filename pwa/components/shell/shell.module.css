@@ -103,6 +103,13 @@
   flex-direction: column;
   flex-shrink: 0;
   width: var(--sidebar-w);
+  /* Pinned to the viewport rather than stretched to the page: stretched, the
+     collapse button at its foot sat at the bottom of the whole document, far
+     below the fold on any long page. 100vh first for browsers without dvh. */
+  position: sticky;
+  top: 0;
+  block-size: 100vh;
+  block-size: 100dvh;
   padding: 16px 12px;
   background: var(--surface);
   border-inline-end: 1px solid var(--hair);
@@ -505,6 +512,8 @@
   font-size: 13.5px;
   font-weight: 600;
   text-align: start;
+  /* The Profile entry is a link; the logout entry a button. Both look alike. */
+  text-decoration: none;
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out),
     transform var(--dur-instant) var(--ease-out);

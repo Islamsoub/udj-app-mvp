@@ -1,8 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
-import { AvatarIcon, LogoutIcon } from './icons';
+import { AvatarIcon, LogoutIcon, NavIcon } from './icons';
 import { PageTitle } from './PageTitle';
 import styles from './shell.module.css';
 
@@ -17,7 +18,12 @@ export function Topbar({ title, onLogout }: { title: string; onLogout: () => voi
     <header className={styles.topbar}>
       <PageTitle title={title} />
       <div className={styles.topbarActions}>
-        <AvatarMenu onLogout={onLogout} label={t('shell.account')} logoutLabel={t('shell.logout')} />
+        <AvatarMenu
+          onLogout={onLogout}
+          label={t('shell.account')}
+          profileLabel={t('nav.profile')}
+          logoutLabel={t('shell.logout')}
+        />
       </div>
     </header>
   );
@@ -34,17 +40,19 @@ export function Topbar({ title, onLogout }: { title: string; onLogout: () => voi
 function AvatarMenu({
   onLogout,
   label,
+  profileLabel,
   logoutLabel,
 }: {
   onLogout: () => void;
   label: string;
+  profileLabel: string;
   logoutLabel: string;
 }) {
   const { dir } = useI18n();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const firstItemRef = useRef<HTMLButtonElement>(null);
+  const firstItemRef = useRef<HTMLAnchorElement>(null);
 
   // Returns focus to the trigger, which is what §3 requires of anything that
   // traps or moves focus. Without it, dismissing with Escape drops the keyboard
@@ -105,8 +113,22 @@ function AvatarMenu({
           // property as the progress sweep — see ProgressBar for why.
           style={{ '--sweep-origin': dir === 'rtl' ? 'left' : 'right' } as React.CSSProperties}
         >
-          <button
+          {/*
+            Profile lives here rather than in the mobile tab bar. A link, so it
+            behaves like one (open in a new tab, the URL on hover); closing on
+            click, without restoring focus — the route change moves it.
+          */}
+          <Link
             ref={firstItemRef}
+            href="/profile"
+            role="menuitem"
+            className={styles.menuItem}
+            onClick={() => setOpen(false)}
+          >
+            <NavIcon name="user" />
+            {profileLabel}
+          </Link>
+          <button
             type="button"
             role="menuitem"
             className={styles.menuItem}

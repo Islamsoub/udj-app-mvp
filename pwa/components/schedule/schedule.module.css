@@ -292,6 +292,28 @@
 }
 
 /* §3: clickable cards lift 1px and deepen to --shadow-lg over --dur-fast. */
+/*
+ * Opaque. The type tints are translucent, and on their own they let today's
+ * jade column wash through — a TP block on today read as olive. Each block lays
+ * its tint over the card surface inside its own box, so it is the same colour
+ * in every column. Per type because the tint is part of the shorthand.
+ */
+.block.typeCm {
+  background: linear-gradient(var(--info-bg), var(--info-bg)) var(--surface);
+}
+
+.block.typeTd {
+  background: linear-gradient(var(--jade-faint), var(--jade-faint)) var(--surface);
+}
+
+.block.typeTp {
+  background: linear-gradient(var(--warning-bg), var(--warning-bg)) var(--surface);
+}
+
+.block.typeExam {
+  background: linear-gradient(var(--exam-bg), var(--exam-bg)) var(--surface);
+}
+
 .block:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-lg);
@@ -595,16 +617,9 @@
   flex-direction: column;
 }
 
-.detailSubject {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1.3;
-  color: var(--ink);
-}
-
+/* First in the body now that the subject lives only in the panel title. */
 .detailType {
-  margin: 10px 0 0;
+  margin: 0;
 }
 
 .detailList {

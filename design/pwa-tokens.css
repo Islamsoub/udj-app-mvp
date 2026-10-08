@@ -14,6 +14,9 @@
  * Amended for chip contrast: --danger-ink, --info-ink, --warning-ink and
  * --exam-ink added, per theme, for status text on its own tint. Font stacks
  * given the fallback lists the PWA ships.
+ *
+ * Amended for the flat hero: light --hero-bg is --jade alone, no gradient and
+ * no --jade-hover stop. --jade-hover is for hover states only.
  */
 
 :root {
@@ -60,7 +63,7 @@
   /* Text and marks on a solid jade surface. 4.71:1 on --jade. */
   --on-jade: #1E231F;
   /* The login hero's background, and the logo mark on it. */
-  --hero-bg: linear-gradient(155deg, var(--jade), var(--jade-hover));
+  --hero-bg: var(--jade);
   --hero-mark: var(--ink);
 
   --shadow-card: 0 2px 10px rgba(30, 35, 31, .06);

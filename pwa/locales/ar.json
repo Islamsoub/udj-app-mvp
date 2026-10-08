@@ -50,7 +50,14 @@
     "grades": "الدرجات",
     "attendance": "الحضور",
     "news": "الأخبار",
-    "profile": "الملف الشخصي"
+    "profile": "الملف الشخصي",
+    "tab": {
+      "dashboard": "الرئيسية",
+      "schedule": "الجدول",
+      "grades": "الدرجات",
+      "attendance": "الحضور",
+      "news": "الأخبار"
+    }
   },
   "shell": {
     "skip_to_content": "الانتقال إلى المحتوى الرئيسي",

@@ -26,8 +26,11 @@ export function TabBar({ pathname }: { pathname: string }) {
   return (
     <nav className={styles.tabBar} aria-label={t('shell.main_nav')}>
       {NAV_ITEMS.map((item) => {
+        // Only items with a short tab label are tabs — Profile is reached from
+        // the avatar menu instead.
+        if (item.tabLabelKey === undefined) return null;
+
         const active = isActivePath(item.path, pathname);
-        const label = t(item.labelKey);
 
         return (
           <Link
@@ -35,15 +38,12 @@ export function TabBar({ pathname }: { pathname: string }) {
             href={item.path}
             className={`${styles.tab} ${active ? styles.tabActive : ''}`}
             aria-current={active ? 'page' : undefined}
-            // The visible label is truncated with an ellipsis at this width, so
-            // the full string goes on the link where a screen reader gets it
-            // whole.
-            aria-label={label}
           >
             <NavIcon name={item.icon} className={styles.tabIcon} />
-            <span className={styles.tabLabel} aria-hidden="true">
-              {label}
-            </span>
+            {/* The visible label is the accessible name: short labels fit, so
+                there is no truncated text to stand in for, and a separate
+                aria-label would no longer contain the words on screen. */}
+            <span className={styles.tabLabel}>{t(item.tabLabelKey)}</span>
           </Link>
         );
       })}
