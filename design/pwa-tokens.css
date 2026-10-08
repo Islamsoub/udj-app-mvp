@@ -7,6 +7,9 @@
  * Amended for contrast (Claude Design): --on-jade and --scrim added; light
  * --jade-hover, --ink2 and --ink3 changed; shadows made per theme. The brand
  * jade itself is unchanged.
+ *
+ * Amended for the login hero: --hero-bg and --hero-mark added, per theme. In
+ * dark the hero is a quiet surface and the mark carries the jade.
  */
 
 :root {
@@ -49,6 +52,9 @@
   --jade-faint: rgba(29, 158, 117, .10);
   /* Text and marks on a solid jade surface. 4.71:1 on --jade. */
   --on-jade: #1E231F;
+  /* The login hero's background, and the logo mark on it. */
+  --hero-bg: linear-gradient(155deg, var(--jade), var(--jade-hover));
+  --hero-mark: var(--ink);
 
   --shadow-card: 0 2px 10px rgba(30, 35, 31, .06);
   --shadow-lg: 0 12px 32px rgba(30, 35, 31, .12);
@@ -84,6 +90,10 @@
   --jade-faint: rgba(43, 185, 137, .16);
   /* 7.3:1 on --jade. */
   --on-jade: #0F1713;
+  /* A quiet raised surface, so the jade submit button is the brightest thing
+     on the screen; the mark carries the brand colour instead. */
+  --hero-bg: var(--surface2);
+  --hero-mark: var(--jade);
 
   --shadow-card: 0 0 0 1px rgba(255, 255, 255, .06), 0 2px 8px rgba(0, 0, 0, .40);
   --shadow-lg: 0 0 0 1px rgba(255, 255, 255, .08), 0 16px 40px rgba(0, 0, 0, .55);

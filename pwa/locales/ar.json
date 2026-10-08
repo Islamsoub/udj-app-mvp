@@ -80,7 +80,8 @@
       "title": "المعدل العام",
       "scale": "/ 20",
       "empty_title": "النتائج غير منشورة بعد",
-      "empty_body": "سيظهر معدلك هنا بمجرد نشر درجاتك."
+      "empty_body": "سيظهر معدلك هنا بمجرد نشر درجاتك.",
+      "pending": "{{semester}} قيد الانتظار"
     },
     "attendance": {
       "title": "الحضور",
@@ -113,7 +114,8 @@
     "hero": {
       "label": "معدّل الفصل",
       "scale": "/ 20",
-      "credits": "{{earned}} / {{total}} وحدة مكتسبة",
+      "credits": "{{credits}} وحدة مكتسبة",
+      "at_stake": "{{total}} وحدة قيد التقييم هذا الفصل",
       "no_gpa": "المعدّل غير منشور",
       "ring_label": "معدّل الفصل: {{gpa}} من 20"
     },
@@ -146,10 +148,9 @@
       "cc_only": "لم تُنشر لهذا الفصل سوى درجات المراقبة المستمرة. ستُنشر الدرجات النهائية لاحقاً."
     },
     "empty": {
-      "title": "النتائج غير منشورة",
-      "body": "لم تنشر كليتك بعد درجات الفصل {{semester}}. ستظهر هنا فور نشرها.",
-      "other_available": "نتائج الفصل {{semester}} متاحة.",
-      "other_action": "عرض الفصل {{semester}}"
+      "title": "لم تُنشر درجات {{semester}} بعد",
+      "body": "ستظهر هنا فور نشرها من قِبل كليتك.",
+      "other_action": "عرض نتائج {{semester}}"
     },
     "calculator": {
       "open": "الحاسبة",
@@ -413,7 +414,8 @@
       "gpa_unpublished": "غير منشور",
       "semester_credits": "أرصدة الفصل",
       "total_credits": "أرصدة المسار",
-      "credits_value": "{{earned}} / {{total}}",
+      "credits_pending": "{{total}} رصيد قيد التقييم",
+      "credits_none": "لم تُنشر أي نتيجة بعد · {{total}} رصيد إجمالاً",
       "attendance": "الحضور",
       "none": "لا توجد حصص مسجّلة"
     },

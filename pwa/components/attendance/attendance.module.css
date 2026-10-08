@@ -266,9 +266,10 @@
  * placed against it, and `overflow: hidden` so the fill's rounded end is clipped
  * to the track rather than sticking out at 100%.
  */
+/* Not clipped: the threshold tick has to stand proud of the bar, above and
+   below. The fill carries its own radius, so nothing needs the clip. */
 .bar {
   position: relative;
-  overflow: hidden;
   height: 8px;
   margin: 10px 0 0;
   border-radius: 9999px;
@@ -293,16 +294,34 @@
   background: var(--warning);
 }
 
-/* The threshold, at the same inline offset on every bar — which is what makes
-   "below the line" visible as a comparison rather than as eight separate
-   readings. */
+/*
+ * The threshold, at the same inline offset on every bar — which is what makes
+ * "below the line" visible as a comparison rather than as eight separate
+ * readings. It is the most important mark on the screen, so it is drawn to be
+ * seen: solid --ink2, 2px wide, standing 3px proud of the bar above and below.
+ * The ends are what carry it — they sit on the card, where --ink2 has text
+ * contrast in both themes, whatever colour the fill behind the middle is.
+ *
+ * Centred on the value: the 1px pulls the 2px tick back so its middle, not its
+ * leading edge, marks the threshold.
+ */
 .barThreshold {
   position: absolute;
-  inset-block: -2px;
-  inset-inline-start: var(--bar-threshold);
+  inset-block: -3px;
+  inset-inline-start: calc(var(--bar-threshold) - 1px);
   width: 2px;
   background: var(--ink2);
-  opacity: 0.55;
+}
+
+/* The same tick, in the sentence that says what it means — the mark is labelled
+   once for the section rather than on every bar. */
+.thresholdKey {
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  margin-inline-end: 8px;
+  vertical-align: middle;
+  background: var(--ink2);
 }
 
 .subjectMeta {

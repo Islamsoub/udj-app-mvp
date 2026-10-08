@@ -184,6 +184,17 @@
      on --jade. Replaces white, which was 3.39:1. */
   --on-jade: #1E231F;
 
+  /* The login hero's background. Its own token because the two themes want
+     different KINDS of surface, not two shades of one: in light the hero is the
+     brand's jade; in dark a bright surface means "act here", and a header is
+     not an action. Text on it is --ink in both, which is also what --on-jade
+     resolves to here. */
+  --hero-bg: linear-gradient(155deg, var(--jade), var(--jade-hover));
+  /* The logo mark on that hero. Ink on jade here; the brand's jade on the
+     neutral dark hero. A token rather than a theme selector in the login
+     stylesheet, so which colour each theme uses is decided here only. */
+  --hero-mark: var(--ink);
+
   --shadow-card: 0 2px 10px rgba(30, 35, 31, .06);
   --shadow-lg: 0 12px 32px rgba(30, 35, 31, .12);
   --shadow-panel: 0 0 0 1px rgba(30, 35, 31, .04), -12px 0 32px rgba(30, 35, 31, .10);
@@ -220,6 +231,13 @@
   --jade-faint: rgba(43, 185, 137, .16);
   /* 7.3:1 on --jade. White was 2.5:1 here. */
   --on-jade: #0F1713;
+
+  /* A quiet raised surface, so the jade submit button below it is the brightest
+     thing on the screen rather than the header. */
+  --hero-bg: var(--surface2);
+  /* On a neutral hero the mark carries the brand colour the background no
+     longer does. */
+  --hero-mark: var(--jade);
 
   /* A 1px light ring does the edge work a shadow cannot on a dark page; the
      black blur underneath gives the lift. */
@@ -320,4 +338,13 @@ html[lang="ar"] body {
 .mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* A figure and its scale grouped by fmtScaled (lib/bidi) inside a flex row. It
+   becomes one item of that row and lays its own two pieces out the same way —
+   inherited, so each call site keeps the gap it already had. */
+.ratio {
+  display: flex;
+  align-items: inherit;
+  gap: inherit;
 }

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Interpolated } from '@/components/dashboard/Interpolated';
 import { mentionKey } from '@/components/grades/model';
 import type { MeResponse } from '@/lib/api-types';
-import { fmtPercent } from '@/lib/bidi';
+import { fmtPercent, fmtRatio } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n-types';
 import styles from './profile.module.css';
@@ -18,7 +18,14 @@ import styles from './profile.module.css';
  * needs from this page), and how it is going (the same stats the dashboard
  * draws, as plain figures).
  */
-export function StudentCard({ me }: { me: MeResponse }) {
+export function StudentCard({
+  me,
+  anyPublished,
+}: {
+  me: MeResponse;
+  /** Whether any semester has published results; null when that is unknown. */
+  anyPublished: boolean | null;
+}) {
   const { t, lang } = useI18n();
   const ar = lang === 'ar';
 
@@ -79,8 +86,7 @@ export function StudentCard({ me }: { me: MeResponse }) {
               t('profile.progress.gpa_unpublished')
             ) : (
               <>
-                <span className="num">{gpa.toFixed(2)}</span>
-                <span className="num"> / 20</span>
+                <span className="num">{fmtRatio(gpa.toFixed(2), 20)}</span>
                 {mention !== null && (
                   <span className={styles.mention}>
                     {mentionLabelKey === null ? mention : t(mentionLabelKey)}
@@ -89,17 +95,39 @@ export function StudentCard({ me }: { me: MeResponse }) {
               </>
             )}
           </Fact>
+          {/*
+            "0 / 32" is a result; "nothing published yet" is the absence of one.
+            They are the same digits and mean different things, so each line
+            says which it is.
+
+            The semester: `gpa` is null exactly when no final result of the
+            current semester is published, so its credits are stated as what is
+            at stake, not as none earned.
+          */}
           <Fact label={t('profile.progress.semester_credits')}>
-            <Interpolated
-              template={t('profile.progress.credits_value')}
-              values={{ earned: semesterCredits.earned, total: semesterCredits.total }}
-            />
+            {gpa === null ? (
+              <Interpolated
+                template={t('profile.progress.credits_pending')}
+                values={{ total: semesterCredits.total }}
+              />
+            ) : (
+              <span className="num">{fmtRatio(semesterCredits.earned, semesterCredits.total)}</span>
+            )}
           </Fact>
+          {/*
+            The whole course: "no result published" only when that is KNOWN —
+            zero earned with results out is a real zero and stays a figure, as
+            does the case where the lookup failed and nothing can be claimed.
+          */}
           <Fact label={t('profile.progress.total_credits')}>
-            <Interpolated
-              template={t('profile.progress.credits_value')}
-              values={{ earned: totalCredits.earned, total: totalCredits.total }}
-            />
+            {totalCredits.earned === 0 && anyPublished === false ? (
+              <Interpolated
+                template={t('profile.progress.credits_none')}
+                values={{ total: totalCredits.total }}
+              />
+            ) : (
+              <span className="num">{fmtRatio(totalCredits.earned, totalCredits.total)}</span>
+            )}
           </Fact>
           <Fact label={t('profile.progress.attendance')}>
             {attendancePercentage === null ? (

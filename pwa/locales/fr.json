@@ -80,7 +80,8 @@
       "title": "Moyenne générale",
       "scale": "/ 20",
       "empty_title": "Résultats non publiés",
-      "empty_body": "Votre moyenne apparaîtra ici dès la publication de vos notes."
+      "empty_body": "Votre moyenne apparaîtra ici dès la publication de vos notes.",
+      "pending": "{{semester}} en attente"
     },
     "attendance": {
       "title": "Assiduité",
@@ -113,7 +114,8 @@
     "hero": {
       "label": "Moyenne du semestre",
       "scale": "/ 20",
-      "credits": "{{earned}} / {{total}} crédits validés",
+      "credits": "{{credits}} crédits validés",
+      "at_stake": "{{total}} crédits en jeu ce semestre",
       "no_gpa": "Moyenne non publiée",
       "ring_label": "Moyenne du semestre : {{gpa}} sur 20"
     },
@@ -146,10 +148,9 @@
       "cc_only": "Seules les notes de contrôle continu sont publiées pour ce semestre. Les notes finales suivront."
     },
     "empty": {
-      "title": "Résultats non publiés",
-      "body": "Les notes du semestre {{semester}} ne sont pas encore publiées par votre faculté. Elles apparaîtront ici dès leur publication.",
-      "other_available": "Vos résultats du semestre {{semester}} sont disponibles.",
-      "other_action": "Voir le semestre {{semester}}"
+      "title": "Notes du {{semester}} pas encore publiées",
+      "body": "Elles apparaîtront ici dès que votre faculté les aura publiées.",
+      "other_action": "Voir les résultats du {{semester}}"
     },
     "calculator": {
       "open": "Calculatrice",
@@ -413,7 +414,8 @@
       "gpa_unpublished": "Non publiée",
       "semester_credits": "Crédits du semestre",
       "total_credits": "Crédits du cursus",
-      "credits_value": "{{earned}} / {{total}}",
+      "credits_pending": "{{total}} crédits en jeu",
+      "credits_none": "Aucun résultat publié · {{total}} crédits au total",
       "attendance": "Présence",
       "none": "Aucune séance enregistrée"
     },

@@ -37,6 +37,35 @@ export function fmtRange(start: string | number, end: string | number): ReactNod
 }
 
 /**
+ * A figure over its total or its scale: credits earned of total, a mark out of
+ * 20. The slash is a separator like the range's dash, and fails the same way —
+ * "15 / 30" after Arabic text is drawn "30 / 15".
+ */
+export function fmtRatio(value: string | number, total: string | number): ReactNode {
+  return (
+    <bdi dir="ltr">
+      {value} / {total}
+    </bdi>
+  );
+}
+
+/**
+ * The same, when the figure and its scale are two styled pieces in a flex row —
+ * a hero average and its smaller "/ 20". Isolating the text is not enough there:
+ * a flex row in an RTL page also places its items right to left, so the pair is
+ * grouped into one LTR item. `.ratio` (globals.css) lays it out with the row's
+ * own gap and alignment, so the call site's spacing is unchanged.
+ */
+export function fmtScaled(value: ReactNode, scale: ReactNode): ReactNode {
+  return (
+    <bdi dir="ltr" className="ratio">
+      {value}
+      {scale}
+    </bdi>
+  );
+}
+
+/**
  * The one written form of a percentage, for places that can only take a string
  * — an aria-label, an SVG <text>. Rounded, sign attached, no space: "92%".
  * Everything visible goes through fmtPercent, which wraps this same string, so

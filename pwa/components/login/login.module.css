@@ -39,8 +39,10 @@
   overflow: hidden;
   padding: 40px 32px 30px;
   text-align: center;
-  color: var(--on-jade);
-  background: linear-gradient(155deg, var(--jade), var(--jade-hover));
+  /* --hero-bg is jade in light and a quiet surface in dark (see globals.css).
+     --ink reads on both: in light it is the same colour --on-jade is. */
+  color: var(--ink);
+  background: var(--hero-bg);
 }
 
 .blob {
@@ -94,7 +96,8 @@
   height: 92px;
   aspect-ratio: 99 / 143;
   margin-inline: auto;
-  background-color: var(--on-jade);
+  /* Ink on the light hero, jade on the dark one — see --hero-mark. */
+  background-color: var(--hero-mark);
   -webkit-mask-image: url('/logo.svg');
   mask-image: url('/logo.svg');
   -webkit-mask-repeat: no-repeat;
@@ -120,7 +123,7 @@
   /* Solid, not a translucent white: the hierarchy under the 800-weight brand
      line comes from weight, not opacity. */
   font-weight: 500;
-  color: var(--on-jade);
+  color: var(--ink);
 }
 
 /* ── Language chip ─────────────────────────────────────────────────────────── */
@@ -139,7 +142,7 @@
   border: none;
   border-radius: 9999px;
   background: rgba(255, 255, 255, 0.16);
-  color: var(--on-jade);
+  color: var(--ink);
   font-family: inherit;
   font-size: 11px;
   font-weight: 700;
@@ -725,9 +728,10 @@
   outline-offset: 2px;
 }
 
-/* The chip sits on jade, where a jade ring would vanish; --on-jade reads. */
+/* The chip sits on the hero, where a jade ring would vanish in light; --ink
+   reads on the hero in both themes. */
 .langChip:focus-visible {
-  outline-color: var(--on-jade);
+  outline-color: var(--ink);
 }
 
 /* ── Reduced motion ────────────────────────────────────────────────────────── */

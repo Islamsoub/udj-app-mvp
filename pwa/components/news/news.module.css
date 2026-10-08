@@ -164,6 +164,12 @@
  *     cards never reflow as images arrive;
  *   • its own background IS the placeholder — the prototype's stripe, in the
  *     surface tokens — so loading, failed and missing all look intentional.
+ *
+ * THE STRIPE IS KEPT QUIET. Its second band is --sunken mixed halfway back
+ * toward --surface2, not --sunken itself. In dark those two tokens are far
+ * apart — --sunken is the darkest surface there is — and a full-strength stripe
+ * was louder than the photographs beside it, on a card that is usually the
+ * urgent one. A placeholder must never outrank the content it stands in for.
  */
 .hero {
   position: relative;
@@ -174,7 +180,7 @@
   background: repeating-linear-gradient(
     45deg,
     var(--surface2) 0 8px,
-    var(--sunken) 8px 16px
+    color-mix(in srgb, var(--sunken) 50%, var(--surface2)) 8px 16px
   );
   color: var(--ink3);
 }

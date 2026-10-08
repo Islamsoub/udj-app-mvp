@@ -42,7 +42,10 @@ export function SubjectBreakdown({
     <section className={styles.section}>
       <h2 className={styles.sectionTitle}>{t('attendance.subjects.title')}</h2>
 
+      {/* The legend for the tick on every bar below: the mark itself, then what
+          it stands for. The value is the server's, never a constant. */}
       <p className={styles.sectionNote}>
+        <span className={styles.thresholdKey} aria-hidden="true" />
         <Interpolated
           template={t('attendance.subjects.note')}
           values={{ threshold: fmtPercent(threshold) }}

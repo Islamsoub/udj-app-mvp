@@ -73,6 +73,21 @@ export function GradesView({
 
   const suggestion = suggestedSemester(bundle.semesters, activeId);
 
+  /*
+   * The hero is drawn only when it has something to report: an average, or at
+   * least a table beneath it (continuous-assessment marks are out, finals are
+   * not). A semester with NOTHING published gets one card that says so — the
+   * hero's "average not published" above an empty state's "results not
+   * published" was the same sentence twice, and the hero's "0 / 32 credits
+   * validated" read as a result when it was an absence of one.
+   *
+   * The detail is checked against the active id because the hook answers for
+   * the previous tab for one render after a switch.
+   */
+  const loaded = detail.phase === 'ready' && detail.data.semester.id === activeId;
+  const hasRows = loaded && detail.data.grades.length > 0;
+  const showHero = summary.gpa !== null || hasRows;
+
   return (
     <>
       <SemesterTabs
@@ -82,7 +97,7 @@ export function GradesView({
         panelId={PANEL_ID}
       />
 
-      <GpaHero semester={summary} />
+      {showHero && <GpaHero semester={summary} />}
 
       <div
         id={PANEL_ID}
@@ -97,6 +112,7 @@ export function GradesView({
           {detail.phase === 'ready' && (
             <SemesterResults
               data={detail.data}
+              creditsAtStake={summary.credits.total}
               suggestion={suggestion}
               onSelect={onSelect}
             />
@@ -130,10 +146,12 @@ export function GradesView({
 /** One semester's body: the table, or the reason there is no table. */
 function SemesterResults({
   data,
+  creditsAtStake,
   suggestion,
   onSelect,
 }: {
   data: GradesResponse;
+  creditsAtStake: number;
   suggestion: SemesterSummary | null;
   onSelect: (id: string) => void;
 }) {
@@ -142,7 +160,14 @@ function SemesterResults({
   const published: Published = { cc: data.ccPublished, nf: data.nfPublished };
 
   if (data.grades.length === 0) {
-    return <NotPublished semester={data.semester.label} suggestion={suggestion} onSelect={onSelect} />;
+    return (
+      <NotPublished
+        semester={data.semester.label}
+        creditsAtStake={creditsAtStake}
+        suggestion={suggestion}
+        onSelect={onSelect}
+      />
+    );
   }
 
   return (
@@ -191,18 +216,25 @@ function SemesterResults({
  * it carries no warning colour, no error tone and no retry, because nothing has
  * gone wrong.
  *
+ * ONE CARD, and it is the whole screen below the tabs: the hero is not drawn
+ * above it (see GradesView). It names the semester in its title, says in one
+ * line what will happen, and states the credits as what is AT STAKE — never as
+ * "0 / 32 validated", which is a verdict on marks nobody has published.
+ *
  * The button is the other half. The one student with results opens on the
  * current semester, which is the unpublished one — her marks are one tab away
- * and nothing on an empty screen would tell her so. When another semester
- * actually has an average, the copy names it; otherwise the button is still
- * offered, just without the promise.
+ * and nothing on an empty screen would tell her so. It is offered only when
+ * another semester actually has results, so it never leads from one empty
+ * semester to another.
  */
 function NotPublished({
   semester,
+  creditsAtStake,
   suggestion,
   onSelect,
 }: {
   semester: string;
+  creditsAtStake: number;
   suggestion: SemesterSummary | null;
   onSelect: (id: string) => void;
 }) {
@@ -210,38 +242,33 @@ function NotPublished({
 
   return (
     <div className={styles.empty}>
-      <p className={styles.emptyTitle}>{t('grades.empty.title')}</p>
-
-      <p className={styles.emptyBody}>
-        <Interpolated template={t('grades.empty.body')} values={{ semester }} />
+      <p className={styles.emptyTitle}>
+        <Interpolated template={t('grades.empty.title')} values={{ semester }} />
       </p>
 
-      {suggestion !== null && (
-        <>
-          {suggestion.gpa !== null && (
-            <p className={styles.emptyBody}>
-              <Interpolated
-                template={t('grades.empty.other_available')}
-                values={{ semester: suggestion.label }}
-              />
-            </p>
-          )}
+      <p className={styles.emptyBody}>{t('grades.empty.body')}</p>
 
-          <button
-            type="button"
-            className={styles.emptyAction}
-            style={{ '--arrow-flip': dir === 'rtl' ? -1 : 1 } as React.CSSProperties}
-            onClick={() => onSelect(suggestion.id)}
-          >
-            <Interpolated
-              template={t('grades.empty.other_action')}
-              values={{ semester: suggestion.label }}
-            />
-            {/* A transform is never mirrored by `dir`, so the flip is handed to
-                the stylesheet as a value read from the active direction. */}
-            <ArrowIcon className={styles.emptyArrow} />
-          </button>
-        </>
+      {creditsAtStake > 0 && (
+        <p className={styles.emptyBody}>
+          <Interpolated template={t('grades.hero.at_stake')} values={{ total: creditsAtStake }} />
+        </p>
+      )}
+
+      {suggestion !== null && (
+        <button
+          type="button"
+          className={styles.emptyAction}
+          style={{ '--arrow-flip': dir === 'rtl' ? -1 : 1 } as React.CSSProperties}
+          onClick={() => onSelect(suggestion.id)}
+        >
+          <Interpolated
+            template={t('grades.empty.other_action')}
+            values={{ semester: suggestion.label }}
+          />
+          {/* A transform is never mirrored by `dir`, so the flip is handed to
+              the stylesheet as a value read from the active direction. */}
+          <ArrowIcon className={styles.emptyArrow} />
+        </button>
       )}
     </div>
   );

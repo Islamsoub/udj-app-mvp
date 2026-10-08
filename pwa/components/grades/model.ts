@@ -129,13 +129,26 @@ export function orderSemesters(
  * tab away. Preferring a semester that actually has a GPA means the empty state
  * can name it ("vos résultats du S1 sont disponibles") instead of offering a
  * neutral list of tabs she has no reason to try.
+ *
+ * Null when no other semester has results: pointing from one unpublished
+ * semester at another is a button that leads to the same empty card.
  */
 export function suggestedSemester(
   semesters: SemesterSummary[],
   selectedId: string
 ): SemesterSummary | null {
-  const others = semesters.filter((s) => s.id !== selectedId);
-  return others.find((s) => s.gpa !== null) ?? others[0] ?? null;
+  return semesters.find((s) => s.id !== selectedId && s.gpa !== null) ?? null;
+}
+
+/**
+ * The most recent semester with a published average, or null when none has one.
+ * `semesters` is the ordered list from orderSemesters, oldest first.
+ */
+export function latestPublished(semesters: SemesterSummary[]): SemesterSummary | null {
+  for (let i = semesters.length - 1; i >= 0; i -= 1) {
+    if (semesters[i].gpa !== null) return semesters[i];
+  }
+  return null;
 }
 
 // ── Sorting ───────────────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Interpolated } from '@/components/dashboard/Interpolated';
 import type { SemesterSummary } from '@/lib/api-types';
-import { fmtLtr } from '@/lib/bidi';
+import { fmtLtr, fmtRatio, fmtScaled } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { useExitBackstop } from '@/lib/useExitBackstop';
 import { GpaRing } from './GpaRing';
@@ -99,10 +99,13 @@ function HeroFigures({ semester }: { semester: SemesterSummary }) {
             {/*
               .num on both: a GPA must read identically in both languages, so it
               stays on the Latin face in Arabic. toFixed(2) rather than the raw
-              float — 13.666666 is not a mark.
+              float — 13.666666 is not a mark. fmtScaled keeps "15.17 / 20" in
+              that order in Arabic.
             */}
-            <span className={`${styles.heroNumber} num`}>{gpa.toFixed(2)}</span>
-            <span className={`${styles.heroScale} num`}>{t('grades.hero.scale')}</span>
+            {fmtScaled(
+              <span className={`${styles.heroNumber} num`}>{gpa.toFixed(2)}</span>,
+              <span className={`${styles.heroScale} num`}>{t('grades.hero.scale')}</span>
+            )}
           </p>
         )}
 
@@ -111,10 +114,19 @@ function HeroFigures({ semester }: { semester: SemesterSummary }) {
             <span className={styles.mention}>{key === null ? mention : t(key)}</span>
           )}
           <span className={styles.heroCredits}>
-            <Interpolated
-              template={t('grades.hero.credits')}
-              values={{ earned: credits.earned, total: credits.total }}
-            />
+            {/*
+              With no published average there is no result to count credits
+              from, so they are stated as what is at stake. "0 / 32 validated"
+              would be a verdict on finals nobody has published.
+            */}
+            {gpa === null ? (
+              <Interpolated template={t('grades.hero.at_stake')} values={{ total: credits.total }} />
+            ) : (
+              <Interpolated
+                template={t('grades.hero.credits')}
+                values={{ credits: fmtRatio(credits.earned, credits.total) }}
+              />
+            )}
           </span>
         </p>
 

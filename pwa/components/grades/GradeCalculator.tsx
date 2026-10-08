@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Interpolated } from '@/components/dashboard/Interpolated';
 import { SlidePanel } from '@/components/panel/SlidePanel';
 import type { GradeItem } from '@/lib/api-types';
+import { fmtScaled } from '@/lib/bidi';
 import { useI18n, type I18nValue } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n-types';
 import { useExitBackstop } from '@/lib/useExitBackstop';
@@ -173,10 +174,10 @@ function CalculatorBody({ grades, published }: { grades: GradeItem[]; published:
              blank, never a zero. */
           <span className={styles.unpublished}>{t('grades.table.pending')}</span>
         ) : (
-          <>
-            <span className={`${styles.calcCurrentValue} num`}>{cc.toFixed(2)}</span>
+          fmtScaled(
+            <span className={`${styles.calcCurrentValue} num`}>{cc.toFixed(2)}</span>,
             <span className={`${styles.calcSuffix} num`}>/ {MARK_MAX}</span>
-          </>
+          )
         )}
       </p>
 
@@ -344,8 +345,10 @@ function ResultBody({ view }: { view: ResultView }) {
     <>
       {view.value !== null && (
         <p className={`${styles.calcResultValue} ${view.className}`}>
-          <span className="num">{view.value}</span>
-          <span className={`${styles.calcSuffix} num`}>/ {MARK_MAX}</span>
+          {fmtScaled(
+            <span className="num">{view.value}</span>,
+            <span className={`${styles.calcSuffix} num`}>/ {MARK_MAX}</span>
+          )}
         </p>
       )}
       <p className={styles.calcResultVerdict}>

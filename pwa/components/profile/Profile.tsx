@@ -7,7 +7,7 @@ import { useCardData } from '@/components/dashboard/useCardData';
  */
 import { StateLayers } from '@/components/grades/StateLayers';
 import { useOnline } from '@/components/shell/useOnline';
-import { getMe } from '@/lib/api-client';
+import { getGradesAllSemesters, getMe } from '@/lib/api-client';
 import type { MeResponse } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
 import { AccountActions } from './AccountActions';
@@ -17,9 +17,30 @@ import { ProfileSkeleton } from './skeletons';
 import { StudentCard } from './StudentCard';
 import styles from './profile.module.css';
 
+interface ProfileData {
+  me: MeResponse;
+  /**
+   * Whether ANY semester has published results. /student/me cannot say: zero
+   * credits earned reads the same whether nothing is published or everything
+   * was failed, and the two must not be shown as the same figure. Null when the
+   * second request failed — the profile still renders, with the plain figure.
+   */
+  anyPublished: boolean | null;
+}
+
 /** Module scope, so the reference is stable across renders. */
-function loadMe(): Promise<MeResponse> {
-  return getMe();
+async function loadProfile(): Promise<ProfileData> {
+  const [me, all] = await Promise.all([
+    getMe(),
+    // The profile is the account; a failure of this lookup must not take the
+    // whole screen down with it.
+    getGradesAllSemesters().catch(() => null),
+  ]);
+
+  return {
+    me,
+    anyPublished: all === null ? null : all.semesters.some((s) => s.gpa !== null),
+  };
 }
 
 /**
@@ -43,7 +64,7 @@ export function Profile() {
   const { t } = useI18n();
   const { online } = useOnline();
 
-  const state = useCardData<MeResponse>(loadMe, online);
+  const state = useCardData<ProfileData>(loadProfile, online);
 
   return (
     <>
@@ -54,8 +75,8 @@ export function Profile() {
           <StateLayers loading={state.phase === 'loading'} skeleton={<ProfileSkeleton />}>
             {state.phase === 'ready' && (
               <>
-                <StudentCard me={state.data} />
-                <NotificationPrefs initial={state.data.preferences} />
+                <StudentCard me={state.data.me} anyPublished={state.data.anyPublished} />
+                <NotificationPrefs initial={state.data.me.preferences} />
               </>
             )}
 
