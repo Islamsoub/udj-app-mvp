@@ -334,13 +334,14 @@
 
 /*
  * Existing semantic tokens, no new colours. Each type's tint fills the block and
- * its solid hue rules the inline-start edge and titles the three-letter code —
- * which is always present, so colour is never the only signal (§10).
+ * its solid hue rules the inline-start edge. The three-letter code — always
+ * present, so colour is never the only signal (§10) — is TEXT on that tint, so
+ * it takes the hue's -ink variant: the hue itself is under 4.5:1 there.
  */
 .typeCm {
   border-color: var(--info);
   background: var(--info-bg);
-  color: var(--info);
+  color: var(--info-ink);
 }
 
 .typeTd {
@@ -352,13 +353,13 @@
 .typeTp {
   border-color: var(--warning);
   background: var(--warning-bg);
-  color: var(--warning);
+  color: var(--warning-ink);
 }
 
 .typeExam {
   border-color: var(--exam);
   background: var(--exam-bg);
-  color: var(--exam);
+  color: var(--exam-ink);
 }
 
 .typePill {
@@ -368,7 +369,7 @@
   padding: 3px 10px;
   border: 0;
   border-radius: 9999px;
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.06em;
   white-space: nowrap;
@@ -455,7 +456,7 @@
   border-radius: 9999px;
   background: var(--jade-faint);
   color: var(--jade-text);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -516,13 +517,31 @@
   color: var(--ink2);
 }
 
-/* The type's colour as a rule down the inline-start edge of the body. */
+/* The type's colour as a rule down the inline-start edge of the body.
+   Named per type rather than taken from currentColor: the .typeX `color` is the
+   darker ink meant for text, and a bar stays on the status hue — it needs 3:1,
+   not 4.5:1. */
 .dayRule {
   flex-shrink: 0;
   width: 3px;
   border: 0;
   border-radius: 9999px;
-  background: currentColor;
+}
+
+.dayRule.typeCm {
+  background: var(--info);
+}
+
+.dayRule.typeTd {
+  background: var(--jade-text);
+}
+
+.dayRule.typeTp {
+  background: var(--warning);
+}
+
+.dayRule.typeExam {
+  background: var(--exam);
 }
 
 .dayBody {

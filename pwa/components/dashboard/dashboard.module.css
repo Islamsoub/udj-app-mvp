@@ -330,7 +330,7 @@
   border-radius: 9999px;
   background: var(--jade-faint);
   color: var(--jade-text);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -398,7 +398,7 @@
   border-radius: 9999px;
   background: var(--jade-faint);
   color: var(--jade-text);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
 }
 

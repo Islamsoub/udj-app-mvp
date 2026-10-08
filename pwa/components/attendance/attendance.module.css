@@ -484,7 +484,7 @@
   align-items: center;
   padding: 3px 10px;
   border-radius: 9999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -502,7 +502,7 @@
 
 .chipPending {
   background: var(--info-bg);
-  color: var(--info);
+  color: var(--info-ink);
 }
 
 .chipApproved {
@@ -512,7 +512,7 @@
 
 .chipRejected {
   background: var(--danger-bg);
-  color: var(--danger);
+  color: var(--danger-ink);
 }
 
 .iconNone {

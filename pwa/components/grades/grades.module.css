@@ -257,7 +257,7 @@
   border-radius: 9999px;
   background: var(--jade-faint);
   color: var(--jade-text);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -484,7 +484,7 @@
   align-items: center;
   padding: 3px 10px;
   border-radius: 9999px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -496,7 +496,7 @@
 
 .pillFailed {
   background: var(--danger-bg);
-  color: var(--danger);
+  color: var(--danger-ink);
 }
 
 /* Neutral on purpose. Pending is not a failure, and §10 forbids colour as the

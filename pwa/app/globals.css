@@ -208,6 +208,14 @@
   --info-bg: rgba(59, 130, 246, .12);
   --exam: #8B5CF6;
   --exam-bg: rgba(139, 92, 246, .12);
+
+  /* Status TEXT on its own tint — chips only. The status colours above stay on
+     icons, bars and borders, which need 3:1; text needs 4.5:1, and none of them
+     reach it on their tint. Each is the same hue, darkened until it does. */
+  --danger-ink: #B3261E;
+  --info-ink: #1D4ED8;
+  --warning-ink: #8A5200;
+  --exam-ink: #6D28D9;
 }
 
 [data-theme="dark"] {
@@ -254,6 +262,12 @@
   --info-bg: rgba(90, 160, 230, .18);
   --exam: #A98BF0;
   --exam-bg: rgba(169, 139, 240, .18);
+
+  /* Status text on its tint; lightened rather than darkened on a dark page. */
+  --danger-ink: #FF9B8F;
+  --info-ink: #8AB4FF;
+  --warning-ink: #F2B35E;
+  --exam-ink: #C4B0FF;
 }
 
 /* Motion tokens — from the interaction spec §2.

@@ -10,12 +10,19 @@
  *
  * Amended for the login hero: --hero-bg and --hero-mark added, per theme. In
  * dark the hero is a quiet surface and the mark carries the jade.
+ *
+ * Amended for chip contrast: --danger-ink, --info-ink, --warning-ink and
+ * --exam-ink added, per theme, for status text on its own tint. Font stacks
+ * given the fallback lists the PWA ships.
  */
 
 :root {
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
-  --font-ar: 'Noto Naskh Arabic', serif;
-  --font-mono: 'DM Mono', monospace;
+  /* Each stack names real faces behind the self-hosted one, so a failed or slow
+     woff2 degrades to something with the right shape. In --font-ar, Plus
+     Jakarta Sans follows Naskh so Latin and digits fall through to it. */
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-ar: 'Noto Naskh Arabic', 'Plus Jakarta Sans', 'Noto Naskh Arabic UI', 'Droid Arabic Naskh', 'Geeza Pro', 'Al Bayan', 'Traditional Arabic', 'Simplified Arabic', 'Segoe UI', serif;
+  --font-mono: 'DM Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
 
   --sidebar-w: 240px;
 
@@ -69,6 +76,13 @@
   --info-bg: rgba(59, 130, 246, .12);
   --exam: #8B5CF6;
   --exam-bg: rgba(139, 92, 246, .12);
+
+  /* Status text on its own tint — chips only. The status colours above stay on
+     icons, bars and borders (3:1); text needs 4.5:1. */
+  --danger-ink: #B3261E;
+  --info-ink: #1D4ED8;
+  --warning-ink: #8A5200;
+  --exam-ink: #6D28D9;
 }
 
 [data-theme="dark"] {
@@ -108,6 +122,12 @@
   --info-bg: rgba(90, 160, 230, .18);
   --exam: #A98BF0;
   --exam-bg: rgba(169, 139, 240, .18);
+
+  /* Status text on its tint; lightened rather than darkened on a dark page. */
+  --danger-ink: #FF9B8F;
+  --info-ink: #8AB4FF;
+  --warning-ink: #F2B35E;
+  --exam-ink: #C4B0FF;
 }
 
 /* Motion tokens — from the interaction spec §2.
