@@ -31,6 +31,34 @@ export function setAccessToken(token: string | null): void {
 }
 
 /**
+ * The `studentId` claim of the held access token, or null.
+ *
+ * Decoded, NOT verified — the client has no key to verify with and needs none.
+ * This is used for one thing: labelling and matching offline-cache entries
+ * (lib/offline-cache). It answers "whose data did the server just send under
+ * this token?", which the server already decided when it accepted the token.
+ * It is never an authorisation decision and must not become one.
+ *
+ * The claim is the same id GET /student/me returns as `id` (both are the
+ * Student row's primary key — backend/src/routes/auth.ts signs it), and unlike
+ * /me it is available on every response, including the dashboard's, which never
+ * calls /me.
+ */
+export function tokenStudentId(): string | null {
+  if (accessToken === null) return null;
+  try {
+    const payload = accessToken.split('.')[1];
+    if (!payload) return null;
+    // base64url -> base64. atob's forgiving decoder accepts the missing padding.
+    const claims: unknown = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    const id = (claims as { studentId?: unknown } | null)?.studentId;
+    return typeof id === 'string' && id !== '' ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Registers the session-expired callback, replacing any previous one. Returns an
  * unregister function so a component can clean up on unmount without clearing a
  * handler some other mount has since installed.

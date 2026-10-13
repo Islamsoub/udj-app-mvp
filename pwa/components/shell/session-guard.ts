@@ -62,6 +62,10 @@ async function restoreWithRetries(): Promise<SessionRestore> {
   for (const delay of AUTO_RETRY_DELAYS_MS) {
     if (outcome !== 'unknown') break;
     if (Date.now() - startedAt >= AUTO_RETRY_BUDGET_MS) break;
+    // The retries are for a server that is waking up. A device with no network
+    // at all will fail them identically, and holding the spinner six seconds
+    // for that only delays the offline copy (or the waiting state) behind it.
+    if (!navigator.onLine) break;
 
     await sleep(delay);
     outcome = await restoreSession();

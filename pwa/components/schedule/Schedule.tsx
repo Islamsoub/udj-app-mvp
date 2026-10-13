@@ -89,9 +89,10 @@ export function Schedule() {
           {state.phase === 'offline' && (
             <div className={styles.stateBox} role="status" aria-live="polite">
               {/*
-                Nothing is cached — this app has no service worker and no local
-                database yet — so there is no stale timetable to fall back to and
-                no last-sync time to disclose. The shell's banner already says the
+                Reached only when there is no offline copy to show — consent off,
+                or nothing stored yet; with one, lib/api-client answers from it
+                and this screen renders as loaded under the banner's last-sync
+                label. So nothing here to date. The shell's banner already says the
                 device is offline; this says what that costs on this screen. No
                 retry: it refetches itself the moment the connection returns.
               */}

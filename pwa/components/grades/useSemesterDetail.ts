@@ -53,6 +53,8 @@ export function useSemesterDetail(
   const currentId = useRef(semesterId);
   currentId.current = semesterId;
 
+  const wasOnline = useRef(online);
+
   const retry = useCallback(() => {
     // Drop the failed semester's slot first: without this the effect's cache
     // lookup would short-circuit on the retry and the request would never be
@@ -62,6 +64,16 @@ export function useSemesterDetail(
   }, []);
 
   useEffect(() => {
+    /*
+     * Back online: forget the map. Anything fetched while offline may have come
+     * from the offline store rather than the server, and kept here it would
+     * never be asked for again — old grades under a banner that never leaves.
+     * The open tab refetches now, the others when next opened, which is what
+     * useCardData does for every other screen on reconnect.
+     */
+    if (online && !wasOnline.current) cache.current.clear();
+    wasOnline.current = online;
+
     /*
      * Already fetched this session: render it and make no request. This branch
      * also covers going offline while a cached semester is on screen — the
@@ -74,15 +86,11 @@ export function useSemesterDetail(
     }
 
     /*
-     * Offline with nothing cached for this semester: say so rather than firing a
-     * request that can only fail. The other tabs stay usable, so a student who
-     * loses connectivity can still read whatever she has already opened.
+     * Offline with nothing in this session's map: the request is still made, as
+     * in useCardData — lib/api-client may answer it from the offline store. If
+     * it cannot, it fails at once and the catch says "offline". The other tabs
+     * stay usable either way.
      */
-    if (!online) {
-      setState({ phase: 'offline', retry });
-      return;
-    }
-
     let cancelled = false;
     const timers: number[] = [];
     const startedAt = Date.now();

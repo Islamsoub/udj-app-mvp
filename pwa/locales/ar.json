@@ -483,10 +483,17 @@
     }
   },
   "offline": {
-    "banner": "أنت غير متصل بالإنترنت. يتم عرض البيانات المخزّنة مؤقتاً.",
+    "banner": "أنت غير متصل بالإنترنت.",
+    "unreachable": "الخادم لا يستجيب.",
     "restored": "تم استعادة الاتصال",
-    "last_sync": "آخر مزامنة: {{time}}",
-    "never_synced": "لم تتم بعد"
+    "last_sync": "آخر مزامنة: {{when}}",
+    "sync": {
+      "just_now": "الآن",
+      "minutes": "منذ {{count}} دقيقة",
+      "hours": "منذ {{count}} ساعة",
+      "date": "{{day}} {{month}} الساعة {{time}}",
+      "date_year": "{{day}} {{month}} {{year}} الساعة {{time}}"
+    }
   },
   "session": {
     "expired_title": "انتهت جلستك",

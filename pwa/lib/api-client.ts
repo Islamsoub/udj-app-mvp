@@ -2,7 +2,17 @@ import {
   getAccessToken,
   notifySessionExpired,
   setAccessToken,
+  tokenStudentId,
 } from '@/lib/auth-token';
+import {
+  cacheKeyFor,
+  cacheTicket,
+  markFresh,
+  markServedFromCache,
+  markSessionValidated,
+  readCachedResponse,
+  rememberResponse,
+} from '@/lib/offline-cache';
 import type {
   AllSemestersResponse,
   AttendanceResponse,
@@ -89,6 +99,11 @@ export async function refreshAccessToken(): Promise<string> {
   if (typeof accessToken !== 'string') {
     throw new ApiError(502, { error: 'Malformed refresh response' });
   }
+
+  // Both the cold-load session check (restoreSession) and the mid-session
+  // refresh (refreshOnce) land here, so this is the one place to record that
+  // the server vouched for a session — see lib/offline-cache.
+  markSessionValidated();
 
   return accessToken;
 }
@@ -215,14 +230,72 @@ async function request<T>(path: string, init: RequestInit, retried: boolean): Pr
 }
 
 /**
+ * Whether a failed GET may be answered from the offline store.
+ *
+ * Only failures that say nothing about the data itself:
+ *   • not an ApiError — fetch threw a TypeError: no network at all;
+ *   • 502 / 503 / 504 — the proxy or the host is down or cold-starting.
+ *
+ * Everything else is a real answer and keeps today's error state. 401 above all:
+ * by the time a 401 reaches here the refresh has failed with 401 too, the
+ * session is dead and the shell's modal is up — serving the dead session's data
+ * from the store would route around the sign-out. 403, 404 and 422 are the
+ * server saying no, which a stale copy must not contradict.
+ */
+function mayFallBack(err: unknown): boolean {
+  if (!(err instanceof ApiError)) return true;
+  return err.status === 502 || err.status === 503 || err.status === 504;
+}
+
+function isGet(init: RequestInit): boolean {
+  return init.method === undefined || init.method.toUpperCase() === 'GET';
+}
+
+/**
  * Calls an endpoint behind /api/backend with the held access token, refreshing
  * and retrying once if it has expired.
  *
  * `path` is relative to the backend root — `/student/me`, not `/api/backend/...`
  * and never an absolute URL.
+ *
+ * THE OFFLINE CACHE IS HOOKED HERE AND ONLY HERE. For a GET on lib/offline-cache's
+ * allow-list: a success is written to the store (if the student consented) and
+ * returned without waiting for the write; a failure that mayFallBack accepts is
+ * answered from the store if a copy exists, and the original error is rethrown
+ * if not. Every other request passes straight through to `request`.
  */
-export function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  return request<T>(path, init, false);
+export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const key = isGet(init) ? cacheKeyFor(path) : null;
+  if (key === null) return request<T>(path, init, false);
+
+  // Taken before the request, so a logout while it is in flight voids its write.
+  const ticket = cacheTicket();
+
+  let data: T;
+  try {
+    data = await request<T>(path, init, false);
+  } catch (err) {
+    if (!mayFallBack(err)) throw err;
+
+    const entry = await readCachedResponse(key, tokenStudentId());
+    if (entry === null) throw err;
+
+    markServedFromCache(key, entry.savedAt);
+    return entry.payload as T;
+  }
+
+  markFresh(key);
+
+  // Stamped with the student the server answered for. /student/me names them
+  // itself; a disagreement would mean the token changed hands mid-request, and
+  // that response is not stored under either name.
+  const studentId = tokenStudentId();
+  const meId = key === '/student/me' ? (data as { id?: unknown } | null)?.id : studentId;
+  if (studentId !== null && meId === studentId) {
+    rememberResponse(key, data, studentId, ticket);
+  }
+
+  return data;
 }
 
 // ── Query helpers ─────────────────────────────────────────────────────────────

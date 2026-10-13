@@ -1,5 +1,6 @@
 import { ApiError, refreshAccessToken } from '@/lib/api-client';
 import { getAccessToken, setAccessToken } from '@/lib/auth-token';
+import { adoptStudent, endOfflineSession, markSessionValidated } from '@/lib/offline-cache';
 import type { StudentSummary } from '@/lib/api-types';
 
 /**
@@ -89,14 +90,24 @@ export async function login(studentId: string, password: string): Promise<LoginR
   }
 
   setAccessToken(accessToken);
+  markSessionValidated();
 
-  return { student: student as StudentSummary };
+  // Before the first screen can write anything: a different student's offline
+  // copy on this browser is gone, and with consent off nothing is kept at all.
+  const summary = student as StudentSummary;
+  await adoptStudent(summary.id);
+
+  return { student: summary };
 }
 
 /**
  * Ends the session. The in-memory token is cleared whatever the server says: a
  * student who asked to log out must end up logged out even on a dead network,
  * and the route clears the cookie unconditionally for the same reason.
+ *
+ * The offline copy goes with it — here rather than at each call site, so the
+ * avatar menu and Profile's button cannot end a session differently. Awaited:
+ * the student is not sent to /login until the store is empty.
  */
 export async function logout(): Promise<void> {
   const token = getAccessToken();
@@ -113,6 +124,7 @@ export async function logout(): Promise<void> {
     // would be of a request that carried a token.
   } finally {
     setAccessToken(null);
+    await endOfflineSession();
   }
 }
 

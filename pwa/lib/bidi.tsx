@@ -79,6 +79,47 @@ export function fmtPercent(value: number): ReactNode {
   return <bdi dir="ltr">{percentText(value)}</bdi>;
 }
 
+/**
+ * A label followed by a phrase that carries its own words AND its own figures —
+ * "Dernière synchronisation : il y a 2 h", "آخر مزامنة: 12 سبتمبر الساعة 14:30".
+ *
+ * Neither fmtLtr nor a bare substitution is right for that. Forcing the phrase
+ * LTR would lay "منذ 2 ساعة" out backwards; splicing it in as plain text lets the
+ * label's colon and the phrase's leading digits fall into one bidi run, so in
+ * Arabic the number can jump to the wrong side of the colon. Each value is
+ * therefore placed in its own <bdi> with no `dir`: the browser isolates it and
+ * gives it the direction of its first strong character — French phrases LTR,
+ * Arabic ones RTL — so the label and the phrase are ordered as the template
+ * orders them and neither disturbs the other.
+ *
+ * `template` keeps its `{{name}}` placeholders — pass the key to t() without
+ * params. Figures inside a value are the value's business: build it with
+ * Interpolated and fmtLtr as usual.
+ */
+export function fmtPhrase(template: string, values: Record<string, ReactNode>): ReactNode {
+  const parts: ReactNode[] = [];
+  let lastIndex = 0;
+
+  for (const match of template.matchAll(/\{\{(\w+)\}\}/g)) {
+    if (match.index > lastIndex) {
+      parts.push(<Fragment key={parts.length}>{template.slice(lastIndex, match.index)}</Fragment>);
+    }
+    const name = match[1];
+    parts.push(
+      <bdi key={parts.length}>
+        {Object.prototype.hasOwnProperty.call(values, name) ? values[name] : match[0]}
+      </bdi>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < template.length) {
+    parts.push(<Fragment key={parts.length}>{template.slice(lastIndex)}</Fragment>);
+  }
+
+  return <>{parts}</>;
+}
+
 /*
  * A range or a percentage inside prose the app did not write — a news title, an
  * article body, a notification. Two numbers (optionally clock times, "08:00" or

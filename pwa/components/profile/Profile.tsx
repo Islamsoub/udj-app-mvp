@@ -91,8 +91,8 @@ export function Profile() {
 
             {state.phase === 'offline' && (
               <div className={styles.stateBox} role="status" aria-live="polite">
-                {/* Nothing is cached, so no stale profile to show. It refetches
-                    itself the moment the connection returns. */}
+                {/* No offline copy of /student/me to show (consent off, or never
+                    stored). It refetches itself the moment the connection returns. */}
                 <p className={styles.stateText}>{t('profile.state.offline')}</p>
               </div>
             )}

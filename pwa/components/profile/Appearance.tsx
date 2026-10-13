@@ -5,11 +5,13 @@ import { isLang } from '@/lib/i18n-shared';
 import { useI18n } from '@/lib/i18n';
 import { isThemePref } from '@/lib/theme-shared';
 import { useTheme } from '@/lib/theme';
+import { OfflineDataRow } from './OfflineDataRow';
 import styles from './profile.module.css';
 
 /**
  * Theme and language — both per-device display choices, stored in a cookie and
- * localStorage on THIS browser, never on the account.
+ * localStorage on THIS browser, never on the account — and the offline-data
+ * consent, which is per-device for the same reason.
  *
  * Rendered outside the account data's loading states on purpose: neither needs
  * the network, so a student who is offline, or whose profile failed to load,
@@ -67,6 +69,8 @@ export function Appearance() {
             label={t('profile.appearance.language')}
           />
         </div>
+
+        <OfflineDataRow />
       </div>
     </section>
   );

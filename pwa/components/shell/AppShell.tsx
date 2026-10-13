@@ -4,6 +4,12 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { logout } from '@/lib/auth-client';
 import { onSessionExpired } from '@/lib/auth-token';
+import {
+  endOfflineSession,
+  forgetServed,
+  hasCachedDataWithin,
+  sessionValidatedRecently,
+} from '@/lib/offline-cache';
 import { ensureSession } from './session-guard';
 import { useI18n } from '@/lib/i18n';
 import { OfflineBanner } from './OfflineBanner';
@@ -17,6 +23,7 @@ import { Topbar } from './Topbar';
 import { titleKeyFor } from './nav-items';
 import { useLayoutMode } from './useLayoutMode';
 import { useOnline } from './useOnline';
+import { useServedFromCache } from './useServedFromCache';
 import styles from './shell.module.css';
 
 /** Where an unauthenticated visitor, or a student who signs out, is sent. */
@@ -65,16 +72,60 @@ export function AppShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
-    ensureSession().then((outcome) => {
+    ensureSession().then(async (outcome) => {
       if (cancelled) return;
       if (outcome === 'restored') {
         setGate('authed');
         return;
       }
       if (outcome === 'unknown') {
-        setGate('waiting');
+        /*
+         * The session could not be checked — no network, or the server is
+         * waking. With an offline copy on this device there is something to
+         * read meanwhile, so the shell opens on it: every screen's GET fails
+         * the same way the check did and is answered from the store, under the
+         * banner's last-sync label. No token is held, so nothing can be written
+         * and nothing can be fetched fresh until a request reaches the server —
+         * which then 401s, refreshes through the cookie, and carries on, or
+         * finds the session dead and raises the modal like any other.
+         *
+         * Without a copy there is nothing to show, and the waiting state is the
+         * honest answer, as before.
+         *
+         * AND ONLY IF A SESSION WAS VALIDATED RECENTLY. Nobody has authenticated
+         * this load, and the wipe that would remove a departed student's copy
+         * needs the server to say the session is dead. So a store the server has
+         * not vouched for within lib/offline-cache's window — a lab machine
+         * left signed in, a wipe that failed — is not shown: the student gets
+         * the waiting state exactly as if there were no cache. The stamp is
+         * read before the store is even looked at.
+         *
+         * NOT WIPED, deliberately. The gate's job is that unvalidated data is
+         * never displayed, and it does that job without deleting anything.
+         * Wiping here would only cost an honest student their copy after an
+         * overnight gap or a cold start, and it would close no hole: reading
+         * the store still requires signing in, and signing in as a different
+         * student already wipes it (lib/auth-client's login → adoptStudent).
+         */
+        if (!sessionValidatedRecently()) {
+          setGate('waiting');
+          return;
+        }
+        /*
+         * With a deadline (STORE_CHECK_TIMEOUT_MS): a store check that never
+         * answers falls back to the waiting state, as a store with no data
+         * does. A reload does not rescue this. If the never-answers behaviour
+         * is a property of the browser rather than a one-off, every reload
+         * hangs the same way on the boot spinner and the student can never
+         * reach the app — and Safari on iPhone is a real part of the audience.
+         */
+        const readable = await hasCachedDataWithin();
+        if (cancelled) return;
+        setGate(readable ? 'authed' : 'waiting');
         return;
       }
+      // The session is over: nothing of it stays on this device.
+      void endOfflineSession();
       // replace, not push: a failed session check must not leave an entry that
       // the back button returns to, which would bounce straight back here.
       router.replace(LOGIN_PATH);
@@ -103,8 +154,14 @@ export function AppShell({ children }: { children: ReactNode }) {
    */
   useEffect(() => onSessionExpired(() => setExpired(true)), []);
 
+  /*
+   * "Se reconnecter" is where a dead session signs the student out, so it is
+   * where the offline copy goes. Not on the expiry itself: the modal's
+   * "Continuer hors ligne" exists precisely to keep reading it.
+   */
   const goToLogin = useCallback(() => {
     setExpired(false);
+    void endOfflineSession();
     router.replace(LOGIN_PATH);
   }, [router]);
 
@@ -112,6 +169,21 @@ export function AppShell({ children }: { children: ReactNode }) {
     await logout();
     router.replace(LOGIN_PATH);
   }, [router]);
+
+  // ── Offline copy on screen ────────────────────────────────────────────────
+
+  /*
+   * The marks describe the screen that made them. A new route starts clean and
+   * marks itself if its own requests fall back; without this, a page left
+   * behind would keep the banner up over a screen that is entirely fresh.
+   * Child effects run first, so the new screen's requests are already in
+   * flight — and cannot have settled — when this clears.
+   */
+  useEffect(() => {
+    forgetServed();
+  }, [pathname]);
+
+  const staleSince = useServedFromCache();
 
   // ── Reconnect toast (§8) ──────────────────────────────────────────────────
 
@@ -167,7 +239,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className={styles.column}>
         <Topbar title={title} onLogout={handleLogout} />
-        <OfflineBanner offline={!online} />
+        <OfflineBanner offline={!online} staleSince={staleSince} />
 
         {/* Sits at the top edge of the content area, per §4. */}
         <ProgressBar pathname={pathname} />

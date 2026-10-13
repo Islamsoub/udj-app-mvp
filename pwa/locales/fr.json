@@ -483,10 +483,17 @@
     }
   },
   "offline": {
-    "banner": "Vous êtes hors ligne. Données mises en cache affichées.",
+    "banner": "Vous êtes hors ligne.",
+    "unreachable": "Le serveur ne répond pas.",
     "restored": "Connexion rétablie",
-    "last_sync": "Dernière synchro : {{time}}",
-    "never_synced": "jamais synchronisé"
+    "last_sync": "Dernière synchronisation : {{when}}",
+    "sync": {
+      "just_now": "à l'instant",
+      "minutes": "il y a {{count}} min",
+      "hours": "il y a {{count}} h",
+      "date": "{{day}} {{month}} à {{time}}",
+      "date_year": "{{day}} {{month}} {{year}} à {{time}}"
+    }
   },
   "session": {
     "expired_title": "Votre session a expiré",

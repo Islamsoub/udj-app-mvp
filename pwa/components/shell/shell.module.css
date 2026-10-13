@@ -539,8 +539,9 @@
 /*
  * Slides down from under the topbar over --dur-base, back up over --dur-fast,
  * warning-tinted. The max-height technique, matching the login screen's error
- * card: height:auto is not animatable, and the banner is one line, so a ceiling
- * well above its real height animates cleanly and never clips.
+ * card: height:auto is not animatable, so the ceiling sits well above the
+ * banner's real height. That is two lines — the message and the last-sync label
+ * — or three when the label wraps on a narrow phone, and 96px clears all three.
  *
  * It pushes the content down rather than overlaying it — a banner that covers
  * the first row of a screen hides the very data it is describing as stale.
@@ -550,7 +551,7 @@
   align-items: center;
   gap: 10px;
   overflow: hidden;
-  max-height: 60px;
+  max-height: 96px;
   padding: 12px 24px;
   background: var(--warning-bg);
   border-block-end: 1px solid var(--warning);
@@ -577,6 +578,20 @@
   width: 18px;
   height: 18px;
   color: var(--warning);
+}
+
+.bannerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+/* --ink, not --ink2: the secondary ink is not held to AA on the warning tint,
+   and this line is the one that tells the student how old the data is. The
+   step down in weight is what marks it as secondary. */
+.bannerSync {
+  font-weight: 500;
 }
 
 /* ── Toast (§5) ────────────────────────────────────────────────────────────── */
@@ -695,6 +710,12 @@
   background: var(--surface);
   box-shadow: var(--shadow-lg);
   animation: dialogIn var(--dur-base) var(--ease-out);
+}
+
+/* Focused only as a holding point while the session modal's action row waits
+   for the offline-store check — not a control, so no ring around the card. */
+.dialog:focus {
+  outline: none;
 }
 
 @keyframes dialogIn {

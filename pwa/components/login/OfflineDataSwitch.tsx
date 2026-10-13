@@ -2,30 +2,26 @@
 
 import { useEffect, useId, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
+import { OFFLINE_CACHE_KEY, clearOfflineCache } from '@/lib/offline-cache';
 import { ShieldIcon } from './icons';
 import styles from './login.module.css';
 
-/**
- * Per-device preference key.
- *
- * A display preference, like the language — not a credential. It records a
- * choice about this machine, which is exactly what a shared machine in the
- * salle info needs it to be: it must not follow the student to another device,
- * and it must survive the reload that follows login.
- *
- * Nothing is stored here but 'true' / 'false'. Tokens stay in memory and in the
- * httpOnly cookie, as always.
+/*
+ * Per-device preference key — defined beside the store it governs, in
+ * lib/offline-cache (a lib module must not import a component), and re-exported
+ * here, where the control that writes it lives and where callers import it from.
  */
-export const OFFLINE_CACHE_KEY = 'unipocket_offline_cache';
+export { OFFLINE_CACHE_KEY };
 
 /**
- * NOTHING READS THIS FLAG YET.
+ * The consent behind lib/offline-cache, which reads OFFLINE_CACHE_KEY on every
+ * write and read and treats an absent value as OFF — the safe default on a
+ * shared machine, and the default this control ships with. Profile mirrors this
+ * switch (components/profile/OfflineDataRow) against the same key.
  *
- * The caching layer is a later piece of work; this switch only records the
- * student's answer so the choice exists by the time there is something to
- * honour it. Whoever builds the cache should read OFFLINE_CACHE_KEY here and
- * treat an absent value as OFF — the safe default on a shared machine, and the
- * default this control ships with.
+ * Turning it off empties the store at once, not at the next login: a student
+ * who changes their mind at the lab's login screen must not leave their grades
+ * behind in this browser until someone signs in.
  */
 export function OfflineDataSwitch() {
   const { t } = useI18n();
@@ -52,6 +48,7 @@ export function OfflineDataSwitch() {
     } catch {
       // Not persisting is survivable — the choice still holds for this session.
     }
+    if (!next) void clearOfflineCache();
   };
 
   return (

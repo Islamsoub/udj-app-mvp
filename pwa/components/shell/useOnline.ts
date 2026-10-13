@@ -5,8 +5,8 @@ import { useEffect, useState } from 'react';
 /**
  * Live connectivity, plus whether the student has just come back.
  *
- * `navigator.onLine` is the only signal available — there is no service worker
- * and no caching layer yet — and it only reports whether the device has *a*
+ * `navigator.onLine` is the only connectivity signal — the service worker and
+ * the offline store do not report reachability — and it only reports whether the device has *a*
  * network, not whether the backend is reachable. A captive portal reads as
  * online. That is the right trade for a banner: over-reporting "online" leaves
  * the student where they were, while over-reporting "offline" would accuse a

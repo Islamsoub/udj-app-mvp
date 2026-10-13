@@ -62,19 +62,17 @@ export function useCardData<T>(fetcher: () => Promise<T>, online: boolean): Card
     let cancelled = false;
 
     /*
-     * Offline with nothing to show: say so, and do not fire a request that can
-     * only fail. §8's "cards with no data show an offline message rather than an
-     * error" — the distinction matters because an error invites the student to
-     * retry something that cannot work, while "offline" tells them what to fix.
-     *
      * Offline WITH data already on screen: leave it alone. Replacing a rendered
      * card with a connectivity notice destroys information the student can still
      * read, which is the opposite of what the offline rule is for.
+     *
+     * Offline with nothing to show: the request is made anyway. It is no longer
+     * one that "can only fail" — lib/api-client answers it from the offline
+     * store when the student consented and a copy exists, and only apiFetch
+     * knows whether one does. Without a copy it fails at once, and the catch
+     * below turns that into §8's offline message rather than an error.
      */
-    if (!online) {
-      if (!hasData.current) setState({ phase: 'offline', retry });
-      return;
-    }
+    if (!online && hasData.current) return;
 
     setState({ phase: 'loading' });
 
