@@ -122,6 +122,89 @@ export function acceptUpdate(waiting: ServiceWorker): void {
   waiting.postMessage({ type: 'SKIP_WAITING' });
 }
 
+// ── Shell warming ─────────────────────────────────────────────────────────────
+
+/**
+ * The routes whose HTML shells the worker stores for an offline reload. Must
+ * match SHELL_ROUTES in public/sw.js; a route listed only here is fetched and
+ * not stored.
+ */
+const SHELL_ROUTES = ['/', '/schedule', '/grades', '/attendance', '/profile', '/news', '/login'];
+
+/** The marker public/sw.js recognises a warm fetch by. Its value is the variant. */
+const WARM_HEADER = 'X-Unipocket-Shell-Warm';
+/** Read back from a stored shell to see which variant it holds. */
+const VARIANT_HEADER = 'X-Unipocket-Shell-Variant';
+
+/** Resolves once a worker controls this page — at once, or after its claim. */
+function controlled(): Promise<void> {
+  if (navigator.serviceWorker.controller) return Promise.resolve();
+  return new Promise((resolve) => {
+    navigator.serviceWorker.addEventListener('controllerchange', () => resolve(), { once: true });
+  });
+}
+
+/**
+ * Makes sure the worker holds every route's shell in `variant` ("ar|dark").
+ *
+ * WHY THE PAGE DOES THIS. The app navigates client-side, so the worker only
+ * ever sees a navigation for the route the student hard-loaded. And only a
+ * request from the page carries the language and theme cookies, so only the
+ * page can get the server to render each shell in the student's own language —
+ * see the header of public/sw.js.
+ *
+ * Only routes that are missing, or stored in another variant, are fetched:
+ * seven documents of ~3.5 KB on the wire once per build, and again after a
+ * language or theme change, not on every load. One at a time and at low
+ * priority, so on a slow connection the warm never competes with the screen.
+ * A failure is left for the next load to retry.
+ *
+ * Returns a cancel function; a newer variant supersedes an unfinished warm.
+ */
+export function warmShells(variant: string): () => void {
+  if (
+    typeof window === 'undefined' ||
+    !('serviceWorker' in navigator) ||
+    !('caches' in window) ||
+    process.env.NODE_ENV !== 'production' ||
+    !SERVICE_WORKER_ENABLED
+  ) {
+    return () => {};
+  }
+
+  let cancelled = false;
+
+  void (async () => {
+    await controlled();
+
+    for (const route of SHELL_ROUTES) {
+      if (cancelled) return;
+      try {
+        // caches.match searches every cache on the origin; only the active
+        // build's pages cache holds shells, the rest having been deleted when
+        // this build's worker activated.
+        const stored = await caches.match(route, { ignoreVary: true });
+        if (stored?.headers.get(VARIANT_HEADER) === variant) continue;
+
+        const res = await fetch(route, {
+          headers: { Accept: 'text/html', [WARM_HEADER]: variant },
+          credentials: 'same-origin',
+          cache: 'no-store',
+          priority: 'low',
+        } as RequestInit);
+        // The worker kept its copy; this one is not needed.
+        await res.body?.cancel();
+      } catch {
+        // Offline or a bad connection: the next load tries again.
+      }
+    }
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}
+
 /** Unregisters every worker on this origin and deletes every cache. */
 async function removeServiceWorker(): Promise<void> {
   try {

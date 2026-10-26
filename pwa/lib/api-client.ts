@@ -234,17 +234,24 @@ async function request<T>(path: string, init: RequestInit, retried: boolean): Pr
  *
  * Only failures that say nothing about the data itself:
  *   • not an ApiError — fetch threw a TypeError: no network at all;
+ *   • 500 — the server failing, not answering. To the student it is the same
+ *     situation as a 502, and it is the failure that actually happened on this
+ *     project: Render up with its database unreachable answers 500 on every
+ *     route, which is exactly when a student should still read their timetable;
  *   • 502 / 503 / 504 — the proxy or the host is down or cold-starting.
  *
- * Everything else is a real answer and keeps today's error state. 401 above all:
+ * Everything else is a real answer and keeps today's error state. 403, 404 and
+ * 422 are answers about the request — not allowed, not found, bad input — and
+ * stale data must never stand in for those. 401 above all:
  * by the time a 401 reaches here the refresh has failed with 401 too, the
  * session is dead and the shell's modal is up — serving the dead session's data
- * from the store would route around the sign-out. 403, 404 and 422 are the
- * server saying no, which a stale copy must not contradict.
+ * from the store would route around the sign-out.
  */
+const FALLBACK_STATUSES = new Set([500, 502, 503, 504]);
+
 function mayFallBack(err: unknown): boolean {
   if (!(err instanceof ApiError)) return true;
-  return err.status === 502 || err.status === 503 || err.status === 504;
+  return FALLBACK_STATUSES.has(err.status);
 }
 
 function isGet(init: RequestInit): boolean {

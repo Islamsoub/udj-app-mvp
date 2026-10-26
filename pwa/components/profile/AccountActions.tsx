@@ -13,7 +13,7 @@ import styles from './profile.module.css';
  *
  * NO "VIDER LE CACHE". The one cache of personal data is the consent-gated
  * offline store (lib/offline-cache), and it already has its control: switching
- * "Garder mes données hors ligne" off, in Appearance above, empties it at once,
+ * "Garder mes données hors ligne" off, in "Cet appareil" above, empties it at once,
  * and signing out here empties it too. A second button for the same store would
  * be two controls for one thing. Everything else this browser holds is a
  * preference with its own control, or the `unipocket_seen_*` once-per-tab

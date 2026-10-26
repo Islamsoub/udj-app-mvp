@@ -20,37 +20,37 @@ import styles from './profile.module.css';
  * §9: "Theme/language radio-pills use the sliding-pill pattern (§5)" — which is
  * exactly SegmentedControl.
  */
-export function Appearance() {
+export function DeviceSettings() {
   const { t, lang, setLang } = useI18n();
   const { pref, setPref } = useTheme();
 
   return (
     <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>{t('profile.appearance.title')}</h2>
-      <p className={styles.sectionNote}>{t('profile.appearance.intro')}</p>
+      <h2 className={styles.sectionTitle}>{t('profile.device.title')}</h2>
+      <p className={styles.sectionNote}>{t('profile.device.intro')}</p>
 
       <div className={styles.card}>
         <div className={`${styles.row} ${styles.rowStacked}`}>
           <p className={styles.rowLabel} aria-hidden="true">
-            {t('profile.appearance.theme')}
+            {t('profile.device.theme')}
           </p>
           <SegmentedControl
             options={[
-              { id: 'light', label: t('profile.appearance.light') },
-              { id: 'dark', label: t('profile.appearance.dark') },
-              { id: 'system', label: t('profile.appearance.system') },
+              { id: 'light', label: t('profile.device.light') },
+              { id: 'dark', label: t('profile.device.dark') },
+              { id: 'system', label: t('profile.device.system') },
             ]}
             selectedId={pref}
             onSelect={(id) => {
               if (isThemePref(id)) setPref(id);
             }}
-            label={t('profile.appearance.theme')}
+            label={t('profile.device.theme')}
           />
         </div>
 
         <div className={`${styles.row} ${styles.rowStacked}`}>
           <p className={styles.rowLabel} aria-hidden="true">
-            {t('profile.appearance.language')}
+            {t('profile.device.language')}
           </p>
           {/*
             Each language is named in itself — "Français", "العربية" — whatever
@@ -66,7 +66,7 @@ export function Appearance() {
             onSelect={(id) => {
               if (isLang(id)) setLang(id);
             }}
-            label={t('profile.appearance.language')}
+            label={t('profile.device.language')}
           />
         </div>
 

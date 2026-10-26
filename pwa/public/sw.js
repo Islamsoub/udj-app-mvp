@@ -4,16 +4,51 @@
  * WHAT THIS CACHES, AND WHAT IT NEVER DOES
  *
  *   Navigations (HTML)          network first, cache fallback, then /offline.html
+ *   Shell warm fetches          network, stored as that route's shell (see below)
  *   /_next/static/*, /fonts/*,  cache first
- *   /logo.svg, /icons/*
+ *   /logo.svg, /icons/*,
+ *   /manifest.json
  *   /api/*                      NEVER — not read, not written, not intercepted
- *   everything else             not intercepted (RSC payloads, manifest, sw.js)
+ *   everything else             not intercepted (RSC payloads, sw.js)
  *
  * No personal data is cached here. The HTML of every route is the shell only:
  * the pages render on the client and fetch the student's data through /api,
  * which this worker does not touch. On a shared lab machine that is the whole
  * privacy question, so the /api rule is the first thing the fetch handler
  * checks and it returns before anything else can run.
+ *
+ * WHY THE SHELLS NEED NO CONSENT, AND WHAT WOULD CHANGE THAT. The stored HTML is
+ * not gated by the offline-data switch and is not wiped at logout, because it
+ * holds nothing about the student. That was checked on the real response
+ * bodies, and it holds structurally: the page files only render client
+ * components, the root layout reads nothing but the language and theme cookies,
+ * and the refresh cookie is scoped to path /api/auth — the browser never sends
+ * it with a page request, so the server cannot know who is asking. IF ANY PAGE
+ * EVER FETCHES ON THE SERVER, OR THE REFRESH COOKIE'S PATH WIDENS, RE-CHECK
+ * THIS: a shell carrying student data would have to be consent-gated and wiped
+ * with the offline store, exactly like it.
+ *
+ * SHELLS ARE WARMED BY THE PAGE, NOT GUESSED AT INSTALL
+ *
+ * The app navigates client-side after its first load, so navigations alone
+ * would only ever store the one route the student happened to hard-load. Instead
+ * the page (components/pwa/service-worker.ts, warmShells) fetches the seven
+ * SHELL_ROUTES in the background and this worker stores each response. Those
+ * fetches come from the page, so they carry the language and theme cookies and
+ * every stored shell is a genuine server render in the student's language and
+ * theme — nothing is patched. The worker cannot do this itself: the cookies are
+ * added by the browser after the worker has seen a request, so a navigation's
+ * Request here never shows them.
+ *
+ * A warm fetch is recognised by WARM_HEADER, never by its URL: Next's client
+ * router fetches the same paths for its RSC payloads, and keyed by path alone
+ * one of those would overwrite a shell with something that is not HTML.
+ *
+ * Each stored shell records its variant (language|theme) in VARIANT_HEADER. The
+ * page warms only routes that are missing or of another variant, so warming
+ * costs seven small documents once per build, and again after a language or
+ * theme change — not on every load. A warm that fails on a bad connection is
+ * simply retried on the next load.
  *
  * UPDATES WAIT FOR CONSENT
  *
@@ -30,7 +65,7 @@
  * from the script URL with CACHE_SCHEMA, so a deploy gets fresh caches and
  * `activate` deletes every cache that is not current. Per-build caches are also
  * what makes cache-first safe for the few unhashed assets (/fonts, /logo.svg,
- * /icons): they cannot outlive the build that put them there.
+ * /icons, /manifest.json): they cannot outlive the build that put them there.
  *
  * DEBUGGING: Chrome DevTools → Application → Service workers (state, update,
  * unregister) and → Cache storage (one entry per cache name below). Every cache
@@ -60,7 +95,7 @@
 const KILL_SWITCH = false;
 
 /** Bump when the caching rules in this file change, to discard caches built under the old rules. */
-const CACHE_SCHEMA = 1;
+const CACHE_SCHEMA = 2;
 
 /** Set by the page's registration URL. 'local' only if the file is registered without one. */
 const BUILD = new URL(self.location.href).searchParams.get('build') || 'local';
@@ -74,12 +109,34 @@ const CURRENT_CACHES = [STATIC_CACHE, PAGES_CACHE];
 const OFFLINE_URL = '/offline.html';
 
 /**
+ * The routes whose shells the page warms. Kept in step with SHELL_ROUTES in
+ * components/pwa/service-worker.ts; a route missing here is simply not stored.
+ */
+const SHELL_ROUTES = ['/', '/schedule', '/grades', '/attendance', '/profile', '/news', '/login'];
+
+/** Set by the page on a warm fetch; its value is the variant, "fr|light". */
+const WARM_HEADER = 'X-Unipocket-Shell-Warm';
+
+/** Added to a stored shell so the page can tell which variant it holds. */
+const VARIANT_HEADER = 'X-Unipocket-Shell-Variant';
+
+/** The only variants stored. Anything else in WARM_HEADER is not stored. */
+const VARIANT_PATTERN = /^(fr|ar)\|(light|dark|system)$/;
+
+/**
  * Fetched at install, so the offline page works even if the student never
- * opened it: the page itself, the logo it masks, and the faces it sets in.
+ * opened it: the page itself, the logo it masks, and the faces it sets in —
+ * and so an installed app opened offline can still read its own manifest and
+ * the icons it names. Keep the icon list in step with public/manifest.json.
  */
 const PRECACHE_URLS = [
   OFFLINE_URL,
   '/logo.svg',
+  '/manifest.json',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/icon-maskable-192.png',
+  '/icons/icon-maskable-512.png',
   '/fonts/PlusJakartaSans-Regular.woff2',
   '/fonts/PlusJakartaSans-Medium.woff2',
   '/fonts/PlusJakartaSans-Bold.woff2',
@@ -128,6 +185,17 @@ self.addEventListener('activate', (event) => {
       await Promise.all(
         names.filter((name) => !CURRENT_CACHES.includes(name)).map((name) => caches.delete(name))
       );
+
+      /*
+       * Take control of pages that have no worker yet. Without this, the page
+       * that registered the worker — the student's whole first session, since the
+       * app navigates client-side — never passes a request through it: no chunk
+       * is cached, no shell is warmed, and the first offline reload finds
+       * nothing. It changes nothing for an update: a page already controlled
+       * moves to the new worker on activation anyway, and an update only
+       * activates after the student's click, which reloads.
+       */
+      await self.clients.claim();
     })()
   );
 });
@@ -154,6 +222,16 @@ self.addEventListener('fetch', (event) => {
   // student opening a JSON link) is untouched.
   if (url.pathname === '/api' || url.pathname.startsWith('/api/')) return;
 
+  // A shell warm from the page. Recognised by its header, then confined to the
+  // known routes with no query string; a marked request for anything else is
+  // passed through untouched and stored nowhere.
+  if (request.headers.has(WARM_HEADER)) {
+    if (SHELL_ROUTES.includes(url.pathname) && url.search === '') {
+      event.respondWith(warmShell(request));
+    }
+    return;
+  }
+
   if (request.mode === 'navigate') {
     event.respondWith(networkFirstPage(request));
     return;
@@ -170,7 +248,8 @@ function isStaticAsset(url) {
     url.pathname.startsWith('/_next/static/') ||
     url.pathname.startsWith('/fonts/') ||
     url.pathname.startsWith('/icons/') ||
-    url.pathname === '/logo.svg'
+    url.pathname === '/logo.svg' ||
+    url.pathname === '/manifest.json'
   );
 }
 
@@ -206,11 +285,62 @@ async function networkFirstPage(request) {
 
   // Only a clean, same-origin 200 that was not a redirect is worth keeping. A
   // redirect stored under /schedule would replay the redirect forever offline.
+  //
+  // A shell the page has warmed is left alone: within one build it is the same
+  // document, and it carries the variant tag this copy cannot have (the worker
+  // never sees the cookies that chose its language). Overwriting it would make
+  // the page re-warm the route on its next load, every load. A route with
+  // nothing stored yet still gets this copy, so a never-warmed route can still
+  // come back offline.
   if (response.ok && response.type === 'basic' && !response.redirected) {
-    const copy = response.clone();
     const cache = await caches.open(PAGES_CACHE);
-    await cache.put(pageKey(request), copy);
+    const key = pageKey(request);
+    if (!(await cache.match(key, { ignoreVary: true }))) {
+      await cache.put(key, response.clone());
+    }
   }
+  return response;
+}
+
+/**
+ * Fetches one route's shell for the page and stores it, tagged with its variant.
+ *
+ * The page's own request is forwarded as it is: it is a same-origin fetch from
+ * the page, so the browser attaches the language and theme cookies on the way
+ * out and the server renders the shell in that language and theme.
+ *
+ * Stored only if it is a clean same-origin 200 HTML document that was not
+ * redirected, and only under a variant matching VARIANT_PATTERN. Whatever
+ * happens, the page gets the network's answer — or the error — unchanged.
+ */
+async function warmShell(request) {
+  const response = await fetch(request);
+
+  const variant = request.headers.get(WARM_HEADER) || '';
+  const contentType = response.headers.get('Content-Type') || '';
+  if (
+    VARIANT_PATTERN.test(variant) &&
+    response.ok &&
+    response.type === 'basic' &&
+    !response.redirected &&
+    contentType.startsWith('text/html')
+  ) {
+    try {
+      const headers = new Headers(response.headers);
+      headers.set(VARIANT_HEADER, variant);
+      const tagged = new Response(await response.clone().blob(), {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+      const cache = await caches.open(PAGES_CACHE);
+      await cache.put(pageKey(request), tagged);
+    } catch (error) {
+      // Quota, or a body that could not be read: this route stays unwarmed and
+      // the page tries again on its next load.
+    }
+  }
+
   return response;
 }
 

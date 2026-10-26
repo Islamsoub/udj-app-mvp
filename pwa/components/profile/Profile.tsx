@@ -11,7 +11,7 @@ import { getGradesAllSemesters, getMe } from '@/lib/api-client';
 import type { MeResponse } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
 import { AccountActions } from './AccountActions';
-import { Appearance } from './Appearance';
+import { DeviceSettings } from './DeviceSettings';
 import { NotificationPrefs } from './NotificationPrefs';
 import { ProfileSkeleton } from './skeletons';
 import { StudentCard } from './StudentCard';
@@ -99,7 +99,7 @@ export function Profile() {
           </StateLayers>
         </div>
 
-        <Appearance />
+        <DeviceSettings />
         <AccountActions />
       </div>
     </>

@@ -392,7 +392,7 @@
     "heading": "Profil",
     "state": {
       "error": "Impossible de charger votre profil.",
-      "offline": "Votre profil n'est pas disponible hors ligne. L'apparence et la déconnexion restent disponibles ci-dessous."
+      "offline": "Votre profil n'est pas disponible hors ligne. Les réglages de cet appareil et la déconnexion restent disponibles ci-dessous."
     },
     "status": {
       "active": "Inscrit",
@@ -457,8 +457,8 @@
       "saved": "Enregistré",
       "error": "Échec de l'enregistrement. Votre réglage n'a pas été modifié ; réessayez."
     },
-    "appearance": {
-      "title": "Apparence",
+    "device": {
+      "title": "Cet appareil",
       "intro": "Enregistrés sur ce navigateur uniquement.",
       "theme": "Thème",
       "light": "Clair",
