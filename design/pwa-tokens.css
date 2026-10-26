@@ -17,6 +17,13 @@
  *
  * Amended for the flat hero: light --hero-bg is --jade alone, no gradient and
  * no --jade-hover stop. --jade-hover is for hover states only.
+ *
+ * Amended for the white hero (light only): --hero-bg is --jade-text, and
+ * --hero-ink (white), --hero-chip and --hero-chip-hover are added, per theme.
+ * Worst cases, measured over a decorative circle (white 7% on the hero):
+ * text and mark 5.34:1, language chip text 7.41:1. --jade and the whole dark
+ * theme are unchanged; in dark --hero-ink is --ink and the chip keeps its
+ * white 16% / 28% pill.
  */
 
 :root {
@@ -62,9 +69,15 @@
   --jade-faint: rgba(29, 158, 117, .10);
   /* Text and marks on a solid jade surface. 4.71:1 on --jade. */
   --on-jade: #1E231F;
-  /* The login hero's background, and the logo mark on it. */
-  --hero-bg: var(--jade);
-  --hero-mark: var(--ink);
+  /* The login hero's background; white on --jade would be 3.39:1. */
+  --hero-bg: var(--jade-text);
+  /* All text on the hero, and the chip's focus ring. 5.34:1 over a circle. */
+  --hero-ink: #FFFFFF;
+  /* The logo mark on the hero. */
+  --hero-mark: var(--hero-ink);
+  /* The language chip's pill: darkens, so white text gains contrast. */
+  --hero-chip: rgba(10, 61, 46, .40);
+  --hero-chip-hover: rgba(10, 61, 46, .50);
 
   --shadow-card: 0 2px 10px rgba(30, 35, 31, .06);
   --shadow-lg: 0 12px 32px rgba(30, 35, 31, .12);
@@ -110,7 +123,10 @@
   /* A quiet raised surface, so the jade submit button is the brightest thing
      on the screen; the mark carries the brand colour instead. */
   --hero-bg: var(--surface2);
+  --hero-ink: var(--ink);
   --hero-mark: var(--jade);
+  --hero-chip: rgba(255, 255, 255, .16);
+  --hero-chip-hover: rgba(255, 255, 255, .28);
 
   --shadow-card: 0 0 0 1px rgba(255, 255, 255, .06), 0 2px 8px rgba(0, 0, 0, .40);
   --shadow-lg: 0 0 0 1px rgba(255, 255, 255, .08), 0 16px 40px rgba(0, 0, 0, .55);

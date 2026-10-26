@@ -39,12 +39,17 @@
   overflow: hidden;
   padding: 40px 32px 30px;
   text-align: center;
-  /* --hero-bg is jade in light and a quiet surface in dark (see globals.css).
-     --ink reads on both: in light it is the same colour --on-jade is. */
-  color: var(--ink);
+  /* A deep jade carrying white in light, a quiet surface carrying ink in dark
+     (see globals.css). --hero-ink is the one colour for text on the hero; its
+     contrast is measured at the lightest point under the text — over a .blob —
+     not against the flat background. */
+  color: var(--hero-ink);
   background: var(--hero-bg);
 }
 
+/* Lighter circles behind the mark. With white text these are the WORST case,
+   not a help: any change to their colour or opacity must re-measure
+   --hero-ink and --hero-mark against the blended colour (globals.css). */
 .blob {
   position: absolute;
   border-radius: 50%;
@@ -84,8 +89,9 @@
  * and nothing is squashed into a square or cropped.
  *
  * COLOUR. --hero-mark, through a mask — the shell's .logoMark technique. The
- * file's paths are white, which is under 3:1 for a graphic on the jade hero. The mask keeps the file untouched (the native
- * app shares it) and takes the colour from the token in both themes. A masked
+ * file's paths happen to be white, which is what light now wants, but dark
+ * wants jade; the mask keeps the file untouched (the native app shares it) and
+ * takes the colour from the token in both themes. A masked
  * box has no intrinsic size, so the 99:143 ratio is declared and the height
  * alone sets the size — the same 63.7 x 92 box the <img> had.
  */
@@ -95,7 +101,7 @@
   height: 92px;
   aspect-ratio: 99 / 143;
   margin-inline: auto;
-  /* Ink on the light hero, jade on the dark one — see --hero-mark. */
+  /* White on the light hero, jade on the dark one — see --hero-mark. */
   background-color: var(--hero-mark);
   -webkit-mask-image: url('/logo.svg');
   mask-image: url('/logo.svg');
@@ -120,9 +126,9 @@
   margin-top: 5px;
   font-size: 13.5px;
   /* Solid, not a translucent white: the hierarchy under the 800-weight brand
-     line comes from weight, not opacity. */
+     line comes from weight, not opacity, so the ratio is a measured one. */
   font-weight: 500;
-  color: var(--ink);
+  color: var(--hero-ink);
 }
 
 /* ── Language chip ─────────────────────────────────────────────────────────── */
@@ -140,8 +146,10 @@
   padding: 5px 10px;
   border: none;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.16);
-  color: var(--ink);
+  /* Sits inside the start circle, so its text is measured over pill + circle
+     + hero together — see --hero-chip. */
+  background: var(--hero-chip);
+  color: var(--hero-ink);
   font-family: inherit;
   font-size: 11px;
   font-weight: 700;
@@ -160,7 +168,7 @@
 }
 
 .langChip:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: var(--hero-chip-hover);
 }
 
 .langChip:active {
@@ -757,10 +765,10 @@
   outline-offset: 2px;
 }
 
-/* The chip sits on the hero, where a jade ring would vanish in light; --ink
-   reads on the hero in both themes. */
+/* The chip sits on the hero, where a jade ring would vanish in light; the
+   hero's own text colour reads on it in both themes (5.34:1 over a circle). */
 .langChip:focus-visible {
-  outline-color: var(--ink);
+  outline-color: var(--hero-ink);
 }
 
 /* ── Reduced motion ────────────────────────────────────────────────────────── */

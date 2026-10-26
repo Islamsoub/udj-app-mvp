@@ -22,10 +22,10 @@ export function LoginCard() {
             app imports — read only, never edited). Served as an SVG file rather
             than inlined so it stays sharp at any size and on any pixel density.
 
-            Drawn as a MASK coloured --on-jade, the way the shell draws it, not
-            as an <img>: the file's paths are white, and white on the jade hero
-            is under 3:1 against the gradient's lighter stop. The file itself is
-            shared with the native app and stays untouched.
+            Drawn as a MASK coloured --hero-mark, the way the shell draws it,
+            not as an <img>: the file's paths are white, which suits the light
+            hero but not the dark one, where the mark is jade. The file itself
+            is shared with the native app and stays untouched.
 
             aria-hidden — decorative. The hero's <h1> underneath names the
             university and the document title carries "Unipocket", so the mark

@@ -180,23 +180,34 @@
   --jade-hover: #22B083;
   --jade-text: #0F6E56;
   --jade-faint: rgba(29, 158, 117, .10);
-  /* Text and marks on a solid jade surface — buttons, the login hero. 4.71:1
-     on --jade. Replaces white, which was 3.39:1. */
+  /* Text and marks on a solid jade surface — buttons, switches. 4.71:1 on
+     --jade. Replaces white, which was 3.39:1. */
   --on-jade: #1E231F;
 
   /* The login hero's background. Its own token because the two themes want
-     different KINDS of surface, not two shades of one: in light the hero is the
-     brand's jade; in dark a bright surface means "act here", and a header is
-     not an action. Text on it is --ink in both, which is also what --on-jade
-     resolves to here.
-     Flat, not a gradient: no second stop works for both near-black text (a
-     darker stop costs contrast at the bottom) and dark-mode glare (a lighter
-     one adds it). And never --jade-hover, which is for hover states only. */
-  --hero-bg: var(--jade);
-  /* The logo mark on that hero. Ink on jade here; the brand's jade on the
-     neutral dark hero. A token rather than a theme selector in the login
-     stylesheet, so which colour each theme uses is decided here only. */
-  --hero-mark: var(--ink);
+     different KINDS of surface, not two shades of one: in light the hero is a
+     deep jade carrying white; in dark a bright surface means "act here", and a
+     header is not an action.
+     --jade-text, not --jade: white on --jade is 3.39:1 and fails for the
+     subtitle, so the background darkens rather than the text changing. --jade
+     itself is untouched — buttons, chips and rings keep their measured pairs.
+     Flat, not a gradient, and never --jade-hover, which is for hover states. */
+  --hero-bg: var(--jade-text);
+  /* Every piece of text on the hero — title, subtitle, language chip — and the
+     chip's focus ring. Solid, never white at reduced opacity. Measured against
+     the LIGHTEST point text can sit on, not the flat background: 6.20:1 on
+     --hero-bg, 5.34:1 where a decorative circle (white 7%) lightens it. */
+  --hero-ink: #FFFFFF;
+  /* The logo mark on that hero. White here; the brand's jade on the neutral
+     dark hero. A token rather than a theme selector in the login stylesheet,
+     so which colour each theme uses is decided here only. 5.34:1 worst case. */
+  --hero-mark: var(--hero-ink);
+  /* The language chip's pill. It DARKENS the hero in light: a white pill under
+     white text lowered contrast to 3.11:1 on hover over a circle. A jade-900
+     wash raises it instead — 7.41:1 at rest and 8.06:1 on hover, both measured
+     over a circle, the lightest thing beneath the chip. */
+  --hero-chip: rgba(10, 61, 46, .40);
+  --hero-chip-hover: rgba(10, 61, 46, .50);
 
   --shadow-card: 0 2px 10px rgba(30, 35, 31, .06);
   --shadow-lg: 0 12px 32px rgba(30, 35, 31, .12);
@@ -246,9 +257,14 @@
   /* A quiet raised surface, so the jade submit button below it is the brightest
      thing on the screen rather than the header. */
   --hero-bg: var(--surface2);
+  /* Ink, as everywhere else on a dark surface. */
+  --hero-ink: var(--ink);
   /* On a neutral hero the mark carries the brand colour the background no
      longer does. */
   --hero-mark: var(--jade);
+  /* A light pill reads on a dark hero; ink text on it keeps its contrast. */
+  --hero-chip: rgba(255, 255, 255, .16);
+  --hero-chip-hover: rgba(255, 255, 255, .28);
 
   /* A 1px light ring does the edge work a shadow cannot on a dark page; the
      black blur underneath gives the lift. */

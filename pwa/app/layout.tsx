@@ -21,9 +21,15 @@ export const metadata: Metadata = {
   },
 };
 
-/** The browser chrome colour while the app runs installed: --jade, as in the manifest. */
+/**
+ * The browser chrome colour while the app runs installed: --hero-bg (light),
+ * as in the manifest. It sits directly above the login hero, so it matches it —
+ * a lighter jade over the darker hero read as two greens that nearly match.
+ * Above the cream app it reads as branding. A CSS variable cannot be used
+ * here, so the value is repeated: change it with --jade-text in globals.css.
+ */
 export const viewport: Viewport = {
-  themeColor: '#1D9E75',
+  themeColor: '#0F6E56',
 };
 
 /**

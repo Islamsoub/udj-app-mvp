@@ -69,8 +69,8 @@
     color-scheme: light;
     --bg: #F7F4EE; --surface: #FFFFFF; --surface2: #F8F5EF;
     --ink: #1E231F; --ink2: #656B60; --hair2: rgba(30, 35, 31, .16);
-    --jade: #1D9E75; --jade-hover: #22B083; --on-jade: #1E231F;
-    --hero-bg: var(--jade); --hero-mark: var(--ink);
+    --jade: #1D9E75; --jade-hover: #22B083; --jade-text: #0F6E56; --on-jade: #1E231F;
+    --hero-bg: var(--jade-text); --hero-ink: #FFFFFF; --hero-mark: var(--hero-ink);
     --shadow-lg: 0 12px 32px rgba(30, 35, 31, .12);
   }
   [data-theme="dark"] {
@@ -78,7 +78,7 @@
     --bg: #15201A; --surface: #1C2721; --surface2: #22302A;
     --ink: #EDF2ED; --ink2: #9FB0A6; --hair2: rgba(255, 255, 255, .14);
     --jade: #2BB989; --jade-hover: #3FCB9A; --on-jade: #0F1713;
-    --hero-bg: var(--surface2); --hero-mark: var(--jade);
+    --hero-bg: var(--surface2); --hero-ink: var(--ink); --hero-mark: var(--jade);
     --shadow-lg: 0 0 0 1px rgba(255, 255, 255, .08), 0 16px 40px rgba(0, 0, 0, .55);
   }
 
@@ -93,14 +93,14 @@
   /* The session-waiting screen, as login.module.css draws it. */
   .screen { min-height: 100vh; min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--bg); }
   .card { width: 100%; max-width: 420px; background: var(--surface); border-radius: var(--r-2xl); box-shadow: var(--shadow-lg); overflow: hidden; }
-  .hero { position: relative; overflow: hidden; padding: 40px 32px 30px; text-align: center; color: var(--ink); background: var(--hero-bg); }
+  .hero { position: relative; overflow: hidden; padding: 40px 32px 30px; text-align: center; color: var(--hero-ink); background: var(--hero-bg); }
   .blob { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.07); pointer-events: none; }
   .blob-start { width: 180px; height: 180px; top: -70px; inset-inline-start: -40px; }
   .blob-end { width: 160px; height: 160px; top: -50px; inset-inline-end: -50px; }
   .mark { position: relative; display: block; height: 92px; aspect-ratio: 99 / 143; margin-inline: auto; background-color: var(--hero-mark);
     -webkit-mask: url('/logo.svg') center / contain no-repeat; mask: url('/logo.svg') center / contain no-repeat; }
   .brand { position: relative; margin: 14px 0 0; font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
-  .tagline { position: relative; margin: 5px 0 0; font-size: 13.5px; font-weight: 500; color: var(--ink); }
+  .tagline { position: relative; margin: 5px 0 0; font-size: 13.5px; font-weight: 500; color: var(--hero-ink); }
   .body { padding: 28px 28px 30px; }
   .notice { margin-bottom: 16px; padding: 12px 14px; border: 1px solid var(--hair2); border-radius: var(--r-md); background: var(--surface2); color: var(--ink2); font-size: 12.5px; line-height: 1.45; }
   .notice-title { display: block; margin-bottom: 2px; color: var(--ink); font-size: 13.5px; font-weight: 700; }
