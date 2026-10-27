@@ -384,6 +384,12 @@ model SystemSettings {
   gradeWeightCf       Float    @default(0.60) @map("grade_weight_cf")
   attendanceThreshold Int      @default(75) @map("attendance_threshold")
   justificationDeadlineDays Int      @default(8) @map("justification_deadline_days") // NEW
+  // Attendance band (utils/attendance.ts attendanceBand): "near" while the rate
+  // is under attendanceThreshold + this many points.
+  attendanceWarnMargin      Int      @default(10) @map("attendance_warn_margin")
+  // Attendance band: "near" when absencesLeft (sessions the student can still
+  // miss and finish at or above the threshold) is at or below this.
+  attendanceWarnAbsences    Int      @default(2) @map("attendance_warn_absences")
   autoPublishGrades   Boolean  @default(false) @map("auto_publish_grades")
   notifyOnPublish     Boolean  @default(true) @map("notify_on_publish")
   weeklyRecap         Boolean  @default(false) @map("weekly_recap")

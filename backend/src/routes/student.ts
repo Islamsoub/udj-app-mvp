@@ -15,10 +15,28 @@ import {
   hoursBasedPercentage,
   justificationDeadline,
   AttendanceInput,
+  AttendanceBandRules,
   DEFAULT_ATTENDANCE_THRESHOLD,
+  DEFAULT_ATTENDANCE_WARN_ABSENCES,
+  DEFAULT_ATTENDANCE_WARN_MARGIN,
   DEFAULT_JUSTIFICATION_DEADLINE_DAYS,
+  DEFAULT_SESSION_HOURS,
+  attendanceBand,
+  attendanceRecovery,
+  remainingScheduledHours,
+  semesterHasEnded,
+  DatedScheduleSlot,
+  longestSlotBySubject,
+  sumAttendanceHours,
+  truncatedPercentage,
 } from '../utils/attendance';
 import { earnedCredits, CreditGrade } from '../utils/credits';
+import type {
+  AttendanceAbsenceEntry,
+  AttendanceSubject,
+  AttendanceSubjectInfo,
+  StudentAttendanceResponse,
+} from '../types/studentAttendance';
 
 /** The columns earnedCredits() needs, for queries that exist only to count them. */
 const CREDIT_GRADE_SELECT = {
@@ -482,6 +500,17 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
       settings?.justificationDeadlineDays ?? DEFAULT_JUSTIFICATION_DEADLINE_DAYS;
 
     /*
+     * Band rules. The band is computed here and only here; clients map it to a
+     * colour. The fallbacks match the Prisma column defaults, so a missing
+     * settings row bands exactly like a default one.
+     */
+    const bandRules: AttendanceBandRules = {
+      threshold: attendanceThreshold,
+      warnMargin: settings?.attendanceWarnMargin ?? DEFAULT_ATTENDANCE_WARN_MARGIN,
+      warnAbsences: settings?.attendanceWarnAbsences ?? DEFAULT_ATTENDANCE_WARN_ABSENCES,
+    };
+
+    /*
      * One clock reading for the whole response. Calling `new Date()` per record
      * would judge a long list against slightly different instants, so a record
      * sitting exactly on its deadline could come back submittable in one row and
@@ -493,12 +522,17 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
       // The new fields are on this branch too. A client that reads them must not
       // have to handle their absence just because no semester is current — the
       // rules are true regardless of whether there is data to apply them to.
-      res.status(200).json({
+      //
+      // `band` and `absencesLeft` live on `overall` and on each subject. Here
+      // there is no figure to band: `overall` stays null and `subjects` empty,
+      // exactly as before, rather than inventing a figure to attach them to.
+      const body: StudentAttendanceResponse = {
         overall: null,
         subjects: [],
         attendanceThreshold,
         justificationDeadlineDays: deadlineDays,
-      });
+      };
+      res.status(200).json(body);
       return;
     }
 
@@ -520,13 +554,28 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
 
     // Session lengths come from the subjects' schedule entries.
     const subjectIds = [...new Set(records.map((r) => r.subjectId))];
-    const slots = subjectIds.length
+    const slots: DatedScheduleSlot[] = subjectIds.length
       ? await prisma.scheduleEntry.findMany({
           where: { subjectId: { in: subjectIds }, semesterId: currentSemester.id },
-          select: { subjectId: true, dayOfWeek: true, startTime: true, endTime: true },
+          select: {
+            subjectId: true,
+            dayOfWeek: true,
+            startTime: true,
+            endTime: true,
+            // Validity window, so remaining hours only count a slot while it applies.
+            effectiveDate: true,
+            expiryDate: true,
+          },
         })
       : [];
     const resolveHours = buildSessionHoursResolver(slots);
+    const longestSlot = longestSlotBySubject(slots);
+    const longestSlotFor = (subjectId: string): number =>
+      longestSlot.get(subjectId) ?? DEFAULT_SESSION_HOURS;
+    const slotsBySubject = new Map<string, DatedScheduleSlot[]>();
+    for (const s of slots) {
+      slotsBySubject.set(s.subjectId, [...(slotsBySubject.get(s.subjectId) ?? []), s]);
+    }
 
     const pathsToSign = [
       ...new Set(
@@ -547,33 +596,15 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
       );
     }
 
-    type SubjectInfo = { id: string; nameFr: string; nameAr: string; code: string };
-    type AbsenceEntry = {
-      id: string;
-      date: string;
-      status: 'ABSENT' | 'JUSTIFIED';
-      subjectName: string;
-      subjectNameAr: string;
-      justificationUrl: string | null;
-      justificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | null;
-      justificationNote: string | null;
-      /**
-       * Whether POST .../justification would be accepted for this record right
-       * now — the server's own verdict, not a hint.
-       *
-       * The client could in principle derive this from `date` and
-       * `justificationDeadlineDays`, and that is precisely the problem: its
-       * clock, its timezone handling and its idea of "a day" would all have to
-       * match the server's, and any mismatch shows a student a form that is
-       * guaranteed to be refused. Computed here with the same function the POST
-       * handler enforces with (utils/attendance.ts), so the two cannot disagree.
-       */
-      canSubmitJustification: boolean;
-    };
+    // Shapes live in types/studentAttendance.ts, the response contract.
+    type SubjectInfo = AttendanceSubjectInfo;
+    type AbsenceEntry = AttendanceAbsenceEntry;
     const subjectMap = new Map<
       string,
       {
         subject: SubjectInfo;
+        /** Latest recorded session — the held/remaining boundary. */
+        lastSession: Date;
         present: number;
         absent: number;
         justified: number;
@@ -587,6 +618,7 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
       if (!subjectMap.has(r.subjectId)) {
         subjectMap.set(r.subjectId, {
           subject: r.subject,
+          lastSession: r.sessionDate,
           present: 0,
           absent: 0,
           justified: 0,
@@ -596,6 +628,8 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
         });
       }
       const entry = subjectMap.get(r.subjectId)!;
+      // Explicit max rather than trusting the query's sort order.
+      if (r.sessionDate > entry.lastSession) entry.lastSession = r.sessionDate;
       if (r.status === 'PRESENT') entry.present++;
       else if (r.status === 'ABSENT') entry.absent++;
       else if (r.status === 'JUSTIFIED') entry.justified++;
@@ -630,11 +664,53 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
       }
     }
 
-    const subjects = [...subjectMap.values()].map(
+    // Timetable hours still to come per subject, counted from the day after its
+    // latest recorded session (see remainingScheduledHours for why that
+    // boundary, and why held and remaining cannot overlap).
+    //
+    // Once the semester has ended nothing remains, however late the last
+    // registers are. This reuses the request's single clock reading (`now`,
+    // above) — the one clock-dependent input to the band; see semesterHasEnded.
+    const semesterOver = semesterHasEnded(currentSemester.endDate, now);
+    const remainingBySubject = new Map<string, number>();
+    for (const [subjectId, entry] of subjectMap) {
+      remainingBySubject.set(
+        subjectId,
+        semesterOver
+          ? 0
+          : remainingScheduledHours(
+              slotsBySubject.get(subjectId) ?? [],
+              entry.lastSession,
+              currentSemester.endDate
+            )
+      );
+    }
+
+    const subjects: AttendanceSubject[] = [...subjectMap.values()].map(
       ({ subject, present, absent, justified, partial, inputs, absences }) => {
         const total = present + absent + justified + partial;
-        const percentage = hoursBasedPercentage(inputs, resolveHours) ?? 0;
-        return { subject, total, present, absent, justified, partial, percentage, absences };
+        const hours = sumAttendanceHours(inputs, resolveHours);
+        const percentage = truncatedPercentage(hours) ?? 0;
+        const recovery = attendanceRecovery(
+          hours,
+          remainingBySubject.get(subject.id) ?? 0,
+          attendanceThreshold,
+          longestSlotFor(subject.id),
+          semesterOver
+        );
+        return {
+          subject,
+          total,
+          present,
+          absent,
+          justified,
+          partial,
+          percentage,
+          absences,
+          // Appended after the existing keys, never interleaved.
+          band: attendanceBand(percentage, recovery, bandRules),
+          absencesLeft: recovery.absencesLeft,
+        };
       }
     );
 
@@ -649,9 +725,23 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
       status: r.status,
       hoursAttended: r.hoursAttended,
     }));
-    const percentageAll = hoursBasedPercentage(overallInputs, resolveHours);
+    // Pooled across the subjects listed above: attended, held and remaining
+    // hours all sum (each subject's remaining uses its own boundary, so the
+    // pool inherits the no-overlap guarantee). The session unit is the longest
+    // slot of any of them, so the count stays safe whichever subject is missed.
+    const hoursAll = sumAttendanceHours(overallInputs, resolveHours);
+    const percentageAll = truncatedPercentage(hoursAll);
+    const remainingAll = [...remainingBySubject.values()].reduce((sum, h) => sum + h, 0);
+    const longestAll = Math.max(0, ...subjectIds.map(longestSlotFor));
+    const recoveryAll = attendanceRecovery(
+      hoursAll,
+      remainingAll,
+      attendanceThreshold,
+      longestAll,
+      semesterOver
+    );
 
-    res.status(200).json({
+    const body: StudentAttendanceResponse = {
       overall: {
         total: totalAll,
         present: presentAll,
@@ -659,6 +749,9 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
         justified: justifiedAll,
         partial: partialAll,
         percentage: percentageAll,
+        // percentage null (no hours held) → band "ok", per Design.
+        band: attendanceBand(percentageAll, recoveryAll, bandRules),
+        absencesLeft: recoveryAll.absencesLeft,
       },
       subjects,
       /*
@@ -668,7 +761,8 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
        */
       attendanceThreshold,
       justificationDeadlineDays: deadlineDays,
-    });
+    };
+    res.status(200).json(body);
   } catch (err) {
     next(err);
   }
