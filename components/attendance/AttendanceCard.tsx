@@ -2,53 +2,37 @@ import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import type { TFunction } from 'i18next';
 import { elevation, fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
-import { BADGE_REGULAR_PCT, BADGE_WARNING_PCT, MAX_ABSENCE_RATE, WARN_BUFFER } from '@/constants/attendance';
+import type { AttendanceBand } from '@/services/api';
+import { subjectSentence, toneColor, verdictTone } from '@/components/attendance/verdict';
 
 interface AttendanceCardProps {
   name: string;
   percentage: number;
   attended: number;
   total: number;
+  /** Server verdict; null for a row cached before band existed (neutral, no sentence). */
+  band: AttendanceBand | null;
+  /** Server value; null once the semester has ended. */
+  absencesLeft: number | null;
 }
 
-type Level = 'ok' | 'warn' | 'danger';
-
-function getLevel(percentage: number): Level {
-  if (percentage >= BADGE_REGULAR_PCT) return 'ok';
-  if (percentage >= BADGE_WARNING_PCT) return 'warn';
-  return 'danger';
-}
-
-function getLevelColor(level: Level, colors: Palette): string {
-  if (level === 'ok') return colors.jade400;
-  if (level === 'warn') return colors.warning;
-  return colors.danger;
-}
-
-function computeProjection(attended: number, total: number, percentage: number, t: TFunction): { text: string; level: Level } {
-  const absent = total - attended;
-  const maxAbsences = Math.floor(total * MAX_ABSENCE_RATE);
-  const remaining = maxAbsences - absent;
-  const level = getLevel(percentage);
-
-  if (attended === total) return { text: t('presence.proj_perfect'), level: 'ok' };
-  if (remaining > WARN_BUFFER) return { text: t('presence.proj_ok', { remaining }), level };
-  if (remaining > 0) return { text: t('presence.proj_warn', { remaining }), level };
-  return { text: t('presence.proj_danger'), level };
-}
-
-export function AttendanceCard({ name, percentage, attended, total }: AttendanceCardProps) {
+export function AttendanceCard({ name, percentage, attended, total, band, absencesLeft }: AttendanceCardProps) {
   const { t } = useTranslation();
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
-  const level = useMemo(() => getLevel(percentage), [percentage]);
-  const levelColor = getLevelColor(level, colors);
-  const projection = useMemo(() => computeProjection(attended, total, percentage, t), [attended, total, percentage, t]);
-  const projWeight: '400' | '600' = projection.level === 'ok' ? '400' : '600';
+  // Colour and sentence are a mapping of the server's verdict — see verdict.ts.
+  const tone = verdictTone(band);
+  const levelColor = toneColor(tone, colors);
+  const sentence = useMemo(
+    () => subjectSentence({ band, absencesLeft, percentage, perfect: total > 0 && attended === total }),
+    [band, absencesLeft, percentage, attended, total],
+  );
+  const projection = sentence ? { text: t(sentence.key, sentence.params) } : null;
+  const emphasised = tone === 'near' || tone === 'below';
+  const projWeight: '400' | '600' = emphasised ? '600' : '400';
 
   return (
     <View style={styles.card}>
@@ -71,15 +55,17 @@ export function AttendanceCard({ name, percentage, attended, total }: Attendance
         <View style={[styles.progressFill, { width: `${percentage}%`, backgroundColor: levelColor }]} />
       </View>
 
-      {/* Projection row */}
-      <View style={styles.projectionRow}>
-        {level !== 'ok' && (
-          <Ionicons name="warning-outline" size={13} color={levelColor} />
-        )}
-        <Text style={[styles.projectionText, { color: level === 'ok' ? colors.textTertiary : levelColor, fontWeight: projWeight }]}>
-          {projection.text}
-        </Text>
-      </View>
+      {/* Projection row — omitted entirely without a server verdict. */}
+      {projection && (
+        <View style={styles.projectionRow}>
+          {emphasised && (
+            <Ionicons name="warning-outline" size={13} color={levelColor} />
+          )}
+          <Text style={[styles.projectionText, { color: emphasised ? levelColor : colors.textTertiary, fontWeight: projWeight }]}>
+            {projection.text}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }

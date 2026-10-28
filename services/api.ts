@@ -100,7 +100,12 @@ export interface Attendance {
   sessionsPresent: number;
   sessionsRemaining: number;
   percentage: number;
+  /** Legacy column: the server's threshold as a fraction (75 → 0.75). Not read for any verdict. */
   threshold: number;
+  /** The server's verdict. Null only for a row cached before band existed. */
+  band: AttendanceBand | null;
+  /** Server value; null once the semester has ended (or before band existed). */
+  absencesLeft: number | null;
   cachedAt: string;
 }
 
@@ -397,6 +402,9 @@ export interface AttendanceSubject {
   partial: number;
   percentage: number;
   absences: AbsenceRecord[];
+  band: AttendanceBand;
+  /** Null once the semester has ended: nothing left to spend. Never show it as 0. */
+  absencesLeft: number | null;
 }
 
 // Overall attendance figures. `percentage` is hours-based (Pass C §4.3). The
@@ -408,17 +416,32 @@ export interface AttendanceOverall {
   absent: number;
   justified: number;
   partial: number;
+  band: AttendanceBand;
+  /** Null once the semester has ended: nothing left to spend. Never show it as 0. */
+  absencesLeft: number | null;
 }
 
 export interface AttendanceApiResponse {
   overall: AttendanceOverall | null;
   subjects: AttendanceSubject[];
+  /** Whole percent (e.g. 75), admin-configurable on the server. */
+  attendanceThreshold: number;
 }
+
+/**
+ * The server's attendance verdict (backend 7c929ec). The app only maps it to a
+ * colour and a sentence; it never computes one. See services/attendanceContract.ts.
+ */
+export type AttendanceBand = 'ok' | 'near' | 'below';
 
 // SQLite cache shape for the overall summary (kept out of the per-subject rows
 // so the hours-based overall percentage survives a cold offline launch).
-export interface AttendanceSummary extends AttendanceOverall {
+// band / absencesLeft / threshold are null for a summary cached before they
+// existed — rendered neutral, never filled in locally.
+export interface AttendanceSummary extends Omit<AttendanceOverall, 'band'> {
   studentId: string;
+  band: AttendanceBand | null;
+  threshold: number | null;
   cachedAt: string;
 }
 

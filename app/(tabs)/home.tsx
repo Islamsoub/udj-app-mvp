@@ -11,7 +11,7 @@ import {
   NativeScrollEvent,
   RefreshControl,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -32,6 +32,7 @@ import {
   getStudentProfile,
   getFullSemesterSchedule,
   getCachedNews,
+  getCachedAttendanceSummary,
   upsertProfile,
   upsertSchedules,
   upsertNews,
@@ -331,6 +332,8 @@ interface LoadedHeaderProps {
   topInset: number;
   lastSyncTime?: string;
   profile: StudentProfileCache | null;
+  /** The server's threshold from the attendance cache; null until first synced. */
+  attendanceThreshold: number | null;
   isScrolled: boolean;
 }
 
@@ -339,6 +342,7 @@ function LoadedHeader({
   topInset,
   lastSyncTime,
   profile,
+  attendanceThreshold,
   isScrolled,
 }: LoadedHeaderProps) {
   const { t } = useTranslation();
@@ -400,7 +404,7 @@ function LoadedHeader({
         <StatCard
           label={t('home.stat.presence')}
           value={displayAttendance}
-          sub={t('home.stat.attendance_limit')}
+          sub={attendanceThreshold != null ? t('home.stat.attendance_limit', { threshold: attendanceThreshold }) : ''}
           onPress={() => router.push('/attendance')}
         />
         <StatCard
@@ -500,6 +504,27 @@ export default function HomeScreen() {
     : t('common.never');
 
   const studentId = useAuthStore.getState().student?.id ?? 'me';
+
+  // The attendance threshold is admin-configurable on the server. The tile
+  // reads the copy the attendance screen cached (the only writer), re-read on
+  // focus so a sync there shows here on return. Null until first synced: the
+  // tile then shows no threshold rather than a hardcoded one.
+  const [attendanceThreshold, setAttendanceThreshold] = useState<number | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      getCachedAttendanceSummary()
+        .then((s) => {
+          if (active) setAttendanceThreshold(s?.threshold ?? null);
+        })
+        .catch(() => {
+          // Cache read failure leaves the tile without a threshold — no fallback.
+        });
+      return () => {
+        active = false;
+      };
+    }, []),
+  );
 
   // ─── Offline queries ────────────────────────────────────────────────────────
 
@@ -631,6 +656,7 @@ export default function HomeScreen() {
           isOffline={isOffline}
           topInset={insets.top}
           profile={profileHook.data}
+          attendanceThreshold={attendanceThreshold}
           lastSyncTime={lastSyncTime}
           isScrolled={isScrolled}
         />

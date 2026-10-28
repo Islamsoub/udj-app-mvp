@@ -13,7 +13,6 @@ import type {
   ApiNotification,
 } from './api';
 import type { StudentProfile } from '@/stores/authStore';
-import { ATTENDANCE_THRESHOLD } from '@/constants/attendance';
 
 const NOW = () => new Date().toISOString();
 
@@ -156,9 +155,16 @@ export function mapArticleDetailToCache(detail: NewsArticleDetail): NewsItem {
 
 // ─── Attendance ───────────────────────────────────────────────────────────────
 
+/**
+ * `attendanceThreshold` is the server's whole percent (75). It goes into the
+ * legacy `threshold` column as a fraction (0.75), the unit that column has
+ * always held, so it is no longer the hardcoded 0.85. Nothing reads it for a
+ * verdict — band and absencesLeft come straight from the server.
+ */
 export function mapAttendanceToCache(
   subjects: AttendanceSubject[],
   studentId: string,
+  attendanceThreshold: number,
 ): Attendance[] {
   return subjects.map((s) => ({
     id: `${studentId}-${s.subject.code}`,
@@ -170,7 +176,9 @@ export function mapAttendanceToCache(
     sessionsPresent: s.present,
     sessionsRemaining: 0,
     percentage: s.percentage,
-    threshold: ATTENDANCE_THRESHOLD,
+    threshold: attendanceThreshold / 100,
+    band: s.band,
+    absencesLeft: s.absencesLeft,
     cachedAt: NOW(),
   }));
 }

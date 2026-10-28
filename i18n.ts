@@ -1,3 +1,9 @@
+// Must run before i18n.init. i18next resolves plural forms through
+// Intl.PluralRules, which Hermes on Android does not ship; without it i18next
+// silently falls back to one/other only, and Arabic loses its zero, two, few
+// and many forms. The polyfill installs itself only when the native
+// implementation is missing or incomplete.
+import 'intl-pluralrules';
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import fr from './locales/fr.json';

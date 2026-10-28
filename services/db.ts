@@ -10,6 +10,7 @@ import type {
   Attendance,
   AbsenceRecord,
   AttendanceSummary,
+  AttendanceBand,
   GradesSummary,
   CachedNotification,
   NewsCategory,
@@ -338,6 +339,17 @@ export async function runMigrations(): Promise<void> {
   await addColumnSafe(db, "ALTER TABLE attendance ADD COLUMN subject_name_ar TEXT NOT NULL DEFAULT ''");
   await addColumnSafe(db, 'ALTER TABLE attendance ADD COLUMN sessions_remaining INTEGER NOT NULL DEFAULT 0');
   await addColumnSafe(db, 'ALTER TABLE attendance ADD COLUMN percentage REAL NOT NULL DEFAULT 0');
+
+  // Server-computed attendance verdict (backend 7c929ec). Nullable, no default:
+  // NULL band = a row cached before band existed, rendered neutral until the
+  // next sync. A band with NULL absences_left = the server's own null
+  // (semester ended). The two cannot be confused. No local fallback, ever.
+  await addColumnSafe(db, 'ALTER TABLE attendance ADD COLUMN band TEXT');
+  await addColumnSafe(db, 'ALTER TABLE attendance ADD COLUMN absences_left INTEGER');
+  await addColumnSafe(db, 'ALTER TABLE attendance_summary ADD COLUMN band TEXT');
+  await addColumnSafe(db, 'ALTER TABLE attendance_summary ADD COLUMN absences_left INTEGER');
+  // The server's threshold as a whole percent (75), for copy only.
+  await addColumnSafe(db, 'ALTER TABLE attendance_summary ADD COLUMN threshold INTEGER');
 
   // news_cache: read_time_minutes, is_urgent, image_url, title_ar
   await addColumnSafe(db, 'ALTER TABLE news_cache ADD COLUMN read_time_minutes INTEGER NOT NULL DEFAULT 0');
@@ -837,8 +849,9 @@ export async function upsertAttendance(items: Attendance[]): Promise<void> {
       await db.runAsync(
         `INSERT INTO attendance
           (id, student_id, subject_code, subject_name, subject_name_ar, sessions_total,
-           sessions_present, sessions_remaining, percentage, threshold, cached_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           sessions_present, sessions_remaining, percentage, threshold, band, absences_left,
+           cached_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           item.id,
           item.studentId,
@@ -850,6 +863,8 @@ export async function upsertAttendance(items: Attendance[]): Promise<void> {
           item.sessionsRemaining,
           item.percentage,
           item.threshold,
+          item.band,
+          item.absencesLeft,
           item.cachedAt,
         ],
       );
@@ -896,8 +911,9 @@ export async function upsertAttendanceSummary(summary: AttendanceSummary): Promi
   const db = await getDb();
   await db.runAsync(
     `INSERT INTO attendance_summary
-      (student_id, percentage, total, present, absent, justified, partial, cached_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      (student_id, percentage, total, present, absent, justified, partial, band, absences_left,
+       threshold, cached_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(student_id) DO UPDATE SET
        percentage = excluded.percentage,
        total      = excluded.total,
@@ -905,6 +921,9 @@ export async function upsertAttendanceSummary(summary: AttendanceSummary): Promi
        absent     = excluded.absent,
        justified  = excluded.justified,
        partial    = excluded.partial,
+       band          = excluded.band,
+       absences_left = excluded.absences_left,
+       threshold     = excluded.threshold,
        cached_at  = excluded.cached_at`,
     [
       summary.studentId,
@@ -914,6 +933,9 @@ export async function upsertAttendanceSummary(summary: AttendanceSummary): Promi
       summary.absent,
       summary.justified,
       summary.partial,
+      summary.band,
+      summary.absencesLeft,
+      summary.threshold,
       summary.cachedAt,
     ],
   );
@@ -1116,6 +1138,12 @@ function rowToAbsence(row: Record<string, SQLite.SQLiteBindValue>): AbsenceRecor
   };
 }
 
+// A stored band is trusted only if it is one of the three the server sends;
+// anything else (NULL from a pre-band row) reads as null → neutral display.
+function toBand(v: SQLite.SQLiteBindValue): AttendanceBand | null {
+  return v === 'ok' || v === 'near' || v === 'below' ? v : null;
+}
+
 function rowToAttendanceSummary(row: Record<string, SQLite.SQLiteBindValue>): AttendanceSummary {
   return {
     studentId: row.student_id as string,
@@ -1125,6 +1153,9 @@ function rowToAttendanceSummary(row: Record<string, SQLite.SQLiteBindValue>): At
     absent: (row.absent as number | null) ?? 0,
     justified: (row.justified as number | null) ?? 0,
     partial: (row.partial as number | null) ?? 0,
+    band: toBand(row.band),
+    absencesLeft: (row.absences_left as number | null) ?? null,
+    threshold: (row.threshold as number | null) ?? null,
     cachedAt: row.cached_at as string,
   };
 }
@@ -1206,6 +1237,8 @@ function rowToAttendance(row: Record<string, SQLite.SQLiteBindValue>): Attendanc
     sessionsRemaining: (row.sessions_remaining as number | null) ?? 0,
     percentage: (row.percentage as number | null) ?? 0,
     threshold: row.threshold as number,
+    band: toBand(row.band),
+    absencesLeft: (row.absences_left as number | null) ?? null,
     cachedAt: row.cached_at as string,
   };
 }

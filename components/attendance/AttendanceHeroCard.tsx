@@ -5,7 +5,8 @@ import Svg, { Circle, Text as SvgText } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { fonts, fz, radius, spacing, withAlpha } from '@/constants/theme';
 import { SkeletonBox } from '@/components/ui/SkeletonBox';
-import { BADGE_REGULAR_PCT, BADGE_WARNING_PCT } from '@/constants/attendance';
+import type { AttendanceBand } from '@/services/api';
+import { heroBadgeKey } from '@/components/attendance/verdict';
 
 const RING_SIZE = 96;
 const RING_R = 38;
@@ -16,17 +17,14 @@ interface Props {
   percentage: number;
   absences: number;
   totalSessions: number;
+  /** Server verdict for the overall figure; null → no badge (never computed locally). */
+  band: AttendanceBand | null;
   skeleton?: boolean;
 }
 
-function badgeKey(pct: number): string {
-  if (pct >= BADGE_REGULAR_PCT) return 'presence.badge_regular';
-  if (pct >= BADGE_WARNING_PCT) return 'presence.badge_warning';
-  return 'presence.badge_critical';
-}
-
-export function AttendanceHeroCard({ percentage, absences, totalSessions, skeleton }: Props) {
+export function AttendanceHeroCard({ percentage, absences, totalSessions, band, skeleton }: Props) {
   const { t } = useTranslation();
+  const badgeKey = heroBadgeKey(band);
 
   if (skeleton) {
     return (
@@ -88,10 +86,12 @@ export function AttendanceHeroCard({ percentage, absences, totalSessions, skelet
 
           <View style={styles.rightCol}>
             <Text style={styles.rateLabel}>{t('presence.rate_label')}</Text>
-            <View style={styles.pill}>
-              <View style={styles.dot} />
-              <Text style={styles.pillText}>{t(badgeKey(percentage))}</Text>
-            </View>
+            {badgeKey && (
+              <View style={styles.pill}>
+                <View style={styles.dot} />
+                <Text style={styles.pillText}>{t(badgeKey)}</Text>
+              </View>
+            )}
             <Text style={styles.summary}>
               {t('presence.summary', { absent: absences, total: totalSessions })}
             </Text>

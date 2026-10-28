@@ -25,7 +25,7 @@ import { JustifySheet } from '@/components/attendance/JustifySheet';
 import type { AbsenceRecord as AbsenceItem } from '@/components/attendance/AbsenceRow';
 import {
   getAttendance as getAttendanceApi,
-  AttendanceApiResponse,
+  AttendanceBand,
   AttendanceOverall,
   AttendanceSubject,
   AttendanceSummary,
@@ -33,6 +33,7 @@ import {
   Attendance,
   uploadJustification,
 } from '@/services/api';
+import { checkAttendanceContract } from '@/services/attendanceContract';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import {
   getAttendance as getCachedAttendance,
@@ -56,6 +57,16 @@ interface CachedAttendance {
   subjects: Attendance[];
   absences: AbsenceRecord[];
   summary: AttendanceSummary | null;
+}
+
+// What the screen renders, rebuilt from the cache. Same as the API shapes
+// except `band` may be null: a row cached before band existed is shown
+// neutral until the next sync — never given a locally computed verdict.
+type OverallView = Omit<AttendanceOverall, 'band'> & { band: AttendanceBand | null };
+type SubjectView = Omit<AttendanceSubject, 'band'> & { band: AttendanceBand | null };
+interface AttendanceView {
+  overall: OverallView;
+  subjects: SubjectView[];
 }
 
 // ─── DEV switcher ─────────────────────────────────────────────────────────────
@@ -91,10 +102,30 @@ function AttendanceOfflineBanner() {
   );
 }
 
+// ─── Inline error banner ──────────────────────────────────────────────────────
+// A failed refresh with a cache on screen (a 500, or a response that breaks
+// the attendance contract). The cached cards stay visible below it rather than
+// being replaced by the full error body — never a blank screen.
+
+function AttendanceErrorBanner({ onRetry }: { onRetry: () => void }) {
+  const { t } = useTranslation();
+  const { colors } = useColors();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  return (
+    <View style={styles.errorBanner}>
+      <Ionicons name="warning-outline" size={16} color={colors.danger} />
+      <Text style={styles.errorBannerText}>{t('attendance.error.title')}</Text>
+      <PressBox tier="tint" onPress={onRetry} hitSlop={12}>
+        <Text style={styles.errorBannerRetry}>{t('attendance.error.retry')}</Text>
+      </PressBox>
+    </View>
+  );
+}
+
 // ─── Cards body ───────────────────────────────────────────────────────────────
 
 interface CardsBodyProps {
-  data: AttendanceApiResponse;
+  data: AttendanceView;
   onRefresh: () => void;
 }
 
@@ -163,6 +194,8 @@ function CardsBody({ data, onRefresh }: CardsBodyProps) {
             percentage={subject.percentage}
             attended={subject.present}
             total={subject.total}
+            band={subject.band}
+            absencesLeft={subject.absencesLeft}
           />
         ))}
       </View>
@@ -249,10 +282,12 @@ export default function AttendanceScreen() {
       return { subjects, absences, summary };
     },
     fetchFresh: async () => {
-      const res = await getAttendanceApi();
+      // Contract check BEFORE any write: a response without the server's
+      // verdict throws here, so it never overwrites the last good cache.
+      const res = checkAttendanceContract(await getAttendanceApi());
 
       // Per-subject aggregates.
-      await upsertAttendance(mapAttendanceToCache(res.subjects, studentId));
+      await upsertAttendance(mapAttendanceToCache(res.subjects, studentId, res.attendanceThreshold));
 
       // Individual absence records, each tagged with its subject code.
       const absences: AbsenceRecord[] = res.subjects.flatMap((s) =>
@@ -270,6 +305,9 @@ export default function AttendanceScreen() {
         absent: o?.absent ?? 0,
         justified: o?.justified ?? 0,
         partial: o?.partial ?? 0,
+        band: o?.band ?? null,
+        absencesLeft: o?.absencesLeft ?? null,
+        threshold: res.attendanceThreshold,
         cachedAt: new Date().toISOString(),
       });
 
@@ -284,9 +322,9 @@ export default function AttendanceScreen() {
     updateCache: () => Promise.resolve(),
   });
 
-  // ─── Reconstruct AttendanceApiResponse from the composite cache ─────────────
+  // ─── Reconstruct the view from the composite cache ──────────────────────────
 
-  const attendanceData: AttendanceApiResponse | null = useMemo(() => {
+  const attendanceData: AttendanceView | null = useMemo(() => {
     const cache = hook.data;
     if (!cache || cache.subjects.length === 0) return null;
 
@@ -298,7 +336,7 @@ export default function AttendanceScreen() {
     }
 
     const s = cache.summary;
-    const overall: AttendanceOverall = s
+    const overall: OverallView = s
       ? {
           percentage: s.percentage,
           total: s.total,
@@ -306,8 +344,11 @@ export default function AttendanceScreen() {
           absent: s.absent,
           justified: s.justified,
           partial: s.partial,
+          band: s.band,
+          absencesLeft: s.absencesLeft,
         }
-      : // Fallback for a cache written before the summary row existed.
+      : // Fallback for a cache written before the summary row existed. No
+        // verdict: the band is the server's, and this row has none.
         (() => {
           const total = cache.subjects.reduce((n, a) => n + a.sessionsTotal, 0);
           const present = cache.subjects.reduce((n, a) => n + a.sessionsPresent, 0);
@@ -318,12 +359,14 @@ export default function AttendanceScreen() {
             absent: total - present,
             justified: 0,
             partial: 0,
+            band: null,
+            absencesLeft: null,
           };
         })();
 
     return {
       overall,
-      subjects: cache.subjects.map((a): AttendanceSubject => ({
+      subjects: cache.subjects.map((a): SubjectView => ({
         subject: {
           id: a.id,
           nameFr: a.subjectName,
@@ -337,16 +380,10 @@ export default function AttendanceScreen() {
         partial: 0,
         percentage: a.percentage,
         absences: absByCode[a.subjectCode] ?? [],
+        band: a.band,
+        absencesLeft: a.absencesLeft,
       })),
     };
-  }, [hook.data]);
-
-  const remainingByCode = useMemo(() => {
-    const out: Record<string, number> = {};
-    for (const a of hook.data?.subjects ?? []) {
-      out[a.subjectCode] = a.sessionsRemaining;
-    }
-    return out;
   }, [hook.data]);
 
   const onRefresh = useCallback(async () => {
@@ -367,14 +404,20 @@ export default function AttendanceScreen() {
 
   const screenState = devState ?? hookState;
 
-  const overall = attendanceData?.overall ?? {
+  const overall: OverallView = attendanceData?.overall ?? {
     percentage: 0,
     total: 0,
     present: 0,
     absent: 0,
     justified: 0,
     partial: 0,
+    band: null,
+    absencesLeft: null,
   };
+
+  // A refresh failed while cached data is on screen. Only on a live screen
+  // ('loaded'): offline already has its own banner.
+  const showErrorBanner = screenState === 'loaded' && hook.error != null && hook.data != null;
 
   const showCards =
     screenState === 'loaded' ||
@@ -398,6 +441,7 @@ export default function AttendanceScreen() {
       </View>
 
       {screenState === 'offline' && <AttendanceOfflineBanner />}
+      {showErrorBanner && <AttendanceErrorBanner onRetry={() => hook.refetch()} />}
 
       <ScrollView
         style={styles.scroll}
@@ -420,6 +464,7 @@ export default function AttendanceScreen() {
             percentage={overall.percentage}
             absences={overall.absent}
             totalSessions={overall.total}
+            band={overall.band}
             skeleton={screenState === 'skeleton'}
           />
         )}
@@ -498,6 +543,31 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
   offlineBannerText: {
     fontSize: fz(13),
+    fontFamily: fonts.sans,
+    color: colors.danger,
+  },
+
+  // ── Error banner (refresh failed, cache still shown)
+  errorBanner: {
+    minHeight: spacing.sp48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sp8,
+    backgroundColor: colors.dangerBg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.danger,
+    paddingHorizontal: spacing.sp16,
+  },
+  errorBannerText: {
+    flex: 1,
+    fontSize: fz(13),
+    fontFamily: fonts.sans,
+    color: colors.danger,
+    textAlign: 'auto',
+  },
+  errorBannerRetry: {
+    fontSize: fz(13),
+    fontWeight: '700',
     fontFamily: fonts.sans,
     color: colors.danger,
   },
