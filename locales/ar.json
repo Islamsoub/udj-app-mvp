@@ -535,7 +535,6 @@
     "proj_left_many": "{{count}} غيابًا متبقيًا قبل الحد الأدنى",
     "proj_left_other": "{{count}} غياب متبقٍ قبل الحد الأدنى",
     "proj_none": "لم يعد بإمكانك أي غياب",
-    "proj_final_met": "انتهى الفصل · تم بلوغ الحد الأدنى",
     "status_unjustified": "غير مبرّر",
     "status_pending": "قيد المراجعة",
     "status_approved": "مبرّر",

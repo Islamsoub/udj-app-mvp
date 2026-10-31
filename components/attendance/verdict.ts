@@ -17,6 +17,21 @@ export function verdictTone(band: AttendanceBand | null): VerdictTone {
   return band ?? 'neutral';
 }
 
+/**
+ * Tone for a per-subject card. The hero badge does not use this — it keeps
+ * all three bands.
+ *
+ * PROVISIONAL, Design may overrule: once the semester has ended (the server
+ * sends absencesLeft null), "near" collapses into "ok". During term "near" is
+ * a live risk — few absences left. After term there is no risk left, only an
+ * outcome: the student reached the threshold or did not. So an ended term has
+ * two states, below and ok.
+ */
+export function subjectTone(band: AttendanceBand | null, absencesLeft: number | null): VerdictTone {
+  if (absencesLeft === null && band === 'near') return 'ok';
+  return verdictTone(band);
+}
+
 export function toneColor(tone: VerdictTone, colors: Palette): string {
   switch (tone) {
     case 'ok':
@@ -66,6 +81,7 @@ export interface SubjectVerdictInput {
  *   below  "Sous le seuil ({rate} %)" / "دون الحد الأدنى ({rate}٪)"
  *   ok, near  "Encore {n} absence(s) avant le seuil" / "{n} غياب متبقٍ قبل الحد الأدنى"
  * ok and near share the sentence; the colour carries the difference.
+ * Once the semester has ended only "below" keeps a sentence.
  */
 export function subjectSentence({
   band,
@@ -79,10 +95,11 @@ export function subjectSentence({
   // rate, not a count, so it is true at any point in the term.
   if (band === 'below') return { key: 'presence.proj_below', params: { rate: percentage } };
 
-  // PROVISIONAL, awaiting Design's confirmation: semester ended (ok or near).
-  // The server sends absencesLeft null because no sessions remain, so there is
-  // nothing left to spend — a count (even 0) would be wrong. State the outcome.
-  if (absencesLeft === null) return { key: 'presence.proj_final_met' };
+  // PROVISIONAL, Design may overrule: semester ended and the threshold was met
+  // (ok, or near collapsed into ok — see subjectTone). No sentence: the green
+  // percentage already says the subject passed, and a count (even 0) would be
+  // wrong because no sessions remain.
+  if (absencesLeft === null) return null;
 
   if (band === 'ok' && perfect) return { key: 'presence.proj_perfect' };
 

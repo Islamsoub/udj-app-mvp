@@ -535,7 +535,6 @@
     "proj_left_two": "Encore {{count}} absences avant le seuil",
     "proj_left_few": "Encore {{count}} absences avant le seuil",
     "proj_none": "Plus aucune absence possible",
-    "proj_final_met": "Semestre terminé · seuil atteint",
     "status_unjustified": "Non justifiée",
     "status_pending": "En attente",
     "status_approved": "Justifiée",

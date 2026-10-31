@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { elevation, fonts, fz, radius, spacing, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import type { AttendanceBand } from '@/services/api';
-import { subjectSentence, toneColor, verdictTone } from '@/components/attendance/verdict';
+import { subjectSentence, subjectTone, toneColor } from '@/components/attendance/verdict';
 
 interface AttendanceCardProps {
   name: string;
@@ -24,7 +24,8 @@ export function AttendanceCard({ name, percentage, attended, total, band, absenc
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   // Colour and sentence are a mapping of the server's verdict — see verdict.ts.
-  const tone = verdictTone(band);
+  // Ended term: near reads as ok (no amber, no triangle) — see subjectTone.
+  const tone = subjectTone(band, absencesLeft);
   const levelColor = toneColor(tone, colors);
   const sentence = useMemo(
     () => subjectSentence({ band, absencesLeft, percentage, perfect: total > 0 && attended === total }),
