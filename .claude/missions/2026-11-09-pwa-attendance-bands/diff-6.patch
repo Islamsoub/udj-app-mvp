@@ -186,7 +186,7 @@ index 90f6ab0..56a5598 100644
 +  }
 +}
 diff --git a/pwa/components/dashboard/Ring.tsx b/pwa/components/dashboard/Ring.tsx
-index da13ec7..d4f3071 100644
+index da13ec7..26f7756 100644
 --- a/pwa/components/dashboard/Ring.tsx
 +++ b/pwa/components/dashboard/Ring.tsx
 @@ -1,6 +1,7 @@
@@ -197,7 +197,20 @@ index da13ec7..d4f3071 100644
  import { percentText } from '@/lib/bidi';
  import { takeOnce } from './session-flags';
  import styles from './dashboard.module.css';
-@@ -22,8 +23,26 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+@@ -10,6 +11,12 @@ const STROKE = 8;
+ const RADIUS = (SIZE - STROKE) / 2;
+ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+ 
++const STROKE_CLASS: Record<AttendanceBand, string> = {
++  ok: styles.ringValueOk,
++  near: styles.ringValueNear,
++  below: styles.ringValueBelow,
++};
++
+ /**
+  * The attendance gauge (§5).
+  *
+@@ -22,8 +29,20 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
   * is claimed when this component first renders WITH a value — not when the
   * dashboard mounts. The card spends its first 400ms as a skeleton, and burning
   * the flag then would mean the ring never animates at all.
@@ -207,12 +220,6 @@ index da13ec7..d4f3071 100644
 + * repeats what the card's words already say; it is never the sole signal.
   */
 -export function Ring({ percentage, label }: { percentage: number; label: string }) {
-+const STROKE_CLASS: Record<AttendanceBand, string> = {
-+  ok: styles.ringValueOk,
-+  near: styles.ringValueNear,
-+  below: styles.ringValueBelow,
-+};
-+
 +export function Ring({
 +  percentage,
 +  band,

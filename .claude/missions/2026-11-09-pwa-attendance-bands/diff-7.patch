@@ -107,7 +107,7 @@ index 98b1a82..82b63a1 100644
  
          {/*
 diff --git a/pwa/components/attendance/PresenceRing.tsx b/pwa/components/attendance/PresenceRing.tsx
-index 410da8e..063f712 100644
+index 410da8e..5d34b79 100644
 --- a/pwa/components/attendance/PresenceRing.tsx
 +++ b/pwa/components/attendance/PresenceRing.tsx
 @@ -2,6 +2,7 @@
@@ -118,11 +118,10 @@ index 410da8e..063f712 100644
  import styles from './attendance.module.css';
  
  const SIZE = 132;
-@@ -42,7 +43,26 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-  * hero moment would never happen. Hence a local component with its own key, and
-  * a note rather than a quiet fourth fork.
-  */
--export function PresenceRing({ percentage, label }: { percentage: number; label: string }) {
+@@ -9,6 +10,17 @@ const STROKE = 11;
+ const RADIUS = (SIZE - STROKE) / 2;
+ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+ 
 +/**
 + * The stroke follows the server's overall band (ROUND2-CLOSEOUT §4, with §3's
 + * three colours) and is never derived from the percentage here. Track and
@@ -134,6 +133,14 @@ index 410da8e..063f712 100644
 +  below: styles.ringValueBelow,
 +};
 +
+ /**
+  * The presence gauge — §9 calls the fill-on-load "the hero moment of this
+  * screen", so it is the largest of the three rings in the app.
+@@ -42,7 +54,15 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+  * hero moment would never happen. Hence a local component with its own key, and
+  * a note rather than a quiet fourth fork.
+  */
+-export function PresenceRing({ percentage, label }: { percentage: number; label: string }) {
 +export function PresenceRing({
 +  percentage,
 +  band,

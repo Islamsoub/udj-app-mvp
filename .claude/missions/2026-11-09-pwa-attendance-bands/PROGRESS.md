@@ -797,3 +797,20 @@ So an amber ring and label sit beside a neutral sentence saying everything is fi
 
   The check should also confirm the Arabic subject name renders in the Arabic face (not `.num`) and that " · + مادة أخرى" stays at the sentence end in RTL.
 - Open the PR.
+
+
+## Orchestrator note: screenshots, fix round, container restart (2026-11-09)
+
+The user supplied a non-real test student account, and the session's network was opened to the API host only, so both builders were resumed to take screenshots. The account's details are recorded nowhere in the repo. The container restarted before either builder could write up its results. What survived:
+
+- **Fix round, both pushed.** The first review of each milestone found no defects. Each found one thing left worse: a new `STROKE_CLASS` constant had split the ring component from its doc comment. Both fixes are on origin:
+  - milestone 6: `66f0305` (`Ring.tsx` only);
+  - milestone 7: `ca8f820` (`PresenceRing.tsx` only).
+
+  `diff-6.patch` and `diff-7.patch` are regenerated to include them.
+- **Screenshots.** Taken against the live API with the test account. The attendance response was stubbed in the browser (Playwright route interception); nothing was stubbed in source. All at 1440 px wide, DPR 1.
+  - `screenshots/m6/`: 48 card crops. ok, near n = 0/1/2/5, below, below k = 1 and k = 2, ended-below, ended-ok, and the Flag 4 case (`ended-near-flag4`). Each in light/dark × FR/AR. The four `_dashboard-below-k1--*` files are full-page context shots.
+  - `screenshots/m7/`: 20 full pages. ok, near (one page carries n = 0, 1, 2 and 5 on four subjects), below, ended_below, and `ended_real` (the account's real, unstubbed data). Each in light/dark × FR/AR.
+  - The orchestrator looked at a sample: m6 `below-k2--light--fr`, `near-n2--dark--ar`; m7 `near-fr-light`, `ended_below-ar-dark`. Each matches §3 / §4: copy, suffix placement after " · ", band colours on ring, label and rows, no row tint, RTL bar direction, and the Arabic dual with no numeral.
+  - **For a human to look at:** in French, the number in "Encore 2 absences avant la limite" and in "Seuil requis : 75%" appears to sit in wider gaps than the words around it. This is visible in `m7-near-fr-light.png`. Not diagnosed.
+- **Milestone 2 browser check, half done.** `screenshots/m2/` shows that, with `band` removed from the stubbed response, the attendance page shows its error state ("Impossible de charger votre assiduité." + Réessayer) and the dashboard card shows its own ("Impossible de charger cette section."). Whether the IndexedDB `/student/attendance` entry stayed unchanged was **not recorded** before the restart and is still owed.
