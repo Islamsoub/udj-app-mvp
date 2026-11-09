@@ -12,6 +12,12 @@ The dashboard card's line under the ring follows `design/spec-pack/ROUND2-CLOSEO
 ## Product
 pwa
 
+## Revision, 2026-11-09 (after ROUND2-CLOSEOUT.md third pass)
+- **Milestones 1–5 are merged** to `develop` (last at 7a8ba20). They are kept below as the record.
+- **The close-out answers Flags 1, 2, 3 and 5** (decisions A1–A4, §3–§5). Milestones 6 and 7 are no longer blocked. Each one now carries its own copy, so it touches its own locale subtree.
+- **Milestones 6 and 7 are independent.** Both read only merged code (milestones 4 and 5), so both are cut from current `develop`; neither waits for the other. This replaces the "cut after the previous one has merged" rule for these two. The rule still holds wherever a milestone reads another's unmerged code.
+- **Flag 4 stays open but does not block.** The close-out does not address it.
+
 ## Verified facts (planner, 2026-11-09)
 Read these before building. They correct or extend the task as briefed.
 
@@ -48,7 +54,7 @@ How each source is handled:
 Cost, accepted: the version bump drops the other three cached endpoints too. A student who is offline right after the deploy has no offline copy until their next online load.
 
 ## Milestones
-Each milestone is one feature branch cut from `develop` *after the previous one has merged* (they are sequential). One PR each.
+Each milestone is one feature branch cut from `develop`, one PR each. A milestone that reads another's code is cut only after that one has merged. 6 and 7 read only merged code; see the revision note.
 
 `pwa/` has no CI job. Every milestone runs `npm run typecheck` and `npm run build` inside `pwa/` by hand and pastes both outputs into PROGRESS.md.
 
@@ -157,63 +163,121 @@ Each milestone is one feature branch cut from `develop` *after the previous one 
   - Both files have identical key shapes, which the typecheck enforces.
   - Typecheck and build pass.
 
-### 6. Dashboard card shows the band — blocked on Flags 2 and 3
-- Goal: the dashboard attendance card shows §3's line, coloured per §3. Its ring stroke and Seuil label follow the overall band.
+### 6. Dashboard card shows the band
+- Goal: the dashboard attendance card shows §3's line with the §5 suffix, a Seuil label, and a ring stroke, all coloured per §3 and driven by the server's band.
 - Paths:
   - `pwa/components/dashboard/AttendanceCard.tsx`
   - `pwa/components/dashboard/Ring.tsx`
   - `pwa/components/dashboard/dashboard.module.css`
-- Notes:
-  - **Colours.**
-    - Line: `--ink2` for ok and ended-ok, `--warning-ink` for near, `--danger-ink` for below and ended-below.
-    - Seuil label: `--jade-text`, `--warning-ink` or `--danger-ink`, following the overall band.
-    - Ring stroke: `--jade`, `--warning` or `--danger`, following the overall band.
+  - `pwa/locales/fr.json` and `pwa/locales/ar.json`, **only under `dashboard.attendance`**
+- Copy (from ROUND2-CLOSEOUT §3 and §5; copy character for character, converting `{k}` → `{{k}}` where Design wrote single braces):
+  - **New key `dashboard.attendance.threshold`** (A2): FR `Seuil : {{threshold}}`, AR `الحد الأدنى: {{threshold}}`. The value is `fmtPercent(T)`, which gives "75%". No space before `%`, Latin sign in both languages. `percentText` / `fmtPercent` do not change.
+  - **`dashboard.attendance.others` becomes a plural object** (A4), replacing milestone 5's string "+ {{k}} autre(s)" / "+ {{k}} أخرى". Exactly the six keys, in both files:
 
-    All of these are existing tokens: add none, and touch no token in globals.css.
-  - **Rendering the line.**
-    - `{{subject}}` goes in a `<bdi>` and is **not** in `.num`. `fmtPhrase` does this; `Interpolated` alone is wrong.
-    - `{{n}}` and `{{k}}` are `.num`, Western digits.
-    - Use logical properties only, and no `[dir="rtl"]`.
+    | Key | FR | AR |
+    |---|---|---|
+    | zero | `+ {{k}} autres matières` (never rendered; see below) | `+ {{k}} مادة أخرى` |
+    | one | `+ 1 autre matière` | `+ مادة أخرى` |
+    | two | `+ {{k}} autres matières` (never selected in French) | `+ مادتان أخريان` |
+    | few | `+ {{k}} autres matières` (never selected in French) | `+ {{k}} مواد أخرى` |
+    | many | `+ {{k}} autres matières` | `+ {{k}} مادة أخرى` |
+    | other | `+ {{k}} autres matières` | `+ {{k}} مادة أخرى` |
+
+    §5 leaves French zero, two and few as "—". The shape guard from milestone 3 forces a string there, so they carry the `other` form. This is the same accepted cost as `near`'s French rows, and it is not new copy: k = 0 is never rendered, and French Intl never selects two or few.
+  - No other `dashboard.attendance` key changes. The §3 line rows from milestone 5 stay as they are.
+- Notes:
+  - **Line.** `attendanceLine(subjects, lang)` (model.ts, milestone 4) gives the state. `null` means no subjects: show the card's existing empty state.
+    - `near` uses `plural('dashboard.attendance.near', n)`. The others use `t()`.
+    - Render with `fmtPhrase`: `{{subject}}` goes in a `<bdi>` and is **not** in `.num`. `{{n}}` and `{{k}}` are `.num`, Western digits. `Interpolated` alone is wrong for this line.
+  - **Suffix (§5).** Appended for `near`, `below` and `ended-below` only, and only when `others` > 0. Never for `ok` or `ended-ok`.
+    - It goes at the end of the sentence, after " · ", never after `{subject}`.
+    - It sits inside the sentence's own element, after the subject's `<bdi>`, in the sentence's colour.
+    - k = `others` from `attendanceLine`. Pick the form with `plural('dashboard.attendance.others', k)`.
+    - The " · " separator is punctuation, not copy. Write it in the component as in §5's example: "Statistiques L2 : limite d'absences dépassée · + 1 autre matière".
+  - **Colours.** All are existing tokens. Add none, and touch no token in globals.css.
+    - Line: `--ink2` for ok and ended-ok, `--warning-ink` for near, `--danger-ink` for below and ended-below.
+    - Seuil label: `--jade-text` / `--warning-ink` / `--danger-ink`, following `overall.band`.
+    - Ring stroke (A3): `--jade` / **`--warning-ink`** / `--danger`, following `overall.band`. `--warning` is not used: it is 2.15 : 1.
+    - Leave a CSS comment beside the ring rule with §3's measured figures (6.39 light, 8.36 dark for `--warning-ink` on `--surface`). That keeps the pwa/ rule that colour comments carry a measured ratio.
+  - **Term over with overall band `near` (Flag 4, still open, does not block).** Follow the tables literally: the line is `ended_ok` in `--ink2`, while the Seuil label and ring take the `near` colour. Record what the card looks like in PROGRESS.md so Design can confirm.
   - **Not colour alone.** The line's words carry the state. Check this against the §10 rule the attendance CSS already cites.
+  - Logical properties only; no `[dir="rtl"]`.
   - **Empty state.** Unchanged: null `overall` or null `percentage` still shows it.
 - Done when:
-  - Screenshots of the card in `ok`, `near` (n = 0, 1, 2 and 5), `below` and both term-over states, light and dark, FR and AR, are attached to PROGRESS.md. Use a stubbed response, then revert the stub.
+  - Every new or changed string can be matched against §3 / §5 row by row, and fr.json / ar.json still have identical shapes (typecheck enforces it).
+  - `PluralKey` is exactly `'dashboard.attendance.near' | 'dashboard.attendance.others'`.
+  - The `dashboard.attendance` diff in each locale file is the new `threshold` key and the reshaped `others` key, nothing else.
   - Typecheck and build pass.
+  - Screenshots of the card in `ok`, `near` (n = 0, 1, 2 and 5), `below`, `below` with k = 1 and k = 2, and both term-over states, light and dark, FR and AR, are attached to PROGRESS.md, using a stubbed response that is then reverted. **If the builder cannot render the PWA** (no login; see README "Known gaps"), it says so under "Could not do", and the screenshots become a human check before merge. That alone is not a reason to stop the run.
 
-### 7. Attendance page reads the band — blocked on Flag 1
-- Goal: Hero, SubjectBreakdown and PresenceRing take their state from `band`. `percentage < threshold` is gone from `pwa/`.
+### 7. Attendance page reads the band
+- Goal: Hero, SubjectBreakdown and PresenceRing take their state from `band` and `absencesLeft`, with §4's copy and row treatment. `percentage < threshold` is gone from `pwa/`.
 - Paths:
   - `pwa/components/attendance/Hero.tsx`
   - `pwa/components/attendance/SubjectBreakdown.tsx`
   - `pwa/components/attendance/PresenceRing.tsx`
   - `pwa/components/attendance/attendance.module.css`
-  - `pwa/locales/fr.json` and `pwa/locales/ar.json`, only if Flag 1's answer brings new copy
+  - `pwa/locales/fr.json` and `pwa/locales/ar.json`, **only under `attendance.hero` and `attendance.subjects`**
+- Copy (ROUND2-CLOSEOUT §4, character for character):
+  - Hero, keyed by the overall state. "Term over" means `overall.absencesLeft === null`.
+    - `attendance.hero.threshold`: unchanged.
+    - `attendance.hero.near` (new): FR `Seuil requis : {{threshold}} · marge faible`, AR `الحد الأدنى المطلوب: {{threshold}} · هامش ضيق`.
+    - `attendance.hero.below` (rewritten): FR `Seuil requis de {{threshold}} hors d'atteinte ce semestre`, AR `لم يعد بلوغ الحد الأدنى المطلوب {{threshold}} ممكنًا هذا الفصل`.
+    - `attendance.hero.ended_below` (new): FR `Semestre terminé sous le seuil requis de {{threshold}}`, AR `انتهى الفصل دون بلوغ الحد الأدنى المطلوب {{threshold}}`.
+    - `attendance.hero.ended_ok` (new): FR `Semestre terminé · seuil requis : {{threshold}}`, AR `انتهى الفصل · الحد الأدنى المطلوب: {{threshold}}`.
+  - Subject rows, keyed by each subject's own state:
+    - `attendance.subjects.near` (new): a plural object with the six keys, as in §4's table. FR zero `Plus aucune absence possible`, one `Encore 1 absence avant la limite`, two `Encore 2 absences avant la limite`, few / many / other `Encore {{n}} absences avant la limite`. AR zero `لا يُسمح بأي غياب إضافي`, one `يتبقّى غياب واحد قبل بلوغ الحد`, two `يتبقّى غيابان قبل بلوغ الحد`, few `يتبقّى {{n}} غيابات قبل بلوغ الحد`, many `يتبقّى {{n}} غيابًا قبل بلوغ الحد`, other `يتبقّى {{n}} غياب قبل بلوغ الحد`.
+    - `attendance.subjects.below` (rewritten): FR `Limite d'absences dépassée`, AR `تم تجاوز حد الغياب`.
+    - `attendance.subjects.ended_below` (new): FR `Semestre terminé sous le seuil`, AR `انتهى الفصل دون بلوغ الحد الأدنى`.
+  - Verify against §4 by script, the way milestone 5 did. The lists above are a convenience; §4 is the authority.
 - Notes:
-  - **Delete the boolean.** Remove the local `below` boolean from both components. Do not keep it beside the band.
+  - **Delete the boolean.** Remove the local `below` boolean from Hero and SubjectBreakdown. Do not keep it beside the band.
   - **Threshold, kept for display.** `threshold` stays a prop. It is still shown in the Hero sentence and the section note, and still positions `--bar-threshold`.
-  - **Tones.** `below` is danger: `--danger-ink` text, `--danger` border and fill, `--danger-bg` tint. `near` is warning, which is today's styling. `ok` is neutral. The existing CSS comments about which token is text-safe must stay true. Re-read them, because danger is new on this page.
-  - **Not colour alone.** Every non-ok state keeps an icon *and* words, never the tint alone. Which words depends on Flag 1.
-  - **Null `absencesLeft`.** Render nothing for it.
+  - **Hero line (§4).**
+    - `ok` and term-over-ok: `--ink2`, no icon.
+    - `near`: `--warning-ink`, with `WarningIcon`.
+    - `below` and term-over-below: `--danger-ink`, with `WarningIcon`.
+    - The icon takes the text's colour.
+    - The Hero does **not** show `absencesLeft` (§4 explains why: the pooled figure misleads).
+  - **Subject rows (§4).**
+    - `ok` and term-over-not-below: no flag.
+    - `near`: `plural('attendance.subjects.near', n)`, where n = `absencesLeft`, rendered with `Interpolated` so `{{n}}` is `.num`.
+    - `below`: `attendance.subjects.below`. Term over and `below`: `attendance.subjects.ended_below`.
+    - Every flag keeps its `WarningIcon` in the text's colour.
+    - A term-over `near` subject (`absencesLeft === null`) gets no flag and no `near` tone. §4's term-over rows apply whatever the band.
+  - **Row treatment (§4, replacing `.subjectBelow`).**
+    - `near`: border, bar fill and `.subjectValue` all `--warning-ink`.
+    - `below`: border and bar fill `--danger`, `.subjectValue` `--danger-ink`.
+    - `ok`: unchanged.
+    - `--warning` and `--warning-bg` are no longer used on these rows. §4's table has no background column, so the rows carry **no tint**. This is the mission's reading; the builder records it in PROGRESS.md for Design to confirm.
+    - Rewrite the CSS comments about which token is text-safe so they stay true. Cite §4's 5.33 : 1 for `--warning-ink` against the `--sunken` track.
+  - **Ring (§4).** PresenceRing's stroke follows `overall.band` with §3's three colours: `--jade`, `--warning-ink`, `--danger`. Its track and `aria-label` do not change.
+  - **Order.** Already the §3 sort (milestone 4). No change.
+  - **Not colour alone.** Every non-ok state keeps an icon *and* words, never the tint alone.
+  - Update the §10 doc comment at the top of SubjectBreakdown, which still names "Sous le seuil" and the warning tint.
 - Done when:
   - `grep -rnE "percentage\s*<|<\s*threshold" pwa/components pwa/lib` returns nothing.
-  - Screenshots of the page with subjects in each band, light and dark, FR and AR, are attached to PROGRESS.md.
+  - Every new or rewritten string matches §4 row by row. The locale diff touches only `attendance.hero` and `attendance.subjects`. Both files have identical shapes.
+  - `PluralKey` gains exactly `'attendance.subjects.near'`.
   - Typecheck and build pass.
+  - Screenshots of the page with subjects in each band (`near` at n = 0, 1, 2, 5), a term-over page with one subject below, light and dark, FR and AR, are attached to PROGRESS.md. The same fallback as milestone 6 applies if the builder cannot render the PWA.
 
 ## Flags
-1. **Attendance page copy and mapping for `near` (blocks milestone 7).** Design gave no band copy for the Hero or the subject rows. Today's strings are `attendance.hero.threshold`, `attendance.hero.below` "Sous le seuil requis de {{threshold}}" and `attendance.subjects.below` "Sous le seuil".
-   - **Planner's proposal, for confirmation only, not decided:** `below` uses the existing "below" strings with danger tone. `near` uses the threshold sentence with warning tone and the triangle. `ok` is neutral.
-   - **The open question:** a `near` subject that is under T but recoverable loses the words "Sous le seuil". Should the page show `absencesLeft` at all? If so, Design writes that copy; the native app's PROVISIONAL sentences are not to be reused.
-   - **Also confirm:** PresenceRing on this page should take the overall band's stroke, as §3 says for the dashboard ring.
-2. **Seuil label copy (blocks milestone 6).** §3 specifies the label's colour, but its text appears only in the prototype HTML: "Seuil : 75 %" / "الحد الأدنى: 75٪", with a space before `%`. The PWA writes percentages as "75%" via `percentText`, and the attendance page says "Seuil requis : …". Which string does the dashboard use, and is the percent form changing?
-3. **Light `near` ring stroke fails 3:1 (blocks milestone 6).** §3 says the ring stroke is `--warning` for near. Light `--warning` `#F59E0B` is 2.15:1 on white `--surface`, under the 3:1 that WCAG 1.4.11 requires for a graphic. attendance.module.css already records this and avoids `--warning` for icons for that reason. `--danger` `#EF4444` is 3.76:1, which passes. Accept `--warning` because the line's text carries the state, or ask Design for a stroke colour? A new colour would need its measured ratio in its comment.
-4. **Term over with band `near`.** This means T ≤ rate < T+M at term end. §3 then gives the "toutes les matières au-dessus du seuil" line in `--ink2`, while the Seuil label and ring take the overall `near` warning colour. Is a mixed card intended? The native app collapses this case to ok, provisionally.
-5. **"+ {k} autre(s)" / "+ {k} أخرى".** Neither form is pluralised, although Arabic would normally need one. Design must also say:
-   - whether the suffix applies in the term-over-below state;
-   - where it attaches, at the end of the sentence or after `{subject}`.
+**Resolved by ROUND2-CLOSEOUT.md, third pass (2026-11-09):**
+1. ~~Attendance page copy and mapping for `near`~~ → **A1 / §4.** Folded into milestone 7. The page does show `absencesLeft`, on subject rows only, never in the Hero. PresenceRing takes the overall band's stroke.
+2. ~~Seuil label copy~~ → **A2.** "Seuil : 75%" / "الحد الأدنى: 75%", via `fmtPercent`. The percent form does not change anywhere. Folded into milestone 6.
+3. ~~Light `near` ring stroke fails 3:1~~ → **A3.** The ring uses `--warning-ink` in both themes (6.39 / 8.36). This applies to the dashboard ring (milestone 6) and PresenceRing (milestone 7).
+5. ~~"+ {k} autre(s)"~~ → **A4 / §5.** It becomes a six-form plural object naming "matière". It goes at the end after " · ", for near, below and term-over-below, and is not rendered at k = 0. Folded into milestone 6.
 
-   Milestone 5 copies the strings as given.
-6. **Native code comment is out of date (out of scope here).** `services/attendanceContract.ts` says the PWA's `model.ts` rejects a missing band. After milestone 2 the rule is real, but it lives in `pwa/lib/attendance-contract.ts`. The comment's path needs a one-line fix in a native-app PR. Do not touch it from this mission.
-7. **Design export inconsistency, to report rather than fix.** Round 2 Spec §1's near sentence ends "avant le seuil", with ties broken by lowest rate. The close-out ends it "avant la limite", with ties broken by absencesLeft first. This mission follows the close-out. Do not edit `design/spec-pack/`.
+**Still open:**
+
+4. **Term over with band `near` (does not block).** This is T ≤ rate < T+M at term end. The close-out does not address it. §3 and §4 read literally give a mixed card: an `ended_ok` line in `--ink2` next to a `near`-coloured Seuil label and ring. Milestones 6 and 7 follow the tables literally and record the result. Design to confirm.
+6. **Native code comment is out of date (out of scope here).** `services/attendanceContract.ts` says the PWA's `model.ts` rejects a missing band. The rule now lives in `pwa/lib/attendance-contract.ts`. This is a one-line fix in a native-app PR; do not touch it from this mission.
+7. **Design export inconsistency, to report rather than fix.** The close-out's pass notes say `Round 2 Spec.html` §1 now agrees with this file. Whether it also agrees on the near sentence ("avant le seuil" vs "avant la limite") and the tie-break order was not re-checked. This mission follows the close-out. Do not edit `design/spec-pack/`.
+8. **Row tint on the attendance page (new, does not block).** §4's row-treatment table has no background column. Milestone 7 drops the tint. Design to confirm.
+9. **Milestone 2's browser check is still owed** (from run 2). A human with a test account confirms the page and the card show their error state on a band-less stub, and that IndexedDB is unchanged.
+
+**Not this mission's concern.** §6 of the close-out lists three login-prototype differences: the password field fill, the rate-limit button and the logo mark. Code wins for all three, and they belong in `.claude/design-known-divergences.md`. That is the login-hero mission's concern, not this one's.
 
 ## Schema
 No. The backend already sends `band` and `absencesLeft` (7c929ec, on `develop`). No backend change.
