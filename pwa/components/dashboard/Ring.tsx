@@ -11,6 +11,12 @@ const STROKE = 8;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
+const STROKE_CLASS: Record<AttendanceBand, string> = {
+  ok: styles.ringValueOk,
+  near: styles.ringValueNear,
+  below: styles.ringValueBelow,
+};
+
 /**
  * The attendance gauge (§5).
  *
@@ -28,12 +34,6 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
  * never a comparison of `percentage` with the threshold. The colour only
  * repeats what the card's words already say; it is never the sole signal.
  */
-const STROKE_CLASS: Record<AttendanceBand, string> = {
-  ok: styles.ringValueOk,
-  near: styles.ringValueNear,
-  below: styles.ringValueBelow,
-};
-
 export function Ring({
   percentage,
   band,
