@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unipocket Admin — Rendered Audit v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+doc-page:not(:defined){visibility:hidden}
+:root{
+  --text1:#1C2320;--text2:#5E6E66;--text3:#93A39B;
+  --hair:rgba(28,35,32,0.08);--hair2:rgba(28,35,32,0.13);
+  --jade:#1D9E75;--jade700:#0B5544;--jadeText:#0F6E56;--jadeFaint:rgba(29,158,117,0.10);
+  --danger:#E1483D;--dangerBg:rgba(225,72,61,0.10);
+  --amber:#D9821A;--amberBg:rgba(217,130,26,0.12);
+  --blue:#2F7DD1;--blueBg:rgba(47,125,209,0.10);
+  --violet:#7A5CD0;--violetBg:rgba(122,92,208,0.11);
+  --surface2:#F4F7F5;--sideBg:#0A3D2E;
+  --sans:'Plus Jakarta Sans',system-ui,sans-serif;--mono:'DM Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+doc-page{font-family:var(--sans);color:var(--text1);font-size:13.2px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{letter-spacing:-0.02em;margin:0}
+a{color:var(--jadeText)}a:hover{color:var(--jade)}
+.mono{font-family:var(--mono)}
+.cover{border-bottom:2px solid var(--jade);padding-bottom:20px;margin-bottom:20px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--jadeText);font-weight:500}
+.cover h1{font-size:33px;font-weight:800;margin:8px 0 6px}
+.cover .sub{font-size:14.5px;color:var(--text2);max-width:72ch}
+.meta{display:flex;gap:22px;margin-top:15px;flex-wrap:wrap}
+.meta div{font-size:12px;color:var(--text2)}.meta b{color:var(--text1);font-weight:700}
+.note{background:var(--surface2);border:1px solid var(--hair);border-radius:12px;padding:13px 15px;margin:14px 0;font-size:12.5px;color:var(--text2);break-inside:avoid}
+.note b{color:var(--text1)}
+.note.ctx{background:linear-gradient(100deg,var(--violetBg),rgba(122,92,208,0.04));border-color:rgba(122,92,208,0.3)}
+.note.red{background:linear-gradient(100deg,var(--dangerBg),rgba(225,72,61,0.03));border-color:rgba(225,72,61,0.32)}
+.legend{display:flex;gap:9px;flex-wrap:wrap;margin:13px 0 4px}
+.lg{flex:1;min-width:140px;border:1px solid var(--hair2);border-radius:12px;padding:11px 13px;break-inside:avoid}
+.lg .sev{margin-bottom:5px}
+.lg p{margin:0;font-size:11.5px;color:var(--text2)}
+.sev{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;padding:2px 8px;border-radius:999px;white-space:nowrap;vertical-align:middle}
+.sev.w{color:var(--danger);background:var(--dangerBg)}
+.sev.g{color:var(--amber);background:var(--amberBg)}
+.sev.p{color:var(--blue);background:var(--blueBg)}
+.sev.i{color:var(--jadeText);background:var(--jadeFaint)}
+.sev.c{color:var(--violet);background:var(--violetBg)}
+.sev::before{content:"";width:6px;height:6px;border-radius:999px;background:currentColor}
+.sec{margin-top:26px;break-inside:avoid-page}
+.sec>h2{font-size:19.5px;font-weight:800;display:flex;align-items:baseline;gap:10px}
+.sec>h2 .idx{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--jade);letter-spacing:0.04em}
+.sec>.route{font-family:var(--mono);font-size:11px;color:var(--text3);margin:3px 0 2px}
+.secline{height:1px;background:var(--hair);margin:9px 0 3px}
+.f{padding:11px 0;border-top:1px solid var(--hair);break-inside:avoid}
+.f:first-of-type{border-top:none}
+.f .ft{font-weight:700;font-size:13.3px;display:flex;gap:9px;align-items:baseline;flex-wrap:wrap}
+.f .body{margin-top:5px;display:grid;grid-template-columns:64px 1fr;gap:3px 10px;font-size:12.4px;color:var(--text2)}
+.f .body .k{font-family:var(--mono);font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:var(--text3);padding-top:1px}
+.f .body .v b{color:var(--text1);font-weight:600}
+.f .body .built{color:var(--text1)}
+kbd{font-family:var(--mono);font-size:11px;background:#ECF0ED;border:1px solid var(--hair2);border-radius:5px;padding:1px 5px;color:var(--text2)}
+code{font-family:var(--mono);font-size:11.5px;background:#ECF0ED;border-radius:4px;padding:0 4px;color:var(--text1)}
+.pass{font-size:12.2px;color:var(--text2);margin-top:7px;padding:9px 12px;background:var(--jadeFaint);border-radius:10px}
+.pass b{color:var(--jadeText)}
+.tbl{width:100%;border-collapse:collapse;margin-top:8px;font-size:12.2px}
+.tbl th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);font-weight:500;padding:6px 9px;border-bottom:1px solid var(--hair2)}
+.tbl td{padding:7px 9px;border-bottom:1px solid var(--hair);color:var(--text2);vertical-align:top}
+.tbl td b{color:var(--text1)}
+.tbl td.c{text-align:center;font-family:var(--mono)}
+.count{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.cbox{flex:1;min-width:92px;border:1px solid var(--hair2);border-radius:12px;padding:11px 12px;text-align:center;break-inside:avoid}
+.cbox .n{font-size:25px;font-weight:800;line-height:1;font-family:var(--mono)}
+.cbox .l{font-family:var(--mono);font-size:9.5px;letter-spacing:0.07em;text-transform:uppercase;color:var(--text3);margin-top:5px}
+.imp{padding:12px 0;border-top:1px solid var(--hair);break-inside:avoid}
+.imp .it{font-weight:700;font-size:13.1px}
+.imp p{margin:4px 0 0;font-size:12.4px;color:var(--text2)}
+ul{margin:6px 0 0;padding-left:18px;font-size:12.4px;color:var(--text2)}
+li{margin-bottom:3px}
+li b{color:var(--text1)}
+</style>
+</head>
+<body>
+<doc-page margin="0.7in">
+
+<div class="cover">
+  <div class="eyebrow">Unipocket · Portail d'administration</div>
+  <h1>Rendered Audit v3</h1>
+  <p class="sub">Third audit pass, conducted against <b>rendered output</b> rather than source. Twenty-one localhost captures of the deployed admin portal, compared frame by frame against the signed-off Implementation Spec (§10–23) and the prototype in <code>admin/</code>. Thirteen screens plus one cross-cutting section.</p>
+  <div class="meta">
+    <div>Date · <b>7 Aug 2026</b></div>
+    <div>Method · <b>Rendered captures</b></div>
+    <div>Sections · <b>14</b></div>
+    <div>Findings · <b>62</b></div>
+  </div>
+</div>
+
+<div class="note red">
+  <b>Why this pass exists.</b> Audits v1 and v2 were conducted source-to-source — prototype JSX diffed against branch CSS and components. That method finds numeric mismatches and it did. It structurally cannot find defects that only exist at paint time: a font that is declared correctly but never loads, a browser-applied autofill fill, a gradient that is present in source but clipped by an ancestor, a container width inherited from further up the tree than the files read. Every finding in <b>§0</b> and roughly half of everything below was invisible to both earlier passes. Items already logged in v1/v2 and still unfixed are marked <span class="sev c">Repeat</span>.
+</div>
+
+<div class="note">
+  <b>Capture-scale note.</b> The batch was captured at a device pixel ratio of <b>1.25</b> (CSS viewport ≈ 1536px, not 1920). Every measurement in this document has been divided by 1.25 before comparison — raw pixel deltas taken straight off these images will read 25% high. One capture (<i>Modifier la séance</i>) includes browser chrome and was taken at 1.0; it is excluded from measurement. Shell geometry normalises cleanly: sidebar <b>248px</b> ✓, top bar <b>64px</b> ✓ — both exactly to spec.
+</div>
+
+<div class="legend">
+  <div class="lg"><span class="sev w">Bug</span><p>Broken, misleading, or contradicts data shown elsewhere on the same screen.</p></div>
+  <div class="lg"><span class="sev g">Drift</span><p>Diverges from the signed-off spec without an evident reason.</p></div>
+  <div class="lg"><span class="sev p">Nit</span><p>Small metric or copy deviation. Fix in a sweep.</p></div>
+  <div class="lg"><span class="sev i">Improve</span><p>Deliberate departure that is better than spec. Keep; update the spec.</p></div>
+  <div class="lg"><span class="sev c">Repeat</span><p>Already raised in v1 or v2 and still present.</p></div>
+</div>
+
+<!-- ============ 0 ROOT ============ -->
+<div class="sec">
+  <h2><span class="idx">0</span> Root causes</h2>
+  <div class="route">global · affects every screen in the batch</div>
+  <div class="secline"></div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> The typeface never loads. The entire portal renders in a serif fallback.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Plus Jakarta Sans (<code>A_SANS</code>) for all UI text; DM Mono (<code>A_MONO</code>) for identifiers, eyebrows, timestamps and numeric labels.</span>
+      <span class="k">Build</span><span class="v built">Every string on every one of the 21 captures renders in a Times-class serif — headings, nav labels, table headers, matricules, schedule times, the "ADMIN · UDJ" eyebrow, the footer. Neither family is reaching the browser.</span>
+      <span class="k">Impact</span><span class="v">This is the single largest visual defect in the build and it is invisible in source, where the family names are declared correctly. It also erases a whole semantic layer: the spec uses mono deliberately to mark machine data — <code>UDJ-2024-1298</code>, <code>08:00–09:30</code>, <code>BBA101</code>, role names, section eyebrows. With one serif for everything, identifiers and prose are typographically identical. Fix this first; it will change how every other screen reads and may resolve several spacing findings below on its own.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> A dark floating "N" badge sits over the sidebar on every screen.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">A ~48px dark circle marked "N" is pinned bottom-left on all 21 captures. On <i>Présence</i>, <i>Notes</i> (empty), <i>Emploi du temps</i> (empty) and <i>Académique</i> it overlaps the sidebar's user card, partially covering the "SW" avatar and the <b>Saïd&nbsp;Warsama / REGISTRAR</b> block.</span>
+      <span class="k">Fix</span><span class="v">Dev-tools indicator. Suppress it outside local development — it is currently occluding a real UI element, not just floating over dead space.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Tinted icon tiles render ~25% undersized, everywhere.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Dashboard/attendance StatCard tile <b>38px</b>; Notes subject-card tile and Académique faculty-card tile <b>44px</b>.</span>
+      <span class="k">Build</span><span class="v built">Dashboard stat tile <b>33px</b> · Présence stat tile <b>29px</b> · Notes subject tile <b>34px</b> · Académique faculty tile <b>34px</b>.</span>
+      <span class="k">Note</span><span class="v">One shared component, one fix. The Notes subject card is worst hit — the tile is that card's only visual anchor and at 34px it no longer holds the row.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Two tone palettes are visibly fighting on screen. <span class="sev c">Repeat</span></div>
+    <div class="body">
+      <span class="k">v2</span><span class="v">Logged as an undocumented second palette in <code>lib/tokens.ts</code> creating dual-shade semantics. Recorded then as a code-level concern.</span>
+      <span class="k">Now</span><span class="v built">Confirmed visually. On <i>Étudiants</i>, the 76% presence bar renders a dark brown while the amber used by the <i>Présence</i> "En attente" tab is a much lighter orange. On <i>Fiche étudiant</i>, the 70% assiduité bars and the "Insuffisant" mention badge are two different reds sitting 400px apart on the same card.</span>
+      <span class="k">Impact</span><span class="v">Users read these bars by colour. Two ambers and two reds means the thresholds no longer communicate a consistent state.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> French plural agreement is not applied.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">"Vue filtrée · <b>1 étudiants</b>" on Académique, Notes, Présence and Emploi du temps; "<b>1 inscrits</b>" on every Notes subject card.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> Three email domains coexist in one portal.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">Faculty deans <code>@univ.edu.dj</code> · students <code>@univ-djibouti.dj</code> · admin login <code>@univ.dj</code>.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ A SHELL ============ -->
+<div class="sec">
+  <h2><span class="idx">A</span> Shell — sidebar, top bar, context bar</h2>
+  <div class="route">admin-shell.jsx · admin-context.jsx</div>
+  <div class="secline"></div>
+
+  <div class="pass"><b>Correct:</b> sidebar 248px · top bar 64px · global search 280px · nav order and grouping · active-item jade rail + fill · breadcrumb structure · FR pill placement · Dimanche→Jeudi week. The shell's skeleton is faithful.</div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Global search placeholder truncated.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">"Rechercher un étudiant, une matière…"</span>
+      <span class="k">Build</span><span class="v built">"Rechercher…" — drops the affordance. The field searches students, subjects <i>and</i> articles; nothing on screen says so.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Breadcrumb reads "Nouvel article" while editing an existing article.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">The news-edit capture shows page title <b>Modifier l'article</b> under breadcrumb <b>Actualités › Nouvel article</b>.</span>
+      <span class="k">Cause</span><span class="v">The <code>CRUMBS</code> map in <code>admin-shell.jsx</code> has no <code>news-edit</code> key, so the edit route falls through to <code>news-create</code>. Add the entry.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Context bar is absent on Tableau de bord.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">Étudiants, Notes, Présence, Académique and Emploi du temps all carry the FACULTÉ/PROGRAMME bar. The dashboard does not — and its subtitle is "Université de Djibouti", which carries no scope information at all.</span>
+      <span class="k">Impact</span><span class="v">The landing screen is the one place with no indication of what cohort the numbers describe. Either show the bar (locked to "toutes") or restore a scope-bearing subtitle.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> Context bar controls nearly touch its edges. <span class="sev c">Repeat</span></div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">48px bar containing 36px selects — 6px of clearance top and bottom, and the select's shadow reads as touching the bar's bottom hairline.</span>
+      <span class="k">v2</span><span class="v">Logged as <code>h-[46px]</code> embedding a ~40px component. Same defect, marginally less severe than measured in source.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> FR pill renders as a bordered white button.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v"><code>surface2</code> fill, no border, <code>cursor: default</code> — a status indicator, not a control.</span>
+      <span class="k">Build</span><span class="v built">White fill with a visible border, styled identically to the interactive controls beside it. It invites a click that does nothing.</span>
+    </div>
+  </div>
+
+  <div class="imp">
+    <div class="it"><span class="sev i">Improve</span> Système nav group hidden under REGISTRAR</div>
+    <p>Administrateurs / Journal d'audit / Paramètres correctly absent for this persona. Confirmed intentional in v1 — recorded here so it is not raised a fourth time.</p>
+  </div>
+</div>
+
+<!-- ============ B LOGIN ============ -->
+<div class="sec">
+  <h2><span class="idx">B</span> Login</h2>
+  <div class="route">route: login · full-screen, no shell · spec §10</div>
+  <div class="secline"></div>
+
+  <div class="note"><b>Two different builds in this batch.</b> The login appears twice with different content. The older capture reads "Accédez au portail d'administration Unipocket", a longer back-office tagline, and a <b>lock</b> icon with "Connexion sécurisée · HTTPS". The newer reads "Accédez à votre espace administrateur" and a <b>shield</b> with "…accès réservé au personnel de l'UDJ" — i.e. the v1 copy finding was fixed between captures. Findings below are taken against the <b>newer</b> build.</div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Password field carries a lavender autofill tint; email field does not.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Both fields identical — <code>surface</code> fill, hair border.</span>
+      <span class="k">Build</span><span class="v built">Password renders with a pale blue-violet fill and a blue border (Chrome autofill); email renders white. The two fields in one form look like two different components.</span>
+      <span class="k">Fix</span><span class="v"><code>-webkit-autofill</code> override with the design-system fill and border.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Both brand-panel glow blobs are missing.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">520px radial jade glow at <code>top:-160 / right:-160</code>; 360px at <code>bottom:-120 / left:-100</code>.</span>
+      <span class="k">Build</span><span class="v built">Neither is visible. A faint wash reads from the top-left corner instead. The panel is flat where it should have depth.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Brand eyebrow dropped.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">"ADMIN · UDJ" — mono, 11px, 0.14em tracking, uppercase, beneath the wordmark. Present in the sidebar; the login is the same lockup.</span>
+      <span class="k">Build</span><span class="v built">Wordmark alone.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Field labels rewritten; required asterisks added.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">"Adresse e-mail" / "Mot de passe". No asterisks — a two-field login has no optional fields to distinguish from.</span>
+      <span class="k">Build</span><span class="v built">"Email *" / "Mot de passe *".</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Checkbox label truncated.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">"Rester connecté sur cet appareil"</span>
+      <span class="k">Build</span><span class="v built">"Rester connecté" — loses the device scoping, which is the substance of the setting.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> "Mot de passe oublié ?" relocated. <span class="sev c">Repeat</span></div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Right-aligned on the password <i>label</i> row, above the field.</span>
+      <span class="k">Build</span><span class="v built">Moved down onto the "Rester connecté" row. Raised in v1; unchanged.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> Form column too wide; fields too tall; button icon dropped.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">360px column · standard <code>Input</code> height · primary lg with trailing <code>arrow-l</code> icon.</span>
+      <span class="k">Build</span><span class="v built">~450px column · ~48px fields · no icon on "Se connecter". Together the form reads looser and flatter than spec.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> Security tile centred and low-contrast.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Left-aligned icon + text, gap 10, padding 13, <code>surface2</code> against <code>surface</code>.</span>
+      <span class="k">Build</span><span class="v built">Row centred inside the tile; tile fill sits so close to the page fill that the container barely reads. Trailing period dropped.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ C DASHBOARD ============ -->
+<div class="sec">
+  <h2><span class="idx">C</span> Tableau de bord</h2>
+  <div class="route">route: dashboard · spec §11</div>
+  <div class="secline"></div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Moyenne générale shows <b>0.0/20</b> with an "Insuffisant" badge while six students have averages.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">The stat card reads 0.0/20 and tags it <b>Insuffisant</b> in red. The students table on the very next screen lists 12.41, 12.43, 15.94, 11.81, 13.06, 13.67 — a true mean of 13.2.</span>
+      <span class="k">Impact</span><span class="v">Two failures in one tile. The aggregate is not computing, and a zero/absent value is being rendered as a <i>failing grade</i> rather than an empty state. A registrar landing here sees the institution failing.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> "Répartition des moyennes" chart is empty and leaves ~190px of dead space.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">All five GPA buckets read 0, no bars drawn. Those same six students should populate 10–12 (×1), 12–14 (×4) and 14–16 (×1). The card reserves full chart height, so the panel is a large empty rectangle with a row of zeros at the bottom.</span>
+      <span class="k">Cause</span><span class="v">Same aggregation failure as above. Fix once, both resolve. Until then the card needs a real empty state rather than a rendered-but-blank chart.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Live and hardcoded demo values sit side by side in the same row.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">Left panel: live data, computing to zero. Right panel: "89%", "+2 pts vs S1", and a confident 8-week rising sparkline across S1–S8 — none of which can derive from a dataset with two semesters and near-zero recorded sessions.</span>
+      <span class="k">Impact</span><span class="v">The dashboard's credibility rests on all four quadrants being the same kind of number. Right now one row is measured and the other is decoration.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Trend badge moved off the Présence stat card.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Présence moyenne carries a "+2 pts" up-trend badge.</span>
+      <span class="k">Build</span><span class="v built">Replaced by a threshold progress bar ("Seuil d'assiduité : 75 %"); the trend badge now appears only on the Tendance panel. Reasonable if intentional — the bar is arguably more useful — but it should be in the spec.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ D STUDENTS ============ -->
+<div class="sec">
+  <h2><span class="idx">D</span> Étudiants — liste</h2>
+  <div class="route">route: students · spec §12</div>
+  <div class="secline"></div>
+
+  <div class="pass"><b>Correct:</b> search field 298px (spec 300) · presence mini-bar 45px (spec 44) · Moyenne threshold colouring (11.81 amber, 12.41 neutral) · sortable-column affordances · status badges with dot · row → detail.</div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Status filter tabs have lost their counts.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Tous / Actifs / À risque / Suspendus, "each with live count in mono".</span>
+      <span class="k">Build</span><span class="v built">Four bare labels. The counts are how a registrar sees at a glance that nobody is at risk — currently you must click each tab to learn it.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Footer count loses the "of total" framing.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">"N sur 42 étudiants" — tells you a filter is narrowing the set.</span>
+      <span class="k">Build</span><span class="v built">"6 étudiants". With filters and a context bar both able to narrow the table, the unqualified number is ambiguous.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> Row height 63px against a 58px spec.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">Measured row pitch 63px. ~9% loose; costs roughly one visible row per screen.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ E STUDENT DETAIL ============ -->
+<div class="sec">
+  <h2><span class="idx">E</span> Fiche étudiant</h2>
+  <div class="route">route: student-detail · spec §13</div>
+  <div class="secline"></div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Transcript semester toggle is a single non-switchable "S2" chip. <span class="sev c">Repeat</span></div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Header carries the semester mean plus a <b>Semestre 1 / 2</b> segmented toggle; rows filter to the selected semester.</span>
+      <span class="k">Build</span><span class="v built">"12.41/20" beside a lone <b>S2</b> pill. There is no S1 option — S1 results are unreachable from the student's record.</span>
+      <span class="k">Note</span><span class="v">v1 recorded this as implemented, on the strength of source. The rendered build shows one segment. Re-opened.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Per-subject attendance contradicts the student's own overall figure.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">Profile card: <b>Présence 76%</b>. Assiduité par matière, six rows: 80 / 70 / 80 / 70 / 80 / 80 — mean 76.7%, and every value is a suspiciously round multiple of ten.</span>
+      <span class="k">Spec</span><span class="v">Explicitly flags these as "hardcoded demo 95/80/72/100". They are still hardcoded, now padded to six rows. On a page showing one real student's real transcript, fabricated attendance is worse than an empty state.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> CC and CF render as editable-looking input chips on a read-only page.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Student-detail transcript is a plain table: Matière · CC · CF · Coef · NF · Mention.</span>
+      <span class="k">Build</span><span class="v built">CC and CF are grey rounded chips visually identical to the <code>GradeCell</code> input on the grade-entry screen. They are not editable here. Same shape, different behaviour, two screens apart.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Phone row missing; credits row changed meaning.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Four InfoRows — mail, <b>téléphone (mono)</b>, faculté, "credits / 32".</span>
+      <span class="k">Build</span><span class="v built">mail · faculté · "Semestre 4" · "300 crédits requis". The phone number is gone, and the credits row now states a requirement rather than progress — the student's earned credits are no longer shown anywhere.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> Ring avatar 70px against a 76px spec.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">Measured 70px. Assiduité bars measure 162px against a 160px spec ✓.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ F STUDENT FORM ============ -->
+<div class="sec">
+  <h2><span class="idx">F</span> Nouvel étudiant — modal</h2>
+  <div class="route">StudentForm · spec §12</div>
+  <div class="secline"></div>
+
+  <div class="pass"><b>Correct:</b> 552px modal · two-column field grid · focus ring on the first field · Programme correctly disabled until Faculté is chosen · destructive-free footer with Annuler / Créer l'étudiant.</div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> "Générer" reads as disabled beside an empty required password field.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">"Mot de passe initial *" is empty and required; the adjacent <b>Générer</b> button — the only affordance that fills it — renders in a pale, low-contrast treatment indistinguishable from the portal's disabled state.</span>
+      <span class="k">Impact</span><span class="v">If it is genuinely disabled, the required field can only be typed by hand. If it is enabled, its styling is lying. Either way it blocks the primary path through this form.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> Required asterisks applied inconsistently.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">"Semestre actuel *" carries an asterisk and ships with a default (S1). "Statut" carries none and also ships with a default (Actif). Same shape, different marking.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ G ACADEMICS ============ -->
+<div class="sec">
+  <h2><span class="idx">G</span> Structure académique</h2>
+  <div class="route">route: academics · spec §21</div>
+  <div class="secline"></div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Page content contradicts the context bar on screen.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">Context bar: <b>Faculté de Droit, d'Écono… / Bachelor in Business Admini…</b>, right side reads "Vue filtrée · 1 étudiants". The Programmes table below lists all <b>11</b> programmes across all seven faculties, and the active faculty pill is <b>Toutes facultés</b>.</span>
+      <span class="k">Impact</span><span class="v">The clearest contradiction in the batch: two filter mechanisms disagreeing in one viewport. Either the pills should follow the context bar, or the pills should be removed on this page and scope owned by the bar alone.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Closed semester's CTA is the loudest button on the page.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Current semester → ghost <b>Gérer</b>. Closed semester → <b>soft</b> "Définir comme courant".</span>
+      <span class="k">Build</span><span class="v built">S2 (En cours) correctly shows a ghost <b>Gérer</b>. S1 (Clôturé) shows <b>Définir comme courant</b> in solid jade — full primary weight.</span>
+      <span class="k">Impact</span><span class="v">Hierarchy inverted. The most visually dominant action on the Semestres tab rolls the institution back to a closed semester.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Faculty cards show an email where the dean's name belongs.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">"Doyen · <i>name</i>"</span>
+      <span class="k">Build</span><span class="v built">"Doyen · fdeg@univ.edu.dj" on all seven cards. The label promises a person and delivers a mailbox — and a generic departmental one at that.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> "Niveaux" column narrowed to a single level; GINF "Actif" badge absent.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Column <b>Niveaux</b> (plural — the levels a programme spans); the active programme carries an "Actif" badge.</span>
+      <span class="k">Build</span><span class="v built">Column <b>NIVEAU</b> holding one value per row (Licence / Master / DUT). No programme carries an Actif badge.</span>
+    </div>
+  </div>
+
+  <div class="pass"><b>Correct:</b> tab set and counts · faculty short-code tiles · footer stat pairs (FDEG 3 programmes / 3 étudiants reconciles against the Programmes tab) · semester date ranges · status badge tones.</div>
+</div>
+
+<!-- ============ H GRADES PICKER ============ -->
+<div class="sec">
+  <h2><span class="idx">H</span> Notes — sélecteur de matière</h2>
+  <div class="route">route: grades · spec §15</div>
+  <div class="secline"></div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Publication state is no longer visible on the picker.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Each subject card carries <b>Publié</b> (jade) or <b>Brouillon</b> (amber), read from <code>SUBJECT_PROGRESS.published</code>.</span>
+      <span class="k">Build</span><span class="v built">The badge slot instead holds a blue <b>CC complet</b> — entry progress, a different axis entirely. Whether a subject's grades are published to students cannot be determined from this screen.</span>
+      <span class="k">Note</span><span class="v">Consequence of the two-phase publication restructuring (v1, Improvement #3). The restructuring is right; losing the publication signal from the index is not. Both states need to be visible here.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> "Saisie" progress bar removed from the card footer.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Footer: progress bar (entered/total, jade when complete, amber while partial) · divider · class average · chevron.</span>
+      <span class="k">Build</span><span class="v built">Footer: "1 inscrits" · divider · average · chevron. Partially-entered subjects can no longer be spotted by scanning; the badge only says complete or not.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> Empty-state copy breaks mid-parenthetical.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">"Utilisez la barre de contexte ci-dessus (Faculté →⏎Programme)." — the arrow and closing token wrap onto the next line, splitting the parenthetical across the break.</span>
+      <span class="k">Fix</span><span class="v"><code>white-space:nowrap</code> on the "Faculté → Programme" token, or widen the measure.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> Semester toggle labels abbreviated.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">"Semestre 1 / Semestre 2"</span><span class="k">Build</span><span class="v built">"S1 / S2"</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ I GRADE ENTRY ============ -->
+<div class="sec">
+  <h2><span class="idx">I</span> Saisie des notes</h2>
+  <div class="route">route: grade-entry · spec §16</div>
+  <div class="secline"></div>
+
+  <div class="pass"><b>Correct:</b> four-card metric strip · keyboard hint rendered in correct French ("Entrée ou ↓ ligne suivante · → vers CF") · student filter 274px (spec 280) · NF bold · Mention badge tone · back-to-Notes breadcrumb.</div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> GradeCell is 7px short.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">64 × 38</span>
+      <span class="k">Build</span><span class="v built">66 × 31. Width is fine; the cells are visibly squatter than spec, which matters on the one screen built for sustained numeric typing — the vertical target is 18% smaller than designed.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> "Notes saisies" renamed "Notes calculées".</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">Reads 1/1 correctly. The rename shifts meaning from <i>entered</i> to <i>computed</i>; harmless if deliberate, worth confirming.</span>
+    </div>
+  </div>
+
+  <div class="note"><b>Not verifiable from this batch.</b> The sticky save bar (spec §16, and the z-order/positioning bug logged in v2 at lines 209/421) only appears when <code>dirtyCount &gt; 0</code>. Every capture shows a clean table. Needs one capture with a cell edited and the page scrolled.</div>
+</div>
+
+<!-- ============ J ATTENDANCE ============ -->
+<div class="sec">
+  <h2><span class="idx">J</span> Présence</h2>
+  <div class="route">route: attendance · spec §17</div>
+  <div class="secline"></div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Subjects with zero recorded sessions show a green "OK" status.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">In the per-subject overview, <b>English grammar II</b> and <b>English reading and writing II</b> read "0/0 séances" and "—" average, yet both carry the same green check as the 90%-attendance rows.</span>
+      <span class="k">Impact</span><span class="v">A subject nobody has taken attendance for is being reported as healthy. That is precisely the case a registrar needs surfaced.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> The STATUT column is icon-only, with no label or tooltip.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">Eight rows, eight identical green checks, no legend. A single-state column carries no information; if other states exist they are unreachable in this data.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Empty "En attente" tab is styled active-amber while the only populated tab is not.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">"pending tab active → amber".</span>
+      <span class="k">Build</span><span class="v built">"En attente 0" renders in the amber active treatment; "Rejetés 1" — the only tab with content — renders plain. The eye is drawn to the empty queue.</span>
+      <span class="k">Fix</span><span class="v">Apply amber only when the count is &gt; 0, or default the selection to the first non-empty tab.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> Two empty states sit side by side.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">"Rien à traiter." in the queue and "Sélectionnez un justificatif dans la file pour le traiter." in the review pane, both ~300px tall, adjacent. The second instruction is unfollowable while the first is true.</span>
+      <span class="k">Fix</span><span class="v">Collapse to a single full-width empty state when the queue is empty.</span>
+    </div>
+  </div>
+
+  <div class="imp">
+    <div class="it"><span class="sev i">Improve</span> Per-subject attendance overview table</div>
+    <p>Not in spec §17, which has only the justification queue. The overview (séances, class mean, at-risk count, status) is a genuine addition — it answers "which subject is slipping" without leaving the page. Add to the spec, and give it the empty-state handling noted above.</p>
+  </div>
+</div>
+
+<!-- ============ K NEWS ============ -->
+<div class="sec">
+  <h2><span class="idx">K</span> Actualités — liste et lecteur</h2>
+  <div class="route">route: news · spec §19</div>
+  <div class="secline"></div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> The featured article's image is broken in both the list and the reader.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">"Inscriptions pour l'année universitaire 2025-2026 ouvertes" — the top row shows an empty striped placeholder while the 14 rows beneath it show real photographs. Opening it, the reader modal's hero is a blank white box ~185px tall with a broken-image glyph, consuming a quarter of the modal before any text.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Every article reads "0 vues".</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Formatted view count, or "Non publié" for drafts.</span>
+      <span class="k">Build</span><span class="v built">All 15 published articles show 0 views, including the reader modal ("4 min de lecture · 0 vues"). Either the counter is not wired or the column is dead weight — as rendered it is a column of zeros.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Reader modal inverts action hierarchy and surfaces a destructive action.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">Delete lives behind the row's "…" menu, behind a confirmation. The reader is for reading.</span>
+      <span class="k">Build</span><span class="v built">Footer is Fermer · <b>Supprimer</b> (red soft fill) · <b>Modifier</b> (plain white). The destructive action is styled more prominently than the constructive one, and both sit in a modal opened by a single row click.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> Thumbnail 77×48 against an 80×56 spec.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">Aspect shifts from 1.43:1 to 1.60:1 — cover images are cropped tighter than the 1200×630 the editor asks authors to supply.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ L NEWS EDITOR ============ -->
+<div class="sec">
+  <h2><span class="idx">L</span> Éditeur d'article</h2>
+  <div class="route">route: news-create / news-edit · spec §20</div>
+  <div class="secline"></div>
+
+  <div class="pass"><b>Correct:</b> cover slot 202px (spec 200) with correct copy · borderless 26/800 title input · Publier correctly disabled on an empty draft · category single-select · live app preview.</div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Category pill "Youth" is in English. <span class="sev c">Repeat</span></div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">Six pills: Officiel · Événements · Scolarité · Sport · <b>Youth</b> · Sponsors.</span>
+      <span class="k">Note</span><span class="v">v1 established this is an API-sourced category record, not a hardcoded string — which explains the origin but does not excuse the render. The spec's tone map names this category <b>jeunesse</b>. A French-only portal needs a French display name regardless of where the record lives; map it at the presentation layer.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Preview card reflows when a category is picked.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">On create, the Aperçu shows image placeholder + title only. On edit, the same card shows a badge row (Officiel · Urgent) above the title. The create-mode preview reserves no space for badges, so the card visibly jumps the moment a category is chosen.</span>
+    </div>
+  </div>
+
+  <div class="imp">
+    <div class="it"><span class="sev i">Improve</span> Urgent → push coupling with an AUTO badge</div>
+    <p>Setting "Marquer comme urgent" forces "Notification push" on, tags it <b>AUTO</b>, and swaps the helper copy to "Les articles urgents envoient automatiquement une notification." Not in spec §20; it is the right behaviour and clearly explained. Adopt into the spec.</p>
+  </div>
+
+  <div class="imp">
+    <div class="it"><span class="sev i">Improve</span> Ordered-list button added to the rich-text toolbar</div>
+    <p>Spec lists B/I/U · H3 · UL · link. The build adds OL. Harmless and useful.</p>
+  </div>
+</div>
+
+<!-- ============ M SCHEDULE ============ -->
+<div class="sec">
+  <h2><span class="idx">M</span> Emploi du temps</h2>
+  <div class="route">route: schedule · spec §22</div>
+  <div class="secline"></div>
+
+  <div class="pass"><b>Correct — the most faithful screen in the batch:</b> 64px/hour verified by measurement · 08:00–16:00 axis · Dimanche→Jeudi columns · "N cours" day headers · 3px course-colour left border · <code>color+"14"</code> entry fill · "6 SÉANCES · 9 H HEBDO" count line · destructive action left-aligned in the edit modal's footer.</div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> Time inputs are unstyled native controls.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">"Heure début" and "Heure fin" render as browser <code>&lt;input type="time"&gt;</code> — native clock glyph, <code>--:--</code> placeholder, system font, browser focus ring. Every other control in the same modal uses the design system's select and input.</span>
+      <span class="k">Impact</span><span class="v">Two rows into an eight-field modal, the visual language breaks. Also the one place the serif fallback <i>doesn't</i> apply, which makes the seam more obvious rather than less.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev w">Bug</span> "Nouvelle séance" ignores the active scope.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">The context bar has <b>Bachelor in Business Administration</b> selected and the grid behind the modal is showing that programme's week — yet Programme and Matière both open on "Sélectionner". The edit modal, by contrast, populates both correctly.</span>
+      <span class="k">Fix</span><span class="v">Seed the create form from the active scope. The user has already answered this question in the bar above.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev p">Nit</span> Entries overhang their hour band by ~5px.</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v"><code>height = duration − 6</code>; a 90-minute session occupies 90px within a 96px slot.</span>
+      <span class="k">Build</span><span class="v built">Measured ~106px for the 08:00–09:30 entries — the block's lower edge crosses its 09:30 gridline. Visible on Dimanche, Mardi and Jeudi.</span>
+    </div>
+  </div>
+
+  <div class="imp">
+    <div class="it"><span class="sev i">Improve</span> Programme pills replaced by view tabs</div>
+    <p>Spec §22 has programme filter pills. The build moves programme selection to the context bar and reuses that row for <b>Par programme / Par salle / Par enseignant</b>. Better: scope is owned in one place, and room and teacher views are new capability the spec never had.</p>
+  </div>
+</div>
+
+<!-- ============ EMPTY STATES ============ -->
+<div class="sec">
+  <h2><span class="idx">N</span> Cross-screen: empty states</h2>
+  <div class="secline"></div>
+  <div class="f">
+    <div class="ft"><span class="sev g">Drift</span> Three different copy patterns for one condition.</div>
+    <div class="body">
+      <span class="k">Build</span><span class="v built">"No programme selected" produces three different messages:<br>
+      <b>Emploi du temps</b> — "Sélectionnez un programme dans la barre de contexte pour afficher son emploi du temps."<br>
+      <b>Notes</b> — "Sélectionnez un programme pour voir les matières. Utilisez la barre de contexte ci-dessus (Faculté → Programme)."<br>
+      <b>Présence</b> — the stat card simply reads "sélectionnez un programme" in lowercase, with no instruction.</span>
+      <span class="k">Fix</span><span class="v">One string, one component, parameterised by noun. The Emploi du temps wording is the best of the three.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ COUNTS ============ -->
+<div class="sec">
+  <h2><span class="idx">✦</span> Tally</h2>
+  <div class="secline"></div>
+  <div class="count">
+    <div class="cbox"><div class="n" style="color:var(--danger)">21</div><div class="l">Bug</div></div>
+    <div class="cbox"><div class="n" style="color:var(--amber)">21</div><div class="l">Drift</div></div>
+    <div class="cbox"><div class="n" style="color:var(--blue)">15</div><div class="l">Nit</div></div>
+    <div class="cbox"><div class="n" style="color:var(--jadeText)">5</div><div class="l">Improve</div></div>
+    <div class="cbox"><div class="n" style="color:var(--violet)">6</div><div class="l">Repeat</div></div>
+  </div>
+  <p style="font-size:11.5px;color:var(--text3);margin-top:9px">Bug + Drift + Nit + Improve = <b style="color:var(--text2)">62 findings</b>. Repeat is a cross-cut, not a fifth category — those six are already counted under their own severity.</p>
+
+  <h4 style="margin-top:20px;font-size:14px">Fix in this order</h4>
+  <ul>
+    <li><b>1 · The webfont.</b> One root cause, 21 screens. Everything else should be judged after it lands.</li>
+    <li><b>2 · Dashboard aggregation.</b> The 0.0/20 "Insuffisant" tile and the empty distribution chart are the same failure, and it is the first thing every user sees.</li>
+    <li><b>3 · The four scope contradictions.</b> Académique's pills vs the context bar; the schedule create modal ignoring scope; the missing context bar on the dashboard; the three empty-state strings. All one architectural seam.</li>
+    <li><b>4 · Misleading states.</b> Green checks on zero-session subjects; the amber empty-queue tab; the primary-weight "Définir comme courant"; the disabled-looking "Générer"; the destructive "Supprimer" in the reader modal.</li>
+    <li><b>5 · The size sweep.</b> Icon tiles (+25%), GradeCell height, student row pitch, news thumbnails, login form width. One pass through the shared primitives.</li>
+    <li><b>6 · Copy.</b> Plurals, the three domains, "Youth", the truncated placeholder and labels.</li>
+  </ul>
+
+  <h4 style="margin-top:18px;font-size:14px">Still unverified</h4>
+  <ul>
+    <li><b>Grade-entry sticky save bar</b> — needs a capture with a dirty cell and the page scrolled. The v2 z-order finding is neither confirmed nor cleared.</li>
+    <li><b>Six screens never captured</b> — Paramètres, Administrateurs, Journal d'audit, Import CSV wizard, Faire l'appel (session marking), Notifications composer. Unread at source in v2 and unseen at render now.</li>
+    <li><b>Interaction states</b> — hover, focus, open dropdowns, toasts, the advanced-filters panel, modal confirmations. Nothing in this batch shows a transient state.</li>
+    <li><b>Other personas</b> — everything here is REGISTRAR. SUPER_ADMIN, FACULTY_ADMIN and NEWS_EDITOR views are unaudited.</li>
+  </ul>
+</div>
+
+<p style="font-size:11.5px;color:var(--text3);margin-top:20px;font-family:var(--mono)">v3 · 7 Aug 2026 · Rendered-output pass against 21 localhost captures at DPR 1.25. Supersedes the typography and layout sections of v1 and v2, which were conducted source-to-source and could not observe paint-time defects.</p>
+
+</doc-page>
+<script src="doc-page.js"></script>
+</body></html>

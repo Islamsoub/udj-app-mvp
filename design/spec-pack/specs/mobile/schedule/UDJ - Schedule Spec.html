@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>UDJ — Schedule (Emploi du temps) Implementation Spec</title>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" rx="22" fill="#0F6E56"/>
+    <circle cx="30" cy="34" r="5" fill="#fff"/>
+    <rect x="44" y="30" width="34" height="8" rx="4" fill="#fff"/>
+    <circle cx="30" cy="56" r="5" fill="#fff"/>
+    <rect x="44" y="52" width="26" height="8" rx="4" fill="#fff"/>
+    <circle cx="30" cy="78" r="5" fill="#fff"/>
+    <rect x="44" y="74" width="30" height="8" rx="4" fill="#fff"/>
+    <rect x="29" y="38" width="2" height="14" fill="rgba(255,255,255,0.5)"/>
+    <rect x="29" y="60" width="2" height="14" fill="rgba(255,255,255,0.5)"/>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#F2F5F3; --surface:#fff; --surface2:#F4F7F5; --sunken:#ECEFEC; --ink:#1C2320; --ink2:#6B7B74; --ink3:#9EADA7;
+    --hair:rgba(28,35,32,0.10); --jade:#1D9E75; --jade6:#0F6E56; --amber:#E08A1E; --danger:#EF4444; --blue:#2F7DD1; --violet:#8B5CF6; --slate:#5A6B7B;
+    --sans:'Plus Jakarta Sans',sans-serif; --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1020px;margin:0 auto;padding:56px 32px 110px;}
+  h1{font-size:34px;font-weight:800;letter-spacing:-0.8px;margin:0;}
+  .sub{color:var(--ink2);font-size:15px;margin-top:8px;max-width:70ch;line-height:1.55;}
+  h2{font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--jade6);margin:50px 0 18px;display:flex;align-items:center;gap:10px;}
+  h2 .n{width:22px;height:22px;border-radius:7px;background:var(--jade6);color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+  h3{font-size:17px;font-weight:700;margin:26px 0 10px;}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:18px;padding:22px;box-shadow:0 1px 2px rgba(28,35,32,0.04);}
+  .grid{display:grid;gap:14px;}
+  .g2{grid-template-columns:1fr 1fr;}
+  .g3{grid-template-columns:1fr 1fr 1fr;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:start;padding:8px 10px;border-bottom:1px solid var(--hair);vertical-align:top;}
+  th{font-size:11px;letter-spacing:0.6px;text-transform:uppercase;color:var(--ink3);font-weight:700;}
+  td.mono,.mono{font-family:var(--mono);font-size:12px;}
+  .lead{font-weight:700;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:3px 9px;border-radius:9999px;background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .pill.amber{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .pill.red{background:rgba(239,68,68,0.12);color:#b91c1c;}
+  .pill.blue{background:rgba(47,125,209,0.12);color:#1f5fa6;}
+  .pill.violet{background:rgba(139,92,246,0.14);color:#6d3fd6;}
+  .pill.slate{background:rgba(90,107,123,0.14);color:#46535f;}
+  .note{font-size:13px;color:var(--ink2);line-height:1.55;}
+  .specrow{font-size:13px;display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px solid var(--hair);}
+  .specrow:last-child{border-bottom:none;}
+  .specrow .k{color:var(--ink2);}
+  .specrow .v{font-family:var(--mono);font-size:12px;text-align:end;}
+  ul{margin:8px 0 0;padding-inline-start:20px;}
+  li{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:5px;}
+  .sw{display:flex;align-items:center;gap:11px;padding:7px 0;border-bottom:1px solid var(--hair);font-size:13px;}
+  .sw:last-child{border-bottom:none;}
+  .chip{width:28px;height:28px;border-radius:8px;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);}
+  .nm{font-weight:600;}
+  .hex{font-family:var(--mono);color:var(--ink2);font-size:12px;margin-inline-start:auto;}
+  .darkstrip{background:#0E1512;border-radius:14px;padding:14px 16px;}
+  .darkstrip .sw{border-color:rgba(255,255,255,0.08);color:#ECF1EE;}
+  .darkstrip .hex{color:#9DB0A8;}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:6px;background:rgba(28,35,32,0.06);color:var(--ink2);}
+  .tag.add{background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .tag.chg{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .tag.fix{background:rgba(239,68,68,0.10);color:#b91c1c;}
+  .tag.dec{background:rgba(47,125,209,0.12);color:#1f5fa6;}
+  .tree{font-family:var(--mono);font-size:12.5px;line-height:1.85;color:var(--ink);white-space:pre;overflow-x:auto;}
+  .tree .c{color:var(--ink3);}
+  .tree .v{color:var(--jade6);}
+  /* decision callout */
+  .decision{margin:30px 0 0;padding:22px 24px;border-radius:18px;background:linear-gradient(140deg,#0F6E56,#0B5544);color:#fff;box-shadow:0 12px 28px rgba(15,110,86,0.22);}
+  .decision .dk{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.7);}
+  .decision h3{margin:6px 0 0;font-size:20px;font-weight:800;letter-spacing:-0.3px;color:#fff;}
+  .decision p{font-size:14px;line-height:1.6;color:rgba(255,255,255,0.9);margin:10px 0 0;}
+  .decision .rec{display:inline-block;margin-top:14px;background:rgba(255,255,255,0.16);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:700;}
+  .courses{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
+  .cc{border-radius:12px;overflow:hidden;border:1px solid var(--hair);}
+  .cc .bar{height:30px;display:flex;align-items:flex-end;padding:5px 7px;}
+  .cc .bar span{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.92);font-weight:500;}
+  .cc .meta{padding:5px 8px 6px;font-size:11px;}
+  .cc .meta .l{font-weight:600;}
+  .cc .meta .h{font-family:var(--mono);font-size:10px;color:var(--ink3);}
+  @media print{.wrap{padding:0;}.card,.decision{break-inside:avoid;}}
+  @media(max-width:760px){.g2,.g3{grid-template-columns:1fr;}.courses{grid-template-columns:repeat(3,1fr);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>UDJ — Schedule Spec</h1>
+  <p class="sub">Implementation reference for the polished <strong>Emploi du temps / جدول الحصص</strong> screen (Agenda tab) and its <strong>CourseDetailSheet</strong>, in the <strong>Soft Elevated</strong> language. The class card is the <strong>same ScheduleCard as Home</strong> (5px course rail + pills) wrapped in a timeline. Values are the source of truth — wire them as tokens, don't hardcode. Supports light, dark and RTL. Targeted at fixing the 25+ off-grid values, raw font strings and flat cards found in the investigation — not a rewrite.</p>
+
+  <!-- 0 · DECISION -->
+  <div class="decision">
+    <div class="dk">Key decision · timeline vs. stacked</div>
+    <h3>Keep the timeline — but make the card the shared ScheduleCard.</h3>
+    <p>The dedicated Agenda screen earns its structure: the gutter + connector give a chronological spine that surfaces <strong>gaps</strong> ("Pause de 2 heures") and reads as a real day-planner — something Home's flat glance list can't. Dropping to a plain stack would make Agenda a redundant, taller copy of Home. The timeline's only real sins were <em>off-grid values</em> and a <em>bespoke flat card</em>, not the concept.</p>
+    <p>So: <strong>retain</strong> gutter + connector dot/line, but rationalise them onto the 4px grid, and replace the bespoke flat card with the canonical <strong>ScheduleCard</strong> (Home parity: surface · rTile 18 · cardShadow · <strong>5px</strong> rail · tokenised pills) in a <span class="mono">timeline</span> variant. One component, two variants — the gutter owns the time, so the card hides its top time-line and shows the full range as a pill.</p>
+    <span class="rec">Recommendation: timeline layout, grid-aligned, shared ScheduleCard. ~30 numeric fixes, 0 concept changes.</span>
+  </div>
+
+  <!-- 1 · LAYOUT TREE -->
+  <h2><span class="n">1</span> Layout tree (render order)</h2>
+  <div class="card">
+<div class="tree">ScheduleScreen  <span class="c">// fixed status bar + PINNED header (title+DayStrip) + scrolling timeline + floating nav</span>
+├─ StatusBar               <span class="c">44 tall · token-driven barStyle (NOT hardcoded dark-content)</span>
+├─ ScheduleHeader  <span class="c">(non-scrolling · casts cardShadow when timeline scrolls under it)</span>
+│   ├─ Title "Emploi du temps"   <span class="c">22 (FR) / 26 (AR) · 800 · optically matched</span>
+│   ├─ WeekNav
+│   │   ├─ PrevBtn ‹        <span class="c">38×38 · transparent · icon 20 text2 · RTL-flips</span>
+│   │   ├─ WeekLabel "Sem. du 8 juin"  <span class="c">15 / 600 · text1 · centered, flex:1</span>
+│   │   ├─ TodayPill "Aujourd'hui"     <span class="c">jadeFaint pill · only when week ≠ current</span>
+│   │   └─ NextBtn ›        <span class="c">38×38 · transparent · icon 20 text2 · RTL-flips</span>
+│   ├─ DayStrip            <span class="v">7× DayCell · flex · gap 6 · Arabic-Indic dates in AR</span>
+│   │   └─ DayCell ×7      <span class="c">weekday · date · selected(jade) / today(dot) / weekend(muted)</span>
+│   ├─ DaySubtitle "Jeudi 11 juin"     <span class="c">15 / 600 · jadeText ("Aujourd'hui – …" when today)</span>
+│   └─ Hairline            <span class="c">1px hair · becomes cardShadow on scroll</span>
+└─ Timeline  <span class="c">(scrolls · paddingTop 16 · paddingBottom 92 clears floating nav)</span>
+    ├─ TimelineRow ×n  <span class="c">[Gutter 52] [Connector 24: dot 12 + line] [ScheduleCard flex:1]</span>
+    │   └─ ScheduleCard    <span class="v">timeline variant · rail + title + prof·room + (range pill + status pill)</span>
+    └─ GapRow ×m           <span class="c">[Gutter: gap-start time] [Connector: hollow dot + line] [muted "Pause de 2 heures"]</span>
+
+CourseDetailSheet  <span class="c">// overlay above everything, over scrim — opened by tapping a ScheduleCard</span>
+├─ Scrim               <span class="c">rgba(16,22,20,.45) · tap to close</span>
+└─ Sheet               <span class="c">bottom · top radius 24 (r2xl) · slide-up</span>
+    ├─ GrabHandle      <span class="c">38×5 · hair2</span>
+    ├─ SheetHeader     <span class="c">course dot 10 + Title 22/800 + prof 14/text2</span>
+    ├─ Hairline
+    ├─ DetailList      <span class="c">Salle · Horaire(mono) · Code(mono) · Coefficient · Statut(pill) — hair rows, never last</span>
+    ├─ SectionLabel "NOTES PERSONNELLES"
+    ├─ NotesBlock      <span class="c">existing notes (localised mono timestamps) + note input (surface2, NOT dashed)</span>
+    └─ PrimaryBtn "Enregistrer"  <span class="c">50 tall · radius 14 (rBtn)</span></div>
+  </div>
+  <p class="note" style="margin-top:12px;"><strong>Two scroll zones:</strong> Title + WeekNav + DayStrip + subtitle are <em>pinned</em>; only the timeline scrolls (sliding under the header, which gains <span class="mono">cardShadow</span>). Matches Home's pinned-header pattern. Swipe-left/right on the timeline body moves to the prev/next day (kept from current build). No horizontal carousels, no nested scroll.</p>
+
+  <!-- 2 · MEASURED VALUES -->
+  <h2><span class="n">2</span> Measured values</h2>
+
+  <h3>Pinned header</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Status bar</td><td>height / style</td><td class="mono">44 · token barStyle</td><td><span class="tag fix">fix</span> never hardcode dark-content</td></tr>
+      <tr><td class="lead">Header</td><td>padding</td><td class="mono">2 / 20 / 14 / 20</td><td>bg · sits above timeline</td></tr>
+      <tr><td></td><td>scroll shadow</td><td class="mono">cardShadow when scrollTop&gt;0</td><td>else none (light) / 1px hair (dark)</td></tr>
+      <tr><td class="lead">Title</td><td>type</td><td class="mono">22 (FR) / 26 (AR) · 800 · -0.5 track (FR) / 0 (AR)</td><td><span class="tag chg">chg</span> was 18/700 → text1</td></tr>
+      <tr><td class="lead">Week nav</td><td>layout / mt</td><td class="mono">flex · align center · gap 6 · mt 14</td><td>—</td></tr>
+      <tr><td></td><td>prev/next btn</td><td class="mono">38×38 · radius 9999 · transparent</td><td>icon chevron 20 · text2 · 8 hitSlop</td></tr>
+      <tr><td></td><td>week label</td><td class="mono">15 / 600 · flex:1 · center</td><td>text1 · "Sem. du 8 juin"</td></tr>
+      <tr><td></td><td>today pill</td><td class="mono">jadeFaint · full · 5/11 · 13/700</td><td>jadeText · only when week≠current</td></tr>
+      <tr><td class="lead">DayStrip</td><td>layout / mt</td><td class="mono">flex · gap 6 · mt 12</td><td>7 equal cells</td></tr>
+      <tr><td class="lead">Day subtitle</td><td>type / mt</td><td class="mono">15 / 600 · mt 12</td><td><span class="tag chg">chg</span> was 14/500 → jadeText</td></tr>
+      <tr><td class="lead">Hairline</td><td>h / mt</td><td class="mono">1 · mt 14</td><td>hair</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;"><strong>Title is optically sized per script, not a fixed px.</strong> Plus Jakarta 800 reads visually heavier than Noto Naskh at the same size, so the Latin title is <span class="mono">22</span> (track -0.5) and the Arabic title is <span class="mono">26</span> (track 0) — both land at the same perceived weight. (Home's greeting stays 26/800; it's a shorter string so it doesn't feel as heavy.) Day subtitle is jade and bold to anchor the selected day; prefix "Aujourd'hui – " (text stays jade) only when the selected day is today.</p>
+  </div>
+
+  <h3>DayCell (×7)</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Cell</td><td>box</td><td class="mono">flex:1 · height 62 · radius 16 (rXl)</td><td>column · center · gap 3</td></tr>
+      <tr><td></td><td>padding</td><td class="mono">8 / 0</td><td>—</td></tr>
+      <tr><td class="lead">Weekday</td><td>type</td><td class="mono">12.5 / 600</td><td>"Dim Lun Mar…" title-case</td></tr>
+      <tr><td class="lead">Date</td><td>type</td><td class="mono">DM Mono 17 / 500</td><td><span class="tag fix">fix</span> Arabic-Indic in AR ("١١")</td></tr>
+      <tr><td class="lead">— default</td><td>bg / text</td><td class="mono">transparent</td><td>weekday text3 · date text1</td></tr>
+      <tr><td class="lead">— selected</td><td>bg / text</td><td class="mono">jade · #fff</td><td>both lines #fff · navShadow (jade glow)</td></tr>
+      <tr><td class="lead">— today (unselected)</td><td>marker</td><td class="mono">4×4 jade dot under date</td><td>else cell looks default</td></tr>
+      <tr><td class="lead">— weekend (Ven/Sam)</td><td>bg / text</td><td class="mono">sunken · text3</td><td>muted · still tappable</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">Weekend = <strong>Vendredi + Samedi</strong> (Djibouti work-week is Dim–Jeu). Weekend cells render on the <span class="mono">sunken</span> well so they read as off-days but stay selectable (tapping shows the weekend empty state, §5). Today gets a 4px jade dot; if today is also selected, the white text wins and the dot is omitted.</p>
+  </div>
+
+  <h3>TimelineRow — gutter &amp; connector</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Row</td><td>layout / gap</td><td class="mono">flex · align stretch · row gap 16</td><td><span class="tag fix">fix</span> on-grid (was 11/assorted)</td></tr>
+      <tr><td class="lead">Gutter</td><td>width / align</td><td class="mono">52 · text-align end · padInlineEnd 12</td><td>—</td></tr>
+      <tr><td></td><td>time</td><td class="mono">DM Mono 13 / 500 · padTop 15</td><td><span class="tag fix">fix</span> was 12px raw variant string</td></tr>
+      <tr><td></td><td>color</td><td class="mono">text2 (past → text3)</td><td>start time only ("08:00")</td></tr>
+      <tr><td class="lead">Connector</td><td>width</td><td class="mono">24 · centers the dot</td><td>—</td></tr>
+      <tr><td></td><td>dot</td><td class="mono">12×12 · radius 9999 · top 15</td><td><span class="tag chg">chg</span> was 11 + odd radius · = course colour</td></tr>
+      <tr><td></td><td>line</td><td class="mono">2px · from dot bottom → row end</td><td>hair · bridges the 16 gap to next</td></tr>
+      <tr><td></td><td>live dot</td><td class="mono">12 jade + 2px ring + soft pulse</td><td>only when now ∈ [start,end]</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">Gutter time and connector dot top-align with the card's title (padTop 15 ≈ card padTop 14 + 1). The connector line is one continuous 2px hairline spine — the dot sits on it, coloured by the course; the line itself never takes course colour.</p>
+  </div>
+
+  <h3>ScheduleCard — timeline variant (shared with Home)</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Card</td><td>bg / radius / shadow</td><td class="mono">surface · 18 (rTile) · cardShadow</td><td><span class="tag chg">chg</span> was flat + 1px border · position relative · overflow hidden</td></tr>
+      <tr><td></td><td>padding</td><td class="mono">14 / 16 / 14 / 18</td><td><span class="tag fix">fix</span> was 11 · extra start clears rail</td></tr>
+      <tr><td class="lead">Colour rail</td><td>box</td><td class="mono">abs · inset-block 0 · inset-inline-start 0 · w 5</td><td><span class="tag fix">fix</span> was 9 → <strong>5</strong> (Home parity) · = course colour</td></tr>
+      <tr><td class="lead">Title</td><td>type</td><td class="mono">15.5 (FR timeline) / 16.5 (AR + Home glance) · 700</td><td><span class="tag chg">chg</span> was 12/bold · text1 (past → text2)</td></tr>
+      <tr><td class="lead">Prof · room</td><td>type / mt</td><td class="mono">14 / 500 · mt 2</td><td>text2 · "Dr. Omar Hassan · Labo Info 2"</td></tr>
+      <tr><td class="lead">Meta row</td><td>layout / mt</td><td class="mono">flex · align center · gap 8 · mt 11</td><td>—</td></tr>
+      <tr><td class="lead">Time-range pill</td><td>bg / radius / pad</td><td class="mono">surface2 · full · 5/12</td><td>DM Mono 13/600 · text2 · "08:00 – 09:30"</td></tr>
+      <tr><td class="lead">Status pill</td><td>bg / radius / pad</td><td class="mono">statusBg · full · 5/12 · <strong>hug-width</strong></td><td><span class="tag fix">fix</span> was fixed-h 21 → clipped "À" · 13/700</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;"><strong>One component, two variants.</strong> Home uses <span class="mono">variant="glance"</span> (mono time line at top, room + status pills, title 16.5). Agenda uses <span class="mono">variant="timeline"</span> (no top time — the gutter owns it; full range pill + status pill, room folded into the prof line). The timeline title drops to <span class="mono">15.5</span> in Latin only (FR) — these strings are longer than Home's and read heavy at 16.5; Arabic keeps 16.5. Everything else (surface/radius/shadow/rail tokens) is identical across both. <strong>Status pill must hug its content</strong> (never a fixed width/height) — that's what clipped "À venir" to "À".</p>
+  </div>
+
+  <h3>Status pill — token map</h3>
+  <div class="card"><table>
+    <thead><tr><th>Status</th><th>Condition</th><th>bg</th><th>fg</th><th>Light</th><th>Card</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">À venir</td><td class="mono">now &lt; start</td><td class="mono">blueBg</td><td class="mono">blue</td><td><span class="pill blue">À venir</span></td><td>full colour</td></tr>
+      <tr><td class="lead">En cours</td><td class="mono">start ≤ now ≤ end</td><td class="mono">jadeFaint</td><td class="mono">jadeText</td><td><span class="pill">En cours</span></td><td>live dot pulse</td></tr>
+      <tr><td class="lead">Terminé</td><td class="mono">now &gt; end</td><td class="mono">slateBg</td><td class="mono">slate</td><td><span class="pill slate">Terminé</span></td><td>title → text2</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">Drives the meta pill <em>and</em> the connector dot state together. "Fini" in the current build → standardise to <strong>"Terminé"</strong> (matches Home). Past classes dim only the <em>title</em> to text2; the rail keeps full colour so the day still reads chromatically.</p>
+  </div>
+
+  <h3>GapRow ("Pause de 2 heures")</h3>
+  <div class="card"><div class="specrow"><span class="k">Gutter</span><span class="v">gap-start time · DM Mono 13/500 · text3</span></div>
+    <div class="specrow"><span class="k">Connector dot</span><span class="v">10×10 · hollow (2px hair ring, transparent fill)</span></div>
+    <div class="specrow"><span class="k">Label</span><span class="v">14 / 500 · text3 · padTop 13</span></div>
+    <div class="specrow"><span class="k">Row height</span><span class="v">min 44 · no card · line continues</span></div>
+  </div>
+  <p class="note" style="margin-top:10px;">A gap is computed when two consecutive classes are &gt;30 min apart. Label = <span class="mono">t('schedule.break', {h})</span> ("Pause de 2 heures" / "استراحة لساعتين"). No card, no rail — just the muted spine continuing, so the eye reads it as dead time, not a class.</p>
+  </div>
+
+  <h3>CourseDetailSheet</h3>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Shell &amp; header</h3>
+      <div class="specrow"><span class="k">Sheet top radius</span><span class="v">24 (r2xl) · slide-up</span></div>
+      <div class="specrow"><span class="k">Padding</span><span class="v">20 sides · padBottom 26 + safe-area</span></div>
+      <div class="specrow"><span class="k">Grab handle</span><span class="v">38×5 · radius full · hair2</span></div>
+      <div class="specrow"><span class="k">Course dot</span><span class="v">10×10 round · = course colour · mt 6</span></div>
+      <div class="specrow"><span class="k">Title</span><span class="v">22 / 800 / -0.4 · text1</span></div>
+      <div class="specrow"><span class="k">Prof</span><span class="v">14 / 500 · text2 · mt 2</span></div>
+      <div class="specrow"><span class="k">Hairline</span><span class="v">1px hair · mt 16</span></div>
+      <div class="specrow"><span class="k">Scrim</span><span class="v">rgba(16,22,20,.45)</span></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">Detail list + notes</h3>
+      <div class="specrow"><span class="k">Detail row</span><span class="v">flex space-between · pad 14/0 · hair, never last</span></div>
+      <div class="specrow"><span class="k">Label</span><span class="v">14.5 / 500 · text2</span></div>
+      <div class="specrow"><span class="k">Value</span><span class="v">14.5 / 600 · text1</span></div>
+      <div class="specrow"><span class="k">Value — Horaire / Code</span><span class="v">DM Mono 14 / 500 · text1</span></div>
+      <div class="specrow"><span class="k">Value — Statut</span><span class="v">StatusPill (reuse §2)</span></div>
+      <div class="specrow"><span class="k">Section label</span><span class="v">12.5/700 UPPER · text3 · mt 20</span></div>
+      <div class="specrow"><span class="k">Note input</span><span class="v">surface2 · radius 12 · 1px hair · pad 12/14</span></div>
+      <div class="specrow"><span class="k">Note input min-h / text</span><span class="v">88 · 14.5/400 · placeholder text3</span></div>
+      <div class="specrow"><span class="k">Saved note</span><span class="v">body 14/400 + mono timestamp 12/text3</span></div>
+      <div class="specrow"><span class="k">Enregistrer</span><span class="v">50 tall · radius 14 (rBtn) · jade · mt 16</span></div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:12px;"><strong>Yes — full sheet-spec treatment, same as the Présence UploadSheet.</strong> r2xl top radius, 38×5 handle, hair-divided rows, rBtn primary. Three concrete changes from the current sheet: (1) the note field becomes a <strong>filled surface2 box</strong>, not a dashed drop-zone (dashed = "upload", wrong affordance here); (2) the <span class="mono">Statut</span> value is the real <strong>StatusPill</strong>, not plain text; (3) drop the floating <strong>"Aucune note"</strong> footer — show the empty hint inside the notes block instead, and <strong>localise note timestamps</strong> (<span class="tag fix">fix</span> remove hardcoded MONTHS_FR → use the locale formatter, Arabic-Indic in AR).</p>
+
+  <!-- 3 · COMPONENT INVENTORY -->
+  <h2><span class="n">3</span> Component inventory</h2>
+  <div class="card"><table>
+    <thead><tr><th>Component</th><th>Suggested file</th><th>Props</th><th>Renders</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">ScheduleScreen</td><td class="mono">agenda/ScheduleScreen</td><td class="mono">nav, openOverlay</td><td>pinned header + timeline + nav · swipe + week state</td></tr>
+      <tr><td class="lead">ScheduleHeader</td><td class="mono">agenda/ScheduleHeader</td><td class="mono">weekLabel, days, selected, isCurrentWeek, scrolled, onPrev/Next/Today/SelectDay</td><td>title · week nav · DayStrip · subtitle · scroll shadow</td></tr>
+      <tr><td class="lead">DayStrip</td><td class="mono">agenda/DayStrip</td><td class="mono">days, selectedIdx, onSelect</td><td>row of 7 DayCell</td></tr>
+      <tr><td class="lead">DayCell</td><td class="mono">agenda/DayCell</td><td class="mono">weekday, date, selected, today, weekend, onPress</td><td>weekday + date + state styling</td></tr>
+      <tr><td class="lead">TimelineRow</td><td class="mono">agenda/TimelineRow</td><td class="mono">time, status, isGap, isLast, children</td><td>gutter + connector(dot/line) + slot</td></tr>
+      <tr><td class="lead">ScheduleCard*</td><td class="mono">schedule/ScheduleCard</td><td class="mono">variant, start, end, title, prof, room, courseIdx, status, onPress</td><td><strong>shared w/ Home</strong> — rail + title + prof·room + pills</td></tr>
+      <tr><td class="lead">GapRow</td><td class="mono">agenda/GapRow</td><td class="mono">time, hours</td><td>muted "Pause de N heures" on the spine</td></tr>
+      <tr><td class="lead">StatusPill*</td><td class="mono">schedule/StatusPill</td><td class="mono">status</td><td>shared — status → {bg,fg,label}</td></tr>
+      <tr><td class="lead">CourseDetailSheet</td><td class="mono">agenda/CourseDetailSheet</td><td class="mono">course, notes, onSave, onClose</td><td>detail list + notes + Enregistrer in Sheet</td></tr>
+      <tr><td class="lead">courseColor*</td><td class="mono">theme/courseColor(idx)</td><td class="mono">idx 0–11</td><td>shared — §6 palette (jade excluded)</td></tr>
+      <tr><td class="lead">Sheet* · SheetBtn* · CatIcon*</td><td class="mono">ui/*</td><td class="mono">—</td><td>shared — scrim + slide-up · primary btn · glyphs</td></tr>
+      <tr><td class="lead">NavBar* · SkeletonBox* · OfflineBanner* · ErrorBlock*</td><td class="mono">ui/*</td><td class="mono">—</td><td>shared — nav + states (§4)</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">* already exist — reuse, don't fork. Net-new: <strong>ScheduleHeader, DayStrip, DayCell, TimelineRow, GapRow, CourseDetailSheet</strong> + the <span class="mono">StatusPill</span> map. <strong>ScheduleCard gains a <span class="mono">variant</span> prop</strong> ("glance" | "timeline") so Home and Agenda share one card. New CatIcon glyph: <span class="mono">coffee</span> (weekend empty state).</p>
+  </div>
+
+  <!-- 4 · STATES -->
+  <h2><span class="n">4</span> States</h2>
+  <div class="card"><table>
+    <thead><tr><th>State</th><th>Treatment</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Loaded</td><td>As specified — DayStrip + timeline of N classes interleaved with GapRows.</td></tr>
+      <tr><td class="lead">Loading / skeleton</td><td>Header + DayStrip render immediately (full semester is cached). Timeline → <strong>3 TimelineRow skeletons</strong>: gutter shows a 36×13 mono skeleton pill, connector dot is a static 12 hair circle, card = SkeletonBox at the card footprint (radius 18, ~96 tall). Existing shimmer (800ms / ~1600ms).</td></tr>
+      <tr><td class="lead">Empty <span class="tag">no class · weekday</span></td><td>DayStrip stays. Timeline replaced by a centred block: 64 round <span class="mono">jadeFaint</span> circle + <span class="mono">cal</span> icon, title "Aucun cours ce jour" 16/700, body "Profitez de votre journée." 14/text2.</td></tr>
+      <tr><td class="lead">Empty <span class="tag">weekend</span></td><td>Same block, different glyph/copy: 64 round <span class="mono">surface2</span> circle + <span class="mono">coffee</span> icon, title "Week-end" 16/700, body "Pas de cours le vendredi et le samedi." 14/text2. Selected weekend cell stays on the sunken well.</td></tr>
+      <tr><td class="lead">Error</td><td>Header still renders (week nav is local). Timeline area → shared ErrorBlock: 72 round examBg circle + icon, title 16/700, body 14/text2 (~220 wide, centred), retry 168×48.</td></tr>
+      <tr><td class="lead">Offline <span class="tag">cached</span></td><td>Shared OfflineBanner as the first timeline item (above row 1): bg offlineBg, 1px warningBorder, 8×8 offline dot, 12/offlineText. The whole semester is cached, so <strong>week nav + day select + swipe keep working</strong> (client-side filtering) — banner just flags staleness.</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- 5 · INTERACTIONS -->
+  <h2><span class="n">5</span> Interactions</h2>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Action</th><th>Target ≥44</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Prev / Next week</td><td>Shift week ±7 · re-filter cached data · keep weekday selection</td><td>38 + 8 hitSlop ✓</td></tr>
+      <tr><td class="lead">Aujourd'hui pill</td><td>Jump to current week + select today (hidden when already there)</td><td>~34 ✓</td></tr>
+      <tr><td class="lead">DayCell</td><td>Select day → swap timeline (animated translate)</td><td>~60 ✓</td></tr>
+      <tr><td class="lead">Timeline swipe ←/→</td><td>Prev / next day with animated slide (kept from current build)</td><td>gesture ✓</td></tr>
+      <tr><td class="lead">ScheduleCard</td><td>Open CourseDetailSheet for that class</td><td>card ✓</td></tr>
+      <tr><td class="lead">GapRow</td><td>Static (no action)</td><td>—</td></tr>
+      <tr><td class="lead">Note input</td><td>Focus → keyboard; sheet lifts above keyboard</td><td>88 ✓</td></tr>
+      <tr><td class="lead">Enregistrer</td><td>Save note → append to list, clear field, toast</td><td>50 ✓</td></tr>
+      <tr><td class="lead">Scrim / handle-drag</td><td>Dismiss CourseDetailSheet</td><td>full / 38 ✓</td></tr>
+      <tr><td class="lead">NavBar tabs</td><td>Switch root tab</td><td>46 ✓</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">Swipe and DayCell select are <strong>the same action</strong> — both move the selected day and animate the timeline; keep them in sync. Week nav re-filters the cached semester (no network). The pinned header does not collapse on scroll — it only gains a shadow.</p>
+  </div>
+
+  <!-- 6 · DIFFERENCES -->
+  <h2><span class="n">6</span> Differences vs current build</h2>
+  <div class="card">
+    <ul>
+      <li><span class="tag chg">chg</span> <strong>Title 18/700 → 800, optically sized 22 (FR) / 26 (AR).</strong> Latin Plus Jakarta 800 reads heavier than Naskh, so the FR title is 22 (track -0.5) and AR is 26 (track 0) for equal perceived weight. Was a non-spec size.</li>
+      <li><span class="tag chg">chg</span> <strong>Header background surface(white) → bg.</strong> The pinned header sits on the app background, like Home; the timeline scrolls under it and the header gains <span class="mono">cardShadow</span> on scroll.</li>
+      <li><span class="tag fix">fix</span> <strong>Rail 9px → 5px</strong> — matches Home's ScheduleCard rail exactly. This was the headline inconsistency.</li>
+      <li><span class="tag chg">chg</span> <strong>Bespoke flat card → canonical ScheduleCard</strong> (surface · rTile 18 · cardShadow), dropping the 1px scheduleBorder for elevation. Same card as Home via a <span class="mono">variant</span> prop.</li>
+      <li><span class="tag fix">fix</span> <strong>Status pill un-clipped.</strong> The fixed 21-tall pill clipped "À venir"→"À". Now hug-width, pad 5/12, 13/700, driven by the StatusPill token map (À venir/En cours/Terminé).</li>
+      <li><span class="tag fix">fix</span> <strong>~25 off-grid values → 4px grid</strong> (content pad 11→14/16/14/18; row gap → 16; connector top → 15; etc.).</li>
+      <li><span class="tag fix">fix</span> <strong>6 raw font-variant strings → tokens</strong> (gutter time → fonts.mono 13/500; subject → fonts.sans 16.5/700; etc.).</li>
+      <li><span class="tag fix">fix</span> <strong>StatusBar barStyle tokenised</strong> — was hardcoded "dark-content", broke dark mode.</li>
+      <li><span class="tag fix">fix</span> <strong>DayStrip date numbers → Arabic-Indic in AR.</strong></li>
+      <li><span class="tag fix">fix</span> <strong>CourseDetailSheet timestamps localised</strong> — remove hardcoded MONTHS_FR; use locale formatter.</li>
+      <li><span class="tag chg">chg</span> <strong>Connector dot 11 → 12</strong> + standard full radius; gap dot becomes a hollow ring; live dot pulses.</li>
+      <li><span class="tag add">add</span> <strong>GapRow formalised</strong> ("Pause de N heures") on the muted spine, computed from &gt;30min gaps.</li>
+      <li><span class="tag add">add</span> <strong>Detail-sheet note field → filled surface2</strong> (not dashed), Statut row → real StatusPill, "Aucune note" footer removed.</li>
+      <li><span class="tag">keep</span> Swipe-between-days, week prev/next/today, weekend detection &amp; block, timeline concept, full-semester cache + client-side filter.</li>
+    </ul>
+  </div>
+
+  <!-- 7 · DARK + RTL -->
+  <h2><span class="n">7</span> Dark mode &amp; RTL</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Dark mode</h3>
+      <ul>
+        <li>Header bg = bg (#0E1512); scroll shadow becomes a 1px <span class="mono">hair</span> bottom border (shadows read poorly on near-black).</li>
+        <li>DayCell selected = jade (#2BB989) + white text; weekend cells = <strong>sunken (#0A0F0D)</strong> + text3 — recessed, never surface2 (which is lighter than bg in dark).</li>
+        <li>Cards = surface (#17211D) + dark cardShadow; range pill = surface2.</li>
+        <li>Course rails + connector dots use the <strong>dark palette column</strong> (§6, ~12% lighter) so they stay visible on dark cards.</li>
+        <li>Status pills follow lifted tokens (blueBg/blue, jadeFaint/jadeText, slateBg/slate dark).</li>
+        <li>Connector line = hair (#fff @8%); gap dot ring = hair2.</li>
+        <li><strong>StatusBar barStyle is token-driven</strong> (light-content in dark) — the bug this fixes.</li>
+      </ul>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">RTL (Arabic)</h3>
+      <ul>
+        <li>Root <span class="mono">direction: rtl</span> — title right-aligns; week nav <strong>prev/next swap</strong> (chevrons flip); DayStrip lays out right→left.</li>
+        <li>Gutter + connector move to the <strong>right</strong> edge; the rail uses <span class="mono">inset-inline-start</span> → flips automatically.</li>
+        <li><strong>Times stay LTR</strong> ("08:00 – 09:30", DM Mono) but <strong>DayStrip dates &amp; note timestamps use Arabic-Indic numerals</strong> ("الخميس ١١ يونيو").</li>
+        <li>Day subtitle "اليوم – الخميس ١١ يونيو"; break label "استراحة لساعتين".</li>
+        <li>Detail-sheet rows mirror — label leads (right), value to the left; StatusPill mirrors.</li>
+        <li>Font switches to Noto Naskh Arabic; mono times/codes stay Latin DM Mono. Verify dark + AR together.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 8 · COLOR / PALETTE -->
+  <h2><span class="n">8</span> Course-colour palette (recap)</h2>
+  <div class="card">
+    <div class="courses" id="courses"></div>
+    <p class="note" style="margin-top:14px;">Same 12-colour sequential palette as Home/Notifications — assigned by stable index <span class="mono">courseColor(courseId % 12)</span> so a course keeps one colour across Home rail, Agenda rail, connector dot and the detail-sheet dot. <strong>Brand jade is excluded</strong> from the rotation so a course rail never reads as "live/active" (that's reserved for the En-cours state). Reference assignment for the screens in the screenshots is below.</p>
+  </div>
+
+  <!-- 9 · REFERENCE DATA -->
+  <h2><span class="n">9</span> Reference data (FR / AR)</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Jeudi 11 juin</h3>
+      <div class="specrow"><span class="k">08:00–09:30 · Réseaux informatiques</span><span class="v">Labo Info 2 · idx 4 · À venir</span></div>
+      <div class="specrow"><span class="k">10:00–11:30 · Systèmes d'exploitation</span><span class="v">Amphi A1 · idx 6 · À venir</span></div>
+      <div class="specrow"><span class="k">11:30 · GapRow</span><span class="v">Pause de 2 heures</span></div>
+      <div class="specrow"><span class="k">13:00–14:30 · Statistiques L2</span><span class="v">Salle B08 · idx 1 · À venir</span></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">Mercredi 10 juin (aujourd'hui)</h3>
+      <div class="specrow"><span class="k">08:00–10:00 · Bases de données</span><span class="v">Labo Info 1 · idx 2 · Terminé</span></div>
+      <div class="specrow"><span class="k">10:30–12:00 · Mathématiques générales L2</span><span class="v">Salle A05 · idx 3 · Terminé</span></div>
+      <div class="specrow"><span class="k">12:00 · GapRow</span><span class="v">Pause de 2 heures</span></div>
+      <div class="specrow"><span class="k">14:00–15:30 · Physique quantique</span><span class="v">Salle D04 · idx 0 · À venir</span></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px;"><h3 style="margin-top:0;">CourseDetailSheet — Réseaux informatiques</h3><table>
+    <thead><tr><th>Row</th><th>Value</th><th>Format</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Salle</td><td>Labo Info 2</td><td>14.5/600 text1</td></tr>
+      <tr><td class="lead">Horaire</td><td class="mono">08:00 – 09:30</td><td>DM Mono 14/500</td></tr>
+      <tr><td class="lead">Code matière</td><td class="mono">INF303</td><td>DM Mono 14/500</td></tr>
+      <tr><td class="lead">Coefficient</td><td>3</td><td>14.5/600 text1</td></tr>
+      <tr><td class="lead">Statut</td><td><span class="pill blue">À venir</span></td><td>StatusPill</td></tr>
+      <tr><td class="lead">Notes</td><td>— (empty → inline hint, no footer)</td><td>14.5/400</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">Course-colour dot for Réseaux informatiques = idx 4 (emerald #2E9E5B). All strings are placeholders — wire to the cached semester data, nothing hardcoded in components. Note timestamps must come from the locale formatter (Arabic-Indic in AR), never MONTHS_FR.</p>
+  </div>
+
+  <!-- COLORS -->
+  <h2><span class="n">10</span> Color tokens used</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Light</h3><div id="light"></div></div>
+    <div class="card darkstrip"><h3 style="margin-top:0;color:#ECF1EE;">Dark</h3><div id="dark"></div></div>
+  </div>
+  <p class="note" style="margin-top:14px;">No new theme primitives — the Schedule screen draws entirely on existing tokens plus the course palette (§8) and the StatusPill map (§2), which themselves reuse blue/jade/slate. The selected DayCell carries the jade glow (cardShadow tinted), the only chromatic chrome.</p>
+</div>
+<script>
+  const light=[['surface','#FFFFFF'],['surface2','#F4F7F5'],['sunken','#ECEFEC'],['bg','#F2F5F3'],['text1','#1C2320'],['text2','#6B7B74'],['text3','#9EADA7'],['hair','rgba(28,35,32,0.07)'],['hair2','rgba(28,35,32,0.11)'],['jade','#1D9E75'],['jadeText','#0F6E56'],['jadeFaint','rgba(29,158,117,0.10)'],['blue','#2F7DD1'],['blueBg','rgba(47,125,209,0.12)'],['slate','#5A6B7B'],['slateBg','rgba(90,107,123,0.12)']];
+  const dark=[['surface','#17211D'],['surface2','#1E2A25'],['sunken','#0A0F0D'],['bg','#0E1512'],['text1','#ECF1EE'],['text2','#9DB0A8'],['text3','#6E847B'],['hair','rgba(255,255,255,0.08)'],['hair2','rgba(255,255,255,0.13)'],['jade','#2BB989'],['jadeText','#5FD3A6'],['jadeFaint','rgba(43,185,137,0.16)'],['blue','#5AA0E6'],['blueBg','rgba(90,160,230,0.18)'],['slate','#9DB0BE'],['slateBg','rgba(157,176,190,0.16)']];
+  const swatch=(arr,el)=>{el.innerHTML=arr.map(([n,v])=>`<div class="sw"><span class="chip" style="background:${v}"></span><span class="nm">${n}</span><span class="hex">${v}</span></div>`).join('');};
+  swatch(light,document.getElementById('light'));
+  swatch(dark,document.getElementById('dark'));
+  const courses=[['indigo','#6366F1'],['blue','#2F7DD1'],['sky','#1E94C4'],['teal','#119A8B'],['emerald','#2E9E5B'],['lime','#6B9A2E'],['amber','#E08A1E'],['orange','#E2673A'],['rose','#E0556A'],['magenta','#D6519E'],['violet','#8B5CF6'],['slate','#5A6B7B']];
+  document.getElementById('courses').innerHTML=courses.map(([n,l],i)=>`
+    <div class="cc"><div class="bar" style="background:${l}"><span>${i}</span></div>
+    <div class="meta"><div class="l">${n}</div><div class="h">${l}</div></div></div>`).join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>UDJ — Mes Absences Implementation Spec</title>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" rx="22" fill="#0F6E56"/>
+    <rect x="24" y="30" width="22" height="22" rx="6" fill="#fff" opacity="0.92"/>
+    <rect x="24" y="58" width="52" height="8" rx="4" fill="#fff" opacity="0.55"/>
+    <circle cx="68" cy="41" r="9" fill="#EF4444"/>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#F2F5F3; --surface:#fff; --ink:#1C2320; --ink2:#6B7B74; --ink3:#9EADA7;
+    --hair:rgba(28,35,32,0.10); --jade:#1D9E75; --jade6:#0F6E56; --amber:#E08A1E; --danger:#EF4444;
+    --sans:'Plus Jakarta Sans',sans-serif; --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1000px;margin:0 auto;padding:56px 32px 100px;}
+  h1{font-size:34px;font-weight:800;letter-spacing:-0.8px;margin:0;}
+  .sub{color:var(--ink2);font-size:15px;margin-top:8px;max-width:64ch;line-height:1.55;}
+  h2{font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--jade6);margin:54px 0 18px;display:flex;align-items:center;gap:10px;}
+  h2 .n{width:22px;height:22px;border-radius:7px;background:var(--jade6);color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+  h3{font-size:17px;font-weight:700;margin:26px 0 10px;}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:18px;padding:22px;box-shadow:0 1px 2px rgba(28,35,32,0.04);}
+  .grid{display:grid;gap:14px;}
+  .g2{grid-template-columns:1fr 1fr;}
+  .g3{grid-template-columns:1fr 1fr 1fr;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:start;padding:8px 10px;border-bottom:1px solid var(--hair);vertical-align:top;}
+  th{font-size:11px;letter-spacing:0.6px;text-transform:uppercase;color:var(--ink3);font-weight:700;}
+  td.mono,.mono{font-family:var(--mono);font-size:12px;}
+  .lead{font-weight:700;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:3px 9px;border-radius:9999px;background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .pill.amber{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .pill.red{background:rgba(239,68,68,0.12);color:#b91c1c;}
+  .pill.grey{background:rgba(28,35,32,0.08);color:#6B7B74;}
+  .note{font-size:13px;color:var(--ink2);line-height:1.55;}
+  .specrow{font-size:13px;display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px solid var(--hair);}
+  .specrow:last-child{border-bottom:none;}
+  .specrow .k{color:var(--ink2);}
+  .specrow .v{font-family:var(--mono);font-size:12px;text-align:end;}
+  ul{margin:8px 0 0;padding-inline-start:20px;}
+  li{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:5px;}
+  .sw{display:flex;align-items:center;gap:11px;padding:7px 0;border-bottom:1px solid var(--hair);font-size:13px;}
+  .sw:last-child{border-bottom:none;}
+  .chip{width:28px;height:28px;border-radius:8px;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);}
+  .nm{font-weight:600;}
+  .hex{font-family:var(--mono);color:var(--ink2);font-size:12px;margin-inline-start:auto;}
+  .darkstrip{background:#0E1512;border-radius:14px;padding:14px 16px;}
+  .darkstrip .sw{border-color:rgba(255,255,255,0.08);color:#ECF1EE;}
+  .darkstrip .hex{color:#9DB0A8;}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:6px;background:rgba(28,35,32,0.06);color:var(--ink2);}
+  .tag.add{background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .tag.chg{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .tag.rm{background:rgba(239,68,68,0.12);color:#b91c1c;}
+  .tree{font-family:var(--mono);font-size:12.5px;line-height:1.85;color:var(--ink);white-space:pre;overflow-x:auto;}
+  .tree .c{color:var(--ink3);}
+  .tree .v{color:var(--jade6);}
+  .tree .r{color:#b91c1c;}
+  @media print{.wrap{padding:0;}.card{break-inside:avoid;}}
+  @media(max-width:720px){.g2,.g3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>UDJ — Mes Absences Spec</h1>
+  <p class="sub">Drop-in spec for the new <strong>Mes absences / غيابي</strong> section on the existing <strong>Présence</strong> screen. Everything else on that screen — the <span class="mono">Scaffold</span> header (status bar + back button + “Présence” title), hero ring and <em>Par matière</em> subject cards — <strong>stays exactly as built and is out of scope</strong>. This is a <strong>body-only</strong> change: it <strong>replaces the single blind “Justificatifs” upload row</strong> with a list of individual absence records the student can see, filter, and justify one-by-one, plus a redesigned per-record justification sheet with a note field. Same <strong>Soft Elevated</strong> language (cardShadow, no borders), same tokens, same shared <span class="mono">Sheet / SheetBtn / CatIcon / Scaffold</span>. Light, dark &amp; RTL. Values are the source of truth — wire as tokens, don't hardcode.</p>
+
+  <!-- 1 · WHERE IT PLUGS IN -->
+  <h2><span class="n">1</span> Where it plugs in (render order)</h2>
+  <div class="card">
+<div class="tree">PresenceScreen  <span class="c">// unchanged scaffold + hero + subjects</span>
+├─ StatusBar
+├─ Header "Présence"
+└─ ScrollBody
+    ├─ HeroSummaryCard          <span class="c">— unchanged (87% ring)</span>
+    ├─ SectionLabel "Par matière"
+    ├─ SubjectList ×4           <span class="c">— unchanged</span>
+    │
+    ├─ SectionLabel "Mes absences"     <span class="r">⟵ replaces "Justificatifs"</span>
+    ├─ FilterSegment            <span class="v">À justifier (n)  |  Tout</span>
+    └─ AbsenceList              <span class="c">one surface card · rows split by hairline</span>
+        └─ AbsenceRow ×N
+            ├─ DateTile         <span class="c">46² · status-tinted · day(mono)+month</span>
+            ├─ Mid              <span class="c">subject · time·room · note line (if any)</span>
+            └─ End              <span class="c">StatusBadge + chevron (actionable only)</span>
+
+<span class="r">REMOVED:</span> UploadRow  <span class="c">// blind "grab first absent record" entry — gone</span>
+
+JustifySheet  <span class="c">// opens for ONE record · over scrim · reuses ui/Sheet</span>
+├─ Scrim                        <span class="c">rgba(16,22,20,.45) · tap to close</span>
+└─ Sheet (top radius 24)
+    ├─ GrabHandle               <span class="c">38×5</span>
+    ├─ Title "Justifier l'absence"
+    ├─ ContextCard              <span class="c">date tile + subject + time·room of THIS record</span>
+    ├─ RejectBanner             <span class="c">edit mode · only if status = rejected</span>
+    ├─ NoteField + QuickChips   <span class="c">edit mode · "Motif (optionnel)" above picker</span>
+    ├─ FilePicker → FilePreview <span class="c">edit mode · Caméra | Galerie</span>
+    ├─ NoteReadonly + DocView   <span class="c">view mode · approved / pending</span>
+    └─ Footer (SheetBtn ×1–2)</div>
+  <p class="note" style="margin-top:12px;">Still <strong>one vertical scroll</strong> — the absence list is a plain stacked list inside the page scroll (no nested scroll, no carousel). The section sits exactly where the old <em>Justificatifs</em> label/row was (same <span class="mono">22/20/10/20</span> label margin), so nothing above it shifts.</p>
+  <p class="note" style="margin-top:8px;"><strong>Header is untouched.</strong> The shared <span class="mono">Scaffold</span> renders as today — status bar on <span class="mono">T.bg</span> (no green), back circle <span class="mono">38×38 surface + cardShadow</span>, compact title <span class="mono">big=false → 20 / 800 / -0.6</span>, scroll body top <span class="mono">96</span>. The green only ever appears <em>inside</em> the hero card. Do not add a coloured status-bar fill, a right-side action, or a large title — none of that is part of this change.</p>
+  </div>
+
+  <!-- 2 · SECTION + FILTER -->
+  <h2><span class="n">2</span> Section label &amp; filter segment</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Section label</h3>
+      <div class="specrow"><span class="k">Text</span><span class="v">Mes absences / غيابي</span></div>
+      <div class="specrow"><span class="k">Type</span><span class="v">12.5 / 700 / 0.3 / UPPERCASE</span></div>
+      <div class="specrow"><span class="k">Color</span><span class="v">text3</span></div>
+      <div class="specrow"><span class="k">Margin</span><span class="v">22 / 20 / 10 / 20</span></div>
+      <div class="specrow"><span class="k">Trailing count</span><span class="v">optional · 12.5/600 text3 (“5”)</span></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">Filter segment</h3>
+      <div class="specrow"><span class="k">Track</span><span class="v">surface2 · radius 12 · pad 4</span></div>
+      <div class="specrow"><span class="k">Margin</span><span class="v">0 / 16 / 12 / 16</span></div>
+      <div class="specrow"><span class="k">Segment</span><span class="v">flex 1 · pad 8 · radius 9</span></div>
+      <div class="specrow"><span class="k">Active</span><span class="v">surface + cardShadow · jadeText 700</span></div>
+      <div class="specrow"><span class="k">Inactive</span><span class="v">text3 · 600 · transparent</span></div>
+      <div class="specrow"><span class="k">Count badge</span><span class="v">danger pill · 10.5/700 · min 17 round</span></div>
+      <div class="specrow"><span class="k">Default</span><span class="v">“À justifier” selected</span></div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:12px;"><strong>À justifier</strong> = records with status <span class="pill red">unjustified</span> + <span class="pill grey">rejected</span> (the actionable ones; count badge shows their total). <strong>Tout</strong> = all records. This filter is scoped to the absence list only — it is <em>not</em> the “Tous / À risque” subject filter mentioned (and deferred) in the Présence spec. Two segments only; no third tab.</p>
+
+  <!-- 3 · ABSENCE ROW -->
+  <h2><span class="n">3</span> Absence list &amp; row</h2>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">List card</td><td>bg / radius / shadow</td><td class="mono">surface · 16 · cardShadow</td><td>side margin 16 · overflow hidden</td></tr>
+      <tr><td></td><td>row divider</td><td class="mono">1px hair2 borderTop</td><td>first row: none</td></tr>
+      <tr><td class="lead">Row</td><td>layout / pad</td><td class="mono">flex align center · gap 12 · pad 12/13</td><td>height ≈ 64</td></tr>
+      <tr><td></td><td>press</td><td class="mono">active bg #f7faf8 (light)</td><td>only if actionable / viewable</td></tr>
+      <tr><td class="lead">Date tile</td><td>size / radius</td><td class="mono">46×46 · 12</td><td>bg = status faint</td></tr>
+      <tr><td></td><td>day</td><td class="mono">DM Mono 17 / 500</td><td>= status color</td></tr>
+      <tr><td></td><td>month</td><td class="mono">9.5 / 600 / UPPERCASE · mt 2</td><td>= status color</td></tr>
+      <tr><td class="lead">Mid · subject</td><td>type</td><td class="mono">14 / 600 · 1-line ellipsis</td><td>text1</td></tr>
+      <tr><td></td><td>meta (time · room)</td><td class="mono">12 · mt 3 · time = mono</td><td>text3</td></tr>
+      <tr><td></td><td>note line (if any)</td><td class="mono">11.5 · mt 4 · note glyph 12</td><td>text2 · ellipsis</td></tr>
+      <tr><td class="lead">End</td><td>layout</td><td class="mono">column align end · gap 6</td><td>—</td></tr>
+      <tr><td></td><td>StatusBadge</td><td class="mono">10.5 / 700 · pad 4/9 · radius full</td><td>bg status faint · text status</td></tr>
+      <tr><td></td><td>chevron</td><td class="mono">16 · text3 · actionable only</td><td>RTL flips (scaleX -1)</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">The <strong>date tile is the color-coding</strong> — it carries the status tint <em>and</em> the date, so no extra coloured dot is needed. Rows are sorted <strong>most-recent first</strong>; within “À justifier”, unjustified above rejected.</p>
+  </div>
+
+  <!-- 4 · STATUS MODEL -->
+  <h2><span class="n">4</span> Status model</h2>
+  <div class="card"><table>
+    <thead><tr><th>Status</th><th>Badge (FR / AR)</th><th>Color token</th><th>Tile / badge bg</th><th>Tap → </th><th>Chevron</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">unjustified</td><td>Non justifiée / غير مبرّر</td><td class="mono">danger</td><td class="mono">dangerFaint</td><td>JustifySheet <em>(edit)</em></td><td>✓</td></tr>
+      <tr><td class="lead">rejected</td><td>Refusée / مرفوض</td><td class="mono">text3 (muted)</td><td class="mono">surface2</td><td>JustifySheet <em>(resubmit)</em></td><td>✓</td></tr>
+      <tr><td class="lead">pending</td><td>En attente / قيد المراجعة</td><td class="mono">amber</td><td class="mono">amberFaint</td><td>JustifySheet <em>(view)</em></td><td>—</td></tr>
+      <tr><td class="lead">approved</td><td>Justifiée / مبرّر</td><td class="mono">jadeText</td><td class="mono">jadeFaint</td><td>JustifySheet <em>(view)</em></td><td>—</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;"><strong>Rejected is deliberately muted (text3), not red.</strong> Red stays reserved for “needs action / unjustified”; rejected reads as a calm “try again” and stays re-actionable. The <span class="pill red">danger</span> count badge on the filter still counts rejected rows (they're actionable) even though their row tint is neutral.</p>
+  <p class="note" style="margin-top:8px;"><strong>Backend → status map:</strong> <span class="mono">justificationStatus = null → unjustified</span> · <span class="mono">PENDING → pending</span> · <span class="mono">APPROVED → approved</span> · <span class="mono">REJECTED → rejected</span>. Only records with <span class="mono">status ∈ {ABSENT, LATE}</span> appear in the list (PRESENT excluded). <span class="tag add">add</span> new nullable column <span class="mono">justificationNote</span> on <span class="mono">AttendanceRecord</span>, returned in the list payload and accepted by the upload endpoint (§7).</p>
+  </div>
+
+  <!-- 5 · JUSTIFY SHEET -->
+  <h2><span class="n">5</span> JustifySheet (per record)</h2>
+  <p class="note" style="margin-bottom:14px;">Reuses the shared <span class="mono">ui/Sheet</span> (scrim + slide-up, top radius 24, grab handle 38×5) and <span class="mono">ui/SheetBtn</span> (50 tall · radius 14 · gap 10). Opened via <span class="mono">openOverlay('justify', recordId)</span>. Mode is derived from the record's status: <strong>edit</strong> (unjustified / rejected) or <strong>view</strong> (pending / approved).</p>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Shared header</h3>
+      <div class="specrow"><span class="k">Title</span><span class="v">17 / 700 — “Justifier l'absence”</span></div>
+      <div class="specrow"><span class="k">Context card</span><span class="v">bg surface2 · radius 12 · pad 11/12</span></div>
+      <div class="specrow"><span class="k">— date tile</span><span class="v">42×42 · status tint (smaller)</span></div>
+      <div class="specrow"><span class="k">— subject</span><span class="v">13.5 / 700 · text1</span></div>
+      <div class="specrow"><span class="k">— meta</span><span class="v">11.5 · text2 — time · room</span></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">Reject banner <span class="tag">edit · rejected only</span></h3>
+      <div class="specrow"><span class="k">Bg / radius</span><span class="v">dangerFaint · 11 · pad 11/12 · mt 12</span></div>
+      <div class="specrow"><span class="k">Icon</span><span class="v">warn triangle 13 · danger</span></div>
+      <div class="specrow"><span class="k">Title</span><span class="v">12 / 700 — “Justificatif refusé”</span></div>
+      <div class="specrow"><span class="k">Reason</span><span class="v">11.5 · text2 — from backend</span></div>
+    </div>
+  </div>
+
+  <h3>Note field + quick chips <span class="tag">edit mode</span></h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Label row</td><td>layout / mt</td><td class="mono">space-between · mt 18 · mb 8</td><td>—</td></tr>
+      <tr><td></td><td>label</td><td class="mono">12.5 / 700 — “Motif”</td><td>text1 · “(optionnel)” 11 text3</td></tr>
+      <tr><td></td><td>counter</td><td class="mono">11 · mono · “0/80”</td><td>text3 · tabular</td></tr>
+      <tr><td class="lead">Textarea</td><td>bg / radius / pad</td><td class="mono">surface2 · 12 · 11/13</td><td>62 tall · resize none</td></tr>
+      <tr><td></td><td>type</td><td class="mono">13 · sans · line 1.45</td><td>text1 · placeholder text3</td></tr>
+      <tr><td></td><td>focus</td><td class="mono">1.5px jade + ring jadeFaint</td><td>maxLength 80</td></tr>
+      <tr><td></td><td>placeholder</td><td class="mono">“Ex. Certificat médical — grippe”</td><td>—</td></tr>
+      <tr><td class="lead">Quick chips</td><td>layout</td><td class="mono">horiz scroll · gap 7 · pt 10</td><td>one-tap fill</td></tr>
+      <tr><td></td><td>chip</td><td class="mono">11.5 / 600 · pad 7/12 · radius full</td><td>surface2 · text2</td></tr>
+      <tr><td></td><td>chip active</td><td class="mono">jadeFaint · jadeText · “+”→check</td><td>matches typed value</td></tr>
+      <tr><td></td><td>presets</td><td class="mono">Certificat médical · Rendez-vous administratif · Raison familiale</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;"><strong>Note is optional</strong> and sits <strong>above</strong> the file picker (reason-first, proof-second). It never blocks submit. A chip fills the textarea with its label; editing the text de-activates the chip.</p>
+  </div>
+
+  <h3>File picker → preview <span class="tag">edit mode</span></h3>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Picker (no file yet)</h3>
+      <div class="specrow"><span class="k">Label</span><span class="v">“Justificatif” 12.5/700 · mt 18</span></div>
+      <div class="specrow"><span class="k">Two tiles</span><span class="v">flex · gap 10</span></div>
+      <div class="specrow"><span class="k">Tile</span><span class="v">surface · radius 12 · 1.5px hair2</span></div>
+      <div class="specrow"><span class="k">Tile pad / layout</span><span class="v">14/8 · column center · gap 7</span></div>
+      <div class="specrow"><span class="k">Icon chip</span><span class="v">32 · radius 9 · jadeFaint · jadeText</span></div>
+      <div class="specrow"><span class="k">Label</span><span class="v">12 / 600 — Caméra · Galerie</span></div>
+      <div class="specrow"><span class="k">Icons</span><span class="v">CatIcon camera / image</span></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">Preview (file picked)</h3>
+      <div class="specrow"><span class="k">Bg / border</span><span class="v">jadeFaint · 1px jade · radius 12</span></div>
+      <div class="specrow"><span class="k">Layout / pad</span><span class="v">flex align center · gap 11 · 10/12</span></div>
+      <div class="specrow"><span class="k">Thumb</span><span class="v">42 · radius 8 · surface · doc icon</span></div>
+      <div class="specrow"><span class="k">Filename</span><span class="v">12.5 / 700 · ellipsis</span></div>
+      <div class="specrow"><span class="k">Sub</span><span class="v">11 · text2 — “ajouté à l'instant”</span></div>
+      <div class="specrow"><span class="k">Remove ✕</span><span class="v">26 round · jade tint · 44 hit</span></div>
+    </div>
+  </div>
+
+  <h3>View mode <span class="tag">pending / approved</span></h3>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Note (read-only)</h3>
+      <div class="specrow"><span class="k">Bg / radius / pad</span><span class="v">bg · 12 · 12/13 · mt 8</span></div>
+      <div class="specrow"><span class="k">Caption</span><span class="v">10.5 / 700 UPPER · text3</span></div>
+      <div class="specrow"><span class="k">Caption text</span><span class="v">“Motif transmis”</span></div>
+      <div class="specrow"><span class="k">Body</span><span class="v">13 · text1 · mt 5</span></div>
+      <div class="specrow"><span class="k">Hidden if</span><span class="v">no note on record</span></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">Document view</h3>
+      <div class="specrow"><span class="k">Bg / radius / pad</span><span class="v">surface2 · 12 · 11/12</span></div>
+      <div class="specrow"><span class="k">Thumb</span><span class="v">40 · radius 8 · surface · doc</span></div>
+      <div class="specrow"><span class="k">Filename</span><span class="v">12.5 / 600 · text1</span></div>
+      <div class="specrow"><span class="k">Sub</span><span class="v">11 · text2 — “Envoyé”</span></div>
+      <div class="specrow"><span class="k">Action</span><span class="v">“Voir le document” 12/600 jade</span></div>
+      <div class="specrow"><span class="k">Source</span><span class="v">record.justificationUrl</span></div>
+    </div>
+  </div>
+
+  <h3>Footer buttons (by mode)</h3>
+  <div class="card"><table>
+    <thead><tr><th>Mode</th><th>Buttons</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">unjustified <span class="tag">edit</span></td><td><span class="mono">primary</span> “Envoyer le justificatif” — <strong>disabled until a file is picked</strong> (note optional).</td></tr>
+      <tr><td class="lead">rejected <span class="tag">resubmit</span></td><td><span class="mono">primary</span> “Renvoyer le justificatif” — same gating; reject reason banner shown above.</td></tr>
+      <tr><td class="lead">pending <span class="tag">view</span></td><td><span class="mono">outline</span> “Remplacer le document” (→ switches to edit) + <span class="mono">outline</span> “Fermer”.</td></tr>
+      <tr><td class="lead">approved <span class="tag">view</span></td><td><span class="mono">outline</span> “Fermer” only.</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- 6 · COLOR TOKENS -->
+  <h2><span class="n">6</span> Color tokens (status tints)</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Light</h3><div id="light"></div></div>
+    <div class="card darkstrip"><h3 style="margin-top:0;color:#ECF1EE;">Dark</h3><div id="dark"></div></div>
+  </div>
+  <p class="note" style="margin-top:14px;">No new base colours — these are the existing <span class="mono">jade / amber / danger / text3</span> tokens plus their faint fills. Date-tile bg, badge bg and badge text all derive from one status token. In <strong>light</strong>, badge text uses the darker on-faint variants for AA (<span class="mono">approved=jadeText #0F6E56 · pending #9a5b06 · unjustified #b91c1c</span>); in <strong>dark</strong>, text uses the lifted token (jade #2BB989 · amber #F0A84B · danger #FF6B6B). Rejected uses neutral <span class="mono">surface2 + text2</span> in both.</p>
+
+  <!-- 7 · BACKEND -->
+  <h2><span class="n">7</span> Backend &amp; data</h2>
+  <div class="card"><table>
+    <thead><tr><th>Field</th><th>Type</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">id</td><td class="mono">string</td><td>record key · path param for upload</td></tr>
+      <tr><td class="lead">status</td><td class="mono">ABSENT | LATE | PRESENT</td><td>only ABSENT/LATE listed</td></tr>
+      <tr><td class="lead">date · startTime · endTime</td><td class="mono">ISO</td><td>DateTile + meta (current semester only)</td></tr>
+      <tr><td class="lead">subject · room</td><td class="mono">string</td><td>mid block</td></tr>
+      <tr><td class="lead">justificationStatus</td><td class="mono">null|PENDING|APPROVED|REJECTED</td><td>→ row status (§4)</td></tr>
+      <tr><td class="lead">justificationUrl</td><td class="mono">string|null</td><td>“Voir le document”</td></tr>
+      <tr><td class="lead">rejectionReason</td><td class="mono">string|null</td><td>reject banner (if provided)</td></tr>
+      <tr><td class="lead">justificationNote</td><td class="mono">string|null <span class="tag add">new</span></td><td>note field · read-only echo</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;"><strong>Submit:</strong> <span class="mono">POST /student/attendance/:id/justification</span> — multipart <span class="mono">{ file, note }</span>. The existing endpoint already takes the file; add the optional <span class="mono">note</span> part → persists to <span class="mono">justificationNote</span>. On 200: set that record's <span class="mono">justificationStatus = PENDING</span>, stash the note, close sheet, show success toast/snackbar; the row re-renders to the <span class="pill amber">pending</span> badge with its note line. The list is always scoped to the <strong>current semester</strong> — no semester switcher here.</p>
+  </div>
+
+  <!-- 8 · STATES -->
+  <h2><span class="n">8</span> States</h2>
+  <div class="card"><table>
+    <thead><tr><th>State</th><th>Treatment</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Loaded · has absences</td><td>Section label + filter segment + AbsenceList. Default filter “À justifier”.</td></tr>
+      <tr><td class="lead">Loaded · zero absences <span class="tag">success</span></td><td>Filter hidden. List replaced by a centred success block: 64 round <span class="mono">jadeFaint</span> circle + check icon, title 16/700 “Aucune absence”, body 14/text2 “Belle régularité — continue comme ça.” (AR “لا غياب — أحسنت!”).</td></tr>
+      <tr><td class="lead">Loading</td><td>Section label renders immediately; list = 3 row skeletons (radius 16 card, ~64 tall rows) using the existing SkeletonBox shimmer. Filter hidden until loaded.</td></tr>
+      <tr><td class="lead">Offline <span class="tag">cached</span></td><td>Cached records render with their badges. Actionable rows stay visible but the JustifySheet submit is <strong>disabled</strong> with hint “Reconnecte-toi pour envoyer” — uploading needs network. (Screen-level offline banner is the shared one from the Présence spec, unchanged.)</td></tr>
+      <tr><td class="lead">Error</td><td>If the records call fails but the rest of the screen loaded: inline error inside the list card — small icon + 13/text2 “Impossible de charger les absences” + “Réessayer” text button. Hero + subjects unaffected. Full-screen error stays the shared block.</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">The absence section only appears in the screen's <strong>loaded</strong> state — it never replaces the existing skeleton/empty/error/offline treatments of the screen as a whole; it nests inside them per the rows above.</p>
+  </div>
+
+  <!-- 9 · INTERACTIONS -->
+  <h2><span class="n">9</span> Interactions</h2>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Action</th><th>Target ≥44</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Filter segment</td><td>Switch À justifier ⇄ Tout · re-render list</td><td>~40 tall ✓</td></tr>
+      <tr><td class="lead">Row — unjustified / rejected</td><td>Open JustifySheet (edit / resubmit)</td><td>~64 ✓</td></tr>
+      <tr><td class="lead">Row — pending / approved</td><td>Open JustifySheet (view, read-only)</td><td>~64 ✓</td></tr>
+      <tr><td class="lead">Quick chip</td><td>Fill note textarea · toggle active</td><td>~34 ✓</td></tr>
+      <tr><td class="lead">Caméra / Galerie</td><td>OS picker → file preview · enable submit</td><td>tile ✓</td></tr>
+      <tr><td class="lead">Remove ✕</td><td>Clear file · re-disable submit</td><td>26 + hitSlop ✓</td></tr>
+      <tr><td class="lead">Envoyer / Renvoyer</td><td>POST · pending · toast · close</td><td>50 ✓</td></tr>
+      <tr><td class="lead">Remplacer le document</td><td>Pending view → edit mode</td><td>50 ✓</td></tr>
+      <tr><td class="lead">Voir le document</td><td>Open justificationUrl</td><td>row ✓</td></tr>
+      <tr><td class="lead">Fermer / scrim</td><td>Dismiss sheet</td><td>50 / full ✓</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- 10 · COMPONENT INVENTORY -->
+  <h2><span class="n">10</span> Component inventory</h2>
+  <div class="card"><table>
+    <thead><tr><th>Component</th><th>Suggested file</th><th>Props</th><th>Renders</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">AbsenceSection</td><td class="mono">presence/AbsenceSection</td><td class="mono">records, filter, setFilter, openOverlay</td><td>label + filter segment + list (or empty/skeleton)</td></tr>
+      <tr><td class="lead">FilterSegment</td><td class="mono">presence/FilterSegment</td><td class="mono">value, counts, onChange</td><td>2-segment control + count badge</td></tr>
+      <tr><td class="lead">AbsenceRow</td><td class="mono">presence/AbsenceRow</td><td class="mono">record, onPress</td><td>date tile + mid + badge + chevron</td></tr>
+      <tr><td class="lead">DateTile</td><td class="mono">presence/DateTile</td><td class="mono">day, month, status, size</td><td>status-tinted day+month tile</td></tr>
+      <tr><td class="lead">StatusBadge</td><td class="mono">presence/StatusBadge</td><td class="mono">status</td><td>faint pill, label from t()</td></tr>
+      <tr><td class="lead">JustifySheet</td><td class="mono">presence/JustifySheet</td><td class="mono">record, onClose, onSubmit</td><td>context + note/chips + picker OR read-only</td></tr>
+      <tr><td class="lead">NoteField</td><td class="mono">presence/NoteField</td><td class="mono">value, onChange, chips</td><td>label + counter + textarea + chips</td></tr>
+      <tr><td class="lead">Sheet*</td><td class="mono">ui/Sheet</td><td class="mono">title, onClose, children</td><td>shared — reuse as-is</td></tr>
+      <tr><td class="lead">SheetBtn*</td><td class="mono">ui/SheetBtn</td><td class="mono">kind: primary|outline</td><td>shared — footer buttons</td></tr>
+      <tr><td class="lead">CatIcon*</td><td class="mono">ui/CatIcon</td><td class="mono">kind, color, size</td><td>shared — add <span class="mono">note · camera · image · doc · check</span></td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">* shared — reuse, don't fork. Net-new: <strong>AbsenceSection, FilterSegment, AbsenceRow, DateTile, StatusBadge, JustifySheet, NoteField</strong>, plus the 5 new CatIcon glyphs. <span class="tag rm">remove</span> the old <span class="mono">UploadRow</span>; <span class="tag chg">replace</span> <span class="mono">UploadSheet</span> with <span class="mono">JustifySheet</span>. Strings extend <span class="mono">S.presence</span> (§12).</p>
+  </div>
+
+  <!-- 11 · DARK + RTL -->
+  <h2><span class="n">11</span> Dark mode &amp; RTL</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Dark</h3>
+      <ul>
+        <li>List card, rows, hairlines, textarea, chips all swap via tokens (surface #17211D, surface2 #1E2A25, hair2 #fff@13%).</li>
+        <li>Status tints lift: jade→#2BB989, amber→#F0A84B, danger→#FF6B6B; date-tile + badge bg use the lifted token at the same faint alpha.</li>
+        <li>Rejected stays neutral (surface2 + text2) so it doesn't read as an alert in the dark list.</li>
+        <li>Sheet, picker tiles, preview and toast inherit the shared dark Sheet — no bespoke dark values.</li>
+      </ul>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">RTL (Arabic)</h3>
+      <ul>
+        <li>Row mirrors: date tile → trailing edge, badge + chevron → leading; chevron flips (<span class="mono">scaleX -1</span>).</li>
+        <li>Filter segments, chips, picker tiles and footer buttons all mirror via <span class="mono">direction:rtl</span>.</li>
+        <li>Date <strong>day number stays Latin DM Mono</strong>; month abbrev localizes (mars → مارس). Time keeps Latin mono digits, matching the screen's other numerals.</li>
+        <li>Subject, notes, labels, badges from <span class="mono">t('presence.*')</span> in Noto Naskh Arabic.</li>
+        <li>Counter “0/80” mirrors position but digits stay Latin (mono).</li>
+        <li>Verify dark + AR together — especially the reject banner and preview chip.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 12 · DIFFERENCES + DATA -->
+  <h2><span class="n">12</span> Differences vs current build</h2>
+  <div class="card">
+    <ul>
+      <li><span class="tag rm">remove</span> The single blind “Justificatifs” <strong>UploadRow</strong> (auto-grabbed the first absent record). Justification is now per-record and contextual.</li>
+      <li><span class="tag chg">replace</span> <strong>UploadSheet → JustifySheet</strong>: adds a context header for the chosen record, an optional <strong>note field + quick chips above the picker</strong>, and read-only / resubmit modes.</li>
+      <li><span class="tag add">add</span> <strong>Mes absences</strong> list of individual records with four visible statuses + a “À justifier / Tout” filter (default À justifier).</li>
+      <li><span class="tag add">add</span> Backend column <strong>justificationNote</strong>, sent with the file to the existing upload endpoint.</li>
+      <li><span class="tag">keep</span> <strong>Scaffold header untouched</strong> — status bar, back button, “Présence” title and the hero ring + <em>Par matière</em> subject cards stay exactly as built. Sheet, SheetBtn, CatIcon base, OfflineBanner and toast are reused, not forked.</li>
+    </ul>
+  </div>
+
+  <h2><span class="n">13</span> Reference data (FR / AR)</h2>
+  <div class="card"><table>
+    <thead><tr><th>Subject (FR / AR)</th><th>Date</th><th>Time · Room</th><th>Status</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Statistiques L2<br><span class="note">الإحصاء س٢</span></td><td class="mono">20 mars</td><td class="mono">08:00–10:00 · Amphi A1</td><td><span class="pill red">unjustified</span></td><td>—</td></tr>
+      <tr><td>Physique Quantique<br><span class="note">الفيزياء الكمية</span></td><td class="mono">18 mars</td><td class="mono">14:00–16:00 · Labo 3</td><td><span class="pill red">unjustified</span></td><td>—</td></tr>
+      <tr><td>Physique Quantique<br><span class="note">الفيزياء الكمية</span></td><td class="mono">14 mars</td><td class="mono">10:00–12:00 · Salle 204</td><td><span class="pill grey">rejected</span></td><td>reason: “Document illisible…”</td></tr>
+      <tr><td>Anglais Technique<br><span class="note">الإنجليزية التقنية</span></td><td class="mono">11 mars</td><td class="mono">08:00–10:00 · Salle 112</td><td><span class="pill amber">pending</span></td><td>Rendez-vous administratif</td></tr>
+      <tr><td>Statistiques L2<br><span class="note">الإحصاء س٢</span></td><td class="mono">07 mars</td><td class="mono">14:00–16:00 · Amphi B2</td><td><span class="pill">approved</span></td><td>Certificat médical — grippe</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">“À justifier” count = <strong>3</strong> (2 unjustified + 1 rejected). Absences tie back to the subject cards — Physique Quantique's two absences are why it reads <span class="pill red">danger</span> at 72%. Placeholder values; wire to real attendance data, nothing hardcoded.</p>
+  </div>
+</div>
+<script>
+  const light=[['danger','#EF4444'],['dangerFaint','rgba(239,68,68,0.12)'],['amber','#E08A1E'],['amberFaint','rgba(224,138,30,0.14)'],['jade','#1D9E75'],['jadeText','#0F6E56'],['jadeFaint','rgba(29,158,117,0.10)'],['text3 (rejected)','#9EADA7'],['surface2','#F4F7F5'],['hair2','rgba(28,35,32,0.11)']];
+  const dark=[['danger','#FF6B6B'],['dangerFaint','rgba(255,107,107,0.16)'],['amber','#F0A84B'],['amberFaint','rgba(240,168,75,0.16)'],['jade','#2BB989'],['jadeText','#5FD3A6'],['jadeFaint','rgba(43,185,137,0.16)'],['text3 (rejected)','#6E847B'],['surface2','#1E2A25'],['hair2','rgba(255,255,255,0.13)']];
+  const swatch=(arr,el)=>{el.innerHTML=arr.map(([n,v])=>`<div class="sw"><span class="chip" style="background:${v}"></span><span class="nm">${n}</span><span class="hex">${v}</span></div>`).join('');};
+  swatch(light,document.getElementById('light'));
+  swatch(dark,document.getElementById('dark'));
+</script>
+</body>
+</html>

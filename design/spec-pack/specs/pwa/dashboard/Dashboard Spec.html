@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Unipocket PWA — Tableau de bord Spec</title>
+<link rel="stylesheet" href="css/fonts.css"/>
+<style>
+doc-page:not(:defined){visibility:hidden}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+doc-page{font-family:'Plus Jakarta Sans',sans-serif;color:#1E231F;font-size:9.5pt;line-height:1.45}
+a{color:#0F6E56}a:hover{color:#1D9E75}
+h1{font-size:24pt;font-weight:800;letter-spacing:-.5px;margin:0 0 4pt}
+h2{font-size:14pt;font-weight:800;margin:22pt 0 8pt;padding-top:8pt;border-top:1.5px solid #1E231F;break-after:avoid}
+h3{font-size:10.5pt;font-weight:700;margin:14pt 0 5pt;break-after:avoid}
+p{margin:0 0 6pt}
+.sub{color:#6C7267;font-size:10.5pt;margin-bottom:12pt}
+.meta{display:flex;flex-wrap:wrap;gap:6pt 18pt;font-size:8.5pt;color:#6C7267;font-family:'DM Mono',monospace;margin-bottom:6pt}
+code{font-family:'DM Mono',monospace;font-size:8.5pt}
+table{width:100%;border-collapse:collapse;margin:3pt 0 9pt;font-size:8.5pt}
+th{text-align:left;font-weight:700;color:#6C7267;font-size:7.5pt;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid rgba(30,35,31,.25);padding:4pt 5pt}
+td{border-bottom:1px solid rgba(30,35,31,.10);padding:3.5pt 5pt;vertical-align:top}
+tr{break-inside:avoid}
+td:first-child{font-weight:600;white-space:nowrap}
+.sw{display:inline-block;width:12pt;height:12pt;border-radius:3pt;vertical-align:middle;border:1px solid rgba(30,35,31,.15);margin-right:4pt}
+.frame{position:relative;overflow:hidden;border-radius:6pt;border:1px solid rgba(30,35,31,.18);background:#F7F4EE;break-inside:avoid}
+.frame iframe{position:absolute;top:0;left:0;border:0;transform-origin:0 0;pointer-events:none}
+.fig{break-inside:avoid;margin:6pt 0 12pt}
+.cap{font-size:8pt;color:#6C7267;margin-top:4pt;font-family:'DM Mono',monospace}
+.row2{display:flex;gap:14pt;align-items:flex-start;flex-wrap:wrap}
+.tree{font-family:'DM Mono',monospace;font-size:8pt;line-height:1.55;background:#F8F5EF;border-radius:6pt;padding:10pt 12pt;white-space:pre;overflow:hidden;break-inside:avoid;margin:4pt 0 10pt}
+.icons{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8pt;margin:6pt 0 10pt}
+.icons div{border:1px solid rgba(30,35,31,.12);border-radius:6pt;padding:8pt 4pt;text-align:center;font-size:7pt;font-family:'DM Mono',monospace;color:#6C7267;break-inside:avoid;word-break:break-all}
+.icons img{width:22pt;height:22pt;display:block;margin:0 auto 5pt}
+.note{font-size:8.5pt;color:#6C7267}
+.warn{background:rgba(245,158,11,.14);border-radius:6pt;padding:8pt 10pt;font-size:8.5pt;margin:6pt 0 10pt;break-inside:avoid}
+</style>
+</head>
+<body>
+<doc-page margin="0.6in">
+<div class="meta"><span>UNIPOCKET PWA</span><span>SCREEN: TABLEAU DE BORD</span><span>STATES: SIDEBAR EXPANDED · COLLAPSED</span><span>SOURCE: Unipocket PWA - Standalone.html</span></div>
+<h1>Tableau de bord — Build Spec</h1>
+<p class="sub">Pixel-exact spec of the student dashboard, with the sidebar open and closed, at every screen width. The <b>reference build</b> (<code>dashboard.html</code> in this package) uses the original stylesheet copied byte-for-byte, so it matches the app pixel for pixel. Open it, resize the window and compare. The previews below are that same file rendered live.</p>
+<div class="warn"><b>Reading your screenshots:</b> they were taken on a ~1.35× display (Windows scaling), so 1912 screen px ≈ 1416 CSS px. Every value in this document is in <b>CSS px</b>. Divide screenshot measurements by 1.35 before comparing. Example: sidebar 323 px on screen = 240 CSS px.</div>
+
+<div class="fig"><div class="frame" style="width:700px;height:535px"><iframe src="dashboard.html" style="width:1440px;height:1100px;transform:scale(.4861)"></iframe></div><div class="cap">A · 1440 px · sidebar expanded (240 px) — matches screenshot 1</div></div>
+<div class="fig"><div class="frame" style="width:700px;height:535px"><iframe src="dashboard.html?collapsed=1" style="width:1440px;height:1100px;transform:scale(.4861)"></iframe></div><div class="cap">B · 1440 px · sidebar collapsed (72 px) — matches screenshot 2</div></div>
+
+<h2>1 · Breakpoints — what changes at each width</h2>
+<table><thead><tr><th>Property</th><th>Mobile &lt;640</th><th>Tablet 640–1023</th><th>Desktop ≥1024</th></tr></thead><tbody>
+<tr><td>Sidebar</td><td>hidden (<code>display:none</code>)</td><td>forced rail 72 px (<code>body.tablet</code>, set by JS on resize). No brand, no labels, no collapse button</td><td>240 px expanded · 72 px when <code>.collapsed</code>. Toggle with "Réduire". Transition width .18s ease</td></tr>
+<tr><td>Bottom tab bar</td><td>fixed, 64 px tall, 5 tabs</td><td colspan="2">hidden</td></tr>
+<tr><td>Topbar padding</td><td>16px 24px</td><td>18px 32px</td><td>20px 48px</td></tr>
+<tr><td>Content padding</td><td>24px, bottom 88px (clears tab bar)</td><td>32px</td><td>48px; <code>max-width:1200px; margin:0 auto</code> (inner width 1104)</td></tr>
+<tr><td>Card grid</td><td>1 column</td><td>2 columns; Notifications spans both</td><td>3 columns, gap 16</td></tr>
+<tr><td>Accès rapide tiles</td><td>2 columns</td><td colspan="2">3 columns, gap 12</td></tr>
+<tr><td>Greeting h1</td><td colspan="2">24px</td><td>28px</td></tr>
+<tr><td>Detail panels</td><td>bottom sheet, radius 22 top</td><td colspan="2">right drawer, max-width 400</td></tr>
+</tbody></table>
+<p class="note">Column math at 1440 px expanded: main = 1440 − 240 = 1200 → content inner 1104 → card column = (1104 − 2×16) / 3 = <b>357.3 px</b>. Collapsed: main = 1368, so content stays capped at 1200 and is centered (left gutter grows by 84 px). With a classic 9 px scrollbar, subtract 9 from main.</p>
+<div class="row2">
+<div class="fig"><div class="frame" style="width:417px;height:650px"><iframe src="dashboard.html" style="width:834px;height:1300px;transform:scale(.5)"></iframe></div><div class="cap">C · 834 px tablet (forced rail)</div></div>
+<div class="fig"><div class="frame" style="width:195px;height:650px"><iframe src="dashboard.html" style="width:390px;height:1300px;transform:scale(.5)"></iframe></div><div class="cap">D · 390 px mobile</div></div>
+</div>
+
+<h2>2 · Layer stack / DOM</h2>
+<div class="tree">body  (bg --bg #F7F4EE)
+└ #app-shell.active                    display:flex; min-height:100vh
+  ├ aside.sidebar[.collapsed]          240|72 × 100vh, sticky top 0, bg --surface, border-inline-end 1px --hair
+  │ ├ .sidebar-head                    flex, gap 10, padding 18px 16px
+  │ │ ├ img (logo mark)                34×34, radius 10
+  │ │ └ .brand "Unipocket"             hidden when collapsed
+  │ ├ nav.sidebar-nav                  flex:1, padding 6px 12px, overflow-y auto
+  │ │ └ button.nav-item ×6 (.active)   44 tall, radius 12, gap 12, icon 19×19
+  │ └ .sidebar-foot                    padding 12, border-top 1px --hair
+  │   └ button.collapse-btn            38 tall, bg --surface2, chevron 14 (rotates 180° collapsed)
+  ├ .main                              flex:1; min-width:0; column
+  │ ├ header.topbar                    sticky top 0, z 20, border-bottom 1px --hair,
+  │ │ │                                bg color-mix(--bg 88%, transparent) + blur(10px)
+  │ │ ├ h1.page-title                  19/800 (keeps UA margin .67em → ~86 px bar)
+  │ │ └ .topbar-right                  gap 10: bell .icon-btn (38) + .badge-dot · avatar-btn (36 + chevron 13)
+  │ └ .content                         padding / max-width per breakpoint
+  │   └ #view-dashboard
+  │     ├ .welcome                     h1 + p, margin-bottom 24
+  │     └ .grid-cards                  3 cols, gap 16, align-items start
+  │       ├ ① .card  Aujourd'hui       (col 1)
+  │       ├ ② column flex gap 16       (col 2) → .hero-jade (GPA) + .card Assiduité (flex:1)
+  │       ├ ③ .card.dash-notif-card    (col 3)
+  │       ├ ④ .card.span-all           Accès rapide  (row 2, full width)
+  │       └ ⑤ .card.span-all           Actualités récentes (row 3, full width)
+  └ nav.bottom-tabbar                  mobile only, fixed bottom, z 100
+Overlays: .notif-panel / .dropdown (absolute under trigger, z 50) · .scrim z 200 · .detail-panel z 201 · toast z 900</div>
+
+<h2>3 · Color tokens</h2>
+<table><thead><tr><th>Token</th><th>Light</th><th>Dark</th><th>Used on dashboard for</th></tr></thead><tbody>
+<tr><td>--bg</td><td><span class="sw" style="background:#F7F4EE"></span>#F7F4EE</td><td><span class="sw" style="background:#15201A"></span>#15201A</td><td>Page, topbar (88% mix)</td></tr>
+<tr><td>--surface</td><td><span class="sw" style="background:#FFFFFF"></span>#FFFFFF</td><td><span class="sw" style="background:#1C2721"></span>#1C2721</td><td>Sidebar, cards, gauge hole, tiles</td></tr>
+<tr><td>--surface2</td><td><span class="sw" style="background:#F8F5EF"></span>#F8F5EF</td><td><span class="sw" style="background:#22302A"></span>#22302A</td><td>Bell button, collapse button, nav hover, thumb stripes</td></tr>
+<tr><td>--sunken</td><td><span class="sw" style="background:#EFEAE0"></span>#EFEAE0</td><td><span class="sw" style="background:#0F1713"></span>#0F1713</td><td>Gauge remainder, thumb stripes</td></tr>
+<tr><td>--ink</td><td><span class="sw" style="background:#1E231F"></span>#1E231F</td><td><span class="sw" style="background:#EDF2ED"></span>#EDF2ED</td><td>Titles, body text</td></tr>
+<tr><td>--ink2</td><td><span class="sw" style="background:#6C7267"></span>#6C7267</td><td><span class="sw" style="background:#9FB0A6"></span>#9FB0A6</td><td>Subtitles, nav items, times, rooms</td></tr>
+<tr><td>--ink3</td><td><span class="sw" style="background:#9CA396"></span>#9CA396</td><td><span class="sw" style="background:#71887C"></span>#71887C</td><td>Notif timestamps, "TAUX", news date</td></tr>
+<tr><td>--hair</td><td>rgba(30,35,31,.10)</td><td>rgba(255,255,255,.08)</td><td>All 1px borders & row dividers</td></tr>
+<tr><td>--jade</td><td><span class="sw" style="background:#1D9E75"></span>#1D9E75</td><td><span class="sw" style="background:#2BB989"></span>#2BB989</td><td>GPA gradient start, unread dot, quick-tile hover border</td></tr>
+<tr><td>--jade-hover</td><td><span class="sw" style="background:#0F6E56"></span>#0F6E56</td><td><span class="sw" style="background:#3FCB9A"></span>#3FCB9A</td><td>GPA gradient end</td></tr>
+<tr><td>--jade-text</td><td><span class="sw" style="background:#0F6E56"></span>#0F6E56</td><td><span class="sw" style="background:#5FD3A6"></span>#5FD3A6</td><td>"Amina", active nav, links, countdown, avatar initials</td></tr>
+<tr><td>--jade-faint</td><td>rgba(29,158,117,.10)</td><td>rgba(43,185,137,.16)</td><td>Active nav bg, countdown pill, avatar, notif chip, Officiel pill</td></tr>
+<tr><td>--danger</td><td><span class="sw" style="background:#EF4444"></span>#EF4444</td><td><span class="sw" style="background:#FF6B6B"></span>#FF6B6B</td><td>Bell badge dot</td></tr>
+<tr><td>--warning</td><td><span class="sw" style="background:#F59E0B"></span>#F59E0B</td><td><span class="sw" style="background:#F0A84B"></span>#F0A84B</td><td>Gauge arc, "Seuil : 75%", attendance notif icon</td></tr>
+<tr><td>--warning-bg</td><td>rgba(245,158,11,.14)</td><td>rgba(240,168,75,.16)</td><td>Attendance notif chip, Justifier tile</td></tr>
+<tr><td>--info / -bg</td><td><span class="sw" style="background:#3B82F6"></span>#3B82F6 / rgba(59,130,246,.12)</td><td><span class="sw" style="background:#5AA0E6"></span>#5AA0E6 / rgba(90,160,230,.18)</td><td>Simuler tile, Événement pill</td></tr>
+<tr><td>--exam / -bg</td><td><span class="sw" style="background:#8B5CF6"></span>#8B5CF6 / rgba(139,92,246,.12)</td><td><span class="sw" style="background:#A98BF0"></span>#A98BF0 / rgba(169,139,240,.18)</td><td>Exam-calendar notif chip</td></tr>
+</tbody></table>
+<h3>Fixed (non-token) colors</h3>
+<table><tbody>
+<tr><td>Course rail — Réseaux</td><td><span class="sw" style="background:#2E9E5B"></span>#2E9E5B</td><td>Course rail — Systèmes</td><td><span class="sw" style="background:#2F7DD1"></span>#2F7DD1</td></tr>
+<tr><td>Course rail — Statistiques</td><td><span class="sw" style="background:#E08A1E"></span>#E08A1E</td><td>Mention dot "Assez Bien"</td><td><span class="sw" style="background:#FFD27D"></span>#FFD27D</td></tr>
+<tr><td>Justifier tile icon</td><td><span class="sw" style="background:#9a5b06"></span>#9A5B06</td><td>GPA hero text</td><td>#FFF · label 78% · suffix 70%</td></tr>
+<tr><td>Mention badge bg</td><td>rgba(255,255,255,.18)</td><td>GPA depth circle</td><td>rgba(255,255,255,.07)</td></tr>
+</tbody></table>
+
+<h2>4 · Gradients, effects &amp; shadows</h2>
+<table><tbody>
+<tr><td>GPA hero gradient</td><td><code>linear-gradient(150deg, var(--jade), var(--jade-hover))</code> → light #1D9E75 → #0F6E56</td></tr>
+<tr><td>GPA hero shadow</td><td><code>0 14px 30px rgba(15,110,86,.30)</code> (the green glow under the card)</td></tr>
+<tr><td>GPA depth circle</td><td>160×160 circle, top −48, inline-end −48, rgba(255,255,255,.07), clipped by <code>overflow:hidden</code></td></tr>
+<tr><td>Attendance gauge</td><td><code>conic-gradient(var(--warning) 0 87%, var(--sunken) 0 100%)</code> on an 88×88 circle; hole inset 9px in --surface (ring 9 px thick)</td></tr>
+<tr><td>Card shadow</td><td><code>0 2px 10px rgba(30,35,31,.06)</code> + border 1px --hair</td></tr>
+<tr><td>Topbar glass</td><td><code>background: color-mix(in oklab, var(--bg) 88%, transparent); backdrop-filter: blur(10px)</code></td></tr>
+<tr><td>News thumbnail</td><td><code>repeating-linear-gradient(45deg, --surface2 0 6px, --sunken 6px 12px)</code>, image placeholder</td></tr>
+<tr><td>Popover shadow</td><td><code>0 12px 32px rgba(30,35,31,.12)</code> (notif panel, avatar menu)</td></tr>
+<tr><td>Scrollbar</td><td>9 px, thumb --jade-faint radius 9, hover --jade, transparent track</td></tr>
+</tbody></table>
+
+<h2>5 · Typography</h2>
+<p>Plus Jakarta Sans 400–800 (UI) · DM Mono 400/500 (numbers, times) · Noto Naskh Arabic (whole UI in RTL). The font files are in <code>fonts/</code>, declared in <code>css/fonts.css</code>. Antialiased.</p>
+<table><thead><tr><th>Element</th><th>Font</th><th>Size / weight</th><th>Notes</th></tr></thead><tbody>
+<tr><td>Brand "Unipocket"</td><td>Jakarta</td><td>15 / 800</td><td>ls −0.2px</td></tr>
+<tr><td>Nav item</td><td>Jakarta</td><td>14 / 600</td><td>ink2; active jade-text</td></tr>
+<tr><td>Réduire</td><td>Jakarta</td><td>12 / 600</td><td>ink2</td></tr>
+<tr><td>Page title</td><td>Jakarta</td><td>19 / 800</td><td>ls −0.3px</td></tr>
+<tr><td>Avatar "AM"</td><td>Jakarta</td><td>13 / 700</td><td>jade-text</td></tr>
+<tr><td>Greeting "Bonjour, Amina"</td><td>Jakarta</td><td>28 / 800 (24 below 1024)</td><td>ls −0.4px; name in jade-text</td></tr>
+<tr><td>Programme line</td><td>Jakarta</td><td>14 / 400</td><td>ink2, mt 5</td></tr>
+<tr><td>Card title h3</td><td>Jakarta</td><td>14 / 700</td><td>mb 14</td></tr>
+<tr><td>Voir tout / Tout voir</td><td>Jakarta</td><td>12.5 / 600</td><td>jade-text</td></tr>
+<tr><td>Countdown pill</td><td>Jakarta</td><td>12 / 700</td><td>clock 13×13</td></tr>
+<tr><td>Course title / room</td><td>Jakarta</td><td>13.5 / 700 · 12 / 400</td><td>lh 1.3; room ink2 mt 2</td></tr>
+<tr><td>Course times</td><td>DM Mono</td><td>12 / 400</td><td>ink2, lh 1.5, right-aligned, 2 lines</td></tr>
+<tr><td>GPA label</td><td>Jakarta</td><td>12.5 / 700</td><td>uppercase, ls .4px</td></tr>
+<tr><td>GPA value "12.3"</td><td>DM Mono</td><td>32 / 500</td><td>lh 1, mt 6 · suffix "/20" 17 / 400</td></tr>
+<tr><td>Mention badge</td><td>Jakarta</td><td>13 / 700</td><td>dot 6×6</td></tr>
+<tr><td>Gauge value / "TAUX"</td><td>Jakarta</td><td>18 / 800 · 9.5 / 600</td><td>TAUX ink3</td></tr>
+<tr><td>Seuil note</td><td>Jakarta</td><td>12.5 / 400, strong 700</td><td>lh 1.5; "Seuil" warning</td></tr>
+<tr><td>Notif title / time</td><td>Jakarta · DM Mono</td><td>13 / 600 · 11.5 / 400</td><td>lh 1.35; time ink3 mt 2</td></tr>
+<tr><td>Quick tile title / sub</td><td>Jakarta</td><td>13 / 700 · 11 / 600</td><td>sub ink2, gap 2</td></tr>
+<tr><td>News pill / date / title</td><td>Jakarta</td><td>11 / 700 · 12 · 14.5 / 700</td><td>title lh 1.35 mt 6</td></tr>
+<tr><td>Tab bar label</td><td>Jakarta</td><td>10.5 / 600</td><td>mobile only</td></tr>
+</tbody></table>
+
+<h2>6 · Components</h2>
+<h3>Sidebar</h3>
+<table><thead><tr><th>Part</th><th>Expanded (≥1024)</th><th>Collapsed / tablet rail</th></tr></thead><tbody>
+<tr><td>Width</td><td>240 (<code>--sidebar-w</code>)</td><td>72</td></tr>
+<tr><td>Head</td><td>padding 18 16 · logo 34×34 r10 · gap 10 · brand</td><td>same padding, brand hidden → logo sits at x16</td></tr>
+<tr><td>Nav</td><td>padding 6 12 · item 44 h, padding 0 12, gap 12, mb 2, r12</td><td>item centered, padding 0 → 48×44 pill</td></tr>
+<tr><td>Nav states</td><td colspan="2">default ink2 · hover bg surface2 + ink · active bg jade-faint + jade-text</td></tr>
+<tr><td>Foot</td><td>padding 12 · border-top · "‹ Réduire" 38 h, r12, bg surface2</td><td>collapsed: chevron only, rotated 180° (›) · tablet: hidden, padding 12 8</td></tr>
+</tbody></table>
+<h3>Topbar</h3>
+<p>Flex, space-between, gap 16. Bell: 38×38 circle, bg surface2, icon 18, hover jade-faint/jade-text. Badge dot: 8×8 danger at top 6 / inline-end 6, ring 1.5px surface2. Avatar: 36×36 circle, jade-faint, gap 8 to a 13 px chevron in ink3. Bell opens <code>.notif-panel</code> (320 w, r16). Avatar opens <code>.dropdown</code> (min 220, r16, items 40 h). Both sit 8 px below their button, aligned to the inline-end.</p>
+<h3>Card base</h3>
+<p><code>.card</code>: bg surface, 1px hair, radius 16, padding 20, shadow-card. <code>.card-head</code> is a flex row, space-between, mb 14.</p>
+<h3>① Aujourd'hui</h3>
+<p>Countdown pill: inline-flex, gap 6, bg jade-faint, padding 5 11, pill radius, mb 14. Each <code>.mini-class</code> row: flex, gap 12, padding 12 0, border-top hair. The first row has no border and no top padding. Its 4×38 rail (r4) is colored per course. The time column is pushed to the end with <code>margin-inline-start:auto</code>.</p>
+<h3>② GPA hero + Assiduité (stacked, gap 16)</h3>
+<p>Hero: radius 22, padding 18 (overrides 22), white text, gradient and glow from §4. Order: label → value (mt 6) → mention badge (mt 10, padding 5 12, gap 7, bg 18% white). Clicking the badge goes to Notes. Assiduité: card with padding 16 and <code>flex:1</code>, so its bottom lines up with card ①. The <code>.gauge-wrap</code> row has gap 16. The whole card is clickable and goes to Présence.</p>
+<h3>③ Notifications</h3>
+<p>Rows: flex, gap 10, padding 10 0, <b>border-top hair on every row</b> (the first one too, which draws the line under the header). Chip: 32×32, r8, icon 15. Grades chip is jade-faint/jade-text, attendance is warning-bg/warning, exams is exam-bg/exam. Clicking "Tout voir" opens the bell panel.</p>
+<h3>④ Accès rapide</h3>
+<p>h3 mb 12. Tile <code>.qlink</code>: flex, gap 11, padding 13 14, r16, 1px hair, bg surface. Hover: border jade, bg jade-faint, text jade-text. Icon tile: 36×36, r10, svg 18 (stroke 1.8).</p>
+<h3>⑤ Actualités récentes</h3>
+<p>The list has gap 10. <code>.article-card2</code>: flex, gap 12, padding 14, r16, shadow-card, no border. Thumb: 56×56, r12. Top row: category pill (11/700, padding 4 10) and date with a 7 px unread dot in jade. The title sits below it.</p>
+<h3>Bottom tab bar (mobile)</h3>
+<p>Fixed to the bottom, 64 tall, surface, border-top hair. 5 equal tabs: Accueil · Agenda · Notes · Actualités · Profil. Each has a 21 px icon, gap 3 and a 10.5 px label. Default ink3, active jade. Présence is not in the tab bar; it is reached from the Assiduité card.</p>
+
+<h2>7 · Icons &amp; images</h2>
+<div class="icons">
+<div><img src="icons/nav-dashboard.svg" alt=""/>nav-dashboard</div><div><img src="icons/nav-schedule.svg" alt=""/>nav-schedule</div><div><img src="icons/nav-grades.svg" alt=""/>nav-grades</div><div><img src="icons/nav-attendance.svg" alt=""/>nav-attendance</div><div><img src="icons/nav-news.svg" alt=""/>nav-news</div><div><img src="icons/nav-profile.svg" alt=""/>nav-profile</div>
+<div><img src="icons/bell.svg" alt=""/>bell</div><div><img src="icons/avatar-chevron.svg" alt=""/>avatar-chevron</div><div><img src="icons/collapse-chevron.svg" alt=""/>collapse-chevron</div><div><img src="icons/countdown-clock.svg" alt=""/>countdown-clock</div><div><img src="icons/notif-grades.svg" alt=""/>notif-grades</div><div><img src="icons/notif-attendance.svg" alt=""/>notif-attendance</div>
+<div><img src="icons/notif-exam.svg" alt=""/>notif-exam</div><div><img src="icons/quick-justify.svg" alt=""/>quick-justify</div><div><img src="icons/quick-calculator.svg" alt=""/>quick-calculator</div><div><img src="icons/quick-print-schedule.svg" alt=""/>quick-print-schedule</div><div><img src="icons/menu-profile.svg" alt=""/>menu-profile</div><div><img src="icons/menu-logout.svg" alt=""/>menu-logout</div>
+</div>
+<p class="note">All icons use a 24×24 viewBox and <code>currentColor</code>. Nav icons are filled or 1.5–1.7 stroke paths drawn at 19 px (21 px in the tab bar). Utility icons use stroke 2, and the quick-access icons use stroke 1.8. Images: <code>assets/unipocket-sidebar-mark.png</code> is the sidebar logo, shown at 34×34 with radius 10. <code>assets/unipocket-icon-foreground.png</code> is the white U used on the login screen.</p>
+
+<h2>8 · Copy (FR / AR)</h2>
+<table><thead><tr><th>Element</th><th>Français</th><th>العربية</th></tr></thead><tbody>
+<tr><td>Page title</td><td>Tableau de bord</td><td dir="rtl">لوحة التحكم</td></tr>
+<tr><td>Nav</td><td>Emploi du temps · Notes · Présence · Actualités · Profil</td><td dir="rtl">جدول الحصص · الدرجات · الحضور · الأخبار · الملف الشخصي</td></tr>
+<tr><td>Collapse</td><td>Réduire</td><td dir="rtl">طي</td></tr>
+<tr><td>Greeting</td><td>Bonjour, Amina · Licence Informatique · Semestre 4</td><td dir="rtl">مرحباً، أمينة · إجازة في المعلوماتية · الفصل الرابع</td></tr>
+<tr><td>Today card</td><td>Aujourd'hui · Mardi 10 juin · Voir tout · Prochain cours dans 45 min</td><td dir="rtl">اليوم · الثلاثاء 10 يونيو · عرض الكل · الحصة القادمة خلال 45 دقيقة</td></tr>
+<tr><td>GPA</td><td>Moyenne générale · Assez Bien</td><td dir="rtl">المعدل العام · مستحسن</td></tr>
+<tr><td>Attendance</td><td>Assiduité · TAUX · Seuil : 75% · 2 absences avant avertissement.</td><td dir="rtl">المواظبة · النسبة · الحد الأدنى: 75٪ · غيابان قبل التحذير.</td></tr>
+<tr><td>Notifications</td><td>Tout voir · Vos notes de Réseaux sont publiées · Présence à 72 % — sous le seuil · Calendrier des examens S2 publié</td><td dir="rtl">عرض الكل · تم نشر درجات مادة الشبكات · نسبة الحضور 72٪ — دون الحد الأدنى · تم نشر جدول امتحانات الفصل الثاني</td></tr>
+<tr><td>Accès rapide</td><td>Justifier une absence / 1 en attente · Simuler ma moyenne / Calculatrice · Imprimer mon planning / Semaine en cours</td><td dir="rtl">روابط سريعة · تبرير غياب / 1 قيد الانتظار · محاكاة معدلي / الحاسبة · طباعة الجدول / هذا الأسبوع</td></tr>
+<tr><td>News</td><td>Actualités récentes · Officiel · Événement</td><td dir="rtl">آخر الأخبار · رسمي · فعالية</td></tr>
+</tbody></table>
+<p class="note">RTL: <code>&lt;html dir="rtl" lang="ar"&gt;</code>. Layout uses logical properties throughout, so the sidebar, borders, depth circle and badge dot all mirror. Times and the GPA value stay LTR (<code>.mono</code> = direction:ltr + isolate). Preview with <code>dashboard.html?lang=ar</code>.</p>
+
+<h2>9 · Hardening for in-between widths</h2>
+<p><code>css/hardening.css</code> adds no visual change at the reference sizes. It only stops wrapping and overflow at awkward widths and on narrow phones:</p>
+<table><tbody>
+<tr><td>minmax(0,1fr)</td><td>card grid and quick-access tracks, so long words can never widen a column past the screen</td></tr>
+<tr><td>No-wrap</td><td>page title, Voir tout / Tout voir, mention badge, countdown pill, nav labels, news date</td></tr>
+<tr><td>Ellipsis</td><td>page title and course titles truncate instead of pushing the time column out</td></tr>
+<tr><td>min-width:0</td><td>on flex text columns (course body, notif text, quick tile and its text) so they can shrink; quick-tile titles wrap normally</td></tr>
+<tr><td>Tablet rail</td><td>Applied by a pure CSS media query <code>@media (min-width:640px) and (max-width:1023px)</code> (72 px width, brand/labels/collapse hidden), so it never depends on JS timing. The <code>body.tablet</code> JS toggle is kept only as a fallback.</td></tr>
+<tr><td>&lt;380 px</td><td>quick-access tiles go to 1 column; gauge gap 12</td></tr>
+</tbody></table>
+<p class="note">Rule of thumb: no fixed heights on text boxes, every grid track is <code>1fr</code> inside <code>min-width:0</code> parents, and sizes switch only at 640 and 1024.</p>
+
+<h2>10 · Your reference screenshots</h2>
+<div class="fig"><img src="reference/screenshot-expanded.png" alt="" style="width:100%;border-radius:6pt;border:1px solid rgba(30,35,31,.18)"/><div class="cap">Screenshot 1 · expanded · ~1.35× DPR</div></div>
+<div class="fig"><img src="reference/screenshot-collapsed.png" alt="" style="width:100%;border-radius:6pt;border:1px solid rgba(30,35,31,.18)"/><div class="cap">Screenshot 2 · collapsed · ~1.35× DPR</div></div>
+<h2>11 · Package contents</h2>
+<table><tbody>
+<tr><td>dashboard.html</td><td>Reference build: the exact markup and CSS, responsive. URL params <code>?collapsed=1</code> · <code>?theme=dark</code> · <code>?lang=ar</code></td></tr>
+<tr><td>css/app.css</td><td>Original full stylesheet, verbatim (tokens light/dark plus every component)</td></tr>
+<tr><td>css/fonts.css + fonts/</td><td>The exact woff2 files bundled with the app (Plus Jakarta Sans, DM Mono, Noto Naskh Arabic)</td></tr>
+<tr><td>css/hardening.css</td><td>Responsive safety rules (§9)</td></tr>
+<tr><td>icons/</td><td>18 SVGs used on this screen</td></tr>
+<tr><td>assets/</td><td>unipocket-u-mark.svg (U-only, currentColor), unipocket-u-tile.svg (sidebar tile), sidebar mark PNG, white U foreground PNG</td></tr>
+<tr><td>reference/</td><td>Your two screenshots</td></tr>
+<tr><td>Dashboard Spec.html</td><td>This document (PDF source)</td></tr>
+</tbody></table>
+</doc-page>
+<script src="doc-page.js"></script>
+</body>
+</html>

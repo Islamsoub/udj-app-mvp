@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unipocket Admin — Portail UDJ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { background: #EEF2F0; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: #1C2320; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  ::selection { background: rgba(29,158,117,0.22); }
+  input, textarea, button { font-family: inherit; }
+  ::-webkit-scrollbar { width: 11px; height: 11px; }
+  ::-webkit-scrollbar-thumb { background: rgba(28,35,32,0.16); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(28,35,32,0.28); background-clip: content-box; }
+  nav::-webkit-scrollbar { width: 7px; }
+  nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); }
+  @keyframes toastIn { from { transform: translate(-50%, 14px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes popIn { from { transform: translateY(8px) scale(0.98); opacity: 0; } to { transform: none; opacity: 1; } }
+  kbd { line-height: 1; }
+</style>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" rx="22" fill="#0A3D2E"></rect>
+    <rect x="20" y="20" width="60" height="60" rx="14" fill="#1D9E75"></rect>
+    <text x="50" y="64" font-family="sans-serif" font-size="38" font-weight="800" fill="#fff" text-anchor="middle">U</text>
+  </svg>
+</template>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="admin/admin-data.jsx"></script>
+<script type="text/babel" src="admin/admin-data2.jsx"></script>
+<script type="text/babel" src="admin/admin-core.jsx"></script>
+<script type="text/babel" src="admin/admin-context.jsx"></script>
+<script type="text/babel" src="admin/admin-shell.jsx"></script>
+<script type="text/babel" src="admin/admin-dashboard.jsx"></script>
+<script type="text/babel" src="admin/admin-students.jsx"></script>
+<script type="text/babel" src="admin/admin-grades.jsx"></script>
+<script type="text/babel" src="admin/admin-attendance.jsx"></script>
+<script type="text/babel" src="admin/admin-news.jsx"></script>
+<script type="text/babel" src="admin/admin-academics.jsx"></script>
+<script type="text/babel" src="admin/admin-schedule.jsx"></script>
+<script type="text/babel" src="admin/admin-notifications.jsx"></script>
+<script type="text/babel" src="admin/admin-admins.jsx"></script>
+<script type="text/babel" src="admin/admin-audit.jsx"></script>
+<script type="text/babel" src="admin/admin-settings.jsx"></script>
+<script type="text/babel" src="admin/admin-extra.jsx"></script>
+<script type="text/babel" src="admin/admin-ui.jsx"></script>
+<script type="text/babel" src="admin/admin-forms.jsx"></script>
+<script type="text/babel" src="admin/admin-modals.jsx"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useCallback } = React;
+
+/* ---- toast ---- */
+function Toast({ toast }) {
+  if (!toast) return null;
+  return (
+    <div style={{ position: 'fixed', bottom: 28, left: 'calc(50% + 124px)', transform: 'translateX(-50%)', zIndex: 50,
+      background: '#1C2320', color: '#fff', padding: '12px 18px', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 11,
+      boxShadow: '0 10px 34px rgba(0,0,0,0.28)', fontFamily: window.A_SANS, fontWeight: 600, fontSize: 14, animation: 'toastIn .26s cubic-bezier(.2,.9,.3,1)' }}>
+      <span style={{ width: 24, height: 24, borderRadius: 999, background: toast.icon === 'x' ? '#E1483D' : '#1D9E75', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <window.Icon name={toast.icon === 'send' ? 'send' : toast.icon === 'x' ? 'x' : 'check'} size={14} color="#fff" />
+      </span>
+      {toast.msg}
+    </div>
+  );
+}
+
+function App() {
+  const [route, setRoute] = useState({ page: 'dashboard', params: {} });
+  const [toast, setToast] = useState(null);
+  const tref = React.useRef(null);
+
+  const go = useCallback((page, params = {}) => {
+    setRoute({ page, params });
+    window.scrollTo(0, 0);
+    const main = document.getElementById('main-scroll');
+    if (main) main.scrollTop = 0;
+  }, []);
+
+  const notify = useCallback((msg, icon = 'check') => {
+    setToast({ msg, icon });
+    clearTimeout(tref.current);
+    tref.current = setTimeout(() => setToast(null), 2600);
+  }, []);
+
+  React.useEffect(() => { window.__go = go; window.__notify = notify; }, [go, notify]);
+
+  const C = window.C;
+  const p = route.params;
+
+  // full-screen public login (no shell)
+  if (route.page === 'login') return <window.Login go={go} />;
+
+  let page;
+  switch (route.page) {
+    case 'dashboard': page = <window.Dashboard go={go} />; break;
+    case 'students': page = <window.Students go={go} initialFilter={p.filter} key={p.filter || 'all'} />; break;
+    case 'students-import': page = <window.ImportWizard go={go} notify={notify} />; break;
+    case 'student-detail': page = <window.StudentDetail go={go} id={p.id} key={p.id} />; break;
+    case 'grades': page = <window.Grades go={go} />; break;
+    case 'grade-entry': page = <window.GradeEntry go={go} subjectId={p.subjectId} notify={notify} key={p.subjectId} />; break;
+    case 'attendance': page = <window.Attendance go={go} notify={notify} />; break;
+    case 'attendance-session': page = <window.SessionMarking go={go} notify={notify} />; break;
+    case 'news': page = <window.News go={go} />; break;
+    case 'news-create': page = <window.NewsCreate go={go} notify={notify} />; break;
+    case 'academics': page = <window.Academics go={go} />; break;
+    case 'schedule': page = <window.Schedule go={go} notify={notify} />; break;
+    case 'notifications': page = <window.Notifications go={go} notify={notify} />; break;
+    case 'admins': page = <window.Admins go={go} notify={notify} />; break;
+    case 'audit': page = <window.Audit go={go} />; break;
+    case 'settings': page = <window.Settings go={go} notify={notify} />; break;
+    default: page = <window.Dashboard go={go} />;
+  }
+
+  const pendingCount = window.ADMIN_DATA.JUSTIFICATIONS.filter((j) => j.status === 'pending').length;
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh', background: C.bg }}>
+      <window.Sidebar route={route} go={go} pendingCount={pendingCount} />
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+        <window.TopBar route={route} go={go} />
+        {window.ContextBar && window.SCOPED_PAGES.includes(route.page) && <window.ContextBar page={route.page} />}
+        <main id="main-scroll" style={{ flex: 1, padding: '28px 32px 40px', maxWidth: 1280, width: '100%', margin: '0 auto' }}>
+          {page}
+        </main>
+      </div>
+      <Toast toast={toast} />
+      {window.ModalRoot && <window.ModalRoot />}
+    </div>
+  );
+}
+
+function mount() {
+  if (!window.ADMIN_DATA || !window.ADMIN_DATA2 || !window.ContextBar || !window.Dashboard || !window.Sidebar || !window.Academics || !window.Settings || !window.Login || !window.ImportWizard || !window.SessionMarking || !window.ModalRoot || !window.StudentForm || !window.ResetPwModal) { setTimeout(mount, 40); return; }
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+}
+mount();
+</script>
+</body>
+</html>

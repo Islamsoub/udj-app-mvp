@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>UDJ — News (Actualités) Implementation Spec</title>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" rx="22" fill="#0F6E56"/>
+    <rect x="26" y="30" width="48" height="20" rx="4" fill="rgba(255,255,255,0.35)"/>
+    <rect x="26" y="56" width="34" height="6" rx="3" fill="#fff"/>
+    <rect x="26" y="66" width="48" height="5" rx="2.5" fill="rgba(255,255,255,0.5)"/>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#F2F5F3; --surface:#fff; --surface2:#F4F7F5; --sunken:#ECEFEC; --ink:#1C2320; --ink2:#6B7B74; --ink3:#9EADA7;
+    --hair:rgba(28,35,32,0.10); --jade:#1D9E75; --jade6:#0F6E56; --amber:#E08A1E; --danger:#EF4444; --blue:#2F7DD1; --violet:#8B5CF6; --slate:#5A6B7B;
+    --sans:'Plus Jakarta Sans',sans-serif; --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1020px;margin:0 auto;padding:56px 32px 110px;}
+  h1{font-size:34px;font-weight:800;letter-spacing:-0.8px;margin:0;}
+  .sub{color:var(--ink2);font-size:15px;margin-top:8px;max-width:70ch;line-height:1.55;}
+  h2{font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--jade6);margin:50px 0 18px;display:flex;align-items:center;gap:10px;}
+  h2 .n{width:22px;height:22px;border-radius:7px;background:var(--jade6);color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+  h3{font-size:17px;font-weight:700;margin:26px 0 10px;}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:18px;padding:22px;box-shadow:0 1px 2px rgba(28,35,32,0.04);}
+  .grid{display:grid;gap:14px;}
+  .g2{grid-template-columns:1fr 1fr;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:start;padding:8px 10px;border-bottom:1px solid var(--hair);vertical-align:top;}
+  th{font-size:11px;letter-spacing:0.6px;text-transform:uppercase;color:var(--ink3);font-weight:700;}
+  td.mono,.mono{font-family:var(--mono);font-size:12px;}
+  .lead{font-weight:700;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:3px 9px;border-radius:9999px;background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .pill.amber{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .pill.red{background:rgba(239,68,68,0.12);color:#b91c1c;}
+  .pill.blue{background:rgba(47,125,209,0.12);color:#1f5fa6;}
+  .pill.violet{background:rgba(139,92,246,0.14);color:#6d3fd6;}
+  .pill.slate{background:rgba(90,107,123,0.14);color:#46535f;}
+  .note{font-size:13px;color:var(--ink2);line-height:1.55;}
+  .specrow{font-size:13px;display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px solid var(--hair);}
+  .specrow:last-child{border-bottom:none;}
+  .specrow .k{color:var(--ink2);}
+  .specrow .v{font-family:var(--mono);font-size:12px;text-align:end;}
+  ul{margin:8px 0 0;padding-inline-start:20px;}
+  li{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:5px;}
+  .sw{display:flex;align-items:center;gap:11px;padding:7px 0;border-bottom:1px solid var(--hair);font-size:13px;}
+  .sw:last-child{border-bottom:none;}
+  .chip{width:28px;height:28px;border-radius:8px;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);}
+  .nm{font-weight:600;}
+  .hex{font-family:var(--mono);color:var(--ink2);font-size:12px;margin-inline-start:auto;}
+  .darkstrip{background:#0E1512;border-radius:14px;padding:14px 16px;}
+  .darkstrip .sw{border-color:rgba(255,255,255,0.08);color:#ECF1EE;}
+  .darkstrip .hex{color:#9DB0A8;}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:6px;background:rgba(28,35,32,0.06);color:var(--ink2);}
+  .tag.add{background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .tag.chg{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .tag.fix{background:rgba(239,68,68,0.10);color:#b91c1c;}
+  .tag.dec{background:rgba(47,125,209,0.12);color:#1f5fa6;}
+  .tree{font-family:var(--mono);font-size:12.5px;line-height:1.85;color:var(--ink);white-space:pre;overflow-x:auto;}
+  .tree .c{color:var(--ink3);}
+  .tree .v{color:var(--jade6);}
+  .decision{margin:18px 0 0;padding:20px 22px;border-radius:18px;background:linear-gradient(140deg,#0F6E56,#0B5544);color:#fff;box-shadow:0 12px 28px rgba(15,110,86,0.22);}
+  .decision .dk{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.7);}
+  .decision h3{margin:5px 0 0;font-size:18px;font-weight:800;letter-spacing:-0.3px;color:#fff;}
+  .decision p{font-size:13.5px;line-height:1.55;color:rgba(255,255,255,0.9);margin:8px 0 0;}
+  .decision .rec{display:inline-block;margin-top:12px;background:rgba(255,255,255,0.16);border-radius:10px;padding:8px 13px;font-size:12.5px;font-weight:700;}
+  @media print{.wrap{padding:0;}.card,.decision{break-inside:avoid;}}
+  @media(max-width:760px){.g2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>UDJ — News Spec</h1>
+  <p class="sub">Implementation reference for the polished <strong>Actualités / الأخبار</strong> screen, its <strong>FilterRow</strong>, <strong>HeroCard</strong>, <strong>ArticleCard</strong> and the <strong>NewsArticleScreen</strong> detail, in the <strong>Soft Elevated</strong> language. Category colours flow through the <strong>existing</strong> <span class="mono">getNewsCategoryColors()</span> token map (shared with Home) — no new hex. Values are the source of truth; wire them as tokens. Supports light, dark and RTL. Targeted at the 18+ off-grid values, the 14 hardcoded category hex, and the un-i18n'd labels from the investigation — not a rewrite.</p>
+
+  <!-- 0 · DECISIONS -->
+  <h2><span class="n">0</span> Key decisions</h2>
+  <div class="decision">
+    <div class="dk">Decision 1 · HeroCard</div>
+    <h3>Image card with a scrim — not a brand gradient.</h3>
+    <p>The jade gradient is reserved for <em>metric</em> heroes (GPA, Présence). News is image-led, so the feature card stays an <strong>image card</strong>: cover image (or surface2 placeholder), a category/urgent pill over the top, and a bottom <strong>scrim</strong> (transparent→black) carrying the title + meta when an image exists. With no image it degrades to the current "image area + surface footer" so text stays legible. rTile 18 + cardShadow.</p>
+    <span class="rec">Image card · scrim overlay · danger "Urgent" pill (not a hardcoded string).</span>
+  </div>
+  <div class="decision" style="margin-top:12px;">
+    <div class="dk">Decision 2 · ArticleCards</div>
+    <h3>Soft Elevated (surface + cardShadow), drop the borders.</h3>
+    <p>Same as every other list card: <span class="mono">surface · rTile 18 · cardShadow</span>, no 1px border, no off-token radius 14. Thumbnail grows from the tiny 37×35 to a proper <strong>56×56</strong> rounded tile.</p>
+    <span class="rec">surface + cardShadow + rTile 18 · 56×56 thumb.</span>
+  </div>
+  <div class="decision" style="margin-top:12px;">
+    <div class="dk">Decision 3 · Filter chips</div>
+    <h3>Keep the scrolling row, fix it to tokens.</h3>
+    <p>The horizontal chip row is the right pattern — just tokenise it: height <strong>36</strong>, radius full (9999), active = jade / #fff, inactive = surface2 / text2 (no border). Container height to the grid. Labels stay i18n'd (already correct).</p>
+    <span class="rec">36 tall · full radius · jade active · surface + hair2 inactive.</span>
+  </div>
+  <div class="decision" style="margin-top:12px;">
+    <div class="dk">Decision 4 · 7 categories → token pairs</div>
+    <h3>Reuse <span class="mono">getNewsCategoryColors()</span>; map the long tail to slate.</h3>
+    <p>Five distinct hues + slate fallback (danger is reserved for the Urgent state, never a category): <strong>Officiel→jade · Événements→blue · Scolarité→amber · Sport→violet · Jeunesse→slate · Sponsors→slate · Général→slate</strong>. The same map already powers Home's NewsCard, so a category reads identically everywhere and is <strong>dark-mode-correct for free</strong>.</p>
+    <span class="rec">Shared token map · Sport=violet (was a danger-like pink — collided with Urgent).</span>
+  </div>
+
+  <!-- 1 · LAYOUT TREE -->
+  <h2><span class="n">1</span> Layout tree (render order)</h2>
+  <div class="card">
+<div class="tree">NewsScreen  <span class="c">// fixed status bar + PINNED header + FilterRow + scrolling feed + floating nav</span>
+├─ StatusBar               <span class="c">44 tall · token barStyle</span>
+├─ Header  <span class="c">(non-scrolling)</span>
+│   └─ Title "Actualités"   <span class="c">24 (FR) / 26 (AR) · 800</span>
+├─ FilterRow               <span class="v">horizontal scroll · FilterChip ×7 · active jade</span>
+└─ Feed  <span class="c">(paddingInline 16 · paddingTop 14 · paddingBottom 92)</span>
+    ├─ HeroCard            <span class="v">urgent feature · image + scrim + Urgent pill + title + meta · only on "Tout"</span>
+    └─ ArticleList         <span class="c">column · gap 12</span>
+        └─ ArticleCard ×n  <span class="c">thumb 56 · category pill + time + unread dot · title · readTime + bookmark</span>
+
+NewsArticleScreen  <span class="c">// pushed full screen (back), opened by tapping any card</span>
+├─ BackButton              <span class="c">38×38 circle · surface · cardShadow · over hero</span>
+├─ HeroImage               <span class="c">cover · ~300 tall · source pill overlaid bottom</span>
+├─ Body  <span class="c">(scroll · paddingInline 20)</span>
+│   ├─ CategoryPill + Date(mono) + Title(24/800) + Source(text2)
+│   ├─ Hairline
+│   └─ Article text        <span class="c">16/400 · lh 1.6</span>
+└─ ActionBar  <span class="c">(pinned bottom) bookmark toggle + "Partager" jade button</span></div>
+  </div>
+  <p class="note" style="margin-top:12px;"><strong>Pinned vs scroll:</strong> title + FilterRow are pinned; the hero + article list scroll under them (header gains <span class="mono">cardShadow</span> on scroll). The HeroCard appears only on the <em>Tout</em> filter (the urgent feature); filtered categories show a plain article list. One vertical scroll, one horizontal scroll (the filter row) — no nested vertical regions.</p>
+
+  <!-- 2 · MEASURED VALUES -->
+  <h2><span class="n">2</span> Measured values</h2>
+
+  <h3>Header + FilterRow</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Header</td><td>padding</td><td class="mono">2 / 20 / 12 / 20</td><td>bg · title only</td></tr>
+      <tr><td></td><td>title</td><td class="mono">24 (FR) / 26 (AR) · 800 · -0.5</td><td><span class="tag chg">chg</span> was 18px · text1</td></tr>
+      <tr><td class="lead">FilterRow</td><td>height / pad</td><td class="mono">52 · padInline 16 · gap 8</td><td><span class="tag fix">fix</span> was 72 · horizontal scroll</td></tr>
+      <tr><td class="lead">FilterChip</td><td>height / radius</td><td class="mono">36 · 9999</td><td><span class="tag fix">fix</span> was 41 / radius 22</td></tr>
+      <tr><td></td><td>padding / type</td><td class="mono">0 / 16 · 14 / 600</td><td>—</td></tr>
+      <tr><td></td><td>active</td><td class="mono">bg jade · #fff · 700</td><td>—</td></tr>
+      <tr><td></td><td>inactive</td><td class="mono">bg surface · 1px hair2 · text2</td><td><span class="tag fix">fix</span> surface2 ≈ bg in light — use surface + border</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>HeroCard (urgent feature)</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Card</td><td>radius / shadow</td><td class="mono">18 (rTile) · cardShadow</td><td><span class="tag fix">fix</span> radius token · overflow hidden</td></tr>
+      <tr><td class="lead">Image area</td><td>height / bg</td><td class="mono">~170 · surface2 placeholder</td><td><span class="tag fix">fix</span> was 229 fixed / jade600 · cover image when present</td></tr>
+      <tr><td></td><td>placeholder glyph</td><td class="mono">image 26 · text3 centred</td><td>—</td></tr>
+      <tr><td class="lead">Scrim</td><td>gradient</td><td class="mono">transparent → rgba(0,0,0,.55)</td><td>only over a real image (text legibility)</td></tr>
+      <tr><td class="lead">Urgent pill</td><td>pos / bg</td><td class="mono">top 12 · inset-start 12 · dangerBg</td><td><span class="tag fix">fix</span> dot 8 (was 11) · "Officiel · Urgent" via i18n</td></tr>
+      <tr><td></td><td>dot / label</td><td class="mono">8 round danger · 12.5/700 danger</td><td>category pill if not urgent</td></tr>
+      <tr><td class="lead">Footer</td><td>pad (no-image)</td><td class="mono">14</td><td>title + meta below image</td></tr>
+      <tr><td></td><td>title</td><td class="mono">17 / 700 · 2-line clamp</td><td>text1 (#fff if over image)</td></tr>
+      <tr><td></td><td>meta</td><td class="mono">13 / 500 · mt 8</td><td>text3 · "Il y a 9j · 3 min"</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>ArticleCard (×n)</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Card</td><td>bg / radius / shadow</td><td class="mono">surface · 18 (rTile) · cardShadow</td><td><span class="tag fix">fix</span> was radius 14 + border</td></tr>
+      <tr><td></td><td>padding / list gap</td><td class="mono">14 · gap 12</td><td><span class="tag fix">fix</span> margin 15 → padInline 16</td></tr>
+      <tr><td></td><td>layout</td><td class="mono">flex · row · gap 12 · align start</td><td>height intrinsic <span class="tag fix">fix</span> was 122 fixed</td></tr>
+      <tr><td class="lead">Thumbnail</td><td>box</td><td class="mono">56×56 · radius 12</td><td><span class="tag fix">fix</span> was 37×35 · surface2 placeholder → cover</td></tr>
+      <tr><td class="lead">Right col</td><td>layout</td><td class="mono">flex:1 · column</td><td>—</td></tr>
+      <tr><td></td><td>top row</td><td class="mono">flex · space-between · align center</td><td>category pill + (unread dot + time)</td></tr>
+      <tr><td class="lead">Category pill</td><td>bg / radius / pad</td><td class="mono">categoryBg · full · 4/10</td><td>12/600 · categoryColor (§8) <span class="tag fix">fix</span> i18n label</td></tr>
+      <tr><td class="lead">Time</td><td>type</td><td class="mono">13 / 500</td><td>text3 · "Il y a 11j"</td></tr>
+      <tr><td class="lead">Unread dot</td><td>box</td><td class="mono">8 round · jade</td><td>before time · hidden when read</td></tr>
+      <tr><td class="lead">Title</td><td>type / mt</td><td class="mono">16 / 700 · 2-line clamp · mt 6</td><td>text1 · lh 1.3</td></tr>
+      <tr><td class="lead">Bottom row</td><td>layout / mt</td><td class="mono">flex · space-between · align center · mt 8</td><td>—</td></tr>
+      <tr><td></td><td>readTime</td><td class="mono">13 / 500 · text3</td><td>"2 min"</td></tr>
+      <tr><td></td><td>bookmark</td><td class="mono">20 · text3 (jade when saved, filled)</td><td>tap toggles · 44 hit area</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">One <span class="mono">category</span> token drives the pill bg + fg (§8). The unread dot + bolder title fade once read. Bookmark fills jade when saved (persisted). Read time + relative time stay i18n'd (already correct).</p>
+  </div>
+
+  <h3>NewsArticleScreen (detail)</h3>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Hero + meta</h3>
+      <div class="specrow"><span class="k">Back button</span><span class="v">38×38 · surface · cardShadow · over hero</span></div>
+      <div class="specrow"><span class="k">Hero image</span><span class="v">cover · ~300 tall · surface2 placeholder</span></div>
+      <div class="specrow"><span class="k">Source pill</span><span class="v">over hero · #fff@16% bg · 12.5/700 #fff</span></div>
+      <div class="specrow"><span class="k">Category pill</span><span class="v">categoryBg · 4/10 · 12/600</span></div>
+      <div class="specrow"><span class="k">Date</span><span class="v">DM Mono 13 · text3 · "1 juin 2026 · 12:24"</span></div>
+      <div class="specrow"><span class="k">Title</span><span class="v">24 / 800 · -0.4 · text1</span></div>
+      <div class="specrow"><span class="k">Source line</span><span class="v">15 / 500 · text2</span></div>
+      <div class="specrow"><span class="k">Hairline</span><span class="v">1px hair · 16 above body</span></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">Body + action bar</h3>
+      <div class="specrow"><span class="k">Body text</span><span class="v">16 / 400 · lh 1.6 · text1</span></div>
+      <div class="specrow"><span class="k">Body padding</span><span class="v">padInline 20 · padBottom 96 (clear bar)</span></div>
+      <div class="specrow"><span class="k">Action bar</span><span class="v">pinned bottom · surface · top 1px hair</span></div>
+      <div class="specrow"><span class="k">Bookmark</span><span class="v">44 hit · 22 glyph · jade when saved</span></div>
+      <div class="specrow"><span class="k">Partager</span><span class="v">jade · rBtn 14 · 48 tall · share glyph + label</span></div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:12px;">The detail hero keeps the source identifier ("UDJ · Université de Djibouti") as a translucent pill over the image. Date uses DM Mono. Body is plain prose at a comfortable reading measure; the action bar (bookmark + Partager) is pinned so it's always reachable.</p>
+
+  <!-- 3 · COMPONENT INVENTORY -->
+  <h2><span class="n">3</span> Component inventory</h2>
+  <div class="card"><table>
+    <thead><tr><th>Component</th><th>Suggested file</th><th>Props</th><th>Renders</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">NewsScreen</td><td class="mono">news/NewsScreen</td><td class="mono">nav</td><td>header + FilterRow + hero + list</td></tr>
+      <tr><td class="lead">FilterRow</td><td class="mono">news/FilterRow</td><td class="mono">filters, active, onChange</td><td>horizontal scroll of FilterChip</td></tr>
+      <tr><td class="lead">FilterChip</td><td class="mono">news/FilterChip</td><td class="mono">label, active, onPress</td><td>pill chip</td></tr>
+      <tr><td class="lead">HeroCard</td><td class="mono">news/HeroCard</td><td class="mono">item, onPress</td><td>image + scrim + urgent pill + title</td></tr>
+      <tr><td class="lead">ArticleCard</td><td class="mono">news/ArticleCard</td><td class="mono">item, saved, onPress, onBookmark</td><td>thumb + pill + time + title + bookmark</td></tr>
+      <tr><td class="lead">NewsArticleScreen</td><td class="mono">news/NewsArticleScreen</td><td class="mono">item, saved, onBack, onBookmark, onShare</td><td>hero + meta + body + action bar</td></tr>
+      <tr><td class="lead">newsColor*</td><td class="mono">theme/getNewsCategoryColors(cat)</td><td class="mono">cat</td><td>shared — §8 token map (extended)</td></tr>
+      <tr><td class="lead">CatIcon*</td><td class="mono">ui/CatIcon</td><td class="mono">kind</td><td>shared — adds <span class="mono">bookmark</span>, <span class="mono">share</span></td></tr>
+      <tr><td class="lead">NavBar* · SkeletonBox* · OfflineBanner* · ErrorBlock*</td><td class="mono">ui/*</td><td class="mono">—</td><td>shared — nav + states (§4)</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">* reuse, don't fork. Net-new: <strong>NewsScreen, FilterRow, FilterChip, HeroCard, ArticleCard, NewsArticleScreen</strong>. <span class="mono">getNewsCategoryColors()</span> is <strong>extended</strong> (sport/jeunesse/sponsors → violet/slate/slate), not replaced. New CatIcon glyphs: <span class="mono">bookmark</span> (+ filled), <span class="mono">share</span>.</p>
+  </div>
+
+  <!-- 4 · STATES -->
+  <h2><span class="n">4</span> States</h2>
+  <div class="card"><table>
+    <thead><tr><th>State</th><th>Treatment</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Loaded</td><td>As specified — hero (on Tout) + N article cards for the active filter.</td></tr>
+      <tr><td class="lead">Loading / skeleton</td><td>Header + FilterRow render immediately. Hero → skeletonBase block (radius 18, ~210 tall). 4 ArticleCard skeletons: 56 thumb circle + pill bar + 2 title lines (90%/60%). Existing shimmer (800ms / ~1600ms).</td></tr>
+      <tr><td class="lead">Empty <span class="tag">no articles</span></td><td>Centred block: 64 round jadeFaint circle + <span class="mono">mega</span> (megaphone) icon, title "Aucune actualité" 16/700, body "Revenez plus tard pour les dernières nouvelles." 14/text2. FilterRow stays so the user can switch filter.</td></tr>
+      <tr><td class="lead">Error</td><td>Shared ErrorBlock: 72 round examBg circle + icon, title 16/700, body 14/text2 (~220 wide), retry 168×48.</td></tr>
+      <tr><td class="lead">Offline <span class="tag">cached</span></td><td>Shared OfflineBanner above the hero. Cached (SQLite) articles render; filters + bookmarks work offline. Bookmark writes queue for sync.</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- 5 · INTERACTIONS -->
+  <h2><span class="n">5</span> Interactions</h2>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Action</th><th>Target ≥44</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">FilterChip</td><td>Set active filter → re-filter feed (hero hidden off "Tout")</td><td>36 + row pad ✓</td></tr>
+      <tr><td class="lead">HeroCard</td><td>Push NewsArticleScreen (the urgent article)</td><td>card ✓</td></tr>
+      <tr><td class="lead">ArticleCard</td><td>Push NewsArticleScreen · mark read (dot clears)</td><td>card ✓</td></tr>
+      <tr><td class="lead">Bookmark (card)</td><td>Toggle saved (persist) — does <strong>not</strong> open the article</td><td>44 hit ✓</td></tr>
+      <tr><td class="lead">Back (detail)</td><td>Pop to list</td><td>38 + 8 ✓</td></tr>
+      <tr><td class="lead">Bookmark (detail)</td><td>Toggle saved</td><td>44 ✓</td></tr>
+      <tr><td class="lead">Partager</td><td>OS share sheet (title + link)</td><td>48 ✓</td></tr>
+      <tr><td class="lead">NavBar tabs</td><td>Switch root tab</td><td>46 ✓</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">Bookmark must <strong>stopPropagation</strong> so tapping it never opens the article. Tapping a card always marks it read (dot + bold fade) before pushing the detail.</p>
+  </div>
+
+  <!-- 6 · DIFFERENCES -->
+  <h2><span class="n">6</span> Differences vs current build</h2>
+  <div class="card">
+    <ul>
+      <li><span class="tag fix">fix</span> <strong>Category colours de-hardcoded.</strong> The 14 hex values in <span class="mono">getCategoryColor()</span> → the shared <span class="mono">getNewsCategoryColors()</span> token map (§8). Dark-mode-correct, identical to Home.</li>
+      <li><span class="tag fix">fix</span> <strong>Category pill labels i18n'd</strong> — no more raw API string + capitalizeFirst. Map <span class="mono">cat → t('news.cat.*')</span>.</li>
+      <li><span class="tag fix">fix</span> <strong>"Officiel · Urgent" localised</strong> (was a hardcoded string); the Urgent state uses the <span class="mono">danger</span> token, separate from any category.</li>
+      <li><span class="tag chg">chg</span> <strong>ArticleCards Soft Elevated</strong> (surface + cardShadow + rTile 18). <span class="tag fix">fix</span> radius 14 → 18, margin 15 → padInline 16, height 122 fixed → intrinsic.</li>
+      <li><span class="tag fix">fix</span> <strong>Thumbnail 37×35 → 56×56</strong> rounded (radius 12).</li>
+      <li><span class="tag chg">chg</span> <strong>HeroCard</strong> stays an image card but tokenised: rTile 18, height intrinsic (was 229 fixed), scrim for text over images, danger Urgent pill (dot 8, was 11).</li>
+      <li><span class="tag chg">chg</span> <strong>FilterRow tokenised</strong>: container 52 (was 72), chip 36 / radius 9999 (was 41 / 22), inactive surface + 1px hair2, active jade.</li>
+      <li><span class="tag chg">chg</span> <strong>Title 18 → 24/26</strong> (root-tab scale).</li>
+      <li><span class="tag fix">fix</span> 18+ off-grid values → 4px grid; 4 non-standard radii → tokens.</li>
+      <li><span class="tag">keep</span> All 6 states, offline-first SQLite cache, bilingual titleFr/titleAr, i18n filter labels, bookmark persistence, relative timestamps.</li>
+    </ul>
+  </div>
+
+  <!-- 7 · DARK + RTL -->
+  <h2><span class="n">7</span> Dark mode &amp; RTL</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Dark mode</h3>
+      <ul>
+        <li>Header = bg; scroll shadow → 1px hair border. Cards = surface (#17211D) + dark cardShadow.</li>
+        <li><strong>Category pills now theme-correct</strong> via the token map — jadeFaint/blueBg/amberBg/examBg/slateBg lift in dark automatically (the bug this fixes).</li>
+        <li>FilterChip inactive = surface + 1px hair2 (surface2 is ≈bg in light, so it would vanish); active = jade (#2BB989). Thumbnail placeholder = surface2.</li>
+        <li>Hero scrim unchanged (always darkens toward black for text); Urgent pill = dangerBg/danger lifted.</li>
+        <li>Detail body text = text1; source pill over image stays #fff@16%/#fff in both themes.</li>
+      </ul>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">RTL (Arabic)</h3>
+      <ul>
+        <li>Root <span class="mono">direction: rtl</span> — title right-aligns; FilterRow scrolls right→left, first chip ("الكل") on the right.</li>
+        <li>ArticleCard mirrors: thumbnail on the right, category pill leads right, time + unread dot to the left.</li>
+        <li>Hero Urgent pill uses <span class="mono">inset-inline-start</span> → flips to the top-right.</li>
+        <li>Detail back button flips to the right; date numerals use Arabic-Indic mono; action bar mirrors (Partager leads).</li>
+        <li>Titles use <span class="mono">titleAr</span>; relative time localised ("منذ ١١ يوماً"); font → Noto Naskh Arabic.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 8 · CATEGORY MAP -->
+  <h2><span class="n">8</span> Category colour map <span class="tag add" style="margin-inline-start:6px;">extends getNewsCategoryColors()</span></h2>
+  <div class="card"><table>
+    <thead><tr><th>Category (FR / AR)</th><th>key</th><th>fg / bg token</th><th>Light</th><th>Shared with</th></tr></thead>
+    <tbody>
+      <tr><td>Officiel / رسمي</td><td class="mono">official</td><td class="mono">jadeText / jadeFaint</td><td><span class="pill">Officiel</span></td><td>Home "Official"</td></tr>
+      <tr><td>Événements / فعاليات</td><td class="mono">events</td><td class="mono">blue / blueBg</td><td><span class="pill blue">Événements</span></td><td>Home "Events"</td></tr>
+      <tr><td>Scolarité / الدراسة</td><td class="mono">scolarite</td><td class="mono">amber / amberBg</td><td><span class="pill amber">Scolarité</span></td><td>Home "Scolarité"</td></tr>
+      <tr><td>Sport / رياضة</td><td class="mono">sport</td><td class="mono">exam (violet) / examBg</td><td><span class="pill violet">Sport</span></td><td><span class="tag chg">chg</span> was danger-pink</td></tr>
+      <tr><td>Jeunesse / شباب</td><td class="mono">jeunesse</td><td class="mono">slate / slateBg</td><td><span class="pill slate">Jeunesse</span></td><td>long-tail → slate</td></tr>
+      <tr><td>Sponsors / شركاء</td><td class="mono">sponsors</td><td class="mono">slate / slateBg</td><td><span class="pill slate">Sponsors</span></td><td>long-tail → slate</td></tr>
+      <tr><td>Général / عام</td><td class="mono">general / default</td><td class="mono">slate / slateBg</td><td><span class="pill slate">Général</span></td><td>fallback</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;"><strong>Urgent is a state, not a category</strong> — it overlays the <span class="mono">danger</span> token on the hero ("Urgent" pill) regardless of the article's category. Keeping danger out of the category rotation is why Sport moves to violet. Five hues (jade/blue/amber/violet) + slate cover the long tail; add a 6th hue only if a category truly needs to be distinguished at a glance.</p>
+  </div>
+
+  <!-- 9 · COLORS -->
+  <h2><span class="n">9</span> Color tokens used</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Light</h3><div id="light"></div></div>
+    <div class="card darkstrip"><h3 style="margin-top:0;color:#ECF1EE;">Dark</h3><div id="dark"></div></div>
+  </div>
+  <p class="note" style="margin-top:14px;">No new theme primitives — News reuses existing tokens and the (extended) category map. The hero scrim (transparent→black@55%) and the detail source pill (#fff@16%) are on-image literals, not tokenised. Reference articles: <strong>Inscriptions 2025 ouvertes</strong> (official · urgent), <strong>Journée portes ouvertes</strong> (events), <strong>Calendrier des examens S2</strong> (scolarité), <strong>Tournoi inter-facultés</strong> (sport), <strong>Hackathon étudiant</strong> (jeunesse), <strong>Bourses Orange Djibouti</strong> (sponsors) — placeholders, wire to the cached feed with titleFr/titleAr.</p>
+</div>
+<script>
+  const light=[['surface','#FFFFFF'],['surface2','#F4F7F5'],['bg','#F2F5F3'],['text1','#1C2320'],['text2','#6B7B74'],['text3','#9EADA7'],['hair','rgba(28,35,32,0.07)'],['jade','#1D9E75'],['jadeText','#0F6E56'],['jadeFaint','rgba(29,158,117,0.10)'],['blue','#2F7DD1'],['blueBg','rgba(47,125,209,0.12)'],['amber','#E08A1E'],['amberBg','rgba(224,138,30,0.12)'],['exam','#8B5CF6'],['examBg','rgba(139,92,246,0.12)'],['slate','#5A6B7B'],['slateBg','rgba(90,107,123,0.12)'],['danger','#EF4444'],['dangerBg','rgba(239,68,68,0.10)']];
+  const dark=[['surface','#17211D'],['surface2','#1E2A25'],['bg','#0E1512'],['text1','#ECF1EE'],['text2','#9DB0A8'],['text3','#6E847B'],['hair','rgba(255,255,255,0.08)'],['jade','#2BB989'],['jadeText','#5FD3A6'],['jadeFaint','rgba(43,185,137,0.16)'],['blue','#5AA0E6'],['blueBg','rgba(90,160,230,0.18)'],['amber','#F0A84B'],['amberBg','rgba(240,168,75,0.16)'],['exam','#A98BF0'],['examBg','rgba(169,139,240,0.18)'],['slate','#9DB0BE'],['slateBg','rgba(157,176,190,0.16)'],['danger','#FF6B6B'],['dangerBg','rgba(255,107,107,0.15)']];
+  const swatch=(arr,el)=>{el.innerHTML=arr.map(([n,v])=>`<div class="sw"><span class="chip" style="background:${v}"></span><span class="nm">${n}</span><span class="hex">${v}</span></div>`).join('');};
+  swatch(light,document.getElementById('light'));
+  swatch(dark,document.getElementById('dark'));
+</script>
+</body>
+</html>

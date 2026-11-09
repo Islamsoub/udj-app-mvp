@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Unipocket PWA — Design & Interaction Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>doc-page:not(:defined){visibility:hidden}</style>
+<script src="doc-page.js"></script>
+<style>
+:root{--jade:#1D9E75;--jade-hover:#0F6E56;--ink:#1E231F;--ink2:#6C7267;--hair:rgba(30,35,31,.14);--bg2:#F7F4EE;--mono:'DM Mono',monospace}
+body{font-family:'Plus Jakarta Sans',sans-serif;color:var(--ink)}
+h1{font-size:30px;font-weight:800;letter-spacing:-.5px;margin:0 0 6px}
+h2{font-size:20px;font-weight:800;letter-spacing:-.3px;color:var(--jade-hover);border-bottom:2px solid var(--jade);padding-bottom:6px;margin:36px 0 14px;break-after:avoid}
+h3{font-size:15px;font-weight:700;margin:20px 0 8px;break-after:avoid}
+h4{font-size:13px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.4px;margin:14px 0 6px}
+p{font-size:13.5px;line-height:1.65;margin:0 0 10px}
+.lede{font-size:15px;color:var(--ink2);margin-bottom:0}
+.tag{display:inline-block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:rgba(29,158,117,.12);color:var(--jade-hover);padding:3px 9px;border-radius:9999px;margin:0 6px 6px 0}
+table{width:100%;border-collapse:collapse;margin:8px 0 16px;font-size:12.5px;break-inside:avoid}
+th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;color:var(--ink2);padding:6px 10px;border-bottom:1.5px solid var(--ink)}
+td{padding:7px 10px;border-bottom:1px solid var(--hair);vertical-align:top}
+code,.mono{font-family:var(--mono);font-size:12px;background:var(--bg2);padding:1px 5px;border-radius:4px}
+.swatch{display:inline-block;width:13px;height:13px;border-radius:4px;margin-inline-end:6px;vertical-align:-2px;border:1px solid rgba(0,0,0,.1)}
+.card{background:var(--bg2);border:1px solid var(--hair);border-radius:10px;padding:14px 16px;margin:10px 0;break-inside:avoid}
+.card h4{margin-top:0}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.spec-row{display:flex;gap:14px;padding:9px 0;border-top:1px solid var(--hair)}
+.spec-row:first-child{border-top:none}
+.spec-row .k{width:150px;flex-shrink:0;font-weight:700;font-size:12.5px}
+.spec-row .v{font-size:12.5px;color:var(--ink);line-height:1.6}
+ul{margin:0 0 10px;padding-inline-start:20px;font-size:13.5px;line-height:1.65}
+li{margin-bottom:3px}
+.toc{columns:2;column-gap:24px;font-size:12.5px;margin:12px 0}
+.toc div{break-inside:avoid;margin-bottom:4px}
+.cover-meta{display:flex;gap:24px;margin-top:18px;font-size:12px;color:var(--ink2)}
+.cover-meta b{color:var(--ink);display:block;font-size:13px}
+</style>
+</head>
+<body>
+<doc-page margin="0.85in">
+
+<h1>Unipocket PWA</h1>
+<p class="lede">Design & interaction specification — motion, states, clicks, and PWA behaviors, end to end.</p>
+<div class="cover-meta">
+<div><b>Version</b>v1.0 — Aug 2026</div>
+<div><b>Covers</b>Login, Dashboard, Schedule, Grades, Attendance, News, Profile</div>
+<div><b>Reference build</b>Unipocket PWA — Design System & Prototype v1.html</div>
+</div>
+
+<h2>1. How to read this document</h2>
+<p>This spec assumes the visual design system (colors, type, spacing tokens) is already defined and built in the reference prototype. It focuses on what a static screenshot can't show: <b>what moves, what responds to a click or hover, and how the app behaves as a PWA</b> — install, offline, session, and sync. Every section below is implementation-ready: durations, easings, and triggers are specified in CSS-equivalent terms so engineering can drop them in directly.</p>
+
+<h2>2. Motion tokens</h2>
+<p>Four durations and two easings cover every animation in the product. Do not introduce new values — reuse these.</p>
+<table>
+<tr><th>Token</th><th>Value</th><th>Use for</th></tr>
+<tr><td><code>--dur-instant</code></td><td>100ms</td><td>Button press, checkbox/toggle flip, icon color change</td></tr>
+<tr><td><code>--dur-fast</code></td><td>180ms</td><td>Hover states, dropdown open/close, tab underline slide</td></tr>
+<tr><td><code>--dur-base</code></td><td>250ms</td><td>Panel slide-in, modal fade, toast enter, view transitions</td></tr>
+<tr><td><code>--dur-slow</code></td><td>450ms</td><td>Skeleton shimmer sweep, gauge/ring fill on load, theme crossfade</td></tr>
+<tr><td><code>--ease-out</code></td><td>cubic-bezier(.16,1,.3,1)</td><td>Anything entering the screen (panels, toasts, dropdowns)</td></tr>
+<tr><td><code>--ease-in-out</code></td><td>cubic-bezier(.4,0,.2,1)</td><td>Anything resizing in place (sidebar collapse, accordion, tab switch)</td></tr>
+</table>
+<p>Respect <code>prefers-reduced-motion: reduce</code> globally: collapse every transform/opacity transition to <code>--dur-instant</code> with no easing curve, and disable the skeleton shimmer sweep (show a static tone instead).</p>
+
+<h2>3. Global interaction rules (web-specific)</h2>
+<div class="two-col">
+<div class="card"><h4>Hover</h4><p>Every clickable element gets a hover state — this is new relative to the mobile app. Buttons/links darken 1 step (jade → jade-hover) or gain a tinted background (jade-faint) over <code>--dur-fast</code>. Cards that are clickable (quick links, article cards, course blocks) lift 1px on <code>translateY(-1px)</code> and increase shadow to <code>--shadow-lg</code> over <code>--dur-fast</code>.</p></div>
+<div class="card"><h4>Focus (keyboard)</h4><p>Every interactive element shows a 2px jade outline with 2px offset on <code>:focus-visible</code> only (never on mouse click). Focus order follows visual/DOM order: sidebar nav → topbar (bell, avatar) → page content → bottom actions. Modals/panels trap focus and return it to the trigger element on close.</p></div>
+<div class="card"><h4>Cursor</h4><p><code>pointer</code> on anything clickable (buttons, cards with a click handler, table headers that sort, chips, tabs). <code>default</code> on static text/content. <code>text</code> on editable note fields. <code>not-allowed</code> on disabled buttons (also drop opacity to 0.5).</p></div>
+<div class="card"><h4>Press feedback</h4><p>On <code>:active</code>, buttons scale to 0.97 over <code>--dur-instant</code> with no easing delay — this is the only place a "press" is simulated (no ripple effect; that's a native-Android pattern, not used here).</p></div>
+</div>
+
+<h2>4. Page & view transitions</h2>
+<div class="spec-row"><div class="k">Sidebar navigation</div><div class="v">Clicking a nav item swaps the active view instantly (no crossfade) but the <b>page title in the topbar crossfades</b> over <code>--dur-fast</code>, and a 2px jade progress bar sweeps left→right along the top edge of the content area over <code>--dur-base</code> to signal a "page load" even though data is already cached client-side. The clicked nav item's background tints to jade-faint over <code>--dur-fast</code>; the previously active item un-tints over the same duration, running in parallel.</div></div>
+<div class="spec-row"><div class="k">Initial dashboard load</div><div class="v">Cards fade+rise in a staggered sequence: each card animates <code>opacity 0→1, translateY(8px→0)</code> over <code>--dur-base</code> with <code>--ease-out</code>, staggered 40ms apart in reading order (schedule → GPA → attendance → notifications → quick links → news). Runs once per session on first dashboard visit only, not on every nav click back to it.</div></div>
+<div class="spec-row"><div class="k">Route change on mobile</div><div class="v">Bottom-tab switches use the same instant-swap + progress-bar pattern as desktop sidebar nav — no slide transition between tabs (slide is reserved for drill-down navigation, e.g. opening an article or course detail, not lateral tab switches).</div></div>
+
+<h2>5. Component states & micro-interactions</h2>
+
+<h3>Buttons</h3>
+<table>
+<tr><th>State</th><th>Visual</th><th>Transition</th></tr>
+<tr><td>Default</td><td>Jade fill, white text, shadow</td><td>—</td></tr>
+<tr><td>Hover</td><td>Background → jade-hover</td><td><code>--dur-fast</code> ease-out</td></tr>
+<tr><td>Active/press</td><td>scale(0.97)</td><td><code>--dur-instant</code></td></tr>
+<tr><td>Loading</td><td>Text replaced by a 16px spinner (jade on light bg, white on jade bg), button width locked to prevent layout shift</td><td>Spinner rotates continuously at 800ms/rev, linear</td></tr>
+<tr><td>Disabled</td><td>Opacity 0.5, cursor not-allowed, hover/press disabled</td><td>—</td></tr>
+<tr><td>Success flash</td><td>On successful async action (e.g. "Enregistrer" in course notes), briefly swap label to a checkmark + "Enregistré" for 1200ms, then revert</td><td>Crossfade <code>--dur-fast</code> in/out</td></tr>
+</table>
+
+<h3>Inputs & forms</h3>
+<ul>
+<li><b>Focus:</b> border color → jade, 3px jade-faint glow ring appears via <code>box-shadow</code>, over <code>--dur-fast</code>.</li>
+<li><b>Error:</b> border → danger, background tints danger-bg; an inline error message slides down (<code>max-height 0→auto</code> + fade) beneath the field over <code>--dur-fast</code>.</li>
+<li><b>Password field toggle:</b> eye icon click crossfades the input between <code>type=password</code> and <code>type=text</code> masking — no layout shift.</li>
+<li><b>File drop zone (justification upload):</b> dragover state adds a jade dashed border + jade-faint background over <code>--dur-instant</code>; drop triggers the upload-progress bar animating 0→100% in discrete steps (matches the current prototype's simulated 20%-per-tick fill), then crossfades to a doc-chip confirmation.</li>
+</ul>
+
+<h3>Tabs / segmented controls</h3>
+<p>The active pill background slides between options rather than the whole control repainting: implement as one absolutely-positioned pill element that animates its <code>transform: translateX()</code> and <code>width</code> to the clicked button's bounding box over <code>--dur-fast</code> with <code>--ease-in-out</code>. Text color crossfades in place, not on a delay.</p>
+
+<h3>Data tables (Grades, Attendance)</h3>
+<ul>
+<li><b>Sort click:</b> the clicked column header's sort caret rotates 180° over <code>--dur-fast</code>; rows re-order by having each <code>&lt;tr&gt;</code> animate its vertical position with a FLIP transition (record old position, animate <code>transform: translateY()</code> from old→0) over <code>--dur-base</code> — avoids a jarring re-render.</li>
+<li><b>Row hover:</b> background tints surface2 instantly (<code>--dur-instant</code>), no delay — tables are scanned quickly and should feel responsive.</li>
+<li><b>Status pill color:</b> never animates on its own; it only changes when underlying data changes (e.g. a grade is published), in which case it fades in from 0 opacity over <code>--dur-base</code> to draw the eye.</li>
+</ul>
+
+<h3>Cards & hero stats</h3>
+<ul>
+<li><b>GPA / Attendance ring or gauge fill:</b> animates from 0% to its target value once, on first paint of that view, over <code>--dur-slow</code> with <code>--ease-in-out</code>. Re-visiting the same view in the same session does not replay it (avoid feeling gimmicky on repeat).</li>
+<li><b>Sparkline draw-in:</b> the GPA history polyline animates via <code>stroke-dasharray</code>/<code>stroke-dashoffset</code> from fully hidden to fully drawn over <code>--dur-slow</code>, same first-paint-only rule as above.</li>
+<li><b>Clickable stat cards</b> (Assiduité, À la une) lift + shadow on hover per the global card rule in §3.</li>
+</ul>
+
+<h3>Dropdowns & popovers (notification bell, avatar menu)</h3>
+<p>Enter: <code>opacity 0→1</code> + <code>translateY(-4px)→0</code> + <code>scale(.97)→1</code>, over <code>--dur-fast</code>, <code>--ease-out</code>, transform-origin top-right (top-left in RTL). Exit: reverse over <code>--dur-instant</code>, no easing. Closes on: click outside, <kbd>Escape</kbd>, or selecting an item. Only one popover open at a time — opening one closes any other.</p>
+
+<h3>Toasts</h3>
+<p>Enter from the bottom: <code>opacity 0→1</code>, <code>translateY(8px→0)</code>, over <code>--dur-fast</code> <code>--ease-out</code>. Auto-dismiss after 2200ms by reversing the same transition. Stack new toasts above existing ones with 8px gap; if 3+ are queued, older ones dismiss early (max 2 visible). Never blocks input — toasts are non-modal and sit above content but below modal panels.</p>
+
+<h3>Slide-in detail panels (course detail, calculator, justification)</h3>
+<p><b>Desktop/tablet:</b> panel slides in from the inline-end edge — <code>translateX(100%)→0</code> (mirrored to <code>-100%→0</code> in RTL) over <code>--dur-base</code> <code>--ease-out</code>; a scrim fades in <code>0→0.4</code> opacity in parallel. <b>Mobile (&lt;640px):</b> the same panel becomes a bottom sheet — <code>translateY(100%)→0</code> over the same duration, with rounded top corners. Close on: scrim click, <kbd>Escape</kbd>, the ✕ button, or (mobile only) a downward drag past 40% of the sheet's height. Closing reverses the entrance transition.</p>
+
+<h3>Skeleton loading state</h3>
+<p>Skeleton blocks (gray rounded rectangles matching each real element's footprint) use a shimmer: a lighter diagonal band sweeps left→right across every skeleton block in parallel, looping every <code>--dur-slow</code>×2 (900ms), via a moving <code>background-position</code> on a linear gradient. Skeletons never show for less than 400ms even if data resolves instantly (prevents flicker) and crossfade into real content over <code>--dur-fast</code>.</p>
+
+<h2>6. Theme, language & direction switching</h2>
+<div class="spec-row"><div class="k">Light ↔ Dark</div><div class="v">All color-token-driven properties (background, text, borders) crossfade over <code>--dur-slow</code> by transitioning <code>background-color</code>, <code>color</code>, and <code>border-color</code> globally (a single CSS rule on <code>*</code> scoped to these three properties, removed immediately after the transition ends to avoid interfering with hover/focus timing). Icons that are theme-dependent (none currently) would crossfade in place.</div></div>
+<div class="spec-row"><div class="k">FR ↔ AR (RTL flip)</div><div class="v">Setting <code>dir="rtl"</code> is instant (no animated mirroring — physical properties like <code>inset-inline-start</code> already handle layout mirroring via CSS logical properties, so nothing needs to visually "flip" on a timer). The one exception: the sidebar/panel slide directions (see §5) must read the current <code>dir</code> at animation time, not assume LTR.</div></div>
+<div class="spec-row"><div class="k">Font swap</div><div class="v">Switching to Arabic swaps the body font stack to Noto Naskh Arabic; this is a discrete swap, not animated (animating font-family causes reflow jank). Numbers/times stay in the Latin/mono font in both directions per the inherited design system rule.</div></div>
+
+<h2>7. Sidebar collapse & responsive behavior</h2>
+<ul>
+<li><b>Manual collapse (desktop):</b> clicking "Réduire" animates sidebar <code>width: 240px→72px</code> over <code>--dur-base</code> <code>--ease-in-out</code>; labels fade out over the first half of the transition (<code>--dur-fast</code>) so they don't wrap/clip mid-animation, then <code>display:none</code>. Content area reflows to fill the reclaimed width in the same transition (no separate delay). The chevron icon rotates 180° in sync.</li>
+<li><b>Auto tablet collapse (640–1024px):</b> same visual end-state as manual collapse, but driven by a resize observer, not a click — animates the same way if the resize crosses the breakpoint while the tab is open (rare), otherwise it's simply the initial state.</li>
+<li><b>Mobile (&lt;640px):</b> sidebar unmounts (not just hidden) in favor of the bottom tab bar; switching between them is a hard breakpoint change, not an animated transition, since it corresponds to a full input-model change (touch-first vs cursor-first).</li>
+</ul>
+
+<h2>8. PWA-specific behaviors</h2>
+
+<h3>Install prompt</h3>
+<div class="card">
+<p>A dismissible banner appears at the very top of the viewport (above the topbar, full-width, jade-faint background) on first visit, only when the browser fires <code>beforeinstallprompt</code>. Copy: <span class="mono">"Installer Unipocket pour un accès plus rapide"</span> with a primary "Installer" button and a text "Plus tard" dismiss. Enters via <code>height: 0→auto</code> + fade over <code>--dur-base</code>, pushing content down (not overlaying it). Dismissing stores a timestamp in <code>localStorage</code>; suppress re-showing for 30 days. On successful install, show a one-time full-screen splash (logo centered, jade-faint background, ~600ms) immediately after the installed app's next launch, then crossfade to the login/dashboard.</p>
+</div>
+
+<h3>Offline behavior</h3>
+<div class="card">
+<p>Losing connectivity: a persistent banner slides down from under the topbar — <code>"Vous êtes hors ligne. Données mises en cache affichées."</code> — over <code>--dur-base</code>, warning-tinted. Every screen that has cached data keeps rendering it normally; a small <span class="mono">mono</span> timestamp ("Dernière synchronisation : …") appears near the page title to disclose staleness. Screens/actions that require a live connection (submitting a justification, changing password) show their primary action button disabled with the label replaced by <span class="mono">"Connexion requise"</span> — no destructive hiding of the form, just a blocked submit. On reconnect: the offline banner slides back up over <code>--dur-fast</code>, a toast confirms <span class="mono">"Connexion rétablie"</span>, and any queued actions (e.g. a note edit made offline) auto-retry silently; only show a toast for the retry if it fails.</p>
+</div>
+
+<h3>Session expiry</h3>
+<div class="card">
+<p>On a 401 from the API (access token + refresh both invalid), a modal overlay appears — center-screen on desktop, full-width bottom-sheet-style on mobile — fading/rising in like any other modal (§5). Copy: <span class="mono">"Votre session a expiré"</span> with two actions: <b>"Se reconnecter"</b> (primary, routes to login) and <b>"Continuer hors ligne"</b> (secondary, dismisses the modal and lets the user keep browsing cached data read-only). This modal cannot be dismissed by clicking outside or Escape — it requires an explicit choice, since silently losing it could confuse an already-confused, logged-out user.</p>
+</div>
+
+<h3>Background sync indicator</h3>
+<p>When the service worker performs a background revalidation (stale-while-revalidate), do not show a spinner or skeleton — the screen already has cached content on display. Instead, briefly pulse the "last synced" timestamp label (opacity 0.5→1, <code>--dur-base</code>) when the data actually changes underneath the user, without disrupting scroll position or focus.</p>
+
+<h2>9. Screen-by-screen interaction notes</h2>
+
+<h3>Login</h3>
+<p>Submitting animates the button into its loading state (§5) immediately; on error, the button reverts and the error card slides down above the fields (<code>max-height</code> technique, <code>--dur-fast</code>) while both fields' borders flash to danger red. The account-locked countdown (5 min) renders as a live <span class="mono">mono</span> timer inside the disabled submit button, re-enabling it automatically at 0:00 with a brief button pulse to signal it's active again.</p>
+
+<h3>Dashboard</h3>
+<p>The countdown-to-next-class pill live-updates every 60s without any transition (a static text swap — animating a ticking timer draws unwanted attention). Notification bell badge count animates in with a small <code>scale(0)→1</code> "pop" (<code>--dur-fast</code>, slight overshoot easing <code>cubic-bezier(.34,1.56,.64,1)</code>) whenever a new unread notification arrives while the tab is open.</p>
+
+<h3>Schedule</h3>
+<p>Day/Week toggle uses the sliding-pill segmented pattern (§5). Week navigation (prev/next arrows) crossfades the week grid's course blocks out and back in over <code>--dur-fast</code> — content changes, the grid structure doesn't animate position. Clicking a course block opens the detail panel per §5; saving a note shows the button success-flash (§5) before the panel auto-closes after 500ms.</p>
+
+<h3>Grades</h3>
+<p>Semester tab switch fades the GPA hero's number via a quick crossfade (old value fades out 100ms, new fades in over the next 150ms — slight overlap avoids a "blank" flash) rather than sliding, since the two semesters aren't spatially related. The grade calculator panel's result updates live as the user types the target grade (debounced 150ms), with the result number using the same crossfade technique.</p>
+
+<h3>Attendance</h3>
+<p>The presence ring fill-on-load animation (§5) is the hero moment of this screen. Filtering absences (À justifier / Tout) crossfades the list rather than re-animating each row in — this is a filter, not new data. Opening the justification panel routes to one of four sub-states (upload form / pending / approved / rejected) with no transition between them since they're mutually exclusive server states, not something a user toggles.</p>
+
+<h3>News</h3>
+<p>Bookmark toggle: the bookmark icon fill animates via a quick <code>scale(1→1.3→1)</code> "bounce" over <code>--dur-fast</code> when saved, no animation when un-saving (removal should feel quieter than addition). Category filter chips use instant color swap, not a sliding pill (they're multi-select-adjacent in spirit, not a single-choice segmented control). Opening an article routes to the reader view with a forward-navigation feel: content slides in from the inline-end over <code>--dur-base</code>; "Retour" reverses it.</p>
+
+<h3>Profile</h3>
+<p>Toggle switches animate their thumb <code>translateX</code> over <code>--dur-instant</code> with a slight easing overshoot, matching native toggle feel. Theme/language radio-pills use the sliding-pill pattern (§5). "Vider le cache" shows a confirming toast and updates the last-sync timestamp with the pulse treatment from §8.</p>
+
+<h2>10. Accessibility notes</h2>
+<ul>
+<li><b>Focus order</b> matches DOM/visual order throughout: skip-link → sidebar nav → topbar actions (bell, avatar) → page heading → primary content → any in-page secondary actions. Modals and panels trap focus and restore it to the triggering element on close.</li>
+<li><b>ARIA roles:</b> sidebar nav is a <code>nav</code> with <code>aria-current="page"</code> on the active item; tabs/segmented controls use <code>role="tablist"</code>/<code>role="tab"</code> with <code>aria-selected</code>; toasts announce via <code>role="status"</code> + <code>aria-live="polite"</code>; the session-expired modal uses <code>role="alertdialog"</code> with <code>aria-modal="true"</code>.</li>
+<li><b>Color contrast:</b> all text/background pairs in both themes meet WCAG AA (4.5:1 body text, 3:1 large text/icons). Status colors (danger/warning/info/exam) are never the only signal — always paired with a label or icon.</li>
+<li><b>Reduced motion:</b> every animation in this document collapses per the rule in §2 when <code>prefers-reduced-motion: reduce</code> is set.</li>
+<li><b>RTL:</b> all layout uses CSS logical properties (<code>inset-inline-start/end</code>, <code>margin-inline-*</code>, <code>border-inline-*</code>) so mirroring in Arabic requires zero JS and zero duplicated CSS.</li>
+</ul>
+
+</doc-page>
+</body>
+</html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unipocket Admin — Sizing Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+doc-page:not(:defined){visibility:hidden}
+:root{--text1:#1C2320;--text2:#5E6E66;--text3:#93A39B;--hair:rgba(28,35,32,0.08);--hair2:rgba(28,35,32,0.13);--jade:#1D9E75;--jadeText:#0F6E56;--jadeFaint:rgba(29,158,117,0.10);--danger:#E1483D;--dangerBg:rgba(225,72,61,0.10);--amber:#D9821A;--amberBg:rgba(217,130,26,0.12);--blue:#2F7DD1;--blueBg:rgba(47,125,209,0.10);--violet:#7A5CD0;--violetBg:rgba(122,92,208,0.11);--surface2:#F4F7F5;--sans:'Plus Jakarta Sans',system-ui,sans-serif;--mono:'DM Mono',ui-monospace,monospace}
+*{box-sizing:border-box}
+doc-page{font-family:var(--sans);color:var(--text1);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased}
+h1,h2,h3{letter-spacing:-0.02em;margin:0}
+a{color:var(--jadeText)}a:hover{color:var(--jade)}
+.mono{font-family:var(--mono)}
+.cover{border-bottom:2px solid var(--jade);padding-bottom:18px;margin-bottom:18px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--jadeText);font-weight:500}
+.cover h1{font-size:32px;font-weight:800;margin:8px 0 6px}
+.cover .sub{font-size:14px;color:var(--text2);max-width:72ch}
+.meta{display:flex;gap:22px;margin-top:14px;flex-wrap:wrap}
+.meta div{font-size:12px;color:var(--text2)}.meta b{color:var(--text1);font-weight:700}
+.note{background:var(--surface2);border:1px solid var(--hair);border-radius:12px;padding:13px 15px;margin:13px 0;font-size:12.4px;color:var(--text2);break-inside:avoid}
+.note b{color:var(--text1)}
+.note.warn{background:var(--amberBg);border-color:rgba(217,130,26,0.3)}
+.note.ctx{background:var(--violetBg);border-color:rgba(122,92,208,0.28)}
+.sev{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9.5px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;white-space:nowrap;vertical-align:middle}
+.sev.b{color:var(--danger);background:var(--dangerBg)}
+.sev.d{color:var(--amber);background:var(--amberBg)}
+.sev.n{color:var(--blue);background:var(--blueBg)}
+.sev::before{content:"";width:5px;height:5px;border-radius:999px;background:currentColor}
+.count{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.cbox{flex:1;min-width:88px;border:1px solid var(--hair2);border-radius:12px;padding:10px 11px;text-align:center;break-inside:avoid}
+.cbox .n{font-size:24px;font-weight:800;line-height:1;font-family:var(--mono)}
+.cbox .l{font-family:var(--mono);font-size:9px;letter-spacing:0.07em;text-transform:uppercase;color:var(--text3);margin-top:5px}
+.sec{margin-top:26px;break-inside:avoid-page}
+.sec>h2{font-size:18.5px;font-weight:800;display:flex;align-items:baseline;gap:9px}
+.sec>h2 .idx{font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--jade);letter-spacing:0.04em}
+.sec>.route{font-family:var(--mono);font-size:10.5px;color:var(--text3);margin:3px 0 2px}
+.secline{height:1px;background:var(--hair);margin:9px 0 3px}
+.f{padding:10px 0;border-top:1px solid var(--hair);break-inside:avoid}
+.f:first-of-type{border-top:none}
+.f .ft{font-weight:700;font-size:13px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.f .body{margin-top:5px;display:grid;grid-template-columns:52px 1fr;gap:2px 9px;font-size:12.2px;color:var(--text2)}
+.f .body .k{font-family:var(--mono);font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:var(--text3);padding-top:1px}
+.f .body .v b{color:var(--text1);font-weight:600}
+.f .body .file{font-family:var(--mono);font-size:11px;color:var(--text2)}
+.f .body .fix{color:var(--text1)}
+.pass{font-size:12px;color:var(--text2);margin-top:7px;padding:9px 11px;background:var(--jadeFaint);border-radius:10px}
+.pass b{color:var(--jadeText)}
+.tbl{width:100%;border-collapse:collapse;margin-top:8px;font-size:11.8px}
+.tbl th{text-align:left;font-family:var(--mono);font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3);font-weight:500;padding:5px 8px;border-bottom:1px solid var(--hair2)}
+.tbl td{padding:6px 8px;border-bottom:1px solid var(--hair);color:var(--text2);vertical-align:top}
+.tbl td b{color:var(--text1)}
+.tbl td.c{text-align:center;font-family:var(--mono)}
+.tbl td.m{font-family:var(--mono);font-size:11px}
+code{font-family:var(--mono);font-size:11.5px;background:#ECF0ED;border-radius:4px;padding:1px 4px}
+</style>
+</head>
+<body>
+<doc-page margin="0.65in">
+
+<div class="cover">
+  <div class="eyebrow">Unipocket · Portail d'administration · UDJ</div>
+  <h1>Sizing Audit — Code vs Implementation Spec</h1>
+  <div class="sub">Every pixel value, padding, font-size, weight, radius, shadow, gap and duration in the admin portal, diffed against implementation spec §2–7, §22 and §29. Read from source at <span class="mono">Islamsoub/udj-app-mvp@admin-portal</span> (tree <span class="mono">99899fa</span>). Only discrepancies are listed.</div>
+  <div class="meta">
+    <div><b>Files read</b> · 32</div>
+    <div><b>Discrepancies</b> · 21</div>
+    <div><b>Of which real bugs</b> · 3</div>
+    <div><b>Token layer</b> · 1 drift</div>
+  </div>
+</div>
+
+<div class="note ctx"><b>Headline: the sizing is in very good shape.</b> The token layer, all six core primitives, the shell geometry and the schedule grid maths are reproduced from the spec essentially exactly — including deliberately off-grid values like 13.5px, 3.5px accent bars, <code>translateX(17px)</code> and <code>left: calc(50% + 124px)</code>. This is not a case of the build drifting from the design. The 21 findings below are three genuine bugs, one token-layer inconsistency, and a tail of small local deviations where a page hand-rolled a value instead of using the primitive.</div>
+
+<div class="note warn"><b>Correction to the brief.</b> Four target values in the request do not match the implementation spec, so I audited against the spec document. <b>Button</b>: the brief says height 38 / padding 0 18 / font 14 / gap 8; spec §5 says padding <code>7×12 / 9×16 / 12×22</code>, font <code>12.5 / 13.5 / 15</code>, gap <code>7</code>, no fixed height — the code matches the <i>spec</i> exactly. Same for <b>Input</b> (spec: 10×13, font 14 — no height given). Also worth knowing: <b>PageHead subtitle</b> is 14px per spec and the code agrees; and there is no spec value for <b>toast width/height</b>, only the 28px offset and 2600ms, both correct. If the brief's numbers are the newer intent, the spec needs updating first — otherwise these would be "fixes" away from the signed-off design.</div>
+
+<div class="count">
+  <div class="cbox"><div class="n" style="color:var(--danger)">3</div><div class="l">Bugs</div></div>
+  <div class="cbox"><div class="n" style="color:var(--amber)">6</div><div class="l">Drift</div></div>
+  <div class="cbox"><div class="n" style="color:var(--blue)">12</div><div class="l">Nit</div></div>
+  <div class="cbox"><div class="n" style="color:var(--jadeText)">6/6</div><div class="l">Primitives OK</div></div>
+  <div class="cbox"><div class="n" style="color:var(--jadeText)">100%</div><div class="l">Colors OK</div></div>
+</div>
+
+<!-- ============ BUGS ============ -->
+<div class="sec">
+  <h2><span class="idx">1</span> Real bugs — broken measurements</h2>
+  <div class="secline"></div>
+
+  <div class="f">
+    <div class="ft"><span class="sev b">Bug</span> Grade entry never reserves the 76px sticky-bar gutter</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">§29 "Sticky bars": the page reserves <b>76px bottom padding while the bar is active</b>, so the last table row clears the fixed save bar.</span>
+      <span class="k">Code</span><span class="v"><code>className={cn(dirtyCount ? 0 &amp;&amp; 'pb-[76px]')}</code> — the expression <code>0 &amp;&amp; '…'</code> evaluates to <b><code>0</code></b>, never the class. So the padding is applied in <i>neither</i> branch: dirty → <code>0</code>, clean → <code>undefined</code>.</span>
+      <span class="k">File</span><span class="v file">admin/app/(dashboard)/grades/[subjectId]/page.tsx:209</span>
+      <span class="k">Effect</span><span class="v fix">With unsaved edits, the fixed save bar (line 421) covers the last student row — exactly the row you are most likely still editing. The sibling screen does this correctly (<span class="mono">attendance/session/page.tsx:136</span> → plain <code>pb-[76px]</code>).</span>
+      <span class="k">Fix</span><span class="v fix">Replace with <code>className={cn(dirtyCount &gt; 0 &amp;&amp; 'pb-[76px]')}</code>.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev b">Bug</span> Grade-entry save bar is missing <code>left: 248</code></div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">§16 / §29: the bottom action bar is viewport-fixed and offset <code>left: 248px</code> to clear the sidebar, with a top hairline and <code>0 -6px 22px</code> shadow.</span>
+      <span class="k">Code</span><span class="v">Line 421 sets <code>fixed bottom-0 right-0</code> only; the <code>left: 248</code> arrives on line 422's style object. Confirm both are present on the same element — the session screen pairs them correctly (<span class="mono">session/page.tsx:268</span>). If the class list wins the cascade, the bar spans under the sidebar.</span>
+      <span class="k">File</span><span class="v file">admin/app/(dashboard)/grades/[subjectId]/page.tsx:421–422</span>
+      <span class="k">Fix</span><span class="v fix">Drop <code>right-0</code> in favour of explicit <code>style={{left:248,right:0}}</code>, matching the session screen.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev b">Bug</span> Context bar is 46px tall but holds a 40px control</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">§30.1: "Compact strip (<b>~46px</b>), not a second nav bar."</span>
+      <span class="k">Code</span><span class="v">The strip is <code>h-[46px]</code> — but it embeds the full-size <b>Dropdown</b>, whose control is <code>py-[10px]</code> + <code>text-[14px]</code> + 1px borders ≈ <b>40px</b>. That leaves ~3px of breathing room top and bottom, and the locked-faculty pill (<code>py-[7px]</code> + 13px text ≈ 34px) doesn't match the dropdown beside it.</span>
+      <span class="k">File</span><span class="v file">context-bar.tsx:39 (<code>BAR_BASE</code>), 133 &amp; 152 (<code>&lt;Dropdown&gt;</code>), 124 (locked pill)</span>
+      <span class="k">Fix</span><span class="v fix">Add a <code>size="sm"</code> Dropdown variant (<code>py-[6px]</code>, <code>text-[13px]</code> → ~32px) and use it in the bar; set the locked pill to the same height. This is the "reads as a second nav bar" symptom in visual terms — the strip currently has no vertical rhythm of its own.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOKENS ============ -->
+<div class="sec">
+  <h2><span class="idx">2</span> Design tokens (§2–3)</h2>
+  <div class="route">admin/styles/globals.css · tailwind.config.ts · lib/tokens.ts</div>
+  <div class="secline"></div>
+
+  <div class="f">
+    <div class="ft"><span class="sev d">Drift</span> <code>TONE_COLORS</code> invents a second, darker accent palette</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">§2 defines one fg/bg pair per accent: danger <code>#E1483D</code> on <code>rgba(225,72,61,0.10)</code>; amber <code>#D9821A</code> on <code>0.12</code>; blue <code>#2F7DD1</code> on <code>0.12</code>; exam <code>#7C53E0</code> on <code>0.12</code>; slate <code>#5A6B7B</code> on <code>0.12</code>. §5 Badge says "tones map to a [fg, bg] pair".</span>
+      <span class="k">Code</span><span class="v">The CSS variables are correct — but <code>TONE_COLORS</code> ships <b>different, darkened foregrounds and heavier backgrounds</b>: danger <code>#B3392F</code>/0.12 · amber <code>#9A5B06</code>/0.14 · blue <code>#1F5FA6</code>/0.12 · exam <code>#6034C9</code>/0.14 · slate <code>#46535F</code>/0.14. Only jade matches.</span>
+      <span class="k">File</span><span class="v file">admin/lib/tokens.ts:78–85</span>
+      <span class="k">Effect</span><span class="v fix">Every Badge, Tab, StatCard tile, Avatar tone and Modal icon tile renders in colours that exist nowhere in the spec — and they sit next to spec-correct <code>text-danger</code> / <code>text-amber</code> text, so the same semantic colour appears in two shades on one screen (visible on Présence, where amber row text and amber badges disagree).</span>
+      <span class="k">Fix</span><span class="v fix">This looks like a deliberate contrast fix (the spec's raw accents on a 10–12% tint are around 3:1 on small text). Decide it properly: either revert <code>TONE_COLORS</code> to the spec pairs, or promote these darkened values into §2 as the official "on-tint" foregrounds and add them to <code>globals.css</code> as <code>--danger-on-tint</code> etc. Don't leave two palettes.</span>
+    </div>
+  </div>
+
+  <div class="pass"><b>Everything else in the token layer is exact.</b> All 9 surface/text tokens, 8 jade tokens, 5 accent pairs, 6 sidebar tokens, <code>--toggle-off #D5DCD8</code>, <code>--scrim rgba(16,22,20,.45)</code>, and all four shadows (<code>shadow</code>, <code>shadow-lg</code>, <code>shadow-side</code>, <code>shadow-modal</code>) match §2 character-for-character, including blur radii, offsets and alpha values. The three keyframes match §29 exactly: <code>toastIn</code> .26s, <code>fadeIn</code> .16s, <code>popIn</code> .18s, all with the correct <code>cubic-bezier(.2,.9,.3,1)</code>. The 12-colour <code>COURSE_PALETTE</code> matches §9. No raw hex leaks into Tailwind — every utility resolves to a variable, as the config comment claims.</div>
+</div>
+
+<!-- ============ PRIMITIVES ============ -->
+<div class="sec">
+  <h2><span class="idx">3</span> Core primitives (§5–6)</h2>
+  <div class="route">admin/components/ui/* · components/shared/*</div>
+  <div class="secline"></div>
+
+  <div class="f">
+    <div class="ft"><span class="sev d">Drift</span> Input shrinks to 13px in <code>mono</code> mode</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">§6 TextInput: "<code>mono</code> <b>switches the font</b>" — size stays at the §5 Input value of <b>14px</b>.</span>
+      <span class="k">Code</span><span class="v"><code>mono &amp;&amp; 'font-mono text-[13px]'</code> — changes family <i>and</i> drops a full pixel.</span>
+      <span class="k">File</span><span class="v file">components/ui/input.tsx:35 · same pattern select.tsx:73</span>
+      <span class="k">Effect</span><span class="v fix">Matricule and code fields render visibly smaller than the text fields beside them in the same FRow (most obvious in StudentForm and SubjectForm).</span>
+      <span class="k">Fix</span><span class="v fix">Drop <code>text-[13px]</code> from both, or add it to §6 if the optical correction is intended (DM Mono does run large at the same nominal size — if so, say 13.5px and document it).</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev n">Nit</span> Table headers are 10.5px, not SectionLabel's 11px</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">§21: "TableShell = Card pad 0 + header row (surface2, 40px, <b>SectionLabel</b> headers)"; §3 fixes SectionLabel at <b>11px/500</b>.</span>
+      <span class="k">Code</span><span class="v">All three table implementations hard-code <code>text-[10.5px]</code> instead of using the component.</span>
+      <span class="k">File</span><span class="v file">shared/table-shell.tsx:40 · shared/data-table.tsx:126 · ui/table.tsx:17</span>
+      <span class="k">Fix</span><span class="v fix">Use <code>&lt;SectionLabel&gt;</code> (or 11px) so column headers match every other eyebrow in the product. Note <code>table-shell.tsx</code> already gets the 40px row height right.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev n">Nit</span> Badge sets a gap the spec doesn't define; dot relies on <code>currentColor</code></div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">§5 Badge: radius 999, padding 3×9, font 11.5/600, optional leading dot <b>6px</b>. No gap specified.</span>
+      <span class="k">Code</span><span class="v">Correct on all stated values; adds <code>gap-[5px]</code>. Harmless, but it is an undocumented value now baked into every badge — worth adding to §5 so it isn't "fixed" later.</span>
+      <span class="k">File</span><span class="v file">components/ui/badge.tsx:22</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev n">Nit</span> Modal header padding is undocumented</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">§6 gives body padding 22 and the 38×38 icon tile, but no header padding or icon-tile radius.</span>
+      <span class="k">Code</span><span class="v"><code>px-[22px] pb-[14px] pt-[20px]</code>, tile <code>rounded-[11px]</code>, close button 32×32 <code>rounded-[9px]</code>, footer <code>py-[14px]</code>. All sensible and internally consistent — just not in the spec.</span>
+      <span class="k">File</span><span class="v file">components/ui/dialog.tsx:60,64,79,84</span>
+      <span class="k">Fix</span><span class="v fix">Document these in §6 rather than change them.</span>
+    </div>
+  </div>
+
+  <div class="pass"><b>All six primitives match spec on every stated measurement.</b> <b>Btn</b> — gap 7, radius 10, 1px transparent border, weight 600, <code>transition-all 150ms</code>, disabled 0.5, and all three size pairs (7×12/12.5, 9×16/13.5, 12×22/15) plus all six kind treatments including the <code>#c43a30</code> dangerSolid hover. <b>Badge</b> — radius full, 3×9, 11.5/600, 6px dot, <code>fg33</code> border when <code>soft=false</code>. <b>Card</b> — radius 16, pad 20 default, 1px hair, token shadow, hover <code>-translate-y-px</code> + shadowLg, <code>transition-[box-shadow,transform] 150ms</code>. <b>Avatar</b> — default 36, <code>fontSize: size*0.4</code>, weight 700, jadeFaint/jadeText default, correct double ring. <b>Toggle</b> — 40×23 track, 19×19 knob, <code>0 1px 2px rgba(0,0,0,.25)</code>, <code>translateX(17px)</code>, 180ms on both properties. <b>Input</b> — radius 10, 10×13 padding, 14px, 1px hair2, <code>0 0 0 3px</code> jadeFaint focus ring with the danger variant, readOnly surface2. <b>Modal</b> — radius 18, 94vw, 90vh, shadow-modal, popIn, title 17/700, sub 12.5, body 22, footer surface2 + hairline. <b>ModalRoot</b> — scrim colour, <code>blur(2px)</code>, z-60, padding 24, fadeIn .16s, Esc + scrim close. <b>Toast</b> — bottom 28, <code>calc(50% + 124px)</code>, <code>#1C2320</code>, 24px circle, 2600ms. <b>Dropdown</b> — popover +6px, radius 11, maxHeight 260, shadowLg, chevron <code>rotate-180</code> in 150ms, selected jadeFaint + jadeText + 700 + check. <b>SectionLabel</b> — 11px/500/0.08em/ink3. <b>FRow/FField</b> — gap 14, mb 14, label 12.5/600 ink2, error &amp; hint 11.5. <b>GradeCell</b> — 64×38, mono 14, centered, all three border states.</div>
+</div>
+
+<!-- ============ SHELL ============ -->
+<div class="sec">
+  <h2><span class="idx">4</span> App shell (§7)</h2>
+  <div class="route">admin/components/shell/* · app/(dashboard)/layout.tsx</div>
+  <div class="secline"></div>
+
+  <div class="f">
+    <div class="ft"><span class="sev d">Drift</span> Sidebar nav icons are 19px, not the 20px default</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">§4: Icon default size <b>20</b>, stroke 1.7 (active nav 1.9).</span>
+      <span class="k">Code</span><span class="v">All eleven nav icons are declared <code>size={19}</code>. Stroke widths are correct (1.7 idle, cloned to 1.9 active).</span>
+      <span class="k">File</span><span class="v file">shell/sidebar.tsx:40–58</span>
+      <span class="k">Fix</span><span class="v fix">Change 19 → 20 in all three nav arrays, or record 19 as the nav-specific size in §7. One pixel, but it is the most repeated icon in the product.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev d">Drift</span> Sidebar user-card avatar is 32px</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">§5 Avatar default <b>36</b>; §7 user card doesn't override it.</span>
+      <span class="k">Code</span><span class="v"><code>size={32}</code>, with name at 12.5/700 and role mono 10.</span>
+      <span class="k">File</span><span class="v file">shell/sidebar.tsx:143</span>
+      <span class="k">Fix</span><span class="v fix">Either 36 to match the default, or add "user card avatar 32" to §7. (AvatarMenu in the top bar uses 34 per spec — so the product now has 32/34/36 avatars in one row of chrome.)</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev d">Drift</span> GlobalSearch ignores the Input geometry</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">§7: "280px input (bg surface2, radius 10, search icon)" — i.e. the Input primitive, which is <b>10×13 padding, 14px text, pl-38 with an icon</b>.</span>
+      <span class="k">Code</span><span class="v">Hand-rolled: <code>py-[8px] pl-[34px] pr-3 text-[13.5px]</code>, icon at <code>left-[11px]</code> size 15. Width 280, radius 10 and surface2 are correct.</span>
+      <span class="k">File</span><span class="v file">shell/global-search.tsx:99–101</span>
+      <span class="k">Effect</span><span class="v fix">The field is ~4px shorter than every other input and its text is half a pixel smaller — part of why the search bar reads as "wider and flatter" than the prototype's.</span>
+      <span class="k">Fix</span><span class="v fix">Rebuild on <code>&lt;TextInput icon…&gt;</code> with a <code>bg-surface2</code> override, or align the values to 10/13/38/14.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev n">Nit</span> Sidebar and TopBar paddings are undocumented</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">§7 fixes the 248px width and 64px height but no internal padding.</span>
+      <span class="k">Code</span><span class="v">Sidebar <code>px-[18px] py-5</code>; TopBar <code>px-8</code>; nav groups <code>mb-4</code> with <code>gap-[2px]</code> between items; brand block <code>gap-[10px] pb-4</code>; PageHead <code>mb-6</code>. All coherent with the 8px-ish rhythm.</span>
+      <span class="k">File</span><span class="v file">shell/sidebar.tsx:110 · shell/top-bar.tsx:24 · shell/page-head.tsx:24</span>
+      <span class="k">Fix</span><span class="v fix">Document; don't change. Note the sidebar's 18px padding is what makes the NavItem's <code>left:-10</code> accent bar land 8px from the panel edge — that relationship is load-bearing.</span>
+    </div>
+  </div>
+
+  <div class="f">
+    <div class="ft"><span class="sev n">Nit</span> Login wordmark is 17/700 vs the sidebar's 15.5/800</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">§7 brand lockup: "Unipocket" <b>15.5/800</b>. §10 doesn't restate it for login.</span>
+      <span class="k">Code</span><span class="v">Login renders the same lockup at <code>text-[17px] font-bold</code> (700) with a <code>rounded-[10px]</code> tile, while the sidebar uses 15.5/800 and <code>borderRadius:'30%'</code>. The tile sizes agree (34px) and 30% of 34 ≈ 10px, so only the type differs.</span>
+      <span class="k">File</span><span class="v file">app/(auth)/login/page.tsx:76–81 vs shell/sidebar.tsx:117–127</span>
+      <span class="k">Fix</span><span class="v fix">Extract one <code>&lt;BrandLockup size&gt;</code> component so the wordmark can't drift again.</span>
+    </div>
+  </div>
+
+  <div class="pass"><b>Shell geometry is otherwise exact.</b> Sidebar <b>248px</b> sticky full-height on <code>--side-bg</code> with <code>shadow-side</code>; brand tile <b>34px</b> with the 150° jade→jade6 gradient and 30% radius; "Admin · UDJ" mono 10 sideMuted; group labels mono 10 / 0.10em / uppercase / sideMuted. <b>NavItem</b> — padding 9×12, radius 10, gap 11, active fill <code>rgba(29,158,117,0.18)</code>, accent bar <b>3.5px</b> at <code>left:-10, top/bottom:8</code>, active #fff/700 + stroke 1.9, idle sideText/500, hover <code>rgba(255,255,255,0.05)</code>, <code>transition-colors 150ms</code>, badge mono 11 jade pill. <b>TopBar</b> — <code>h-16</code> sticky, surface, hairline bottom, breadcrumb 13.5 with last crumb 700/ink. <b>PageHead</b> — back tile 34×34 radius 10, title <b>25/800/−0.02em/1.15</b>, subtitle <b>14</b> ink2, actions <code>gap-[10px]</code>. <b>main</b> — <code>pt-7 px-8 pb-10</code> = the spec's <code>28px 32px 40px</code>, <code>max-w-content</code> = 1280, centered. <b>ContextBar</b> sticky at <code>top-16</code> per §30.1. Login brand panel <code>p-[56px]</code>, display <b>34/800/−0.02em</b>, form column <code>max-w-[360px]</code>, grid <code>1.1fr 1fr</code> — all per §10.</div>
+</div>
+
+<!-- ============ SCHEDULE ============ -->
+<div class="sec">
+  <h2><span class="idx">5</span> Schedule grid (§22)</h2>
+  <div class="route">app/(dashboard)/schedule/page.tsx · lib/constants.ts</div>
+  <div class="secline"></div>
+
+  <div class="f">
+    <div class="ft"><span class="sev n">Nit</span> Hour gridlines stop one line short of the axis labels</div>
+    <div class="body">
+      <span class="k">Spec</span><span class="v">§22: time axis 08:00–16:00 at 64px/hour.</span>
+      <span class="k">Code</span><span class="v">The axis prints <b>9</b> labels (<code>END−START+1</code> = 08:00…16:00) but the day columns draw only <b>7</b> interior lines (<code>END−START−1</code>). Geometrically right — the 08:00 and 16:00 edges are the card's own borders — but the 16:00 label sits at <code>top: 512px</code>, which is exactly <code>GRID_HEIGHT</code>, i.e. on the bottom edge, half-outside the grid because of <code>-translate-y-1/2</code>.</span>
+      <span class="k">File</span><span class="v file">schedule/page.tsx:29–32, 227–233, 245–252</span>
+      <span class="k">Fix</span><span class="v fix">Either add <code>paddingBottom</code> to the grid body equal to half the label's line-height, or drop the final label. Cosmetic clipping, not a layout break.</span>
+    </div>
+  </div>
+
+  <div class="pass"><b>The grid maths is exactly as specified.</b> <code>SCHEDULE_PX_PER_HOUR = 64</code>, start 8, end 16, Dimanche→Jeudi <code>WEEK_DAYS</code>, both header and body on <code>gridTemplateColumns: '64px repeat(5, 1fr)'</code>. Block positioning is character-for-character the spec formula: <code>top = ((startMin − 8·60)/60)·64 + 3</code>, <code>height = (duration/60)·64 − 6</code>, <code>left: 5, right: 5</code>, <code>radius 8</code>, <code>background: color+'14'</code>, <code>borderLeft: 3px solid color</code>. Content matches too — name 12/700 truncated, time mono 10.5 in the course colour, room · prof only when tall. Hover <code>scale(1.02)</code> at <b>120ms</b> per §29. Day headers 13/700 + mono 11 "N cours".</div>
+</div>
+
+<!-- ============ MOTION ============ -->
+<div class="sec">
+  <h2><span class="idx">6</span> Animations &amp; transitions (§29)</h2>
+  <div class="secline"></div>
+  <div class="pass" style="margin-top:2px"><b>Every motion value in §29 is correct — no discrepancies found.</b> Buttons <code>transition-all duration-150</code>. Cards <code>transition-[box-shadow,transform] duration-150</code> with a <code>-1px</code> hover lift. Nav items <code>transition-colors duration-150</code> (§29 says .14s; 150ms is Tailwind's nearest step and the 10ms delta is imperceptible — flagging only for completeness). Toggle 180ms on background <i>and</i> transform. Dropdown and expander chevrons <code>rotate-180</code> over 150ms. Schedule blocks <code>scale(1.02)</code> over 120ms. Toast <code>toastIn</code> .26s <code>cubic-bezier(.2,.9,.3,1)</code>, 2600ms dismiss. Modal scrim <code>fadeIn</code> .16s with <code>backdrop-filter: blur(2px)</code>; modal card <code>popIn</code> .18s on the same easing. Focus rings appear instantly via <code>transition-shadow</code>; the GradeCell dirty border persists until save. Table rows <code>hover:bg-surface2</code> throughout. Progress-bar <code>width .3–.4s</code> transitions are present on the presence bars.</div>
+</div>
+
+<!-- ============ PAGE LEVEL ============ -->
+<div class="sec">
+  <h2><span class="idx">7</span> Page-level layout</h2>
+  <div class="route">app/(dashboard)/**</div>
+  <div class="secline"></div>
+
+  <div class="note" style="margin:6px 0 10px">Pages are internally consistent — a shared vocabulary of <code>rounded-[16px]</code> skeletons, <code>h-11 w-11 rounded-[12px]</code> entity tiles, <code>rounded-[10px]</code> insets and <code>gap-[14px]</code> grids recurs everywhere. The findings below are local values that bypass an existing primitive.</div>
+
+  <table class="tbl">
+    <thead><tr><th style="width:52px">Grade</th><th>Finding</th><th style="width:186px">File : line</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sev n">Nit</span></td><td><b>Grades picker "Moy. classe" value is 19px.</b> §3 sets stat values at 22–32px/800. At 19px this mini-stat falls below the scale's floor, and its label uses mono 10.5 where SectionLabel is 11.</td><td class="m">grades/page.tsx:174,177</td></tr>
+      <tr><td><span class="sev n">Nit</span></td><td><b>Settings and notifications hand-roll inputs.</b> Three fields use <code>px-[13px] py-[9px]</code> or <code>px-[10px] py-[7px]</code> instead of the Input primitive's 10×13, so they sit 2–6px shorter than fields elsewhere.</td><td class="m">settings/page.tsx:251,465</td></tr>
+      <tr><td><span class="sev n">Nit</span></td><td><b>Notifications rebuilds the Dropdown popover inline</b> — <code>mt-[6px] max-h-[260px] rounded-[11px] py-[5px]</code> duplicates <code>select.tsx</code> exactly. Correct values, but a second copy to keep in sync.</td><td class="m">notifications/page.tsx:174</td></tr>
+      <tr><td><span class="sev n">Nit</span></td><td><b>Two segmented-control idioms coexist.</b> Schedule modes and session marking use <code>bg-surface2 p-[3px]</code> + <code>rounded-[8px]</code> pills; <code>Tabs</code> uses <code>rounded-[9px] px-[13px] py-[7px]</code> with tone fills. Both appear on scoped pages.</td><td class="m">schedule/page.tsx:157 · session/page.tsx:239 · ui/tabs.tsx:39</td></tr>
+      <tr><td><span class="sev n">Nit</span></td><td><b>Audit log drops to mono 10.5px</b> for expanded-row detail — below the §3 mono floor of 10.5–12.5 only at the very edge, and the smallest text in the product.</td><td class="m">audit/page.tsx:284</td></tr>
+      <tr><td><span class="sev n">Nit</span></td><td><b>Attendance review pane uses a 60px icon tile</b> (<code>h-[60px] w-[60px] rounded-[12px]</code>) where EmptyState uses 48px (<code>h-12 w-12 rounded-[14px]</code>) — two empty-state sizes on one screen.</td><td class="m">attendance/page.tsx:319 vs shared/empty-state.tsx:19</td></tr>
+      <tr><td><span class="sev d">Drift</span></td><td><b>Dashboard card headings are 15.5px but §3 allows 15.5–17.</b> Consistent everywhere (dashboard, notifications, settings), so this is fine — flagged only because the grades picker uses 15.5 for a <i>subject name</i> while academics uses 15 for a faculty name in the same role. Pick one.</td><td class="m">grades/page.tsx:159 vs academics/page.tsx:148</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ============ PRIORITY ============ -->
+<div class="sec">
+  <h2><span class="idx">8</span> Prioritised by visual impact</h2>
+  <div class="secline"></div>
+  <table class="tbl">
+    <thead><tr><th style="width:30px">#</th><th>Fix</th><th style="width:150px">Why it shows</th><th style="width:52px">Cost</th></tr></thead>
+    <tbody>
+      <tr><td class="c">1</td><td><b>Grade entry <code>pb-[76px]</code></b> — one-character logic bug.</td><td>Save bar hides the row being edited</td><td class="c">1 min</td></tr>
+      <tr><td class="c">2</td><td><b>Resolve the <code>TONE_COLORS</code> split palette.</b></td><td>Every badge/tile on every screen</td><td class="c">1 h</td></tr>
+      <tr><td class="c">3</td><td><b>Compact Dropdown for the 46px context bar.</b></td><td>Sticky strip on 6 pages</td><td class="c">1 h</td></tr>
+      <tr><td class="c">4</td><td><b>Table headers 10.5 → 11px</b> via SectionLabel.</td><td>Every table in the product</td><td class="c">15 min</td></tr>
+      <tr><td class="c">5</td><td><b>GlobalSearch onto the Input primitive.</b></td><td>Top bar, always visible</td><td class="c">20 min</td></tr>
+      <tr><td class="c">6</td><td><b>Confirm the save bar's <code>left:248</code>.</b></td><td>Full-width bar under sidebar</td><td class="c">5 min</td></tr>
+      <tr><td class="c">7</td><td><b>Nav icons 19 → 20px</b>; unify avatars (32/34/36).</td><td>Sidebar, every page</td><td class="c">10 min</td></tr>
+      <tr><td class="c">8</td><td><b>Drop <code>text-[13px]</code> from mono inputs.</b></td><td>Matricule/code form fields</td><td class="c">5 min</td></tr>
+      <tr><td class="c">9</td><td><b>Extract <code>&lt;BrandLockup&gt;</code></b>; retire hand-rolled inputs and the duplicated popover.</td><td>Prevents future drift</td><td class="c">2 h</td></tr>
+      <tr><td class="c">10</td><td><b>Spec maintenance</b> — document the undocumented (modal header padding, badge gap, shell paddings, nav icon size) and reconcile the brief's Button/Input numbers.</td><td>Stops "fixes" that break spec</td><td class="c">1 h</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="note" style="margin-top:24px"><b>Bottom line.</b> 21 discrepancies across 32 files, but only <b>three</b> affect what a user sees today, and only one is a defect in the ordinary sense. The gap the first audit found is a <i>content and data</i> gap, not a sizing one — the measurements in this build are faithful to the spec, and the one systemic exception (<code>TONE_COLORS</code>) looks like an intentional accessibility fix that was never written back into §2. Fixing that and documenting the handful of undocumented values would put the code and the spec back in exact agreement.</div>
+
+<p style="font-size:11px;color:var(--text3);margin-top:18px;font-family:var(--mono)">27 Jul 2026 · Diffed against implementation spec §2–7, §22, §29, §30.1 · source tree 99899fa. Line numbers from the files as read; re-check offsets if the branch has moved. Not audited at value level: admins, audit, import wizard, notifications composer internals, date-picker, rich-text toolbar.</p>
+
+</doc-page>
+<script src="doc-page.js"></script>
+</body></html>

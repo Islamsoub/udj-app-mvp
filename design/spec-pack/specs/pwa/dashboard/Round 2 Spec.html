@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Unipocket PWA — Round 2 answers &amp; specs</title>
+<link rel="stylesheet" href="css/fonts.css"/>
+<style>
+doc-page:not(:defined){visibility:hidden}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+doc-page{font-family:'Plus Jakarta Sans',sans-serif;color:#1E231F;font-size:9.5pt;line-height:1.45}
+a{color:#0F6E56}a:hover{color:#1D9E75}
+h1{font-size:22pt;font-weight:800;letter-spacing:-.5px;margin:0 0 4pt}
+h2{font-size:14pt;font-weight:800;margin:22pt 0 8pt;padding-top:8pt;border-top:1.5px solid #1E231F;break-after:avoid}
+h3{font-size:10.5pt;font-weight:700;margin:13pt 0 5pt;break-after:avoid}
+p{margin:0 0 6pt}ul{margin:0 0 8pt;padding-left:14pt}li{margin-bottom:2pt}
+.sub{color:#6C7267;font-size:10.5pt;margin-bottom:12pt}
+.meta{display:flex;flex-wrap:wrap;gap:6pt 18pt;font-size:8.5pt;color:#6C7267;font-family:'DM Mono',monospace;margin-bottom:6pt}
+code,.m{font-family:'DM Mono',monospace;font-size:8.5pt}
+table{width:100%;border-collapse:collapse;margin:3pt 0 9pt;font-size:8.5pt}
+th{text-align:left;font-weight:700;color:#6C7267;font-size:7.5pt;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid rgba(30,35,31,.25);padding:4pt 5pt}
+td{border-bottom:1px solid rgba(30,35,31,.10);padding:3.5pt 5pt;vertical-align:top}
+tr{break-inside:avoid}
+td:first-child{font-weight:600}
+.sw{display:inline-block;width:11pt;height:11pt;border-radius:3pt;vertical-align:middle;border:1px solid rgba(30,35,31,.15);margin-right:4pt}
+.dec{background:rgba(29,158,117,.10);border-radius:6pt;padding:8pt 10pt;margin:4pt 0 10pt;break-inside:avoid}
+.dec b:first-child{color:#0F6E56}
+.pre{font-family:'DM Mono',monospace;font-size:8.5pt;background:#F8F5EF;border-radius:6pt;padding:9pt 11pt;white-space:pre-wrap;break-inside:avoid;margin:4pt 0 10pt}
+.frame{position:relative;overflow:hidden;border-radius:6pt;border:1px solid rgba(30,35,31,.18);background:#E9E6DF;break-inside:avoid}
+.frame iframe{position:absolute;top:0;left:0;border:0;transform-origin:0 0;pointer-events:none}
+.fig{break-inside:avoid;margin:6pt 0 12pt}
+.cap{font-size:8pt;color:#6C7267;margin-top:4pt;font-family:'DM Mono',monospace}
+.note{font-size:8.5pt;color:#6C7267}
+</style>
+</head>
+<body>
+<doc-page margin="0.6in">
+<div class="meta"><span>UNIPOCKET PWA</span><span>ROUND 2</span><span>ATTENDANCE · PRINT · CONTRAST · NOTIF TEMPLATE · BELL</span></div>
+<h1>Round 2 — answers &amp; specs</h1>
+<p class="sub">Five points. Each ends in a decision you can build from. The reference files are in this package: <code>schedule-print.html</code> and <code>bell-states.html</code>.</p>
+
+<h2>1 · Attendance bands, relative to the server threshold</h2>
+<div class="dec"><b>Decision.</b> The server computes the band and the client only maps it to a colour. That is the only way phone and web cannot disagree. Neither client hard-codes a percentage.</div>
+<h3>Inputs</h3>
+<table><thead><tr><th>Name</th><th>Source</th><th>Default</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><code>T</code></td><td><code>settings.attendanceThreshold</code></td><td>75</td><td>Minimum rate, in %</td></tr>
+<tr><td><code>M</code></td><td><code>settings.attendanceWarnMargin</code> (new)</td><td>10</td><td>Points above T that still count as "near"</td></tr>
+<tr><td><code>W</code></td><td><code>settings.attendanceWarnAbsences</code> (new)</td><td>2</td><td>Absences left at or below which a subject counts as "near"</td></tr>
+<tr><td><code>heldH</code>, <code>attendedH</code></td><td>per subject, from actual session records to date</td><td>—</td><td>Same records and counting rule as the rate (justified absences per existing policy)</td></tr>
+<tr><td><code>remainingH</code></td><td>per subject, sessions still scheduled in the timetable from now to semester end (cancelled excluded)</td><td>—</td><td>Recomputed on every timetable change; reaches 0 at term end</td></tr>
+</tbody></table>
+<div class="pre">rate          = attendedH / heldH × 100                          // displayed figure, to date
+bestCase      = (attendedH + remainingH) / (heldH + remainingH) × 100
+hoursLeft     = attendedH + remainingH − T/100 × (heldH + remainingH)
+absencesLeft  = max(0, floor(hoursLeft / sessionLength))        // shown in sessions
+
+band = "below"  if bestCase < T          // perfect attendance from here can no longer reach T
+       "near"   if rate < T + M  or  absencesLeft ≤ W
+       "ok"     otherwise</div>
+<div class="dec"><b>Decision: option 2, recoverability against what remains scheduled.</b> No stored total. The rate and the allowance share one hour universe: past hours come from session records and future hours from the remaining timetable. Curriculum hours (<code>hoursCm/Td/Tp</code>) are not used. Holidays and exam weeks may inflate <code>remainingH</code> early in term, which errs generous. The error shrinks every week and is zero at term end, where <code>bestCase</code> equals the final rate. A student at 3/3 is green, and an early 1-of-2 miss is amber, not red, while it can still be recovered.</div>
+<p class="note"><code>hoursLeft</code> answers "how many more hours can be missed and still finish at T". <code>bestCase &lt; T</code> is the same test as <code>hoursLeft &lt; 0</code>. <code>sessionLength</code> is the subject's standard session duration. The overall figure pools all four inputs across subjects. If <code>heldH = 0</code>, show "—" and band "ok". If <code>remainingH = 0</code>, the result reduces to <code>rate &lt; T</code>. If the university changes T, every boundary moves with it.</p>
+<h3>Per subject or overall?</h3>
+<div class="dec"><b>Both, with clear jobs.</b> Formal warnings are per subject, as the notification shows. The <b>ring</b> shows the <b>overall</b> rate and is coloured by the <b>overall</b> band, so the colour always describes the number next to it. The <b>sentence</b> under "Seuil" reports the <b>most at-risk subject</b>.</div>
+<table><thead><tr><th>Worst subject</th><th>Sentence (FR)</th><th>Sentence (AR)</th><th>Text colour</th></tr></thead><tbody>
+<tr><td>below</td><td>{subject} : limite d'absences dépassée</td><td dir="rtl">{subject}: تم تجاوز حد الغياب</td><td>danger-text</td></tr>
+<tr><td>near</td><td>{subject} : encore {n} absence(s) avant le seuil</td><td dir="rtl">{subject}: {n} غياب متبقٍّ قبل الحد الأدنى</td><td>warning-text</td></tr>
+<tr><td>ok (all)</td><td>Toutes les matières au-dessus du seuil</td><td dir="rtl">جميع المواد فوق الحد الأدنى</td><td>ink2</td></tr>
+</tbody></table>
+<p class="note">The "Seuil : {T} %" label always shows the live T, coloured by the overall band. If several subjects are in the worst band, show the lowest rate and append "+ {k} autre(s)". With the sample data (T = 75), the ring is 87%, green. If Statistiques L2 has used up its allowance, the sentence reads, in red: "Statistiques L2 : limite d'absences dépassée". It matches the notification.</p>
+<h3>Colours: text-safe values (measured)</h3>
+<table><thead><tr><th>Band</th><th>Ring stroke</th><th>Text, light</th><th>Text, dark</th></tr></thead><tbody>
+<tr><td>ok</td><td>--jade</td><td><span class="sw" style="background:#0F6E56"></span>#0F6E56 · 6.20 on white, 5.70 on surface2</td><td>#5FD3A6 · 8.34</td></tr>
+<tr><td>near</td><td>--warning</td><td><span class="sw" style="background:#9A5B06"></span><b>#9A5B06</b> · 5.42 on white, 4.87 on warning-bg</td><td>#F0A84B · 7.64</td></tr>
+<tr><td>below</td><td>--danger</td><td><span class="sw" style="background:#C62828"></span><b>#C62828</b> · 5.62 on white, 4.94 on danger-bg</td><td>#FF6B6B · 5.56</td></tr>
+</tbody></table>
+<p class="note">Add the tokens <code>--warning-text</code> (#9A5B06 / #F0A84B) and <code>--danger-text</code> (#C62828 / #FF6B6B). #9A5B06 already ships in the prototype for "Limite" pills. #F59E0B (2.15) and #EF4444 (3.76) stay for fills and strokes only, never for text. The ring is not the only signal, because the number and the sentence carry the meaning, so its stroke may stay in the fill colours.</p>
+
+<h2>2 · Print — Emploi du temps (new work)</h2>
+<div class="fig"><div class="frame" style="width:700px;height:495px"><iframe src="schedule-print.html?only=fr" style="width:1123px;height:794px;transform:scale(.6234)"></iframe></div><div class="cap">A · FR, A4 landscape, full week</div></div>
+<div class="fig"><div class="frame" style="width:700px;height:495px"><iframe src="schedule-print.html?only=ar" style="width:1123px;height:794px;transform:scale(.6234)"></iframe></div><div class="cap">B · AR, mirrored</div></div>
+<div class="fig"><div class="frame" style="width:700px;height:495px"><iframe src="schedule-print.html?only=empty" style="width:1123px;height:794px;transform:scale(.6234)"></iframe></div><div class="cap">C · Week with no courses</div></div>
+<h3>Entry points</h3>
+<ul><li><b>"Imprimer mon planning" tile</b> on the dashboard prints the <b>current week</b> directly. It does not navigate anywhere.</li>
+<li><b>New "Imprimer" button</b> in the Emploi du temps toolbar, at the inline-end: <code>.btn-ghost</code> with a printer icon. It prints the <b>week being viewed</b>, in Day mode too.</li>
+<li>Print uses cached data, so it works offline. If that week isn't cached, show the toast "Semaine indisponible hors ligne" and don't open the print dialog.</li></ul>
+<h3>Sheet</h3>
+<table><tbody>
+<tr><td>Page</td><td>A4 landscape, <code>@page{size:A4 landscape;margin:0}</code>, sheet padding 10 mm. Always one page.</td></tr>
+<tr><td>Header</td><td>U mark (9 mm, ink), "Emploi du temps" 15 pt/800, "Université de Djibouti" 8.5 pt. At the inline-end, a 2-column grid: Nom · N° étudiant (DM Mono) · Programme · Semaine ("du 8 au 13 juin 2026"). 0.6 pt rule below.</td></tr>
+<tr><td>Grid</td><td>13 mm hour gutter + 6 equal columns, Lun–Sam, with the date number in DM Mono. Header row 9 mm, tinted #F1EEE7. Hour lines solid 0.3 pt, half-hours dashed.</td></tr>
+<tr><td>Time axis</td><td>08:00–18:00 by default, so every week looks alike. It extends to whole hours for any course outside that range. The row height fills the remaining page height.</td></tr>
+<tr><td>Course block</td><td>White, 0.5 pt #6C7267 border, radius 1.2 mm, <b>2.2 mm inline-start rail</b> in the course colour. Title 8.5 pt/700 (2-line clamp) · room · code 7.5 pt · times "08:00–09:30" in DM Mono 7.5 pt, pinned to the bottom. Under 45 min: one line, "title · times".</td></tr>
+<tr><td>Overlaps</td><td>Courses that overlap in the same column share its width equally, side by side.</td></tr>
+<tr><td>Footer</td><td>"Imprimé le {date} à {time} depuis Unipocket" · "Horaires susceptibles d'évoluer — vérifiez l'application." 7.5 pt.</td></tr>
+<tr><td>Black &amp; white</td><td>No information is carried by colour alone: every block names its course, room and time in text, and the rail prints as a grey bar. All text is #1E231F or #3F443C/#55594F on white (≥ 7:1).</td></tr>
+<tr><td>Dropped</td><td>Sidebar, topbar, tab bar, toolbar, week nav, today highlight, status pills, professor, detail panel, toasts, offline banner, demo controls. Everything interactive.</td></tr>
+</tbody></table>
+<h3>Empty week</h3>
+<p>The button stays enabled. The sheet prints the full header and an empty grid, with a centred boxed message: "Aucun cours cette semaine" / "Aucun cours n'est programmé du {from} au {to}." This gives the student proof of an empty week rather than a blank page.</p>
+<h3>Arabic</h3>
+<p><b>Yes, the sheet mirrors.</b> <code>dir="rtl"</code> on the sheet: Monday is at the right, the hour gutter is on the right, the rail sits on the right edge (<code>border-inline-start</code>), and the brand is at the right with the ID block at the left. Day names are written in full (الاثنين …) in Noto Naskh Arabic. Times, codes, the student number and room codes stay LTR (<code>.mono</code> / <code>&lt;bdi&gt;</code>). Course titles use the backend's Arabic name, falling back to French inside <code>&lt;bdi&gt;</code>.</p>
+<h3>Implementation</h3>
+<ul><li>Render the sheet into a <code>.print-root</code> appended to <code>body</code>. Add <code>@media print{body&gt;*:not(.print-root){display:none}}</code>, wait for <code>document.fonts.ready</code>, call <code>window.print()</code>, then remove the root on <code>afterprint</code>.</li>
+<li>The print stylesheet is the delimited block in <code>schedule-print.html</code>. Copy it as-is.</li></ul>
+
+<h2>3 · Tagline contrast, measured on the gradient</h2>
+<p>Geometry used: login card 420 px wide, hero 195 px tall (40 + 64 logo + 14 + 25 title + 5 + 17 tagline + 30), <code>linear-gradient(155deg, #1D9E75, #0F6E56)</code>. The tagline line box spans y 148–165 px and is about 242 px wide, centred.</p>
+<table><thead><tr><th>Point on tagline</th><th>Gradient position</th><th>White contrast</th></tr></thead><tbody>
+<tr><td>Upper-left of first glyph (worst)</td><td>t = 0.493</td><td><b>4.51 : 1</b></td></tr>
+<tr><td>Centre</td><td>t = 0.651</td><td>4.97 : 1</td></tr>
+<tr><td>Lower-right (best)</td><td>t = 0.809</td><td>5.49 : 1</td></tr>
+<tr><td>Required minimum</td><td>t ≥ 0.489</td><td>4.50 : 1</td></tr>
+</tbody></table>
+<p>At 100% white, the current layout passes by 0.01. That is too thin to rely on: the Arabic string is wider, the card shrinks on phones and the font metrics vary.</p>
+<div class="dec"><b>Decision: darken the gradient start, not a position rule.</b> New hero gradient: <code>linear-gradient(155deg, #168666, #0F6E56)</code>. #168666 alone gives <b>4.53 : 1</b> with white, so <b>every point of the hero passes 4.5 : 1</b>, in any layout, language or width. Use it in both themes, and on the dashboard GPA card (<code>150deg</code>) too.</div>
+<p>Three more elements on the green fail today and are fixed with it:</p>
+<table><thead><tr><th>Element</th><th>Today</th><th>Fix</th><th>Result</th></tr></thead><tbody>
+<tr><td>Login language chip "FR" (11 px) on 16% white</td><td>2.88 : 1</td><td>Chip bg <code>rgba(0,0,0,.16)</code></td><td>6.00 : 1</td></tr>
+<tr><td>GPA label (12.5 px) at 78% white</td><td>2.81 : 1</td><td>100% white</td><td>≥ 4.53 : 1</td></tr>
+<tr><td>Mention badge (13 px) on 18% white</td><td>3.25 : 1</td><td>Badge bg <code>rgba(0,0,0,.16)</code></td><td>6.00 : 1</td></tr>
+</tbody></table>
+<p class="note">Also make the tagline, the "/20" suffix and the GPA label 100% white rather than translucent. Blobs and the depth circle at 7% white are decorative and stay as they are.</p>
+
+<h2>4 · Notification template, subject as a placeholder</h2>
+<div class="dec"><b>Confirmed: change the server template.</b> The card and the notification must point at the same subject, and that is not possible without the subject in the text.</div>
+<table><thead><tr><th>Key</th><th>Locale</th><th>Template</th></tr></thead><tbody>
+<tr><td rowspan="2">attendance.subject_below_threshold</td><td>fr</td><td><code>{subject} : limite d'absences dépassée — présence {rate}&#8239;%, seuil {threshold}&#8239;%</code></td></tr>
+<tr><td>ar</td><td dir="rtl"><code>{subject}: تم تجاوز حد الغياب — الحضور {rate}٪، الحد الأدنى {threshold}٪</code></td></tr>
+<tr><td rowspan="2">attendance.subject_near_threshold</td><td>fr</td><td><code>{subject} : encore {n} absence(s) avant la limite</code></td></tr>
+<tr><td>ar</td><td dir="rtl"><code>{subject}: {n} غياب متبقٍّ قبل بلوغ الحد</code></td></tr>
+</tbody></table>
+<ul><li><code>{subject}</code>: the subject's name in the recipient's locale, falling back to French. The client wraps it in <code>&lt;bdi&gt;</code>.</li>
+<li><code>{rate}</code>: an integer, <b>truncated, not rounded</b>. 74.6 must show 74, never "75 %, sous le seuil de 75 %".</li>
+<li><code>{threshold}</code>: <code>settings.attendanceThreshold</code> at send time.</li>
+<li>FR uses U+202F (narrow no-break space) before %. AR uses Western digits and ٪ (U+066A), consistent with the rest of the app.</li>
+<li><b>When to send:</b> only on band transitions, computed with the rule in §1. Send <code>near</code> on entering near and <code>below</code> on entering below, each once per subject per semester. No notification on the way back up.</li>
+<li>Rendered: "Statistiques L2 : limite d'absences dépassée — présence 72 %, seuil 75 %" · "الإحصاء L2: تم تجاوز حد الغياب — الحضور 72٪، الحد الأدنى 75٪"</li></ul>
+
+<h2>5 · Bell popover — all states (finish now)</h2>
+<div class="fig"><div class="frame" style="width:700px;height:470px"><iframe src="bell-states.html" style="width:1400px;height:940px;transform:scale(.5)"></iframe></div><div class="cap">States 1–8 · bell-states.html (also ?theme=dark, ?lang=ar)</div></div>
+<h3>Rows: unread vs read</h3>
+<table><thead><tr><th></th><th>Unread</th><th>Read</th></tr></thead><tbody>
+<tr><td>Title</td><td>13 px / <b>700</b>, --ink</td><td>13 px / <b>500</b>, --ink2</td></tr>
+<tr><td>Marker</td><td>8 px --jade dot at the inline-end, top-aligned with the title (aria-label "Non lue")</td><td>none</td></tr>
+<tr><td>Chip, time, background</td><td colspan="2">Unchanged; the layout doesn't shift when a row is read</td></tr>
+</tbody></table>
+<h3>Header &amp; "Tout marquer comme lu"</h3>
+<ul><li>Header row: "Notifications" (13/700) + an unread count pill (20 px tall, jade-faint, DM Mono) + <b>"Tout marquer comme lu"</b> at the inline-end (12.5/600, jade-text). The pill and the button only render when unread &gt; 0.</li>
+<li><b>On press (optimistic):</b> every row switches to the read treatment in place. Order and scroll are kept. The pill and the button disappear, and the bell's badge dot hides at once. No toast. See state 2.</li>
+<li><b>On failure:</b> revert to the previous state and show the error strip "Impossible de marquer comme lu." under the header for 4 s.</li>
+<li>Opening the popover does not mark anything as read. Tapping a row marks that one read, closes the popover and navigates to its target: grades → Notes, attendance → Présence, exam → Actualités.</li></ul>
+<h3>Six-state contract</h3>
+<table><thead><tr><th>State</th><th>Trigger</th><th>Render</th></tr></thead><tbody>
+<tr><td>Loaded</td><td>Data available</td><td>Up to 30 most recent, newest first; list <code>max-height:420px</code> scrolls</td></tr>
+<tr><td>Loading</td><td>First open, nothing cached</td><td>Header (no actions) + 3 skeleton rows: 32 px chip, bars at 82% and 28%, 1.4 s shimmer, static with reduced motion. With a cache, show the cached list immediately and refresh silently.</td></tr>
+<tr><td>Empty</td><td>0 notifications</td><td>44 px bell in a surface2 circle · "Aucune notification" 13.5/700 · "Les nouvelles notes, absences et annonces apparaîtront ici." 12 px ink2</td></tr>
+<tr><td>Error</td><td>Fetch failed, no cache</td><td>Danger-tinted icon · "Impossible de charger les notifications" · "Vérifiez votre connexion puis réessayez." · <code>.btn-ghost</code> "Réessayer"</td></tr>
+<tr><td>Error + cache</td><td>Refresh failed</td><td>Cached list + danger strip "Actualisation impossible — liste du dernier chargement." (state 6)</td></tr>
+<tr><td>Offline</td><td>No network</td><td>With cache: warning strip "Hors ligne — notifications enregistrées.", and "Tout marquer comme lu" shown <b>disabled</b> (ink3). Without cache: "Notifications indisponibles hors ligne" / "Elles s'afficheront dès le retour du réseau."</td></tr>
+<tr><td>Session expired</td><td>401 on fetch</td><td>The popover closes and the app-wide session-expired modal takes over, as on every other screen. No popover-specific UI.</td></tr>
+</tbody></table>
+<p class="note">Strip: margin 0 12 8, padding 8 10, radius 8, 12 px text in --ink on warning-bg or danger-bg, with a 7 px dot. CSS for all new parts is the delimited block in <code>bell-states.html</code>. The "Tout voir" link on the dashboard card opens this same popover.</p>
+</doc-page>
+<script src="doc-page.js"></script>
+</body>
+</html>

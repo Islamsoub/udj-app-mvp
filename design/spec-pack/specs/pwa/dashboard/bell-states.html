@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unipocket — Bell popover states (reference)</title>
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/app.css">
+<style>
+body{padding:24px;min-height:0}
+.board{display:grid;grid-template-columns:repeat(auto-fill,320px);gap:28px 24px;align-items:start}
+.st-lbl{font-family:var(--font-mono);font-size:11px;color:var(--ink2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px}
+.notif-panel.static{position:relative;display:block;top:auto;inset-inline-end:auto}
+/* ===== NEW popover rules — add to the PWA ===== */
+.np-head{display:flex;align-items:center;gap:8px;padding:14px 16px 10px}
+.np-head h4{margin:0;padding:0;font-size:13px;font-weight:700}
+.np-count{font-size:11px;font-weight:700;min-width:20px;height:20px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;border-radius:9999px;font-family:var(--font-mono);background:var(--jade-faint);color:var(--jade-text)}
+.np-markall{margin-inline-start:auto;border:none;background:none;padding:4px 0;font-size:12.5px;font-weight:600;color:var(--jade-text);white-space:nowrap}
+.np-markall:hover{color:var(--jade-hover)}
+.np-markall:disabled{color:var(--ink3);cursor:default}
+.np-list{max-height:420px;overflow-y:auto}
+.notif-row{position:relative;align-items:flex-start}
+.notif-row.unread .t{font-weight:700;color:var(--ink)}
+.notif-row.read .t{font-weight:500;color:var(--ink2)}
+.notif-row .body{flex:1;min-width:0}
+.np-dot{width:8px;height:8px;border-radius:50%;background:var(--jade);flex-shrink:0;margin-top:5px}
+.np-strip{display:flex;align-items:center;gap:8px;margin:0 12px 8px;padding:8px 10px;border-radius:var(--r-sm);background:var(--warning-bg);font-size:12px;color:var(--ink)}
+.np-strip .dot{width:7px;height:7px;border-radius:50%;background:var(--warning);flex-shrink:0}
+.np-strip.err{background:var(--danger-bg)}
+.np-strip.err .dot{background:var(--danger)}
+.np-sk{display:flex;gap:10px;padding:10px 16px;border-top:1px solid var(--hair)}
+.np-sk i{display:block;border-radius:6px;background:linear-gradient(90deg,var(--sunken) 0%,var(--surface2) 50%,var(--sunken) 100%);background-size:200% 100%;animation:np-sh 1.4s linear infinite}
+@keyframes np-sh{from{background-position:200% 0}to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.np-sk i{animation:none}}
+.np-state{display:flex;flex-direction:column;align-items:center;text-align:center;padding:24px 24px 26px;border-top:1px solid var(--hair)}
+.np-state .ic{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--surface2);color:var(--ink3);margin-bottom:12px}
+.np-state .ic svg{width:20px;height:20px}
+.np-state .ic.err{background:var(--danger-bg);color:var(--danger)}
+.np-state b{font-size:13.5px;font-weight:700}
+.np-state span{font-size:12px;color:var(--ink2);margin-top:4px;line-height:1.45;max-width:240px}
+.np-state .btn-ghost{margin-top:14px}
+/* ===== end ===== */
+</style>
+</head>
+<body>
+<div class="board" id="board"></div>
+<script>
+const q=new URLSearchParams(location.search);
+if(q.get('theme')==='dark')document.documentElement.setAttribute('data-theme','dark');
+const AR=q.get('lang')==='ar';if(AR){document.documentElement.dir='rtl';document.documentElement.lang='ar';}
+const L=(fr,ar)=>AR?ar:fr;
+const IC={g:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5-9 5-9-5 9-5z"/></svg>',a:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',e:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>',bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',warn:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5v.5"/></svg>',off:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 9a15 15 0 0 1 20 0M6 13a9 9 0 0 1 12 0M10 17a4 4 0 0 1 4 0"/><line x1="2" y1="2" x2="22" y2="22"/></svg>'};
+const CH={g:'',a:'background:var(--warning-bg);color:var(--warning)',e:'background:var(--exam-bg);color:var(--exam)'};
+const ROWS=[
+ {k:'g',t:L('Vos notes de Réseaux informatiques sont publiées','تم نشر درجات مادة الشبكات المعلوماتية'),d:'09:12'},
+ {k:'a',t:L('Statistiques L2 : limite d\'absences dépassée — présence 72 %, seuil 75 %','الإحصاء L2: تم تجاوز حد الغياب — الحضور 72٪، الحد الأدنى 75٪'),d:L('Hier','أمس')},
+ {k:'e',t:L('Calendrier des examens S2 publié','تم نشر جدول امتحانات الفصل الثاني'),d:L('Lundi','الاثنين')},
+ {k:'g',t:L('Vos notes de Bases de données sont publiées','تم نشر درجات مادة قواعد البيانات'),d:'02/06'}];
+const row=(r,unread)=>`<div class="notif-row ${unread?'unread':'read'}"><div class="chip" style="${CH[r.k]}">${IC[r.k]}</div><div class="body"><div class="t">${r.t}</div><div class="d">${r.d}</div></div>${unread?'<span class="np-dot" aria-label="'+L('Non lue','غير مقروءة')+'"></span>':''}</div>`;
+const head=(n,mark,dis)=>`<div class="np-head"><h4>${L('Notifications','الإشعارات')}</h4>${n?`<span class="np-count" aria-label="${n} ${L('non lues','غير مقروءة')}">${n}</span>`:''}${mark?`<button class="np-markall"${dis?' disabled':''}>${L('Tout marquer comme lu','تحديد الكل كمقروء')}</button>`:''}</div>`;
+const list=(u)=>`<div class="np-list">${ROWS.map((r,i)=>row(r,i<u)).join('')}</div>`;
+const sk=()=>`<div class="np-sk"><i style="width:32px;height:32px;border-radius:8px;flex-shrink:0"></i><div style="flex:1;display:flex;flex-direction:column;gap:6px;padding-top:2px"><i style="height:11px;width:82%"></i><i style="height:9px;width:28%"></i></div></div>`;
+const state=(ic,cls,t,s,btn)=>`<div class="np-state"><div class="ic ${cls}">${IC[ic]}</div><b>${t}</b><span>${s}</span>${btn?`<button class="btn-ghost">${btn}</button>`:''}</div>`;
+const S=[
+ ['1 · Loaded — 2 unread',head(2,1)+list(2)],
+ ['2 · Right after "Tout marquer comme lu"',head(0,0)+list(0)],
+ ['3 · Loading (first open, no cache)',head(0,0)+sk()+sk()+sk()],
+ ['4 · Empty',head(0,0)+state('bell','',L('Aucune notification','لا توجد إشعارات'),L('Les nouvelles notes, absences et annonces apparaîtront ici.','ستظهر هنا الدرجات الجديدة والغيابات والإعلانات.'))],
+ ['5 · Error (no cache)',head(0,0)+state('warn','err',L('Impossible de charger les notifications','تعذّر تحميل الإشعارات'),L('Vérifiez votre connexion puis réessayez.','تحقّق من اتصالك ثم أعد المحاولة.'),L('Réessayer','إعادة المحاولة'))],
+ ['6 · Error with cache (refresh failed)',head(2,1)+`<div class="np-strip err"><span class="dot"></span>${L('Actualisation impossible — liste du dernier chargement.','تعذّر التحديث — القائمة من آخر تحميل.')}</div>`+list(2)],
+ ['7 · Offline with cache',head(2,1,1)+`<div class="np-strip"><span class="dot"></span>${L('Hors ligne — notifications enregistrées.','غير متصل — الإشعارات المحفوظة.')}</div>`+list(2)],
+ ['8 · Offline, nothing cached',head(0,0)+state('off','',L('Notifications indisponibles hors ligne','الإشعارات غير متاحة دون اتصال'),L('Elles s\'afficheront dès le retour du réseau.','ستظهر فور عودة الاتصال.'))]
+];
+document.getElementById('board').innerHTML=S.map(([l,b])=>`<div><div class="st-lbl">${l}</div><div class="notif-panel static">${b}</div></div>`).join('');
+</script>
+</body>
+</html>

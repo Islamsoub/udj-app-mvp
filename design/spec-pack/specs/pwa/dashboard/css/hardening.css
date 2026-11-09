@@ -1,0 +1,12 @@
+/* Responsive hardening — zero visual change at reference sizes; prevents wraps/overflow at in-between widths */
+.grid-cards{grid-template-columns:minmax(0,1fr)}
+@media(min-width:640px){.grid-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1024px){.grid-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.quicklinks{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(min-width:640px){.quicklinks{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.page-title,.card .see-all,.mention-badge,.countdown,.nav-item .lbl,.ac-time{white-space:nowrap}
+.page-title{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.qlink,.qlink .qt,.mini-class .body,.notif-row>div:last-child{min-width:0}
+.mini-class .t{overflow:hidden;text-overflow:ellipsis}
+@media(max-width:379px){.quicklinks{grid-template-columns:minmax(0,1fr)}.gauge-wrap{gap:12px}}
+@media(min-width:640px) and (max-width:1023px){.sidebar{width:72px!important}.sidebar .brand,.sidebar .lbl,.collapse-btn{display:none}.nav-item{justify-content:center;padding:0}.sidebar-foot{padding:12px 8px}}

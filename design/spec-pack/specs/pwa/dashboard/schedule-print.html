@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unipocket — Emploi du temps (print reference)</title>
+<link rel="stylesheet" href="css/fonts.css">
+<style>
+/* ===== PRINT STYLESHEET — copy this block into the PWA ===== */
+@page{size:A4 landscape;margin:0}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+html,body{margin:0;padding:0}
+body{background:#E9E6DF}
+.sheet{width:297mm;height:210mm;padding:10mm;background:#fff;color:#1E231F;font-family:'Plus Jakarta Sans',sans-serif;display:flex;flex-direction:column;overflow:hidden;margin:0 auto 8mm}
+.sheet[dir=rtl]{font-family:'Noto Naskh Arabic',serif}
+.mono{font-family:'DM Mono',monospace;direction:ltr;unicode-bidi:isolate}
+.ps-head{display:flex;justify-content:space-between;align-items:flex-end;gap:8mm;padding-bottom:4mm;border-bottom:.6pt solid #1E231F}
+.ps-brand{display:flex;align-items:center;gap:3mm}
+.ps-brand svg{width:9mm;height:9.7mm;color:#1E231F;flex-shrink:0}
+.ps-brand .t{font-size:15pt;font-weight:800;letter-spacing:-.2pt;line-height:1.1}
+.ps-brand .s{font-size:8.5pt;color:#55594F;margin-top:.8mm}
+.ps-id{display:grid;grid-template-columns:auto auto;gap:.6mm 5mm;font-size:8.5pt;text-align:end}
+.ps-id .k{color:#55594F}
+.ps-id .v{font-weight:700}
+.ps-grid{flex:1;min-height:0;display:grid;grid-template-columns:13mm repeat(6,minmax(0,1fr));grid-template-rows:9mm minmax(0,1fr);margin-top:4mm;border:.6pt solid #1E231F}
+.ps-dh{display:flex;align-items:center;justify-content:center;gap:1.5mm;font-size:9pt;font-weight:700;border-inline-start:.4pt solid #8A8F84;border-bottom:.6pt solid #1E231F;background:#F1EEE7}
+.ps-dh .mono{font-weight:500}
+.ps-corner{border-bottom:.6pt solid #1E231F;background:#F1EEE7}
+.ps-gut{position:relative}
+.ps-gut span{position:absolute;inset-inline-end:1.5mm;transform:translateY(-50%);font-size:7.5pt;color:#55594F}
+.ps-col{position:relative;border-inline-start:.4pt solid #8A8F84}
+.ps-line{position:absolute;left:0;right:0;border-top:.3pt solid #C9C5BB}
+.ps-line.half{border-top:.3pt dashed #DEDAD1}
+.ps-c{position:absolute;inset-inline:.8mm;background:#fff;border:.5pt solid #6C7267;border-inline-start:2.2mm solid var(--c);border-radius:1.2mm;padding:1mm 1.6mm;overflow:hidden;display:flex;flex-direction:column;gap:.4mm}
+.ps-c .tt{font-size:8.5pt;font-weight:700;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ps-c .rm{font-size:7.5pt;color:#3F443C;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ps-c .tm{font-size:7.5pt;color:#1E231F;margin-top:auto}
+.ps-empty{position:absolute;inset:9mm 0 0 13mm;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.sheet[dir=rtl] .ps-empty{inset:9mm 13mm 0 0}
+.ps-empty div{background:#fff;border:.6pt solid #1E231F;border-radius:2mm;padding:5mm 9mm;text-align:center}
+.ps-empty b{display:block;font-size:12pt}
+.ps-empty span{font-size:9pt;color:#55594F}
+.ps-foot{display:flex;justify-content:space-between;gap:6mm;font-size:7.5pt;color:#55594F;margin-top:2.5mm}
+@media print{body{background:none}.sheet{margin:0;break-after:page}.sheet:last-child{break-after:auto}}
+/* ===== end print stylesheet ===== */
+.ps-grid{position:relative}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const COURSES=[
+ {day:0,start:'08:00',end:'09:00',fr:'Anglais technique',ar:'الإنجليزية التقنية',room:'B08',code:'ANG201',color:'#6366F1'},
+ {day:0,start:'10:00',end:'12:00',fr:'Bases de données',ar:'قواعد البيانات',room:'Labo Info 1',code:'INF210',color:'#2E9E5B'},
+ {day:1,start:'08:00',end:'09:30',fr:'Mathématiques générales L2',ar:'الرياضيات العامة L2',room:'A05',code:'MAT204',color:'#2F7DD1'},
+ {day:1,start:'13:00',end:'14:30',fr:'Physique quantique',ar:'الفيزياء الكمية',room:'D04',code:'PHY301',color:'#E08A1E'},
+ {day:2,start:'09:00',end:'11:00',fr:'Algorithmique avancée',ar:'الخوارزميات المتقدمة',room:'C12',code:'INF303',color:'#8B5CF6'},
+ {day:3,start:'08:00',end:'10:00',fr:'Bases de données',ar:'قواعد البيانات',room:'Labo Info 1',code:'INF210',color:'#2E9E5B'},
+ {day:3,start:'10:30',end:'12:00',fr:'Mathématiques générales L2',ar:'الرياضيات العامة L2',room:'A05',code:'MAT204',color:'#2F7DD1'},
+ {day:3,start:'14:00',end:'15:30',fr:'Physique quantique',ar:'الفيزياء الكمية',room:'D04',code:'PHY301',color:'#E08A1E'},
+ {day:4,start:'08:00',end:'09:30',fr:'Réseaux informatiques',ar:'الشبكات المعلوماتية',room:'Labo Info 2',code:'INF305',color:'#2E9E5B'},
+ {day:4,start:'10:00',end:'11:30',fr:"Systèmes d'exploitation",ar:'أنظمة التشغيل',room:'Amphi A1',code:'INF215',color:'#2F7DD1'},
+ {day:4,start:'13:00',end:'14:30',fr:'Statistiques L2',ar:'الإحصاء L2',room:'B08',code:'STA202',color:'#E08A1E'},
+ {day:5,start:'09:00',end:'10:30',fr:'Anglais technique',ar:'الإنجليزية التقنية',room:'B08',code:'ANG201',color:'#6366F1'}
+];
+const T={fr:{title:'Emploi du temps',uni:'Université de Djibouti',name:'Nom',num:'N° étudiant',prog:'Programme',week:'Semaine',progV:'Licence Informatique · Semestre 4',weekV:'du 8 au 13 juin 2026',days:['Lun','Mar','Mer','Jeu','Ven','Sam'],printed:'Imprimé le 27/10/2026 à 14:32 depuis Unipocket',note:"Horaires susceptibles d'évoluer — vérifiez l'application.",emptyT:'Aucun cours cette semaine',emptyS:"Aucun cours n'est programmé du 8 au 13 juin 2026."},
+ar:{title:'جدول الحصص',uni:'جامعة جيبوتي',name:'الاسم',num:'الرقم الجامعي',prog:'البرنامج',week:'الأسبوع',progV:'إجازة في المعلوماتية · الفصل الرابع',weekV:'من 8 إلى 13 يونيو 2026',days:['الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'],printed:'طُبع في 27/10/2026 الساعة 14:32 من Unipocket',note:'قد تتغير المواعيد — راجع التطبيق.',emptyT:'لا توجد حصص هذا الأسبوع',emptyS:'لا توجد أي حصة مبرمجة من 8 إلى 13 يونيو 2026.'}};
+const U='<svg viewBox="15.06 7.89 74.15 79.88"><path fill="currentColor" d="M26.4219 14.8672C34.0805 19.5678 38.5367 28.096 38.0225 37.0674L37.1553 52.1963C36.6268 61.414 43.9595 69.1796 53.1924 69.1797C61.8981 69.1797 68.8706 61.9632 68.5713 53.2627L67.9844 36.2168C67.6906 27.6772 71.8344 19.5925 78.9385 14.8447L89.207 7.98242V57.0488C89.207 74.0141 75.4544 87.7674 58.4893 87.7676H45.7773C28.8122 87.7673 15.0596 74.014 15.0596 57.0488V7.89258L26.4219 14.8672Z"/></svg>';
+const m=t=>{const[h,mm]=t.split(':').map(Number);return h*60+mm};
+function sheet(lang,courses){
+ const t=T[lang],rtl=lang==='ar';
+ let a=8*60,b=18*60;courses.forEach(c=>{a=Math.min(a,Math.floor(m(c.start)/60)*60);b=Math.max(b,Math.ceil(m(c.end)/60)*60);});
+ const span=b-a,pct=x=>((x-a)/span*100).toFixed(3)+'%';
+ let lines='';for(let x=a;x<=b;x+=30)lines+=`<div class="ps-line${x%60?' half':''}" style="top:${pct(x)}"></div>`;
+ let gut='';for(let x=a+60;x<b;x+=60)gut+=`<span class="mono" style="top:${pct(x)}">${String(x/60).padStart(2,'0')}:00</span>`;
+ const dnum=[8,9,10,11,12,13];
+ let h=`<div class="ps-corner"></div>`+t.days.map((d,i)=>`<div class="ps-dh">${d} <span class="mono">${dnum[i]}</span></div>`).join('');
+ h+=`<div class="ps-gut">${gut}</div>`;
+ for(let d=0;d<6;d++){h+=`<div class="ps-col">${lines}`+courses.filter(c=>c.day===d).map(c=>`<div class="ps-c" style="--c:${c.color};top:calc(${pct(m(c.start))} + .4mm);height:calc(${((m(c.end)-m(c.start))/span*100).toFixed(3)}% - .8mm)"><div class="tt">${c[lang]}</div><div class="rm"><bdi>${c.room}</bdi> · <span class="mono">${c.code}</span></div><div class="tm mono">${c.start}–${c.end}</div></div>`).join('')+`</div>`;}
+ const empty=courses.length?'':`<div class="ps-empty"><div><b>${t.emptyT}</b><span>${t.emptyS}</span></div></div>`;
+ return `<section class="sheet" dir="${rtl?'rtl':'ltr'}" lang="${lang}"><header class="ps-head"><div class="ps-brand">${U}<div><div class="t">${t.title}</div><div class="s">${t.uni}</div></div></div><div class="ps-id"><span class="k">${t.name}</span><span class="v">${rtl?'أمينة موسى':'Amina Moussa'}</span><span class="k">${t.num}</span><span class="v mono">UDJ-2024-0451</span><span class="k">${t.prog}</span><span class="v">${t.progV}</span><span class="k">${t.week}</span><span class="v">${t.weekV}</span></div></header><div class="ps-grid">${h}${empty}</div><footer class="ps-foot"><span>${t.printed}</span><span>${t.note}</span></footer></section>`;
+}
+const only=new URLSearchParams(location.search).get('only');
+const out={fr:sheet('fr',COURSES),ar:sheet('ar',COURSES),empty:sheet('fr',[])};
+document.getElementById('root').innerHTML=only?out[only]:out.fr+out.ar+out.empty;
+</script>
+</body>
+</html>

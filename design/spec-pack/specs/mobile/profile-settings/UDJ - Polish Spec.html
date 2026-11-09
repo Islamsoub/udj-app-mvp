@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>UDJ — Polish Implementation Spec</title>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" rx="22" fill="#0F6E56"/>
+    <text x="50" y="64" font-family="sans-serif" font-size="34" font-weight="800" fill="#fff" text-anchor="middle">§</text>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#F2F5F3; --surface:#fff; --ink:#1C2320; --ink2:#6B7B74; --ink3:#9EADA7;
+    --hair:rgba(28,35,32,0.10); --jade:#1D9E75; --jade6:#0F6E56;
+    --sans:'Plus Jakarta Sans',sans-serif; --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:980px;margin:0 auto;padding:56px 32px 100px;}
+  h1{font-size:34px;font-weight:800;letter-spacing:-0.8px;margin:0;}
+  .sub{color:var(--ink2);font-size:15px;margin-top:8px;max-width:62ch;line-height:1.55;}
+  h2{font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--jade6);margin:54px 0 18px;}
+  h3{font-size:17px;font-weight:700;margin:26px 0 10px;}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:18px;padding:22px;box-shadow:0 1px 2px rgba(28,35,32,0.04);}
+  .grid{display:grid;gap:14px;}
+  .g2{grid-template-columns:1fr 1fr;}
+  .g3{grid-template-columns:1fr 1fr 1fr;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th,td{text-align:start;padding:9px 10px;border-bottom:1px solid var(--hair);vertical-align:top;}
+  th{font-size:11px;letter-spacing:0.6px;text-transform:uppercase;color:var(--ink3);font-weight:700;}
+  td.mono,.mono{font-family:var(--mono);}
+  .sw{display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid var(--hair);font-size:13px;}
+  .sw:last-child{border-bottom:none;}
+  .chip{width:30px;height:30px;border-radius:9px;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);}
+  .nm{font-weight:600;}
+  .hex{font-family:var(--mono);color:var(--ink2);font-size:12px;margin-inline-start:auto;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:3px 9px;border-radius:9999px;background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .pill.warn{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .lead{font-weight:700;}
+  .note{font-size:13px;color:var(--ink2);line-height:1.55;}
+  .row{display:flex;gap:14px;flex-wrap:wrap;}
+  .specrow{font-size:13.5px;display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px solid var(--hair);}
+  .specrow:last-child{border-bottom:none;}
+  .specrow .k{color:var(--ink2);}
+  .specrow .v{font-family:var(--mono);font-size:12.5px;text-align:end;}
+  ul{margin:8px 0 0;padding-inline-start:20px;}
+  li{font-size:13.5px;color:var(--ink2);line-height:1.6;margin-bottom:5px;}
+  .darkstrip{background:#0E1512;border-radius:14px;padding:14px 16px;}
+  .darkstrip .sw{border-color:rgba(255,255,255,0.08);color:#ECF1EE;}
+  .darkstrip .hex{color:#9DB0A8;}
+  @media print{.wrap{padding:0;}.card{break-inside:avoid;}}
+  @media(max-width:680px){.g2,.g3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>UDJ — Polish Spec</h1>
+  <p class="sub">Implementation reference for the chosen directions: <strong>Settings → Inset Grouped</strong> and <strong>Profile → Soft Elevated</strong>. Values are the source of truth for the prototype; wire them as tokens (don't hardcode in components). Supports light, dark, and RTL.</p>
+
+  <h2>1 · The two directions</h2>
+  <div class="grid g2">
+    <div class="card">
+      <span class="pill">Settings</span>
+      <h3 style="margin-top:12px;">Inset Grouped</h3>
+      <ul>
+        <li>Rounded white cards (radius 16) floating on the tinted background with 16px side margins — replaces full-bleed hairline rows.</li>
+        <li>Soft inner hairline <span class="mono">rgba(28,35,32,.07)</span>; never on the last row.</li>
+        <li>Large title header (25/800) with a back button; section labels sentence-case (13/600).</li>
+        <li>Row min-height 52; label 15.5/500; value 15/400 secondary.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="pill">Profile</span>
+      <h3 style="margin-top:12px;">Soft Elevated + Icon-led</h3>
+      <ul>
+        <li>Hero student card: jade gradient, avatar, inline QR + live "regenerates in 47s" affordance; tap → fullscreen QR.</li>
+        <li>Quick-action tiles (Documents / Présence / Alertes).</li>
+        <li>Detail rows carry tinted icon chips (34×34, radius 11); shadow-elevated cards, no borders.</li>
+        <li>Floating jade nav bar with filled active tab.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>2 · Color tokens</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Light</h3><div id="light"></div></div>
+    <div class="card darkstrip"><h3 style="margin-top:0;color:#ECF1EE;">Dark</h3><div id="dark"></div></div>
+  </div>
+  <p class="note" style="margin-top:14px;">Accent chips (jade/amber/violet/blue/slate) pair a <span class="mono">tint</span> stroke with a <span class="mono">tintBg</span> fill at ~12% (light) / ~16% (dark). On dark, jade lifts to <span class="mono">#2BB989</span> for legibility; text accents use <span class="mono">jadeText #5FD3A6</span>.</p>
+
+  <h2>3 · Type scale</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>Role</th><th>Family</th><th>Size</th><th>Weight</th><th>Tracking</th></tr></thead>
+      <tbody id="type"></tbody>
+    </table>
+    <p class="note" style="margin-top:12px;">Fonts: <strong>Plus Jakarta Sans</strong> (UI), <strong>DM Mono</strong> (IDs, times, sizes), <strong>Noto Naskh Arabic</strong> (RTL). IDs/phone stay Latin in both languages; times use Arabic-Indic numerals in AR.</p>
+  </div>
+
+  <h2>4 · Spacing, radii & elevation</h2>
+  <div class="grid g3">
+    <div class="card"><h3 style="margin-top:0;">Spacing</h3><div id="space"></div></div>
+    <div class="card"><h3 style="margin-top:0;">Radii</h3><div id="radii"></div></div>
+    <div class="card"><h3 style="margin-top:0;">Elevation</h3>
+      <div class="specrow"><span class="k">Card</span><span class="v">0 2px 10px rgba(28,35,32,.05)</span></div>
+      <div class="specrow"><span class="k">Card (lg)</span><span class="v">0 6px 18px rgba(28,35,32,.08)</span></div>
+      <div class="specrow"><span class="k">Nav float</span><span class="v">0 6px 22px rgba(15,110,86,.16)</span></div>
+      <div class="specrow"><span class="k">Scrim</span><span class="v">rgba(16,22,20,.45)</span></div>
+      <div class="specrow"><span class="k">Sheet</span><span class="v">0 -8px 30px rgba(0,0,0,.18)</span></div>
+    </div>
+  </div>
+
+  <h2>5 · Component specs</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Inset row (Settings)</h3>
+      <div class="specrow"><span class="k">Min height</span><span class="v">52</span></div>
+      <div class="specrow"><span class="k">Padding inline</span><span class="v">16</span></div>
+      <div class="specrow"><span class="k">Label</span><span class="v">15.5 / 500</span></div>
+      <div class="specrow"><span class="k">Value</span><span class="v">15 / 400 · text2</span></div>
+      <div class="specrow"><span class="k">Group radius</span><span class="v">16</span></div>
+      <div class="specrow"><span class="k">Divider</span><span class="v">1px hair, not on last</span></div>
+      <div class="specrow"><span class="k">Section label</span><span class="v">13 / 600 · margin 22/20/9</span></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">Tile row (Profile)</h3>
+      <div class="specrow"><span class="k">Min height</span><span class="v">58</span></div>
+      <div class="specrow"><span class="k">Icon chip</span><span class="v">34×34 · radius 11</span></div>
+      <div class="specrow"><span class="k">Icon size</span><span class="v">17 · stroke 1.9</span></div>
+      <div class="specrow"><span class="k">Label / sub</span><span class="v">15 / 600 · 12.5 / text3</span></div>
+      <div class="specrow"><span class="k">Card radius</span><span class="v">18</span></div>
+      <div class="specrow"><span class="k">Gap (icon→text)</span><span class="v">13</span></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">Floating nav</h3>
+      <div class="specrow"><span class="k">Inset / height</span><span class="v">14 / 60</span></div>
+      <div class="specrow"><span class="k">Radius</span><span class="v">22</span></div>
+      <div class="specrow"><span class="k">Active tab</span><span class="v">46×46 · radius 15 · jade fill</span></div>
+      <div class="specrow"><span class="k">Active icon</span><span class="v">#fff + 4px dot</span></div>
+      <div class="specrow"><span class="k">Inactive</span><span class="v">text2 glyph</span></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">Sheet / Popover / Buttons</h3>
+      <div class="specrow"><span class="k">Sheet top radius</span><span class="v">24</span></div>
+      <div class="specrow"><span class="k">Grab handle</span><span class="v">38×5 · radius full</span></div>
+      <div class="specrow"><span class="k">Popover width</span><span class="v">84% · radius 18</span></div>
+      <div class="specrow"><span class="k">Button height</span><span class="v">50 · radius 14</span></div>
+      <div class="specrow"><span class="k">Toggle</span><span class="v">44×26 · jade on</span></div>
+      <div class="specrow"><span class="k">Option radio</span><span class="v">23 · jade fill + check</span></div>
+    </div>
+  </div>
+
+  <h2>6 · Audit findings this resolves</h2>
+  <div class="card">
+    <ul>
+      <li><strong>One canonical offline / divider treatment</strong> — single hairline token, replacing the three offline-banner variants &amp; the heavy <span class="mono">#D9D9D9</span>.</li>
+      <li><strong>Nav active state</strong> — the missing active indicator is now a filled jade tab (and an inset pill in the grouped direction).</li>
+      <li><strong>Consistent radii</strong> — student card no longer the off-grid <span class="mono">18</span> between tokens; circles use radius-full, not <span class="mono">216</span>.</li>
+      <li><strong>Dark mode is real per-screen</strong> — driven by tokens, not hardcoded <span class="mono">dark-content</span> status bars.</li>
+      <li><strong>RTL chevrons + layout mirror</strong> — chevrons flip; logical inline spacing throughout.</li>
+      <li><strong>Header consistency</strong> — every stack screen uses the same scaffold (no bespoke 22px / 56px Info Center header).</li>
+      <li class="note" style="color:var(--ink2)"><span class="pill warn">Open</span> Dynamic text-size: the picker stores a preference; making it actually rescale type is a follow-up (centralize the type scale, then multiply).</li>
+    </ul>
+  </div>
+</div>
+<script>
+  const light=[['bg','#F2F5F3'],['surface','#FFFFFF'],['surface2','#F4F7F5'],['text1','#1C2320'],['text2','#6B7B74'],['text3','#9EADA7'],['hair','rgba(28,35,32,0.07)'],['jade','#1D9E75'],['jade600','#0F6E56'],['jadeFaint','rgba(29,158,117,0.10)'],['danger','#EF4444'],['amber','#E08A1E'],['exam','#8B5CF6'],['blue','#2F7DD1'],['slate','#5A6B7B']];
+  const dark=[['bg','#0E1512'],['surface','#17211D'],['surface2','#1E2A25'],['text1','#ECF1EE'],['text2','#9DB0A8'],['text3','#6E847B'],['hair','rgba(255,255,255,0.08)'],['jade','#2BB989'],['jadeText','#5FD3A6'],['jadeFaint','rgba(43,185,137,0.16)'],['danger','#FF6B6B'],['amber','#F0A84B'],['exam','#A98BF0'],['blue','#5AA0E6'],['slate','#9DB0BE']];
+  const swatch=(arr,el)=>{el.innerHTML=arr.map(([n,v])=>`<div class="sw"><span class="chip" style="background:${v}"></span><span class="nm">${n}</span><span class="hex">${v}</span></div>`).join('');};
+  swatch(light,document.getElementById('light'));
+  swatch(dark,document.getElementById('dark'));
+  const type=[['Screen title','Plus Jakarta','25','800','-0.6'],['Greeting','Plus Jakarta','23','800','-0.5'],['Stack title','Plus Jakarta','20','800','-0.6'],['Sheet title','Plus Jakarta','17','700','0'],['Row label','Plus Jakarta','15–15.5','500–600','0'],['Value','Plus Jakarta','15','400–500','0'],['Section label','Plus Jakarta','13','600','0'],['Subtitle','Plus Jakarta','12.5–13','500','0'],['Tile sub','Plus Jakarta','12.5','400','0'],['ID / time / size','DM Mono','13–15','400–500','0–1']];
+  document.getElementById('type').innerHTML=type.map(r=>`<tr><td class="lead">${r[0]}</td><td>${r[1]}</td><td class="mono">${r[2]}</td><td class="mono">${r[3]}</td><td class="mono">${r[4]}</td></tr>`).join('');
+  const space=[['xs','4'],['sm','8'],['md','12'],['screen / row','16'],['label / sheet','20'],['lg','24']];
+  const radii=[['sm','8'],['md','11–12'],['card (inset)','16'],['tile / sheet body','18'],['hero / nav','22'],['sheet top','24'],['full','9999']];
+  const list=(arr,el)=>{el.innerHTML=arr.map(([k,v])=>`<div class="specrow"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('');};
+  list(space,document.getElementById('space'));
+  list(radii,document.getElementById('radii'));
+</script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>UDJ — Press System Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --page: #E7EBE8;
+    --card: #FFFFFF;
+    --t1: #2C3A34;
+    --t2: #6B7770;
+    --t3: #9AA4A0;
+    --jade: #1F9E75;
+    --jadeDk: #0F6E56;
+    --jadeFaint: #E6F3EE;
+    --blue: #2E86DE;
+    --amber: #C98A2B;
+    --pill: #EEF1EF;
+    --slatebg: #E6EAE8;
+    --slatefg: #5B6B72;
+    --hair: #E4E9E6;
+    --shadow: 0 1px 2px rgba(28,42,36,.05), 0 6px 18px rgba(28,42,36,.07);
+    --shadowDeep: 0 8px 26px rgba(28,42,36,.16);
+    --shadowFlat: 0 1px 2px rgba(28,42,36,.06);
+    --nav: 0 4px 16px rgba(28,42,36,.10);
+    --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --mono: 'DM Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+  html, body { margin: 0; background: #cfd6d1; font-family: var(--sans); color: var(--t1); }
+  .wrap { max-width: 460px; margin: 0 auto; min-height: 100vh; background: var(--page); padding: 24px 18px 70px; }
+
+  .hd h1 { font-size: 22px; font-weight: 800; margin: 0; letter-spacing: -.4px; }
+  .hd p { font-size: 14px; color: var(--t2); margin: 8px 0 0; line-height: 1.55; }
+  .hint { font-size: 12.5px; color: var(--t3); margin-top: 11px; display: flex; align-items: center; gap: 7px; font-weight: 600; }
+  .hint .dot { width: 6px; height: 6px; border-radius: 9999px; background: var(--jade); animation: blink 1.4s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .tier { margin-top: 34px; }
+  .tier-hd { padding: 0 2px 4px; }
+  .tier-hd .k { font-size: 11px; font-weight: 700; font-family: var(--mono); color: var(--jade); letter-spacing: .5px; text-transform: uppercase; }
+  .tier-hd .n { font-size: 17px; font-weight: 800; margin-top: 3px; letter-spacing: -.2px; }
+  .tier-hd .d { font-size: 13px; color: var(--t2); margin-top: 5px; line-height: 1.5; }
+  .stack { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+  .lab { font-size: 11px; font-weight: 700; font-family: var(--mono); color: var(--t3); padding: 2px 2px 0; text-transform: uppercase; letter-spacing: .4px; }
+  .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .cmp .lab { text-align: center; }
+
+  /* ---------------- press behaviours ---------------- */
+  .press { cursor: pointer; }
+  /* E — lift */
+  .lift { transition: transform .4s cubic-bezier(.34,1.4,.64,1), box-shadow .35s ease; }
+  .lift.down { transform: scale(1.02); box-shadow: var(--shadowDeep); transition: transform .16s cubic-bezier(.34,1.4,.64,1), box-shadow .16s ease; }
+  /* C — settle */
+  .settle { transition: transform .4s cubic-bezier(.34,1.4,.64,1), box-shadow .3s ease; }
+  .settle.down { transform: scale(.98); box-shadow: var(--shadowFlat); transition: transform .12s ease-out, box-shadow .12s ease-out; }
+  /* press-in (CTA) */
+  .pressin { transition: transform .35s cubic-bezier(.34,1.4,.64,1), filter .25s ease; }
+  .pressin.down { transform: scale(.965); filter: brightness(.94); transition: transform .1s ease-out, filter .1s ease-out; }
+  /* icon button */
+  .iconp { transition: transform .35s cubic-bezier(.34,1.5,.6,1), background .2s ease; position: relative; }
+  .iconp.down { transform: scale(.9); }
+  .iconp .iov { position: absolute; inset: 0; border-radius: inherit; background: var(--t1); opacity: 0; transition: opacity .2s ease; }
+  .iconp.down .iov { opacity: .06; transition: opacity .08s ease; }
+  /* tint row */
+  .tintp { position: relative; transition: none; }
+  .tintp .tov { position: absolute; inset: 0; background: var(--t1); opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+  .tintp.down .tov { opacity: .04; transition: opacity .07s ease; }
+
+  /* ---------------- component visuals ---------------- */
+  .card { position: relative; overflow: hidden; background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 15px 16px 15px 19px; }
+  .rail { position: absolute; inset-block: 0; inset-inline-start: 0; width: 5px; }
+  .ttl { font-size: 16px; font-weight: 700; color: var(--t1); }
+  .sub { font-size: 14px; font-weight: 500; color: var(--t2); margin-top: 3px; }
+  .crow { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+  .time { font-family: var(--mono); font-weight: 500; font-size: 13px; color: var(--t2); background: var(--pill); border-radius: 9999px; padding: 6px 12px; }
+  .status { font-weight: 700; font-size: 13px; color: var(--slatefg); background: var(--slatebg); border-radius: 9999px; padding: 6px 12px; }
+
+  /* news list card */
+  .nl { display: flex; gap: 12px; align-items: center; background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 12px; }
+  .thumb { width: 56px; height: 56px; border-radius: 12px; flex-shrink: 0; background: repeating-linear-gradient(135deg, #EDF1EF 0 7px, #E3E9E6 7px 14px); display: flex; align-items: center; justify-content: center; }
+  .nl .body { flex: 1; min-width: 0; }
+  .catpill { display: inline-block; font-size: 12px; font-weight: 600; border-radius: 9999px; padding: 4px 10px; margin-top: 7px; color: var(--blue); background: #E5EFFB; }
+
+  /* news feature card */
+  .nf { background: var(--card); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
+  .nf .hero { height: 150px; background: repeating-linear-gradient(135deg, #EDF1EF 0 9px, #E3E9E6 9px 18px); display: flex; align-items: center; justify-content: center; color: var(--t3); font-family: var(--mono); font-size: 12px; }
+  .nf .meta { padding: 14px 16px 16px; }
+
+  /* stat cards */
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat { background: var(--card); border-radius: 18px; box-shadow: var(--shadow); padding: 16px; }
+  .stat .l { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--t3); }
+  .stat .v { font-size: 28px; font-weight: 800; margin-top: 8px; letter-spacing: -.5px; }
+
+  /* grade hero */
+  .ghero { position: relative; overflow: hidden; border-radius: 22px; padding: 20px; color: #fff; background: linear-gradient(135deg, #157A5E, #0F6E56); box-shadow: 0 12px 28px rgba(15,110,86,.30); }
+  .ghero .l { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: rgba(255,255,255,.78); }
+  .ghero .v { font-size: 40px; font-weight: 800; margin-top: 6px; letter-spacing: -1px; }
+  .ghero .s { font-size: 13.5px; color: rgba(255,255,255,.8); margin-top: 2px; }
+
+  /* CTA */
+  .cta { width: 100%; height: 52px; border: none; border-radius: 15px; background: var(--jade); color: #fff; font-family: var(--sans); font-weight: 700; font-size: 16px; }
+  .cta.ghost { background: #FBECEC; color: #C0473C; }
+
+  /* icon buttons */
+  .icons { display: flex; gap: 14px; }
+  .ibtn { width: 44px; height: 44px; border-radius: 9999px; background: var(--card); box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; }
+
+  /* list container */
+  .list { background: var(--card); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
+  .nrow { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border-bottom: 1px solid var(--hair); }
+  .nrow:last-child { border-bottom: none; }
+  .nrow.unread { background: var(--jadeFaint); }
+  .nico { width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: #E5EFFB; }
+  .nrow .nt { font-size: 14.5px; font-weight: 600; line-height: 1.35; }
+  .nrow .nm { font-size: 12.5px; color: var(--t3); margin-top: 3px; }
+
+  /* faq row */
+  .faq { padding: 15px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--hair); }
+  .faq:last-child { border-bottom: none; }
+  .faq .q { font-size: 14.5px; font-weight: 600; }
+
+  /* day strip */
+  .days { display: flex; gap: 7px; }
+  .day { flex: 1; border-radius: 16px; padding: 11px 0; text-align: center; background: transparent; }
+  .day.sel { background: var(--jade); }
+  .day .dn { font-size: 12.5px; font-weight: 600; color: var(--t3); }
+  .day .dd { font-size: 17px; font-weight: 700; color: var(--t1); margin-top: 2px; }
+  .day.sel .dn, .day.sel .dd { color: #fff; }
+
+  /* chips */
+  .chips { display: flex; gap: 9px; flex-wrap: wrap; }
+  .chip { height: 36px; display: flex; align-items: center; padding: 0 16px; border-radius: 9999px; font-size: 14px; font-weight: 600; color: var(--t2); background: var(--card); border: 1px solid var(--hair); }
+  .chip.sel { background: var(--jade); color: #fff; border-color: transparent; font-weight: 700; }
+
+  svg { display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd">
+    <h1>UDJ press system</h1>
+    <p>Three tiers built from one spring. <b>E (lift)</b> for cards that open something, <b>press-in</b> for buttons, <b>tint</b> for rows &amp; toggles. Press &amp; hold anything to feel it.</p>
+    <div class="hint"><span class="dot"></span>Press and hold, then release</div>
+  </div>
+
+  <!-- TIER 1 -->
+  <div class="tier">
+    <div class="tier-hd">
+      <div class="k">Tier 1 · Lift (E)</div>
+      <div class="n">Cards that open a screen or sheet</div>
+      <div class="d">The card grows a hair and rises toward your finger — a little preview of navigating in.</div>
+    </div>
+
+    <div class="stack">
+      <div class="lab">Schedule card</div>
+      <div class="card press lift" data-press>
+        <div class="rail" style="background:var(--blue)"></div>
+        <div class="ttl">Bases de données</div>
+        <div class="sub">Dr. Safia Mohamed · Labo Info 1</div>
+        <div class="crow"><span class="time">08:00 – 10:00</span><span class="status">Terminé</span></div>
+      </div>
+
+      <div class="lab">News list card</div>
+      <div class="nl press lift" data-press>
+        <div class="thumb"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9AA4A0" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></div>
+        <div class="body">
+          <div class="ttl" style="font-size:15px">Réinscriptions 2026 — calendrier</div>
+          <span class="catpill">Scolarité</span>
+        </div>
+      </div>
+
+      <div class="lab">Stat cards</div>
+      <div class="stats">
+        <div class="stat press lift" data-press><div class="l">Moyenne</div><div class="v">14,2</div></div>
+        <div class="stat press lift" data-press><div class="l">Présence</div><div class="v">92%</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPARISON -->
+  <div class="tier">
+    <div class="tier-hd">
+      <div class="k">Decide · E vs C</div>
+      <div class="n">Lift feels big on the large cards</div>
+      <div class="d">On the feature card and grade hero, <b>E</b> can feel like a lot of motion. <b>C (settle)</b> shrinks them slightly instead — calmer. Compare both and tell me which you want on the big surfaces.</div>
+    </div>
+
+    <div class="lab" style="margin-top:16px">Feature card</div>
+    <div class="cmp" style="margin-top:6px">
+      <div>
+        <div class="lab">E · Lift</div>
+        <div class="nf press lift" data-press style="margin-top:6px">
+          <div class="hero">visuel article</div>
+          <div class="meta"><div class="ttl" style="font-size:15px">Cérémonie de remise des diplômes</div><span class="catpill">Événement</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="lab">C · Settle</div>
+        <div class="nf press settle" data-press style="margin-top:6px">
+          <div class="hero">visuel article</div>
+          <div class="meta"><div class="ttl" style="font-size:15px">Cérémonie de remise des diplômes</div><span class="catpill">Événement</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lab" style="margin-top:20px">Grade hero</div>
+    <div class="cmp" style="margin-top:6px">
+      <div>
+        <div class="lab">E · Lift</div>
+        <div class="ghero press lift" data-press style="margin-top:6px"><div class="l">Moyenne générale</div><div class="v">14,28</div><div class="s">Semestre 2 · 2025–26</div></div>
+      </div>
+      <div>
+        <div class="lab">C · Settle</div>
+        <div class="ghero press settle" data-press style="margin-top:6px"><div class="l">Moyenne générale</div><div class="v">14,28</div><div class="s">Semestre 2 · 2025–26</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIER 2 -->
+  <div class="tier">
+    <div class="tier-hd">
+      <div class="k">Tier 2 · Press-in</div>
+      <div class="n">Buttons &amp; icon controls</div>
+      <div class="d">The opposite of lift — these push <i>into</i> the screen. Buttons are surfaces you press down on.</div>
+    </div>
+
+    <div class="stack">
+      <div class="lab">Primary &amp; secondary buttons</div>
+      <button class="cta press pressin" data-press>Se connecter</button>
+      <button class="cta ghost press pressin" data-press>Vider le cache</button>
+
+      <div class="lab" style="margin-top:6px">Icon buttons</div>
+      <div class="icons">
+        <div class="ibtn press iconp" data-press><span class="iov"></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2C3A34" stroke-width="1.7"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+        <div class="ibtn press iconp" data-press><span class="iov"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2C3A34" stroke-width="1.8"><path d="M15 18l-6-6 6-6"/></svg></div>
+        <div class="ibtn press iconp" data-press><span class="iov"></span><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#2C3A34" stroke-width="1.7"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg></div>
+        <div class="ibtn press iconp" data-press><span class="iov"></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F9E75" stroke-width="1.7"><path d="M6 4h12v16l-6-4-6 4z"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIER 3 -->
+  <div class="tier">
+    <div class="tier-hd">
+      <div class="k">Tier 3 · Tint</div>
+      <div class="n">List rows &amp; toggles</div>
+      <div class="d">No movement at all — a whisper of wash on press. Rows sit in tight stacks, so lifting or shrinking them looks restless.</div>
+    </div>
+
+    <div class="stack">
+      <div class="lab">Notification rows</div>
+      <div class="list">
+        <div class="nrow unread press tintp" data-press><span class="tov"></span><div class="nico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2E86DE" stroke-width="1.7"><path d="M4 4h16v12H7l-3 3z"/></svg></div><div><div class="nt">Nouvelle note publiée — Algorithmique</div><div class="nm">il y a 2 h</div></div></div>
+        <div class="nrow press tintp" data-press><span class="tov"></span><div class="nico" style="background:#FCEFE0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C98A2B" stroke-width="1.7"><path d="M12 3v18M3 8h18"/></svg></div><div><div class="nt">Rappel : justificatif d'absence à déposer</div><div class="nm">hier</div></div></div>
+        <div class="nrow press tintp" data-press><span class="tov"></span><div class="nico" style="background:#E6F3EE"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1F9E75" stroke-width="1.7"><path d="M20 6L9 17l-5-5"/></svg></div><div><div class="nt">Présence enregistrée — Physique quantique</div><div class="nm">lun. 15 juin</div></div></div>
+      </div>
+
+      <div class="lab" style="margin-top:6px">FAQ rows</div>
+      <div class="list">
+        <div class="faq press tintp" data-press><span class="tov"></span><div class="q">Comment réinitialiser mon mot de passe ?</div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9AA4A0" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></div>
+        <div class="faq press tintp" data-press><span class="tov"></span><div class="q">Où trouver mon emploi du temps ?</div><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9AA4A0" stroke-width="1.8"><path d="M9 6l6 6-6 6"/></svg></div>
+      </div>
+
+      <div class="lab" style="margin-top:6px">Day strip &nbsp;<span style="color:var(--t3);font-weight:600;text-transform:none">(selection already animates — press stays quiet)</span></div>
+      <div class="days">
+        <div class="day press tintp" data-press><span class="tov" style="border-radius:16px"></span><div class="dn">Lun</div><div class="dd">15</div></div>
+        <div class="day press tintp" data-press><span class="tov" style="border-radius:16px"></span><div class="dn">Mar</div><div class="dd">16</div></div>
+        <div class="day sel"><div class="dn">Mer</div><div class="dd">17</div></div>
+        <div class="day press tintp" data-press><span class="tov" style="border-radius:16px"></span><div class="dn">Jeu</div><div class="dd">18</div></div>
+        <div class="day press tintp" data-press><span class="tov" style="border-radius:16px"></span><div class="dn">Ven</div><div class="dd">19</div></div>
+      </div>
+
+      <div class="lab" style="margin-top:6px">Filter chips</div>
+      <div class="chips">
+        <div class="chip sel">Tout</div>
+        <div class="chip press tintp" data-press><span class="tov" style="border-radius:9999px"></span>Scolarité</div>
+        <div class="chip press tintp" data-press><span class="tov" style="border-radius:9999px"></span>Événements</div>
+        <div class="chip press tintp" data-press><span class="tov" style="border-radius:9999px"></span>Examens</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('[data-press]').forEach(el => {
+    const down = () => el.classList.add('down');
+    const up = () => el.classList.remove('down');
+    el.addEventListener('pointerdown', down);
+    el.addEventListener('pointerup', up);
+    el.addEventListener('pointerleave', up);
+    el.addEventListener('pointercancel', up);
+  });
+</script>
+</body>
+</html>

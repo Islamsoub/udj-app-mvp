@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Unipocket Admin Portal — Implementation Spec</title>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" rx="22" fill="#0A3D2E"/>
+    <rect x="26" y="26" width="48" height="48" rx="12" fill="#1D9E75"/>
+    <text x="50" y="63" font-family="sans-serif" font-size="30" font-weight="800" fill="#fff" text-anchor="middle">U</text>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#EEF2F0; --surface:#fff; --surface2:#F4F7F5; --sunken:#ECF0ED;
+    --ink:#1C2320; --ink2:#5E6E66; --ink3:#93A39B;
+    --hair:rgba(28,35,32,0.08); --hair2:rgba(28,35,32,0.13);
+    --jade:#1D9E75; --jade6:#0F6E56; --jade7:#0B5544; --jade9:#0A3D2E;
+    --amber:#D9821A; --danger:#E1483D; --blue:#2F7DD1; --exam:#7C53E0; --slate:#5A6B7B;
+    --sans:'Plus Jakarta Sans',system-ui,sans-serif; --mono:'DM Mono',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+  .wrap{max-width:1080px;margin:0 auto;padding:56px 34px 130px;}
+  .kicker{font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:var(--jade6);font-weight:500;}
+  h1{font-size:38px;font-weight:800;letter-spacing:-1px;margin:10px 0 0;line-height:1.05;}
+  .sub{color:var(--ink2);font-size:15.5px;margin-top:12px;max-width:74ch;line-height:1.6;}
+  h2{font-size:13px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:var(--jade6);margin:64px 0 20px;display:flex;align-items:center;gap:11px;padding-bottom:14px;border-bottom:2px solid var(--hair);}
+  h2 .n{width:24px;height:24px;border-radius:8px;background:var(--jade6);color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono);}
+  h3{font-size:19px;font-weight:800;letter-spacing:-0.3px;margin:34px 0 12px;}
+  h4{font-size:15px;font-weight:700;margin:22px 0 9px;color:var(--ink);}
+  p{font-size:14px;line-height:1.65;color:var(--ink2);margin:10px 0;}
+  b,strong{color:var(--ink);font-weight:700;}
+  a{color:var(--jade6);}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:18px;padding:24px;box-shadow:0 1px 2px rgba(28,35,32,0.04);margin:14px 0;}
+  .card.pad0{padding:0;overflow:hidden;}
+  .grid{display:grid;gap:14px;}
+  .g2{grid-template-columns:1fr 1fr;}
+  .g3{grid-template-columns:1fr 1fr 1fr;}
+  .g4{grid-template-columns:repeat(4,1fr);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:start;padding:9px 12px;border-bottom:1px solid var(--hair);vertical-align:top;}
+  th{font-size:10.5px;letter-spacing:0.6px;text-transform:uppercase;color:var(--ink3);font-weight:700;font-family:var(--mono);white-space:nowrap;}
+  tr:last-child td{border-bottom:none;}
+  td.mono,.mono{font-family:var(--mono);font-size:12px;}
+  td.lead{font-weight:600;color:var(--ink);}
+  .num{font-family:var(--mono);font-size:12px;color:var(--jade6);}
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;letter-spacing:0.3px;padding:3px 9px;border-radius:9999px;background:rgba(29,158,117,0.12);color:var(--jade6);white-space:nowrap;}
+  .pill.amber{background:rgba(217,130,26,0.14);color:#9a5b06;}
+  .pill.red{background:rgba(225,72,61,0.12);color:#b3392f;}
+  .pill.blue{background:rgba(47,125,209,0.12);color:#1f5fa6;}
+  .pill.violet{background:rgba(124,83,224,0.14);color:#6034c9;}
+  .pill.slate{background:rgba(90,107,123,0.14);color:#46535f;}
+  .pill.dot::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;}
+  ul,ol{margin:10px 0;padding-inline-start:22px;}
+  li{font-size:13.5px;color:var(--ink2);line-height:1.65;margin-bottom:6px;}
+  li b{color:var(--ink);}
+  .specrow{font-size:13px;display:flex;justify-content:space-between;gap:16px;padding:8px 0;border-bottom:1px solid var(--hair);}
+  .specrow:last-child{border-bottom:none;}
+  .specrow .k{color:var(--ink2);}
+  .specrow .v{font-family:var(--mono);font-size:12px;text-align:end;color:var(--ink);}
+  .sw{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--hair);font-size:13px;}
+  .sw:last-child{border-bottom:none;}
+  .chip{width:30px;height:30px;border-radius:8px;flex-shrink:0;border:1px solid rgba(0,0,0,0.07);}
+  .nm{font-weight:600;}
+  .hex{font-family:var(--mono);color:var(--ink2);font-size:12px;margin-inline-start:auto;}
+  .role{font-family:var(--mono);color:var(--ink3);font-size:11px;}
+  .darkstrip{background:var(--jade9);border-radius:14px;padding:16px 18px;margin:14px 0;}
+  .darkstrip .sw{border-color:rgba(255,255,255,0.10);color:#E6F7F1;}
+  .darkstrip .hex{color:#7FB6A2;}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:6px;background:rgba(28,35,32,0.06);color:var(--ink2);}
+  code{font-family:var(--mono);font-size:12.5px;background:rgba(28,35,32,0.06);padding:1.5px 6px;border-radius:6px;color:var(--jade7);}
+  pre{font-family:var(--mono);font-size:12.5px;line-height:1.7;background:#0E1512;color:#E6F1EE;border-radius:14px;padding:18px 20px;overflow-x:auto;margin:14px 0;}
+  pre .c{color:#7FB6A2;}
+  pre .k{color:#8FD4B8;}
+  pre .s{color:#E0B87A;}
+  .note{margin:16px 0;padding:14px 18px;border-radius:13px;background:var(--surface2);border:1px solid var(--hair);font-size:13.5px;color:var(--ink2);line-height:1.6;}
+  .note.jade{background:rgba(29,158,117,0.07);border-color:rgba(29,158,117,0.18);}
+  .note.amber{background:rgba(217,130,26,0.08);border-color:rgba(217,130,26,0.20);}
+  .note.blue{background:rgba(47,125,209,0.07);border-color:rgba(47,125,209,0.18);}
+  .note.danger{background:rgba(225,72,61,0.07);border-color:rgba(225,72,61,0.20);}
+  .note .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;display:block;margin-bottom:5px;}
+  .tree{font-family:var(--mono);font-size:12.5px;line-height:1.9;color:var(--ink);white-space:pre;overflow-x:auto;}
+  .tree .c{color:var(--ink3);}
+  .tree .v{color:var(--jade6);}
+  .kbd{font-family:var(--mono);font-size:11px;background:var(--sunken);border:1px solid var(--hair2);border-radius:5px;padding:1px 6px;color:var(--ink2);}
+  .toc{columns:2;column-gap:34px;margin:20px 0 0;}
+  .toc a{display:block;font-size:13.5px;color:var(--ink2);text-decoration:none;padding:5px 0;border-bottom:1px solid var(--hair);break-inside:avoid;}
+  .toc a:hover{color:var(--jade6);}
+  .toc a .tn{font-family:var(--mono);font-size:11px;color:var(--jade6);margin-inline-end:10px;}
+  .pagehead{display:flex;align-items:baseline;gap:12px;margin:0 0 6px;}
+  .pagehead .rt{font-family:var(--mono);font-size:12px;color:var(--jade6);background:rgba(29,158,117,0.10);padding:3px 9px;border-radius:7px;}
+  .pagehead h3{margin:0;}
+  .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--ink2);margin:8px 0;}
+  .flow .step{background:var(--surface2);border:1px solid var(--hair2);border-radius:8px;padding:5px 10px;color:var(--ink);}
+  .flow .arr{color:var(--ink3);}
+  .decision{margin:20px 0;padding:22px 24px;border-radius:18px;background:linear-gradient(140deg,var(--jade6),var(--jade7));color:#fff;box-shadow:0 12px 30px rgba(15,110,86,0.24);}
+  .decision .dk{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.7);}
+  .decision h3{margin:6px 0 0;font-size:19px;font-weight:800;color:#fff;}
+  .decision p{font-size:14px;line-height:1.6;color:rgba(255,255,255,0.92);margin:9px 0 0;}
+  hr{border:none;border-top:1px solid var(--hair);margin:0;}
+  @media print{.wrap{padding:0;max-width:none;}.card,.decision,pre,.note{break-inside:avoid;}h2{break-before:auto;}a{color:var(--ink);}}
+  @media(max-width:820px){.g2,.g3,.g4{grid-template-columns:1fr;}.toc{columns:1;}.wrap{padding:32px 20px 80px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="kicker">Unipocket · Université de Djibouti</div>
+<h1>Admin Portal — Implementation Spec</h1>
+<p class="sub">Complete, build-ready specification for the <b>Unipocket Admin Portal</b> — the web dashboard that university staff use to manage students, grades, attendance, news, schedule and system settings for the UDJ mobile app. This document captures <b>every design token, component, screen, interaction, animation, validation rule and sample dataset</b> in the reference prototype so it can be rebuilt faithfully in Next.js (or any framework). All copy is French; the interface is single-language (FR) by design.</p>
+
+<div class="note jade" style="margin-top:22px;">
+  <span class="lbl">How to read this spec</span>
+  Sizes, colors, radii and spacing are taken verbatim from the reference build — <b>do not round to an 8px grid</b>. Off-values (13.5px, 9px radius, #EEF2F0) are intentional. Every measurement below is a real value from the prototype, not an approximation. The reference is a React + inline-style SPA; production should re-implement it as a token-driven component library.
+</div>
+
+<h2><span class="n">0</span> Contents</h2>
+<div class="toc">
+  <a href="#arch"><span class="tn">1</span>Architecture &amp; stack</a>
+  <a href="#tokens"><span class="tn">2</span>Color tokens</a>
+  <a href="#type"><span class="tn">3</span>Typography</a>
+  <a href="#icons"><span class="tn">4</span>Iconography</a>
+  <a href="#primitives"><span class="tn">5</span>Core primitives</a>
+  <a href="#infra"><span class="tn">6</span>UI infrastructure</a>
+  <a href="#shell"><span class="tn">7</span>App shell &amp; navigation</a>
+  <a href="#routing"><span class="tn">8</span>Routing map</a>
+  <a href="#data"><span class="tn">9</span>Data model &amp; sample data</a>
+  <a href="#p-login"><span class="tn">10</span>Login</a>
+  <a href="#p-dashboard"><span class="tn">11</span>Dashboard</a>
+  <a href="#p-students"><span class="tn">12</span>Students list</a>
+  <a href="#p-student"><span class="tn">13</span>Student detail</a>
+  <a href="#p-import"><span class="tn">14</span>Import wizard</a>
+  <a href="#p-grades"><span class="tn">15</span>Grades picker</a>
+  <a href="#p-entry"><span class="tn">16</span>Grade entry table</a>
+  <a href="#p-att"><span class="tn">17</span>Attendance queue</a>
+  <a href="#p-session"><span class="tn">18</span>Session marking</a>
+  <a href="#p-news"><span class="tn">19</span>News list</a>
+  <a href="#p-newscreate"><span class="tn">20</span>News editor</a>
+  <a href="#p-academics"><span class="tn">21</span>Academics</a>
+  <a href="#p-schedule"><span class="tn">22</span>Schedule</a>
+  <a href="#p-notif"><span class="tn">23</span>Notifications</a>
+  <a href="#p-admins"><span class="tn">24</span>Administrators</a>
+  <a href="#p-audit"><span class="tn">25</span>Audit log</a>
+  <a href="#p-settings"><span class="tn">26</span>Settings</a>
+  <a href="#forms"><span class="tn">27</span>Entity forms</a>
+  <a href="#modals"><span class="tn">28</span>Modals &amp; dialogs</a>
+  <a href="#interactions"><span class="tn">29</span>Interactions &amp; motion</a>
+  <a href="#uxupdate"><span class="tn">30</span>UX Architecture Update (Jul 2026)</a>
+</div>
+
+<h2 id="arch"><span class="n">1</span> Architecture &amp; stack</h2>
+<p>The reference is a single-page React application. State is entirely in-memory (no backend) with a seeded dataset. Production should map this to a Next.js app with a real API; the structure below is the intended target.</p>
+<div class="grid g2">
+  <div class="card">
+    <h4>Reference build (as-is)</h4>
+    <ul>
+      <li>React 18 + inline styles, no CSS framework</li>
+      <li>Hand-rolled client router: single <code>route = {page, params}</code> state object, <code>go(page, params)</code> to navigate</li>
+      <li>One design-token object <code>C</code>, one <code>Icon</code> component (inline SVG), shared primitives on <code>window</code></li>
+      <li>Global modal store (<code>AdminUI.open / close</code>) + global toast (<code>notify</code>)</li>
+      <li>Deterministic seeded sample data (mulberry32 RNG, seed <code>20260609</code>)</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Recommended production target</h4>
+    <ul>
+      <li>Next.js App Router; one route segment per page in the routing map (§8)</li>
+      <li>Design tokens as CSS custom properties / Tailwind theme; primitives as a component library</li>
+      <li>Server data via API; the entities in §9 are the schema</li>
+      <li>Toaster + modal provider at layout root</li>
+      <li>RBAC: 4 roles (§24) gate pages &amp; actions; every mutation writes an audit entry (§25)</li>
+    </ul>
+  </div>
+</div>
+<div class="note"><span class="lbl">Locale</span> Interface language is <b>French only</b>. Week runs <b>Dimanche → Jeudi</b> (Djibouti working week). Timezone <b>Africa/Djibouti (GMT+3)</b>. Numbers format with <code>toLocaleString('fr')</code> (space thousands separator, e.g. <code>2&nbsp;480</code>). Grades on a <b>/20</b> scale.</div>
+
+<h2 id="tokens"><span class="n">2</span> Color tokens</h2>
+<p>All colors live in the token object <code>C</code>. The palette is a warm-neutral base with a jade brand and five status accents carried over from the mobile app.</p>
+
+<h4>Surfaces &amp; text</h4>
+<div class="card">
+  <div class="sw"><span class="chip" style="background:#EEF2F0"></span><span class="nm">bg</span> <span class="role">app background</span><span class="hex">#EEF2F0</span></div>
+  <div class="sw"><span class="chip" style="background:#FFFFFF"></span><span class="nm">surface</span> <span class="role">cards, bars</span><span class="hex">#FFFFFF</span></div>
+  <div class="sw"><span class="chip" style="background:#F4F7F5"></span><span class="nm">surface2</span> <span class="role">inset panels, toolbars</span><span class="hex">#F4F7F5</span></div>
+  <div class="sw"><span class="chip" style="background:#ECF0ED"></span><span class="nm">sunken</span> <span class="role">tracks, wells</span><span class="hex">#ECF0ED</span></div>
+  <div class="sw"><span class="chip" style="background:#1C2320"></span><span class="nm">text1</span> <span class="role">primary text</span><span class="hex">#1C2320</span></div>
+  <div class="sw"><span class="chip" style="background:#5E6E66"></span><span class="nm">text2</span> <span class="role">secondary text</span><span class="hex">#5E6E66</span></div>
+  <div class="sw"><span class="chip" style="background:#93A39B"></span><span class="nm">text3</span> <span class="role">muted / meta</span><span class="hex">#93A39B</span></div>
+  <div class="sw"><span class="chip" style="background:#e7eae8"></span><span class="nm">hair</span> <span class="role">hairline</span><span class="hex">rgba(28,35,32,0.08)</span></div>
+  <div class="sw"><span class="chip" style="background:#dde0de"></span><span class="nm">hair2</span> <span class="role">stronger border</span><span class="hex">rgba(28,35,32,0.13)</span></div>
+</div>
+
+<h4>Jade brand</h4>
+<div class="card">
+  <div class="sw"><span class="chip" style="background:#1D9E75"></span><span class="nm">jade</span> <span class="role">primary action</span><span class="hex">#1D9E75</span></div>
+  <div class="sw"><span class="chip" style="background:#0F6E56"></span><span class="nm">jade600 / jadeText</span> <span class="role">hover, links, on-faint text</span><span class="hex">#0F6E56</span></div>
+  <div class="sw"><span class="chip" style="background:#0B5544"></span><span class="nm">jade700</span> <span class="role">gradients</span><span class="hex">#0B5544</span></div>
+  <div class="sw"><span class="chip" style="background:#0A3D2E"></span><span class="nm">jade900 / sideBg</span> <span class="role">sidebar, login panel</span><span class="hex">#0A3D2E</span></div>
+  <div class="sw"><span class="chip" style="background:#E6F7F1"></span><span class="nm">jade50</span><span class="hex">#E6F7F1</span></div>
+  <div class="sw"><span class="chip" style="background:#C9ECDF"></span><span class="nm">jade100</span><span class="hex">#C9ECDF</span></div>
+  <div class="sw"><span class="chip" style="background:rgba(29,158,117,0.10);border-color:rgba(29,158,117,0.3)"></span><span class="nm">jadeFaint</span> <span class="role">soft button/badge bg</span><span class="hex">rgba(29,158,117,0.10)</span></div>
+  <div class="sw"><span class="chip" style="background:rgba(29,158,117,0.16);border-color:rgba(29,158,117,0.3)"></span><span class="nm">jadeFaint2</span> <span class="role">soft hover</span><span class="hex">rgba(29,158,117,0.16)</span></div>
+</div>
+
+<h4>Status accents (foreground / background pairs)</h4>
+<div class="card">
+  <div class="sw"><span class="chip" style="background:#E1483D"></span><span class="nm">danger</span> <span class="role">at-risk, delete, absent · bg rgba(225,72,61,0.10)</span><span class="hex">#E1483D</span></div>
+  <div class="sw"><span class="chip" style="background:#D9821A"></span><span class="nm">amber</span> <span class="role">warnings, drafts, late · bg rgba(217,130,26,0.12)</span><span class="hex">#D9821A</span></div>
+  <div class="sw"><span class="chip" style="background:#7C53E0"></span><span class="nm">exam</span> <span class="role">super-admin, news accent · bg rgba(124,83,224,0.12)</span><span class="hex">#7C53E0</span></div>
+  <div class="sw"><span class="chip" style="background:#2F7DD1"></span><span class="nm">blue</span> <span class="role">faculty admin, info · bg rgba(47,125,209,0.12)</span><span class="hex">#2F7DD1</span></div>
+  <div class="sw"><span class="chip" style="background:#5A6B7B"></span><span class="nm">slate</span> <span class="role">neutral badge · bg rgba(90,107,123,0.12)</span><span class="hex">#5A6B7B</span></div>
+</div>
+
+<h4>Sidebar (dark jade)</h4>
+<div class="darkstrip">
+  <div class="sw"><span class="chip" style="background:#0A3D2E"></span><span class="nm">sideBg</span><span class="hex">#0A3D2E</span></div>
+  <div class="sw"><span class="chip" style="background:#0E4A38"></span><span class="nm">sideBg2</span><span class="hex">#0E4A38</span></div>
+  <div class="sw"><span class="chip" style="background:#E6F7F1"></span><span class="nm">sideText</span><span class="hex">#E6F7F1</span></div>
+  <div class="sw"><span class="chip" style="background:#7FB6A2"></span><span class="nm">sideMuted</span><span class="hex">#7FB6A2</span></div>
+  <div class="sw"><span class="chip" style="background:#1D9E75"></span><span class="nm">sideActive</span> <span class="role">active item accent + rgba(29,158,117,0.18) fill</span><span class="hex">#1D9E75</span></div>
+  <div class="sw"><span class="chip" style="background:#173d31"></span><span class="nm">sideHair</span><span class="hex">rgba(255,255,255,0.09)</span></div>
+</div>
+
+<h4>Shadows &amp; misc</h4>
+<div class="card">
+  <div class="specrow"><span class="k">shadow (cards)</span><span class="v">0 1px 2px rgba(28,35,32,.05), 0 4px 14px rgba(28,35,32,.05)</span></div>
+  <div class="specrow"><span class="k">shadowLg (hover, popovers)</span><span class="v">0 8px 28px rgba(28,35,32,.10), 0 2px 6px rgba(28,35,32,.05)</span></div>
+  <div class="specrow"><span class="k">shadowSide (sidebar)</span><span class="v">0 8px 30px rgba(10,61,46,.18)</span></div>
+  <div class="specrow"><span class="k">modal shadow</span><span class="v">0 24px 60px rgba(10,30,22,.30)</span></div>
+  <div class="specrow"><span class="k">modal scrim</span><span class="v">rgba(16,22,20,.45) + blur(2px)</span></div>
+  <div class="specrow"><span class="k">toggleOff track</span><span class="v">#D5DCD8</span></div>
+</div>
+
+<h2 id="type"><span class="n">3</span> Typography</h2>
+<p>Two families. <b>Plus Jakarta Sans</b> for everything UI; <b>DM Mono</b> for identifiers, codes, timestamps, numbers-as-data, labels and hints. Weights loaded: Sans 400/500/600/700/800, Mono 400/500.</p>
+<div class="card pad0">
+<table>
+  <thead><tr><th>Role</th><th>Family</th><th>Size</th><th>Weight</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td class="lead">Page title (PageHead h1)</td><td>Sans</td><td class="mono">25px</td><td>800</td><td>letter-spacing −0.02em, line 1.15</td></tr>
+    <tr><td class="lead">Login / big display</td><td>Sans</td><td class="mono">26–34px</td><td>800</td><td>−0.02em</td></tr>
+    <tr><td class="lead">Stat value</td><td>Sans</td><td class="mono">22–32px</td><td>800</td><td>−0.02em</td></tr>
+    <tr><td class="lead">Card heading</td><td>Sans</td><td class="mono">15.5–17px</td><td>700</td><td></td></tr>
+    <tr><td class="lead">Body / row text</td><td>Sans</td><td class="mono">13.5–14px</td><td>400–600</td><td></td></tr>
+    <tr><td class="lead">Subtitle / secondary</td><td>Sans</td><td class="mono">12.5–13px</td><td>400–600</td><td>text2</td></tr>
+    <tr><td class="lead">SectionLabel (eyebrow)</td><td>Mono</td><td class="mono">11px</td><td>500</td><td>letter-spacing 0.08em, uppercase, text3</td></tr>
+    <tr><td class="lead">Group label (sidebar)</td><td>Mono</td><td class="mono">10px</td><td>—</td><td>0.10em uppercase, sideMuted</td></tr>
+    <tr><td class="lead">Matricule / code / IP / time</td><td>Mono</td><td class="mono">10.5–12.5px</td><td>400–500</td><td>text2/text3</td></tr>
+    <tr><td class="lead">Badge</td><td>Sans</td><td class="mono">11.5px</td><td>600</td><td></td></tr>
+    <tr><td class="lead">Button</td><td>Sans</td><td class="mono">12.5 / 13.5 / 15px</td><td>600</td><td>sm / md / lg</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2 id="icons"><span class="n">4</span> Iconography</h2>
+<p>A single custom <code>Icon</code> component renders inline SVGs on a <b>24×24 grid</b>, default size <b>20</b>, stroke <b>1.7</b> (active nav items 1.9; check marks 2.4–3), <code>stroke-linecap/linejoin: round</code>, fill none (except <code>dot</code> and <code>more</code> which are filled). Props: <code>name, size, color, sw, fill, style</code>. The complete set (36 names):</p>
+<div class="card pad0">
+<table>
+  <thead><tr><th>Name</th><th>Used for</th><th>Name</th><th>Used for</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">grid</td><td>Dashboard nav</td><td class="mono">search</td><td>Search inputs</td></tr>
+    <tr><td class="mono">users</td><td>Students nav, avatars</td><td class="mono">chevron</td><td>Forward / disclosure (rotate for back/up)</td></tr>
+    <tr><td class="mono">grad</td><td>Grades, subjects</td><td class="mono">chevron-d</td><td>Down caret (dropdowns, expanders)</td></tr>
+    <tr><td class="mono">check-cal</td><td>Attendance / présence</td><td class="mono">arrow-l</td><td>Back button</td></tr>
+    <tr><td class="mono">mega</td><td>News / actualités</td><td class="mono">plus</td><td>Create actions</td></tr>
+    <tr><td class="mono">cal</td><td>Schedule, dates</td><td class="mono">check</td><td>Confirm, validate</td></tr>
+    <tr><td class="mono">book</td><td>Academics, faculty</td><td class="mono">x</td><td>Close, reject, deactivate</td></tr>
+    <tr><td class="mono">bell</td><td>Notifications</td><td class="mono">sort</td><td>Sortable column (idle)</td></tr>
+    <tr><td class="mono">shield</td><td>Admins, security</td><td class="mono">filter</td><td>Filters toggle</td></tr>
+    <tr><td class="mono">list</td><td>Audit log, bullet list</td><td class="mono">upload</td><td>Import CSV</td></tr>
+    <tr><td class="mono">gear</td><td>Settings, system actor</td><td class="mono">download</td><td>Export</td></tr>
+    <tr><td class="mono">eye</td><td>Show password, open doc</td><td class="mono">edit</td><td>Modify</td></tr>
+    <tr><td class="mono">trash</td><td>Delete</td><td class="mono">logout</td><td>Sign out</td></tr>
+    <tr><td class="mono">mail</td><td>Email fields</td><td class="mono">phone</td><td>Phone fields</td></tr>
+    <tr><td class="mono">file</td><td>PDF docs, CSV, duplicate</td><td class="mono">image</td><td>Photo docs, cover slots</td></tr>
+    <tr><td class="mono">clock</td><td>Pending / time</td><td class="mono">warn</td><td>Alerts, danger, suspend</td></tr>
+    <tr><td class="mono">dot</td><td>Filled dot (fallback)</td><td class="mono">more</td><td>Context "…" menu trigger</td></tr>
+    <tr><td class="mono">send</td><td>Publish, notify (paper plane)</td><td class="mono">reset</td><td>Reset password, reactivate</td></tr>
+    <tr><td class="mono">sun</td><td>FR locale chip</td><td class="mono">pin</td><td>Location (room)</td></tr>
+    <tr><td class="mono">spark</td><td>Tips / hints</td><td class="mono">key*</td><td>Password (referenced; add if missing)</td></tr>
+  </tbody>
+</table>
+</div>
+<div class="note amber"><span class="lbl">Icon gaps to fill in production</span> The reference references a few icon names not in the switch: <code>key</code> (password fields/menus), <code>share</code> (rich-text link button). They render nothing in the prototype. Add matching 24-grid stroke glyphs when rebuilding.</div>
+
+<h2 id="primitives"><span class="n">5</span> Core primitives</h2>
+
+<h3>Btn</h3>
+<p>Props: <code>kind, size, icon, iconR, children, onClick, disabled, type</code>. Hover state tracked per-button. Base: inline-flex, gap 7, radius <b>10</b>, 1px transparent border, font-weight 600, <code>transition: all .15s</code>, disabled → opacity 0.5. Icon size follows button size (sm 15, md/lg 17).</p>
+<div class="card pad0"><table>
+  <thead><tr><th>size</th><th>padding</th><th>font</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">sm</td><td class="mono">7px 12px</td><td class="mono">12.5px</td></tr>
+    <tr><td class="mono">md (default)</td><td class="mono">9px 16px</td><td class="mono">13.5px</td></tr>
+    <tr><td class="mono">lg</td><td class="mono">12px 22px</td><td class="mono">15px</td></tr>
+  </tbody>
+</table></div>
+<div class="card pad0"><table>
+  <thead><tr><th>kind</th><th>rest</th><th>hover</th></tr></thead>
+  <tbody>
+    <tr><td class="lead">primary</td><td>bg jade, #fff text, shadow 0 1px 2px rgba(15,110,86,.25)</td><td>bg jade600, no shadow</td></tr>
+    <tr><td class="lead">ghost</td><td>transparent, text1, border hair2</td><td>bg sunken</td></tr>
+    <tr><td class="lead">soft</td><td>bg jadeFaint, jadeText</td><td>bg jadeFaint2</td></tr>
+    <tr><td class="lead">danger</td><td>bg dangerBg, danger text</td><td>bg danger, #fff text</td></tr>
+    <tr><td class="lead">dangerSolid</td><td>bg danger, #fff</td><td>bg #c43a30</td></tr>
+    <tr><td class="lead">quiet</td><td>transparent, text2</td><td>bg sunken</td></tr>
+  </tbody>
+</table></div>
+
+<h3>Badge</h3>
+<p>Pill, radius 999, padding <b>3px 9px</b>, font 11.5px/600, optional leading <code>dot</code> (6px). Tones map to a [fg, bg] pair; <code>soft=false</code> renders transparent bg with a <code>fg33</code> border. Tone → color:</p>
+<div class="flow">
+  <span class="pill dot">jade / green → Actif, Publié</span>
+  <span class="pill red dot">danger → À risque, Urgent</span>
+  <span class="pill amber dot">amber → Brouillon, En attente</span>
+  <span class="pill blue dot">blue → info, S1</span>
+  <span class="pill violet dot">exam → Sport, Super Admin</span>
+  <span class="pill slate dot">slate → neutral, Vous</span>
+</div>
+
+<h3>Card</h3>
+<p>bg surface, radius <b>16</b>, 1px hair border, default padding <b>20</b> (overridable, many use 0/14/15/16/18/24/26), shadow <code>shadow</code>. With <code>hover</code> prop: on hover → <code>shadowLg</code> + <code>translateY(-1px)</code>, cursor pointer. <code>transition: box-shadow .15s, transform .15s</code>.</p>
+
+<h3>Avatar</h3>
+<p>Circular initials (first + last initial, uppercased). Default size 36, font = size×0.4, weight 700. Default bg jadeFaint / jadeText; when <code>tone</code> passed → solid bg + #fff text. <code>ring</code> prop → double ring <code>0 0 0 2px surface, 0 0 0 4px jadeFaint</code>.</p>
+
+<h3>Toggle</h3>
+<p>40×23 track radius 999; knob 19×19 white, shadow <code>0 1px 2px rgba(0,0,0,.25)</code>, <code>translateX(17px)</code> when on. Track jade when on, <code>#D5DCD8</code> when off. <code>transition .18s</code> on both background and transform.</p>
+
+<h3>SectionLabel, Field, Input</h3>
+<ul>
+  <li><b>SectionLabel</b> — the mono eyebrow (11px/500, 0.08em, uppercase, text3).</li>
+  <li><b>Field</b> — <code>label</code> (13.5px? no — 12.5px/600 text2, margin-bottom 7) + children + optional <code>hint</code> (11.5px text3).</li>
+  <li><b>Input</b> — width 100%, font 14, border 1px hair2, radius <b>10</b>, padding <code>10px 13px</code> (left 38 when <code>icon</code> present). Focus → border jade + <code>box-shadow 0 0 0 3px jadeFaint</code>; blur reverts.</li>
+</ul>
+
+<h3>Shared helpers (grade logic)</h3>
+<div class="card pad0"><table>
+  <thead><tr><th>Helper</th><th>Definition</th></tr></thead>
+  <tbody>
+    <tr><td class="lead">mention(nf)</td><td>≥16 <b>Très Bien</b> · ≥14 <b>Bien</b> · ≥12 <b>Assez Bien</b> · ≥10 <b>Passable</b> · else <b>Insuffisant</b> · null → —</td></tr>
+    <tr><td class="lead">gradeTone(nf)</td><td>≥10 jade · ≥8 amber · &lt;8 danger · null slate</td></tr>
+    <tr><td class="lead">statusMeta</td><td>active→{jade, "Actif"} · risk→{danger, "À risque"} · suspended→{slate, "Suspendu"}</td></tr>
+    <tr><td class="lead">fmt(n,d=2)</td><td>fixed-decimal or "—" when null</td></tr>
+    <tr><td class="lead">NF(cc,cf)</td><td><b>0.4·CC + 0.6·CF</b> (null if either missing) — the note-finale weighting, configurable in Settings</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="infra"><span class="n">6</span> UI infrastructure</h2>
+
+<h3>Global modal store + ModalRoot</h3>
+<p>A tiny pub-sub store holds one modal node. <code>AdminUI.open(node)</code> / <code>AdminUI.close()</code>. <b>ModalRoot</b> renders a fixed full-screen scrim (<code>rgba(16,22,20,.45)</code> + <code>blur(2px)</code>, z 60, padding 24, <code>animation fadeIn .16s</code>), centers the modal, closes on scrim mousedown and on <kbd class="kbd">Esc</kbd>.</p>
+
+<h3>Modal shell</h3>
+<p>Props: <code>title, sub, icon, iconTone, width=480, children, footer</code>. Card radius <b>18</b>, maxWidth 94vw, maxHeight 90vh, shadow <code>0 24px 60px rgba(10,30,22,.30)</code>, <code>animation popIn .18s cubic-bezier(.2,.9,.3,1)</code>. Header: optional 38×38 tinted icon tile (tone jade/danger/amber/blue) + title (17/700) + sub (12.5 text2) + close X. Body padding 22, scrolls. Footer (optional): right-aligned actions, surface2 bg, top hairline.</p>
+
+<h3>Form helpers</h3>
+<ul>
+  <li><b>FRow</b> — grid, <code>cols</code> columns (default 2), gap 14, margin-bottom 14.</li>
+  <li><b>FField</b> — label (12.5/600 text2) with red <code>*</code> when <code>required</code>; shows <code>error</code> (11.5 danger) or <code>hint</code> (11.5 text3) below.</li>
+  <li><b>TextInput</b> — same visual as Input; <code>mono</code> switches font; <code>readOnly</code> → surface2 bg, text2, not-allowed cursor; <code>error</code> → danger border; focus ring matches error/normal state.</li>
+</ul>
+
+<h3>Dropdown (custom select)</h3>
+<p>Closed control looks like an Input with a chevron-d that rotates 180° when open. Options accept <code>[value,label]</code> tuples, plain strings, or objects (supporting <code>badge</code>). Popover: absolute, +6px below, radius 11, shadowLg, maxHeight 260 scroll. Selected option → jadeFaint bg + jadeText 700 + trailing check (or badge). Closes on outside mousedown. <code>disabled</code> → 0.55 opacity, not-allowed.</p>
+
+<h3>Menu (context "…")</h3>
+<p>Quiet icon button (default <code>more</code>) opens an absolute popover (min-width 190, radius 11, shadowLg, +4px below, aligned <code>right</code> by default). Items: <code>{icon, label, onClick, tone}</code> or <code>{divider:true}</code>. <code>tone:'danger'</code> → danger text + dangerBg hover. Stops click propagation (so row clicks don't fire). Closes on outside mousedown.</p>
+
+<h3>ConfirmModal</h3>
+<p>Built on Modal, width 440. Danger by default. Optional <code>requireText</code> gates the confirm button until the user types the exact string (used by Close-semester which requires typing the semester label). <code>confirmKind</code> defaults <code>dangerSolid</code>. onConfirm may return <code>{keep:true}</code> to keep the modal open (e.g. show a generated value).</p>
+
+<h3>DatePicker</h3>
+<p>Trigger chip (cal icon + "20 juin 2026" + chevron). Popover 260px calendar: month nav, Mon-first weekday header <code>L M M J V S D</code>, French month names, selected day filled jade. <code>allowed</code> prop restricts clickable days (used by session marking → only session dates 3/10/17/24). Optional <code>presets</code> row (7 jours / 30 jours / Ce semestre) as jade pills.</p>
+
+<h3>RichText editor</h3>
+<p>contentEditable with a toolbar: <b>B / I / U</b> (execCommand), divider, <b>H2</b> (formatBlock), unordered + ordered list, divider, link (prompt for URL → createLink). Placeholder via <code>[data-ph]:empty:before</code>. min-height configurable (default 200), optional <code>rtl</code>. The News editor uses a trimmed variant with H3 instead of H2.</p>
+
+<h2 id="shell"><span class="n">7</span> App shell &amp; navigation</h2>
+<p>Every authenticated page renders inside a flex shell: <b>Sidebar</b> (248px, sticky, full-height) + a column holding the <b>TopBar</b> (64px sticky) and a scrolling <code>&lt;main&gt;</code> (padding <code>28px 32px 40px</code>, max-width <b>1280</b>, centered). Toast + ModalRoot mount at the shell root. The Login page renders full-screen with no shell.</p>
+
+<h3>Sidebar (248px, bg #0A3D2E)</h3>
+<ul>
+  <li><b>Brand block</b> — 34px "U" logo tile (gradient 150° jade→jade600, radius 30%, shadow) + "Unipocket" (15.5/800 #fff) + "Admin · UDJ" (mono 10, sideMuted). Divider below.</li>
+  <li><b>Nav groups</b> (mono group labels 10px/0.10em uppercase sideMuted):
+    <ul>
+      <li><b>Main</b> (no label): Tableau de bord <span class="mono">grid</span>, Étudiants <span class="mono">users</span>, Notes <span class="mono">grad</span>, Présence <span class="mono">check-cal</span> (pending badge), Actualités <span class="mono">mega</span></li>
+      <li><b>Structure</b>: Emploi du temps <span class="mono">cal</span>, Académique <span class="mono">book</span>, Notifications <span class="mono">bell</span></li>
+      <li><b>Système</b>: Administrateurs <span class="mono">shield</span>, Journal d'audit <span class="mono">list</span>, Paramètres <span class="mono">gear</span></li>
+    </ul>
+  </li>
+  <li><b>NavItem</b> — padding 9×12, radius 10, gap 11. Active: <code>rgba(29,158,117,0.18)</code> fill + a 3.5px jade accent bar (left −10, inset 8), icon #fff sw 1.9, label #fff 700. Idle: icon sideMuted, label sideText 500; hover <code>rgba(255,255,255,0.05)</code>. "pending" badge (jade pill, mono 11) shows justification count. <code>soon</code> items → 0.42 opacity + "bientôt" tag, non-clickable.</li>
+  <li><b>User card</b> (bottom) — inset panel <code>rgba(255,255,255,0.04)</code>, Saïd Warsama avatar (jade) + name (#fff 700) + "REGISTRAR" (mono sideMuted) + logout icon → <code>go('login')</code>.</li>
+</ul>
+
+<h3>TopBar (64px, sticky, bg surface)</h3>
+<p>Left: breadcrumb trail from the <code>CRUMBS</code> map (last crumb 700 text1, earlier crumbs text3 clickable → parent list). Right cluster: <b>GlobalSearch</b>, FR locale chip (<span class="mono">sun</span> amber + "FR", tooltip "Portail disponible en français uniquement"), <b>BellMenu</b>, <b>AvatarMenu</b>.</p>
+<ul>
+  <li><b>GlobalSearch</b> — 280px input (bg surface2, radius 10, search icon). On type, live dropdown groups: <b>Étudiants</b> (name/matricule, →student-detail), <b>Matières</b> (name/code, →grade-entry), <b>Actualités</b> (title, →news), max 3 each. Empty → "Aucun résultat pour « q »". Closes on outside click.</li>
+  <li><b>BellMenu</b> — bell with red dot when justifications pending. Popover 300px: "Justificatifs en attente · N à traiter" (amber clock tile) → attendance; "Voir tout →" footer.</li>
+  <li><b>AvatarMenu</b> — 34px avatar. Popover 240px: name + email + "Scolarité" badge; items Mon profil (→ProfileModal), Changer le mot de passe (→PasswordModal), divider, Se déconnecter (danger → login).</li>
+</ul>
+
+<h3>PageHead (in-content header)</h3>
+<p>Optional 34×34 back button (arrow-l, bordered surface tile) + title (25/800, −0.02em) + optional subtitle (14 text2) + right-aligned <code>actions</code> cluster (gap 10). Used on every page.</p>
+
+<h2 id="routing"><span class="n">8</span> Routing map</h2>
+<p>17 routes. Navigation is <code>go(page, params)</code>; on navigate the window and <code>#main-scroll</code> reset to top. Breadcrumbs and parent-links derive from the <code>CRUMBS</code> table.</p>
+<div class="card pad0"><table>
+  <thead><tr><th>#</th><th>route</th><th>params</th><th>Breadcrumb</th><th>Component</th></tr></thead>
+  <tbody>
+    <tr><td class="num">1</td><td class="mono">login</td><td>—</td><td>— (no shell)</td><td>Login</td></tr>
+    <tr><td class="num">2</td><td class="mono">dashboard</td><td>—</td><td>Tableau de bord</td><td>Dashboard</td></tr>
+    <tr><td class="num">3</td><td class="mono">students</td><td>filter?</td><td>Étudiants</td><td>Students</td></tr>
+    <tr><td class="num">4</td><td class="mono">student-detail</td><td>id</td><td>Étudiants › Fiche étudiant</td><td>StudentDetail</td></tr>
+    <tr><td class="num">5</td><td class="mono">students-import</td><td>—</td><td>Étudiants › Importer</td><td>ImportWizard</td></tr>
+    <tr><td class="num">6</td><td class="mono">grades</td><td>—</td><td>Notes</td><td>Grades</td></tr>
+    <tr><td class="num">7</td><td class="mono">grade-entry</td><td>subjectId</td><td>Notes › Saisie</td><td>GradeEntry</td></tr>
+    <tr><td class="num">8</td><td class="mono">attendance</td><td>—</td><td>Présence</td><td>Attendance</td></tr>
+    <tr><td class="num">9</td><td class="mono">attendance-session</td><td>—</td><td>Présence › Faire l'appel</td><td>SessionMarking</td></tr>
+    <tr><td class="num">10</td><td class="mono">news</td><td>—</td><td>Actualités</td><td>News</td></tr>
+    <tr><td class="num">11</td><td class="mono">news-create</td><td>—</td><td>Actualités › Nouvel article</td><td>NewsCreate</td></tr>
+    <tr><td class="num">12</td><td class="mono">schedule</td><td>—</td><td>Emploi du temps</td><td>Schedule</td></tr>
+    <tr><td class="num">13</td><td class="mono">academics</td><td>—</td><td>Académique</td><td>Academics</td></tr>
+    <tr><td class="num">14</td><td class="mono">notifications</td><td>—</td><td>Notifications</td><td>Notifications</td></tr>
+    <tr><td class="num">15</td><td class="mono">admins</td><td>—</td><td>Administrateurs</td><td>Admins</td></tr>
+    <tr><td class="num">16</td><td class="mono">audit</td><td>—</td><td>Journal d'audit</td><td>Audit</td></tr>
+    <tr><td class="num">17</td><td class="mono">settings</td><td>—</td><td>Paramètres</td><td>Settings</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="data"><span class="n">9</span> Data model &amp; sample data</h2>
+<p>All sample data is deterministic (mulberry32 seed <code>20260609</code>) so the universe is identical on every load. Same universe as the mobile app: <b>Ahmed Omar</b> (UDJ-2024-0432), Génie Informatique L3, 8 subjects.</p>
+
+<h4>Entities</h4>
+<div class="card pad0"><table>
+  <thead><tr><th>Entity</th><th>Count</th><th>Key fields</th></tr></thead>
+  <tbody>
+    <tr><td class="lead">Student</td><td>42</td><td>idx, id (UDJ-2024-0NNN), name, sex, initials, programme "Génie Informatique"/short/year L3, faculty, email (prenom.nom@univ.dj), phone (+253 77 …), ability, presence (58–100), gpa, credits (/32), status</td></tr>
+    <tr><td class="lead">Subject</td><td>8</td><td>id (INF301…), name, coef (1–4), sem (1/2), prof, room</td></tr>
+    <tr><td class="lead">Gradebook</td><td>42×8</td><td>[studentIdx][subjectId] = {cc, cf}; INF304 has ~45% cf=null (entry in progress)</td></tr>
+    <tr><td class="lead">Justification</td><td>14</td><td>id (JST-104N), student, subject, absenceDate, submitted, reason, docType (PDF/Photo), note, status (pending/approved/rejected) — 9 pending</td></tr>
+    <tr><td class="lead">News</td><td>7</td><td>id, cat, urgent, status (published/draft), title, source, date, time, views, read, body — 5 published, 2 drafts</td></tr>
+    <tr><td class="lead">Faculty</td><td>5</td><td>FST, FDEG, FLSH, FM, IST — name, short, dean, programmes, students</td></tr>
+    <tr><td class="lead">Programme</td><td>9</td><td>id, name, faculty, levels, students; GINF is <code>current</code></td></tr>
+    <tr><td class="lead">Semester</td><td>4</td><td>label, year, start, end, status (current/closed/archived); S2-2526 current</td></tr>
+    <tr><td class="lead">ScheduleEntry</td><td>11</td><td>day (0–4 Dim–Jeu), start, end, subjectId, name, prof, room, c (course color index)</td></tr>
+    <tr><td class="lead">Admin</td><td>6</td><td>id, name, email, role, scope, active, last, you? — Saïd Warsama is "you" (REGISTRAR)</td></tr>
+    <tr><td class="lead">AuditEntry</td><td>19</td><td>id (LOG-91NN), action (dot.notation), entity, target, who, when, ip</td></tr>
+    <tr><td class="lead">NotifHistory</td><td>5</td><td>id, title, target, count, when, kind (notes/news/agenda/presence)</td></tr>
+    <tr><td class="lead">Activity</td><td>7</td><td>who, role, action, target, kind, when — recent-activity feed on dashboard</td></tr>
+  </tbody>
+</table></div>
+
+<h4>The 8 subjects</h4>
+<div class="card pad0"><table>
+  <thead><tr><th>Code</th><th>Name</th><th>Coef</th><th>Sem</th><th>Prof</th><th>Room</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">INF301</td><td class="lead">Algorithmique avancée</td><td>4</td><td>1</td><td>Pr. Hassan Robleh</td><td>Salle C12</td></tr>
+    <tr><td class="mono">INF201</td><td class="lead">Bases de données</td><td>3</td><td>1</td><td>Dr. Safia Mohamed</td><td>Labo Info 1</td></tr>
+    <tr><td class="mono">MAT202</td><td class="lead">Mathématiques générales L2</td><td>4</td><td>1</td><td>Pr. Abdi Farah</td><td>Salle A05</td></tr>
+    <tr><td class="mono">PHY305</td><td class="lead">Physique quantique</td><td>3</td><td>1</td><td>Pr. Moussa Ali</td><td>Salle D04</td></tr>
+    <tr><td class="mono">INF303</td><td class="lead">Réseaux informatiques</td><td>3</td><td>2</td><td>Dr. Omar Hassan</td><td>Labo Info 2</td></tr>
+    <tr><td class="mono">INF304</td><td class="lead">Systèmes d'exploitation</td><td>3</td><td>2</td><td>Dr. Youssouf Ahmed</td><td>Amphi A1</td></tr>
+    <tr><td class="mono">ANG110</td><td class="lead">Anglais technique</td><td>1</td><td>2</td><td>Mrs. Amina Aden</td><td>Salle B08</td></tr>
+    <tr><td class="mono">STA201</td><td class="lead">Statistiques L2</td><td>2</td><td>2</td><td>Pr. Ibrahim Djama</td><td>Salle B08</td></tr>
+  </tbody>
+</table></div>
+
+<h4>Computed logic</h4>
+<ul>
+  <li><b>NF</b> per subject = <code>0.4·CC + 0.6·CF</code> (null if CF missing).</li>
+  <li><b>GPA</b> = coefficient-weighted mean of non-null NFs: <code>Σ(NF·coef) / Σcoef</code>.</li>
+  <li><b>Credits</b> = <code>round((gpa≥10 ? 1 : gpa/10) · 32)</code>, out of 32.</li>
+  <li><b>Status</b>: idx 0 forced active; else 5% suspended; else <code>gpa&lt;10 || presence&lt;75 → risk</code>; else active.</li>
+  <li><b>SUBJECT_PROGRESS</b>: entered = count of non-null CF; published = <code>id !== 'INF304'</code> (so INF304 is the one "Brouillon").</li>
+  <li><b>Dashboard aggregates</b>: totalStudents 42, avgPresence (rounded mean), avgGpa, pendingJust 9, atRisk (status=risk count), gpaDist buckets (&lt;10, 10–12, 12–14, 14–16, 16+), presenceTrend 8 weeks <code>[82,85,84,88,86,89,87,87]</code>.</li>
+</ul>
+
+<h4>Roles (RBAC)</h4>
+<div class="card pad0"><table>
+  <thead><tr><th>Role key</th><th>Label</th><th>Tone</th><th>Scope</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">SUPER_ADMIN</td><td class="lead">Super Admin</td><td><span class="pill violet">exam</span></td><td>Accès complet · gère les administrateurs</td></tr>
+    <tr><td class="mono">FACULTY_ADMIN</td><td class="lead">Admin Faculté</td><td><span class="pill blue">blue</span></td><td>Emploi du temps, matières, présence</td></tr>
+    <tr><td class="mono">REGISTRAR</td><td class="lead">Scolarité</td><td><span class="pill">jade</span></td><td>Étudiants, notes, présence</td></tr>
+    <tr><td class="mono">NEWS_EDITOR</td><td class="lead">Éditeur</td><td><span class="pill amber">amber</span></td><td>Actualités et notifications</td></tr>
+  </tbody>
+</table></div>
+<p>Course palette (schedule blocks, 12 colors): <code>#6366F1 #2F7DD1 #1E94C4 #119A8B #2E9E5B #6B9A2E #D9821A #E2673A #E0556A #D6519E #7C53E0 #5A6B7B</code>.</p>
+
+<h2 id="p-login"><span class="n">10</span> Login</h2>
+<div class="pagehead"><h3>Connexion</h3><span class="rt">route: login · full-screen, no shell</span></div>
+<p>Two-column grid <code>1.1fr / 1fr</code>. <b>Left brand panel</b> (bg #0A3D2E, padding 56): two radial jade glow blobs, logo + wordmark top, big display "Portail<br>d'administration" (34/800) + tagline (jade50, 0.85 opacity) mid, "© 2026 Université de Djibouti · v1.0" (mono sideMuted) bottom. <b>Right form</b> (centered, 360px): "Connexion" (26/800), subtitle, email field (prefilled <code>said.warsama@univ.dj</code>, mail icon), password field (key icon + eye toggle), "Mot de passe oublié ?" link (→ForgotModal), "Rester connecté" checkbox (default on), primary lg button full-width.</p>
+<h4>Interactions</h4>
+<ul>
+  <li>Submit validates pw length ≥ 4; on fail → inline error banner (dangerBg, "Identifiants incorrects. Veuillez réessayer.").</li>
+  <li>On success → 850ms "Connexion…" busy state, then <code>go('dashboard')</code>. <kbd class="kbd">Enter</kbd> in password submits.</li>
+  <li>Eye toggle switches input type text/password. Secure-connection notice tile at bottom.</li>
+</ul>
+
+<h2 id="p-dashboard"><span class="n">11</span> Dashboard</h2>
+<div class="pagehead"><h3>Tableau de bord</h3><span class="rt">route: dashboard</span></div>
+<p>Subtitle "Génie Informatique · L3 — Semestre 2, 2025–2026". Actions: ghost <b>Exporter</b> (→ "soon" toast), primary <b>Notifier</b> (→ notifications).</p>
+<h4>Layout (top → bottom)</h4>
+<ul>
+  <li><b>Stat row</b> — 4 <b>StatCard</b>s (grid 4×1, gap 16). Each: 38px tinted icon tile + optional trend badge, SectionLabel, big value (30/800) + unit, sub caption.
+    <ul>
+      <li>Étudiants inscrits <b>42</b> (jade, "22 à risque · 1 suspendu")</li>
+      <li>Présence moyenne <b>78%</b> (blue, trend "+2 pts" up, "Seuil d'assiduité : 75 %")</li>
+      <li>Moyenne générale <b>11.8/20</b> (amber, "Assez Bien · S2 en cours")</li>
+      <li>Justificatifs en attente <b>12</b>* (danger, "À traiter cette semaine")</li>
+    </ul>
+  </li>
+  <li><b>Row 2</b> (grid 1.55fr/1fr): <b>Répartition des moyennes</b> BarChart (5 GPA buckets, <code>&lt;10</code> bar is <code>hot</code>=danger red) + "42 étudiants" badge; <b>Tendance de présence</b> big 78% + "+2 pts vs S1" + Sparkline (8 weeks, S1→S8 axis, filled area 0.10 opacity).</li>
+  <li><b>Row 3</b> (grid 1.55fr/1fr): <b>Activité récente</b> (7 rows, kind-tinted icon, "<b>who</b> action <b>target</b>", when; row click → related page; "Journal complet →" → audit); <b>Étudiants à risque</b> (top 5 by risk, avatar + gpa colored + presence, click → student-detail; footer button → students?filter=risk).</li>
+</ul>
+<div class="note amber"><span class="lbl">Data note</span> The pending-justifications stat shows <b>12</b> (dashboard aggregate value) while the live queue has <b>9</b> pending — production should reconcile to a single source of truth.</div>
+<h4>Charts</h4>
+<ul>
+  <li><b>BarChart</b> — flex-end bars, gap 14, height 130–150, max 38px wide, radius <code>6 6 3 3</code>, value label above (mono) + category label below, <code>height .4s</code> transition, <code>hot</code>→danger, <code>dim</code>→0.4 opacity.</li>
+  <li><b>Sparkline</b> — SVG polyline (stroke 2, round) over a 0.10-opacity filled area, end-point dot r3; auto min/max scaled.</li>
+</ul>
+
+<h2 id="p-students"><span class="n">12</span> Students list</h2>
+<div class="pagehead"><h3>Étudiants</h3><span class="rt">route: students · params: filter?</span></div>
+<p>Subtitle "42 inscrits · Génie Informatique L3". Actions: ghost <b>Importer CSV</b> (→import), primary <b>Nouvel étudiant</b> (→StudentForm modal).</p>
+<h4>Toolbar (in card, pad 0)</h4>
+<ul>
+  <li>300px search (name or matricule), segmented status filter <b>Tous / Actifs / À risque / Suspendus</b> (each with live count in mono), right-aligned <b>Filtres</b> toggle (soft when open).</li>
+  <li><b>Advanced filters</b> panel (when open, surface2): Programme dropdown, "Moyenne minimale" range slider 0–20 step 0.5 (jade accent, live value), Réinitialiser.</li>
+</ul>
+<h4>Table</h4>
+<ul>
+  <li>Columns: <b>Étudiant</b> (sortable — avatar + name + email), <b>Matricule</b> (sortable, mono), <b>Moyenne</b> (sortable, right; &lt;10 danger / &lt;12 amber / else text1 + "/20"), <b>Présence</b> (sortable, right — 44px mini bar colored by 75/85 thresholds + %), <b>Statut</b> (badge+dot), chevron.</li>
+  <li><b>SortHead</b> — click toggles asc/desc; active col → jadeText label + directional chevron, idle → sort icon.</li>
+  <li>Row height 58, hover surface2, whole row → student-detail. Empty state "Aucun étudiant trouvé." Footer: "N sur 42 étudiants" + disabled pager (1 / 1).</li>
+</ul>
+<p>Incoming <code>filter</code> param (e.g. from dashboard "risk") sets initial filter; component keyed on it so it remounts.</p>
+
+<h2 id="p-student"><span class="n">13</span> Student detail</h2>
+<div class="pagehead"><h3>Fiche étudiant</h3><span class="rt">route: student-detail · params: id</span></div>
+<p>PageHead: back → students, title = student name, subtitle = matricule (mono). Actions: ghost <b>Réinitialiser mot de passe</b> (→ResetPwModal), ghost <b>Modifier</b> (→StudentForm edit), "…" Menu (Suspendre / Marquer diplômé / — / Réactiver → StatusModal).</p>
+<h4>Layout — grid 320px / 1fr</h4>
+<ul>
+  <li><b>Left profile card</b>: 76px ring avatar, name (19/800), "programme · L3", status badge; 2-up stat tiles (Moyenne /20 colored, Présence % colored); InfoRows (mail email, phone tél mono, book faculté, grad "credits / 32").</li>
+  <li><b>Right column</b>:
+    <ul>
+      <li><b>Relevé de notes</b> card (pad 0): header with semester mean + <b>Semestre 1 / 2</b> segmented toggle. Table columns Matière (name + code) · CC · CF (— when null) · Coef · <b>NF</b> (bold, &lt;10 danger) · Mention (gradeTone badge). Rows filter to the selected semester's subjects.</li>
+      <li><b>Assiduité par matière</b> card: 4 ATT_SUBJECTS rows, each name + 160px bar (colored by 75/85) + % (hardcoded demo 95/80/72/100); "Présence →" link → attendance.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="p-import"><span class="n">14</span> Import wizard (students)</h2>
+<div class="pagehead"><h3>Importer des étudiants</h3><span class="rt">route: students-import</span></div>
+<p>Back → students. A 4-step stepper card + a content card. Steps: <b>Télécharger · Associer les colonnes · Vérifier · Importer</b>. Stepper node states: done (jade fill + check), current (jadeFaint + jade border), upcoming (surface2 + text3); connectors turn jade as you pass.</p>
+<div class="flow"><span class="step">0 Upload</span><span class="arr">→</span><span class="step">1 Map columns</span><span class="arr">→</span><span class="step">2 Verify</span><span class="arr">→</span><span class="step">3 Done</span></div>
+<ul>
+  <li><b>Step 0</b> — dashed 240px dropzone (striped placeholder, upload tile, "Glissez votre fichier CSV… max 5 Mo"), template-download row, and a "loaded file" row (<code>etudiants_ginf_l3.csv · 38 lignes · 12 Ko</code>, "Chargé" badge).</li>
+  <li><b>Step 1</b> — 5 column-mapping rows: source column chip → chevron → mapped field with green "auto" badge (matricule, prénom, nom, e-mail, programme).</li>
+  <li><b>Step 2</b> — 3 summary tiles (<b>36 Prêts</b> jade / <b>2 À corriger</b> danger / <b>38 Total</b>) + preview table of 6 sample rows (2 error rows highlighted dangerBg: "E-mail manquant", "Matricule déjà existant"). Note that error lines are skipped.</li>
+  <li><b>Step 3</b> — success panel: check tile, "36 étudiants importés", "2 lignes ignorées", button → students.</li>
+  <li>Footer nav (steps 0–2): Annuler/Précédent + Continuer/"Importer 36 étudiants" (fires toast at step 2).</li>
+</ul>
+
+<h2 id="p-grades"><span class="n">15</span> Grades picker</h2>
+<div class="pagehead"><h3>Notes</h3><span class="rt">route: grades</span></div>
+<p>Subtitle "Sélectionnez une matière pour saisir ou modifier les notes". Action: ghost <b>Exporter le relevé</b> (soon). <b>Semestre 1 / 2</b> segmented toggle. Grid 2×N of hoverable subject cards → grade-entry.</p>
+<h4>Subject card</h4>
+<ul>
+  <li>44px jade "grad" tile + name (15.5/700) + "code · prof · Coef. N" + <b>Publié</b> (jade) or <b>Brouillon</b> (amber) badge from SUBJECT_PROGRESS.published.</li>
+  <li>Footer: "Saisie" progress bar (entered/total; jade when complete, amber while partial) + vertical divider + class average (19/800 + "Moy. classe") + chevron. INF304 shows partial progress + amber.</li>
+</ul>
+
+<h2 id="p-entry"><span class="n">16</span> Grade entry table <span style="font-weight:400;font-size:14px;color:var(--ink3)">— the centerpiece</span></h2>
+<div class="pagehead"><h3>Saisie des notes</h3><span class="rt">route: grade-entry · params: subjectId</span></div>
+<p>Back → grades. Subtitle "code · prof · Coef. N · Semestre S". Actions: ghost <b>Importer</b> (→GradeImportModal), soft <b>Publier les notes</b> (→ "Notes publiées · 42 étudiants notifiés" send toast).</p>
+<h4>Metric strip (4 cards)</h4>
+<p>Étudiants 42 · Notes saisies <code>entered/42</code> (jade when full, amber otherwise) · Moyenne classe (recomputed live) · Modifications <code>dirtyCount</code> (jade when &gt;0).</p>
+<h4>Editable table</h4>
+<ul>
+  <li>Toolbar: 280px student filter + keyboard-hint ("<kbd class="kbd">Entrée</kbd> or <kbd class="kbd">↓</kbd> next row · <kbd class="kbd">→</kbd> to CF").</li>
+  <li>Columns: # (mono index) · Étudiant (avatar + name + matricule) · <b>CC /20</b> · <b>CF /20</b> · NF (bold, live, &lt;10 danger) · Mention (badge or "En attente").</li>
+  <li><b>GradeCell</b> — 64×38 input, mono 14, center. States: normal (surface2, transparent border), <b>dirty</b> (jadeFaint bg, jade border), <b>invalid</b> (dangerBg, danger border+text). Focus selects all + ring (jadeFaint or dangerBg). Input sanitized to <code>[0-9.]</code>; invalid = NaN or &lt;0 or &gt;20. Dirty rows get a faint <code>rgba(29,158,117,0.03)</code> row tint.</li>
+  <li><b>Keyboard nav</b> (per cell): <kbd class="kbd">Enter</kbd>/<kbd class="kbd">↓</kbd> next row same col · <kbd class="kbd">↑</kbd> prev row · <kbd class="kbd">→</kbd> (at caret end) move to CF · <kbd class="kbd">←</kbd> (at caret start) move to CC. Refs keyed <code>{idx}-{col}</code>.</li>
+</ul>
+<h4>Sticky save bar (appears when dirtyCount &gt; 0)</h4>
+<p>Fixed to viewport, <code>left:248</code> (clears sidebar), surface, top hairline, shadow <code>0 -6px 22px</code>. Status dot (jade, or danger if invalid) + message ("N modifications non enregistrées" or "N notes hors barème (0–20)" in danger). Actions: quiet <b>Annuler</b> (reset to baseline) + primary <b>Tout enregistrer</b> (disabled while invalid; commits baseline, toast "N notes enregistrées"). Page adds 76px bottom padding while bar is shown.</p>
+
+<h2 id="p-att"><span class="n">17</span> Attendance queue (justifications)</h2>
+<div class="pagehead"><h3>Présence</h3><span class="rt">route: attendance</span></div>
+<p>Subtitle "File des justificatifs d'absence à traiter". Action: ghost <b>Marquer une séance</b> (→session). 4 overview stat cards (En attente amber · Validés jade · Présence moyenne 87% blue · Sous le seuil 75% → 4 danger).</p>
+<h4>Layout — grid 1fr / 400px</h4>
+<ul>
+  <li><b>Queue list</b> (left, card pad 0): tabs <b>En attente / Validés / Rejetés</b> with counts (pending tab active → amber). Rows: avatar + name + docType badge + "reason · subject" + "Absent le date" / "reçu submitted". Active row → jadeFaint bg + 3px jade left border. Empty state per tab (check tile + "Rien à traiter").</li>
+  <li><b>Review pane</b> (right, sticky top 84): header avatar + name + matricule + status badge. <b>DocPreview</b> (280px striped placeholder, 60px doc tile by docIcon, reason + <code>justificatif_JST-####.pdf/jpg</code>, "Ouvrir le document" → DocViewer modal). Detail rows (Matière, Date d'absence, Motif, Référence mono). Student note in italic quote box. If pending → danger <b>Rejeter</b> + primary <b>Valider l'absence</b>; else "Traité · Validé/Rejeté".</li>
+</ul>
+<h4>Actions</h4>
+<p><code>act(id, status)</code> updates the item, toasts ("Justificatif validé" check / "Justificatif rejeté" x), and auto-advances selection to the next pending item.</p>
+
+<h2 id="p-session"><span class="n">18</span> Session marking (faire l'appel)</h2>
+<div class="pagehead"><h3>Faire l'appel</h3><span class="rt">route: attendance-session</span></div>
+<p>Back → attendance. Subtitle "Algorithmique avancée · Séance du mer. 10 juin · 13:00–14:30". Action: DatePicker (allowed days 3/10/17/24). 4 count cards (Présents jade / Retards amber / Absents danger / Total 42).</p>
+<ul>
+  <li>Roster card: header "42 étudiants" + quiet <b>Tout présent</b> (bulk-set present). Each row: index + avatar + name + matricule + a 3-way segmented control <b>Présent / Retard / Absent</b> (selected → tinted bg by state; default all present).</li>
+  <li>Sticky bottom bar (same pattern as grade entry, left 248): live "<b>N</b> présents · <b>N</b> retards · <b>N</b> absents" + Annuler + primary <b>Enregistrer l'appel</b> (toast "Appel enregistré…", → attendance).</li>
+</ul>
+
+<h2 id="p-news"><span class="n">19</span> News list</h2>
+<div class="pagehead"><h3>Actualités</h3><span class="rt">route: news</span></div>
+<p>Subtitle "5 publiées · 2 brouillons". Action: primary <b>Nouvel article</b> (→news-create). Card (pad 0) with toolbar: 280px search + tabs <b>Tous / Publiés / Brouillons</b> (counts).</p>
+<h4>Article rows</h4>
+<ul>
+  <li>80×56 striped thumb (image icon) + badges (category by <code>catTone</code>, "Urgent" danger dot, "Brouillon" amber) + title (15/700, ellipsis) + "source · date". Right: views (formatted) + "vues", or "Non publié". Trailing quiet edit button + "…" Menu (Modifier / Dupliquer → toast / — / Supprimer danger → DeleteNewsModal).</li>
+  <li>Row click → NewsReader modal. Category tones: official jade, events blue, scolarite amber, sport exam, jeunesse/sponsors/general slate.</li>
+</ul>
+
+<h2 id="p-newscreate"><span class="n">20</span> News editor</h2>
+<div class="pagehead"><h3>Nouvel article</h3><span class="rt">route: news-create</span></div>
+<p>Back → news. Actions: ghost <b>Enregistrer le brouillon</b> (toast), primary <b>Publier</b> (disabled until title+body; toast "Article publié · 2 480 étudiants notifiés" when push on, → news). Grid 1fr / 320px.</p>
+<ul>
+  <li><b>Editor card</b>: borderless title input (26/800), hairline, dashed <b>cover image slot</b> (200px striped, "glisser une image · 1200×630 recommandé", click → toast), and a functional rich-text area (B/I/U · H3 · UL · link via execCommand) with contentEditable body + placeholder.</li>
+  <li><b>Settings column</b>: <b>Catégorie</b> pills (single-select, active → jade fill; excludes "general"); <b>Marquer comme urgent</b> toggle + <b>Notification push</b> toggle (default on); <b>Aperçu (app étudiante)</b> live card mirroring cover/category/urgent/title/body (2-line clamp).</li>
+</ul>
+
+<h2 id="p-academics"><span class="n">21</span> Academics (structure académique)</h2>
+<div class="pagehead"><h3>Structure académique</h3><span class="rt">route: academics</span></div>
+<p>Subtitle "Facultés, programmes, matières et semestres". Action: primary <b>Ajouter</b> (opens the form matching the active tab). <b>Tabs</b> component: Facultés / Programmes / Matières / Semestres (counts).</p>
+<ul>
+  <li><b>Facultés</b> — 2-col hoverable cards: short-code tile + name + "Doyen · name" + "…" Menu; footer stats (Programmes, Étudiants). Edit → FacultyForm.</li>
+  <li><b>Programmes</b> — faculty filter pills (Toutes facultés + 5 shorts) + TableShell (Programme + code, Faculté badge, Niveaux, Étudiants right). GINF shows "Actif" badge. Row → ProgrammeForm edit.</li>
+  <li><b>Matières</b> — TableShell (name, code mono, prof, Semestre badge [S1 blue / S2 amber], Coef right, edit icon). Row → SubjectForm edit.</li>
+  <li><b>Semestres</b> — stacked cards: cal tile + "label · year" + status badge (current jade "En cours" / closed amber "Clôturé" / archived slate "Archivé") + date range. Trailing control: current → ghost <b>Gérer</b>; closed → soft <b>Définir comme courant</b>; archived → "Lecture seule".</li>
+</ul>
+<p><b>TableShell</b> = Card pad 0 + header row (surface2, 40px, SectionLabel headers with optional right-align/width).</p>
+
+<h2 id="p-schedule"><span class="n">22</span> Schedule (emploi du temps)</h2>
+<div class="pagehead"><h3>Emploi du temps</h3><span class="rt">route: schedule</span></div>
+<p>Subtitle "Semaine type · Génie Informatique L3 — Semestre 2". Actions: ghost <b>Exporter</b> (soon), primary <b>Nouvelle séance</b> (→ScheduleForm). Programme filter pills (FST programmes); only <b>GINF</b> has data — others show empty state "Aucun emploi du temps saisi pour ce programme." Count line "11 séances · 11 h hebdo".</p>
+<h4>Weekly grid (calendar)</h4>
+<ul>
+  <li>Grid <code>64px + 5 day columns</code> (Dimanche → Jeudi). Time axis 08:00–16:00, <b>64px/hour</b>. Day header shows name + "N cours".</li>
+  <li>Each entry absolutely positioned: <code>top = (startMin − 8·60)/60 · 64 + 3</code>, height from duration − 6. Left 5 / right 5. Style: <code>color+"14"</code> bg + 3px left border in course color, radius 8. Content: name (12/700 ellipsis) + "start–end" (mono, course color) + (if tall) "room · prof". Hover → scale 1.02. Click → ScheduleForm edit.</li>
+</ul>
+
+<h2 id="p-notif"><span class="n">23</span> Notifications</h2>
+<div class="pagehead"><h3>Notifications</h3><span class="rt">route: notifications</span></div>
+<p>Subtitle "Envoyez une notification push aux étudiants". Grid 1fr / 340px.</p>
+<ul>
+  <li><b>Composer (left)</b>:
+    <ul>
+      <li><b>Destinataires</b> card — 2×2 selectable target cards (radio-style, active → jade border + jadeFaint + check bubble): Tous (2 480) · Une faculté (1 240) · Un programme (42) · Un étudiant (1). Below, contextual pickers: faculty dropdown / faculty+programme dropdowns / student chip search (typeahead, removable chips).</li>
+      <li><b>Message</b> card — Titre input + Message textarea (maxLength 180, live "n/180" counter), "Sera envoyé à <b>N</b> étudiants" + ghost <b>Planifier</b> (soon) + primary <b>Envoyer maintenant</b> (disabled until title+msg; toast "Notification envoyée · N destinataires", clears fields).</li>
+    </ul>
+  </li>
+  <li><b>Phone preview (right)</b> — dark rounded device with notch handle, "maintenant" label, translucent notification card (U logo tile + "Unipocket · à l'instant" + live title + live message).</li>
+  <li><b>Historique des envois</b> (below, full width) — 5 expandable rows: kind-tinted icon + title + target + "N reçus" badge + when + chevron. Expanded → detail grid (Cible, Destinataires, Envoyé le, Par "Saïd Warsama", Statut "✓ Envoyé via FCM").</li>
+</ul>
+
+<h2 id="p-admins"><span class="n">24</span> Administrators</h2>
+<div class="pagehead"><h3>Administrateurs</h3><span class="rt">route: admins</span></div>
+<p>Subtitle "N comptes actifs · gérés par le Super Admin". Action: primary <b>Nouvel administrateur</b> (→AdminForm). 4 role-legend cards (role badge + count + description). Table: Administrateur (avatar, name, "Vous" badge for self, email) · Rôle badge · Périmètre · Dernière connexion (mono) · Statut (dot "Actif/Inactif", inactive rows 0.6 opacity) · "…" Menu (Modifier le rôle → AdminForm edit / — / Désactiver|Réactiver → DeactivateAdminModal). Footer note (blue tile): role changes are audited; only a Super Admin can create/deactivate.</p>
+<div class="card pad0"><table>
+  <thead><tr><th>Admin</th><th>Role</th><th>Scope</th><th>Active</th></tr></thead>
+  <tbody>
+    <tr><td class="lead">Saïd Warsama (Vous)</td><td>REGISTRAR</td><td>Scolarité</td><td>✓</td></tr>
+    <tr><td class="lead">Hassan Aden</td><td>SUPER_ADMIN</td><td>Direction</td><td>✓</td></tr>
+    <tr><td class="lead">Fatouma Robleh</td><td>NEWS_EDITOR</td><td>Communication</td><td>✓</td></tr>
+    <tr><td class="lead">Safia Mohamed</td><td>FACULTY_ADMIN</td><td>Sciences et Tech.</td><td>✓</td></tr>
+    <tr><td class="lead">Abdi Farah</td><td>FACULTY_ADMIN</td><td>Sciences et Tech.</td><td>✓</td></tr>
+    <tr><td class="lead">Amina Ismael</td><td>REGISTRAR</td><td>Scolarité</td><td>✗ (28 j)</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="p-audit"><span class="n">25</span> Audit log (journal d'audit)</h2>
+<div class="pagehead"><h3>Journal d'audit</h3><span class="rt">route: audit</span></div>
+<p>Subtitle "Toute action sensible est tracée · réservé au Super Admin". Action: ghost <b>Exporter (CSV)</b> (toast). Toolbar: 280px search + category segments (Tout / Notes / Étudiants / Actualités / Présence / Admins) + DatePicker (presets 7 jours / 30 jours / Ce semestre) + "N entrées".</p>
+<ul>
+  <li>Table: Action (tinted icon by verb + dot-notation mono, e.g. <code>grade.publish</code>) · Entité badge · Cible · Auteur (avatar or gear for "Système") · Adresse IP (mono) · Horodatage + expander chevron.</li>
+  <li><b>Action → tone/icon</b>: create/bulkCreate/send/login → jade plus · update/status/publish/approve → blue edit · delete/reject → danger trash · resetPassword → amber reset · else slate.</li>
+  <li>Row click expands a <b>before/after snapshot</b> (2-col: Avant danger label / Après jade label; mono key-value pairs; "aucun" for create/delete) + footer "LOG-#### · entity · horodatage immuable". Snapshots are synthesized per action verb.</li>
+</ul>
+
+<h2 id="p-settings"><span class="n">26</span> Settings (paramètres)</h2>
+<div class="pagehead"><h3>Paramètres</h3><span class="rt">route: settings</span></div>
+<p>Subtitle "Configuration du système · réservé au Super Admin". Action: primary <b>Enregistrer</b> (toast). Grid 2-col of <b>SettingsCard</b>s (jade icon tile + title; rows via <b>SettingsRow</b> = title + desc + control, hairline-separated).</p>
+<ul>
+  <li><b>Période académique</b> — Semestre courant dropdown, Année universitaire (2025–2026), Semaine de cours (Dim → Jeu).</li>
+  <li><b>Barème de notation</b> — CC/CF weighting: live formula <code>NF = 0.40·CC + 0.60·CF</code>, a split bar (CC jadeFaint / CF blueBg) + range slider 20–60 step 5, plus the Mentions legend (Très Bien ≥16, Bien 14–15.99, Assez Bien 12–13.99, Passable 10–11.99, Insuffisant &lt;10).</li>
+  <li><b>Assiduité</b> — Seuil d'assiduité slider 50–90 step 5 (big % value, amber under 70) + "Alerte automatique" toggle.</li>
+  <li><b>Automatisations</b> — Publication auto des notes (off), Notification à la publication (on), Récapitulatif hebdomadaire (off) toggles.</li>
+  <li><b>Préférences régionales</b> — Langue par défaut (Français / العربية segmented, disabled "prochainement") + Fuseau horaire GMT+3.</li>
+  <li><b>Danger zone</b> (full width, danger-tinted) — "Clôturer le semestre" + danger button → CloseSemesterModal (requires typing "Semestre 2").</li>
+</ul>
+
+<h2 id="forms"><span class="n">27</span> Entity forms</h2>
+<p>All forms are Modals with FRow/FField/TextInput/Dropdown. Each validates on submit, sets an <code>err</code> map, and on success fires an <code>AdminUI.toast</code> + closes. All are bilingual-ready (FR + AR name fields where noted) even though the UI is FR.</p>
+<div class="card pad0"><table>
+  <thead><tr><th>Form</th><th>Fields</th><th>Validation</th></tr></thead>
+  <tbody>
+    <tr><td class="lead">StudentForm</td><td>Prénom, Nom, Matricule (mono, readOnly on edit), Email, Faculté→Programme (dependent), Semestre actuel, Statut, + Mot de passe initial (create only, with Générer)</td><td>first/last required; matricule <code>/^UDJ-\d{4}-\d{3,4}$/</code>; email regex; faculty+programme required on create; pw ≥ 8 on create</td></tr>
+    <tr><td class="lead">AdminForm</td><td>Prénom, Nom, Email, Rôle; Périmètre (faculté) shown only when role = FACULTY_ADMIN; + initial password (create). Icon tone exam.</td><td>names required; email regex; role required; scope required for faculty admin; pw ≥ 8 on create</td></tr>
+    <tr><td class="lead">FacultyForm</td><td>Nom (FR), Nom (AR), Code (mono), Téléphone (mono), Email</td><td>all 5 required</td></tr>
+    <tr><td class="lead">ProgrammeForm</td><td>Nom FR/AR, Code, Faculté, Niveau (DUT/Licence/Master/Doctorat), Durée (sem.), Crédits. Edit shows Inscrits + Matières stat strip.</td><td>fr/ar/code/fac/level required</td></tr>
+    <tr><td class="lead">SubjectForm</td><td>Nom FR/AR, Code, Programme, Semestre, Coef, Crédits, CM/TD/TP hours</td><td>fr/ar/code/prog/sem/coef/cr required</td></tr>
+    <tr><td class="lead">SemesterForm</td><td>Libellé, Année académique, Date début/fin (DatePicker), "Semestre en cours" toggle</td><td>lib/year required</td></tr>
+    <tr><td class="lead">ScheduleForm</td><td>Matière, Programme, Enseignant, Salle, Jour, Début, Fin, Type (CM/TD/TP/Examen). Edit adds a Supprimer (danger) button.</td><td>all required; end &gt; start</td></tr>
+  </tbody>
+</table></div>
+<p><b>Password generator</b> — <code>randPw()</code> produces a 12-char string from an unambiguous alphabet (no 0/O/1/l/I). "Générer" button fills the field.</p>
+
+<h2 id="modals"><span class="n">28</span> Modals &amp; dialogs</h2>
+<div class="card pad0"><table>
+  <thead><tr><th>Modal</th><th>Purpose &amp; behavior</th></tr></thead>
+  <tbody>
+    <tr><td class="lead">ResetPwModal</td><td>Reset a student's password (amber key). Confirm → generates a <code>temp-xxxxxxx</code> password shown in a jadeFaint box with a Copier button (clipboard). Footer swaps to "Terminé".</td></tr>
+    <tr><td class="lead">StatusModal</td><td>Suspend / Graduate / Reactivate a student. Config per action (icon, tone, body copy, button label/kind, toast). Optional "Raison" field. Suspend notes it's reversible.</td></tr>
+    <tr><td class="lead">NewsReader</td><td>Read-only article preview (exam mega). Cover placeholder + badges + title + meta + body. Footer: Fermer / Supprimer (→DeleteNewsModal) / Modifier (→news-create). Shows views if published.</td></tr>
+    <tr><td class="lead">DeleteNewsModal</td><td>ConfirmModal (danger trash) — permanent delete warning, toast "Article supprimé".</td></tr>
+    <tr><td class="lead">DocViewer</td><td>Justification document viewer (blue file). Student header + 340px striped document placeholder with zoom −/+ chrome + reason/filename + note quote. Footer Rejeter/Valider when pending, else Fermer. Wires back to the queue's approve/reject.</td></tr>
+    <tr><td class="lead">DeactivateAdminModal</td><td>ConfirmModal — deactivate/reactivate an admin; notes audit history is retained.</td></tr>
+    <tr><td class="lead">CloseSemesterModal</td><td>ConfirmModal with <code>requireText</code> = semester label. Lists consequences (freeze grades, archive attendance, prepare next). Toast "Semestre clôturé".</td></tr>
+    <tr><td class="lead">ProfileModal</td><td>Read-only current-user profile (avatar, role, scope, last login).</td></tr>
+    <tr><td class="lead">PasswordModal</td><td>Change own password: current + new + confirm. Validates current present, new ≥ 8, confirm matches.</td></tr>
+    <tr><td class="lead">ForgotModal</td><td>Info (blue) — self-service reset unavailable; contact a super admin.</td></tr>
+    <tr><td class="lead">GradeImportModal</td><td>2-step CSV grade import (dropzone → verify table with valid/error rows, NF computed <code>0.4·cc+0.6·cf</code>). Expected columns <code>matricule, note_cc, note_cf</code>. Toast "N notes importées".</td></tr>
+  </tbody>
+</table></div>
+
+<h2 id="interactions"><span class="n">29</span> Interactions &amp; motion</h2>
+<h4>Keyframes</h4>
+<div class="card pad0"><table>
+  <thead><tr><th>Name</th><th>Definition</th><th>Used by</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">toastIn</td><td>translate(−50%,14px)→0 + opacity 0→1, <b>.26s cubic-bezier(.2,.9,.3,1)</b></td><td>Toast</td></tr>
+    <tr><td class="mono">fadeIn</td><td>opacity 0→1, <b>.16s ease</b></td><td>Modal scrim</td></tr>
+    <tr><td class="mono">popIn</td><td>translateY(8px) scale(.98)→none + opacity, <b>.18s cubic-bezier(.2,.9,.3,1)</b></td><td>Modal card</td></tr>
+  </tbody>
+</table></div>
+<h4>Toast</h4>
+<p>Fixed bottom 28, horizontally centered over content area (<code>left: calc(50% + 124px)</code> to offset the 248px sidebar). Dark <code>#1C2320</code> pill, 24px status circle (jade check / jade send / danger x), auto-dismiss <b>2600ms</b>. Triggered via <code>notify(msg, icon)</code> / <code>AdminUI.toast</code>.</p>
+<h4>Transitions &amp; micro-interactions</h4>
+<ul>
+  <li>Buttons <code>all .15s</code>; cards <code>box-shadow/transform .15s</code> (hover lift −1px); nav items <code>background .14s</code>.</li>
+  <li>Toggle <code>.18s</code> (bg + knob translate); Dropdown/expander chevrons rotate 180° <code>.15s</code>; progress bars <code>width .3–.4s</code>; schedule blocks hover scale 1.02 <code>.12s</code>.</li>
+  <li>Input/GradeCell focus rings appear instantly on focus, revert on blur; grade cells persist a dirty (jade) border until saved.</li>
+  <li>Rows hover to surface2 across all tables; active/selected rows use jadeFaint + a left accent border.</li>
+  <li>All popovers (search, bell, avatar, dropdown, menu, datepicker) close on outside mousedown; ModalRoot also closes on <kbd class="kbd">Esc</kbd> and scrim click.</li>
+</ul>
+<h4>Sticky bars</h4>
+<p>Grade entry and Session marking both use a viewport-fixed bottom action bar offset <code>left:248px</code> to clear the sidebar, with the page reserving 76px bottom padding while active.</p>
+
+<h2 id="uxupdate"><span class="n">30</span> UX Architecture Update — Change Set (July 2026)</h2>
+<p>This section supersedes the affected page specs above. It implements the <b>locked UX Architecture Decisions (July 2026)</b>. Each change lists the <b>spec §</b> it modifies and the <b>architecture § (AD)</b> it derives from. All nine changes are live in the reference prototype.</p>
+
+<div class="note"><span class="lbl">Data &amp; store additions (§9)</span> New: <code>SUBJECT_STAGE</code> (7-stage lifecycle per subject), <code>ATT_OVERVIEW</code> (per-subject attendance rollup), <code>ATT_THRESHOLD = 75</code>, <code>JUSTIFICATION_DEADLINE_DAYS = 8</code>, <code>ALL_SCHEDULE</code> (cross-programme timetable with intentional conflicts). New stores: <code>window.AdminScope</code> (faculty/programme/scheduleMode/room/teacher/role + <code>PERSONAS</code>) and <code>window.GradeState</code> (mutable lifecycle stages, subscribe/emit). Hooks: <code>useScope()</code>, <code>useStages()</code>.</p></div>
+
+<h3>1 · Context Bar <span class="rt">new · affects §7, §8, §12, §15, §17, §22, §23 · AD §1</span></h3>
+<p>Persistent Faculté → Programme selector (<code>admin-context.jsx</code>), sticky at <code>top:64</code> beneath the TopBar, rendered by <code>App</code> only for <code>SCOPED_PAGES</code> = students, grades, attendance, schedule, academics, notifications. Compact strip (~46px), not a second nav bar.</p>
+<ul>
+  <li><b>Default</b> — muted "Toutes les facultés · Tous les programmes", white background.</li>
+  <li><b>Active</b> — once any scope is chosen, the strip gets a jade-tinted gradient + jade hairline + "Vue filtrée · N étudiants" and a <b>Réinitialiser</b> chip. Persists across navigation via the shared store.</li>
+  <li><b>FACULTY_ADMIN</b> — faculty control locked (shield + lock icon, faculty name shown, not clickable); programme dropdown limited to their faculty.</li>
+  <li><b>NEWS_EDITOR</b> — bar hidden entirely (guarded in both <code>App</code> and <code>ContextBar</code>).</li>
+  <li>Demo role switch lives in the avatar menu ("Vue démo · changer de rôle"); switching updates the persona shown in the sidebar + topbar and re-scopes the bar.</li>
+</ul>
+
+<h3>2 · Grades picker <span class="rt">rewrites §15 · AD §3.1, §3.3, §3.5</span></h3>
+<ul>
+  <li><b>Programme required</b> — empty state "Sélectionnez un programme pour voir les matières" until a programme is scoped.</li>
+  <li><b>Lifecycle badges</b> replace progress bars. 7 stages: Brouillon (slate) → CC en cours (amber) → CC complet (blue) → CC publié (jade) → CF en cours (amber) → Prêt à publier (blue) → Publié (jade). Derived from <code>GradeState.stage(id)</code> via <code>stageMeta()</code>.</li>
+  <li><b>Two PageHead actions</b>, one visible at a time by semester state: <b>Publier les notes CC</b> (shown until all subjects CC-published; enabled only when every subject ≥ stage 3), then <b>Publier les résultats finaux</b> (shown until all NF-published; enabled when every subject ≥ stage 6), then a "Résultats publiés" status pill. Publishing calls <code>GradeState.publishSemester(sem, 'cc'|'nf')</code> and fires the automated student notification (AD §6.1).</li>
+</ul>
+
+<h3>3 · Grade entry table — lock &amp; correction <span class="rt">rewrites §16 · new modal §28 · AD §3.4</span></h3>
+<ul>
+  <li>Per-subject lock from stage: <code>ccPublished</code> (≥4) locks CC cells (sunken bg, no focus ring, lock glyph); <code>nfPublished</code> (≥7) locks all cells. Status line under PageHead: "Notes CC publiées" or "Résultats publiés".</li>
+  <li>The single <b>Publier</b> button is removed from this page — publication is now the semester-level action on the picker.</li>
+  <li><b>Modifier la note</b> — a locked cell shows tooltip "Notes publiées — cliquer pour modifier"; click opens <code>GradeCorrectionModal</code> ("Correction de note": new value + mandatory reason textarea, confirm "Enregistrer la correction"). Unlocks only that one cell (tracked in an <code>unlocked</code> Set), toasts "consignée au journal d'audit". SUPER_ADMIN / REGISTRAR only.</li>
+</ul>
+
+<h3>4 · Student detail — inline grade editing <span class="rt">rewrites §13 · AD §3.2, §3.4</span></h3>
+<p>The transcript CC/CF cells use the shared <code>window.GradeCell</code> (click-to-focus, jade dirty border, live NF recompute). Same lock rules as the entry table (locked cells route through <code>GradeCorrectionModal</code>). A compact save bar appears at the bottom of the card when any cell is dirty: count + Annuler + <b>Enregistrer</b> (disabled on out-of-range values).</p>
+
+<h3>5 · Session marking — Présent / Partiel / Absent <span class="rt">rewrites §18 · AD §4.2, §4.3</span></h3>
+<ul>
+  <li>"Retard" removed; three statuses: Présent (jade, full hours) / Partiel (amber) / Absent (danger, 0h).</li>
+  <li>Selecting <b>Partiel</b> reveals an inline hours stepper to the right of the buttons showing "Xh / Yh" (Y = session total from the ScheduleEntry, here 1.5h; default X = half; ±0.25 step, clamped 0.25–1.25).</li>
+  <li>Count cards → Présents / Partiels / Absents / Heures suivies. Sticky bar → "N présents · N partiels · N absents · X h suivies sur Y h".</li>
+</ul>
+
+<h3>6 · Attendance programme overview <span class="rt">adds to §17 · AD §4.7</span></h3>
+<p>When a programme is scoped, an overview table renders <b>above</b> the justification queue: Matière · Séances (done/total) · Moy. classe · Étudiants à risque · status icon. Rows below the 75% threshold get an amber tint + warning icon; others a jade check. Clicking a row opens <code>AttendanceSubjectModal</code> (per-student attendance bars, at-risk highlighted). The justification queue is <b>always visible</b> regardless of scope, now under a "File des justificatifs" divider.</p>
+
+<h3>7 · Schedule — three view modes <span class="rt">rewrites §22 · AD §5.1, §5.2</span></h3>
+<ul>
+  <li>Segmented control under PageHead: <b>Par programme</b> | <b>Par salle</b> | <b>Par enseignant</b> (writes <code>AdminScope.scheduleMode</code>).</li>
+  <li><b>Par programme</b> (default) — scoped programme's week; create/edit enabled.</li>
+  <li><b>Par salle / Par enseignant</b> — the Context Bar swaps its faculty/programme pair for a room / professor dropdown; grid shows <code>ALL_SCHEDULE</code> filtered across all programmes; <b>read-only</b> ("Lecture seule" badge). Overlapping blocks are flagged with a danger dashed border + "⚠ Conflit" badge; the header counts conflicts. Clicking a block opens the entry pre-selected for editing.</li>
+  <li><b>Soft conflict warning</b> — in the ScheduleForm, a real-time room-clash check shows an amber inline warning below the Salle field ("Salle C12 est déjà réservée par … à ce créneau."). Save is <b>not</b> blocked.</li>
+</ul>
+
+<h3>8 · News editor — push notification <span class="rt">rewrites §20 · AD §6.3, §7.3, §7.4</span></h3>
+<ul>
+  <li>Adds a <b>Notification push</b> toggle (off by default) below <b>Marquer comme urgent</b>.</li>
+  <li>Urgent ON → push auto-enables + locks ("Auto" pill, non-interactive); helper "Les articles urgents envoient automatiquement une notification." Urgent OFF → push independent; helper "Envoyer une notification push à tous les étudiants."</li>
+  <li>Urgent limit 3: toggling urgent ON when 3 urgent articles already exist shows an amber warning naming the oldest ("L'article « … » ne sera plus marqué comme urgent.").</li>
+</ul>
+
+<h3>9 · Settings <span class="rt">rewrites §26 · AD §7.2, §4.4, §8</span></h3>
+<ul>
+  <li><b>Catégories d'actualités</b> card — drag-to-reorder rows (grip handle, live drop indicator) with name + delete; "Ajouter une catégorie" reveals an inline input. Seed: Officiel, Événements, Scolarité, Sport, Youth, Sponsors.</li>
+  <li><b>Délai de justification</b> field in the Assiduité card — number (default 8) + "jours" suffix + helper "Les étudiants ne pourront plus soumettre de justificatif après ce délai."</li>
+  <li><b>Automatisations</b> greyed out — the three legacy toggles (autoPublishGrades, notifyOnPublish, weeklyRecap) are shown disabled behind the note "Notifications automatiques toujours actives." (two-phase manual publish + always-on system notifications).</li>
+</ul>
+
+<div class="note amber"><span class="lbl">Backend deltas (from AD §9–10)</span> <code>Grade.publishedAt</code> → <code>publishedCcAt</code> + <code>publishedNfAt</code>; <code>AttendanceStatus += PARTIAL</code>; <code>AttendanceRecord.hoursAttended Float?</code>; <code>SystemSettings.justificationDeadlineDays Int @default(8)</code>; new <code>NewsCategory</code> model; deprecate <code>autoPublishGrades</code> / <code>notifyOnPublish</code>. Routes: <code>POST /admin/grades/publish {type:'cc'|'nf'}</code>, <code>POST /admin/grades/:id/change {reason}</code>, <code>GET /admin/schedule?room=&amp;professorName=</code>, urgent-limit enforcement + notification creation on grade/schedule/justification/news mutations.</div>
+
+<div class="decision">
+  <div class="dk">Handoff summary</div>
+  <h3>17 routes · 4 roles · ~35 components · deterministic sample data</h3>
+  <p>This spec plus the single-file source export together form the complete reference. Rebuild the tokens (§2–4) as a theme, the primitives &amp; infra (§5–6) as a component library, then implement each route (§10–26) against the entity model (§9). Every mutation should write an audit entry (§25) and respect role scope (§9 RBAC). Interface stays French-only; grades /20; week Dim→Jeu; GMT+3.</p>
+</div>
+
+<div style="margin-top:40px;padding-top:20px;border-top:1px solid var(--hair);font-family:var(--mono);font-size:11px;color:var(--ink3);">Unipocket Admin Portal · Implementation Spec · Université de Djibouti · generated from the reference prototype</div>
+
+</div>
+</body>
+</html>
+
+
+
+
+
+
+
+</html>

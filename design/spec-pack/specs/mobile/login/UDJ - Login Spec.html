@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>UDJ — Login (Connexion) Implementation Spec</title>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" rx="22" fill="#0F6E56"/>
+    <path d="M36 34 V56 a14 14 0 0 0 28 0 V34" stroke="#fff" stroke-width="11" stroke-linecap="round" fill="none"/>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#F2F5F3; --surface:#fff; --surface2:#F4F7F5; --sunken:#ECEFEC; --ink:#1C2320; --ink2:#6B7B74; --ink3:#9EADA7;
+    --hair:rgba(28,35,32,0.10); --jade:#1D9E75; --jade6:#0F6E56; --amber:#E08A1E; --danger:#EF4444; --blue:#2F7DD1; --violet:#8B5CF6; --slate:#5A6B7B;
+    --sans:'Plus Jakarta Sans',sans-serif; --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1020px;margin:0 auto;padding:56px 32px 110px;}
+  h1{font-size:34px;font-weight:800;letter-spacing:-0.8px;margin:0;}
+  .sub{color:var(--ink2);font-size:15px;margin-top:8px;max-width:72ch;line-height:1.55;}
+  h2{font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--jade6);margin:50px 0 18px;display:flex;align-items:center;gap:10px;}
+  h2 .n{width:22px;height:22px;border-radius:7px;background:var(--jade6);color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+  h3{font-size:17px;font-weight:700;margin:26px 0 10px;}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:18px;padding:22px;box-shadow:0 1px 2px rgba(28,35,32,0.04);}
+  .grid{display:grid;gap:14px;}
+  .g2{grid-template-columns:1fr 1fr;}
+  .g3{grid-template-columns:1fr 1fr 1fr;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:start;padding:8px 10px;border-bottom:1px solid var(--hair);vertical-align:top;}
+  th{font-size:11px;letter-spacing:0.6px;text-transform:uppercase;color:var(--ink3);font-weight:700;}
+  td.mono,.mono{font-family:var(--mono);font-size:12px;}
+  .lead{font-weight:700;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:3px 9px;border-radius:9999px;background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .pill.amber{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .pill.red{background:rgba(239,68,68,0.12);color:#b91c1c;}
+  .pill.blue{background:rgba(47,125,209,0.12);color:#1f5fa6;}
+  .pill.violet{background:rgba(139,92,246,0.14);color:#6d3fd6;}
+  .pill.slate{background:rgba(90,107,123,0.14);color:#46535f;}
+  .note{font-size:13px;color:var(--ink2);line-height:1.55;}
+  .specrow{font-size:13px;display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px solid var(--hair);}
+  .specrow:last-child{border-bottom:none;}
+  .specrow .k{color:var(--ink2);}
+  .specrow .v{font-family:var(--mono);font-size:12px;text-align:end;}
+  ul{margin:8px 0 0;padding-inline-start:20px;}
+  li{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:5px;}
+  .sw{display:flex;align-items:center;gap:11px;padding:7px 0;border-bottom:1px solid var(--hair);font-size:13px;}
+  .sw:last-child{border-bottom:none;}
+  .chip{width:28px;height:28px;border-radius:8px;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);}
+  .nm{font-weight:600;}
+  .hex{font-family:var(--mono);color:var(--ink2);font-size:12px;margin-inline-start:auto;}
+  .darkstrip{background:#0E1512;border-radius:14px;padding:14px 16px;}
+  .darkstrip .sw{border-color:rgba(255,255,255,0.08);color:#ECF1EE;}
+  .darkstrip .hex{color:#9DB0A8;}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:6px;background:rgba(28,35,32,0.06);color:var(--ink2);}
+  .tag.add{background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .tag.chg{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .tag.fix{background:rgba(239,68,68,0.10);color:#b91c1c;}
+  .tag.dec{background:rgba(47,125,209,0.12);color:#1f5fa6;}
+  .tree{font-family:var(--mono);font-size:12.5px;line-height:1.85;color:var(--ink);white-space:pre;overflow-x:auto;}
+  .tree .c{color:var(--ink3);}
+  .tree .v{color:var(--jade6);}
+  .decision{margin:18px 0 0;padding:20px 22px;border-radius:18px;background:linear-gradient(140deg,#0F6E56,#0B5544);color:#fff;box-shadow:0 12px 28px rgba(15,110,86,0.22);}
+  .decision .dk{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.7);}
+  .decision h3{margin:5px 0 0;font-size:18px;font-weight:800;letter-spacing:-0.3px;color:#fff;}
+  .decision p{font-size:13.5px;line-height:1.55;color:rgba(255,255,255,0.9);margin:8px 0 0;}
+  .decision .rec{display:inline-block;margin-top:12px;background:rgba(255,255,255,0.16);border-radius:10px;padding:8px 13px;font-size:12.5px;font-weight:700;}
+  .heroprev{position:relative;overflow:hidden;border-radius:16px;height:240px;background:linear-gradient(155deg,#1D9E75,#0B5544);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;}
+  .heroprev .blob{position:absolute;border-radius:50%;background:rgba(255,255,255,0.07);}
+  .heroprev .badge{width:84px;height:84px;border-radius:24px;background:rgba(255,255,255,0.16);border:1px solid rgba(255,255,255,0.28);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 26px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.25);}
+  .heroprev .bn{font-weight:800;font-size:21px;letter-spacing:-0.4px;margin-top:18px;}
+  .heroprev .tg{font-size:14px;color:rgba(255,255,255,0.78);margin-top:6px;}
+  @media print{.wrap{padding:0;}.card,.decision,.heroprev{break-inside:avoid;}}
+  @media(max-width:760px){.g2,.g3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>UDJ — Login Spec</h1>
+  <p class="sub">Implementation reference for the polished <strong>Login / Connexion</strong> screen. This pass keeps the clean, flat reference design and adds exactly two upgrades: a <strong>deeper jade hero</strong> (160° gradient, jade→jade700) and a <strong>white form sheet with rounded top corners that lifts over the hero</strong>. Everything else stays close to the original — a bare white logo (no badge), simple labels, two-style inputs, a pill CTA. Six states share one scaffold: <span class="mono">default · submitting · error · locked-out · session-expired · skeleton</span>. Supports light, dark and RTL (Arabic). This is a <strong>visual polish</strong> pass; the code-level token / keyboard items from the audit are noted in §8 but out of scope here.</p>
+
+  <!-- 0 · DECISIONS -->
+  <h2><span class="n">0</span> Key decisions</h2>
+  <div class="decision">
+    <div class="dk">Decision 1 · The hero</div>
+    <h3>Keep the flat hero — just make the green deeper and let the sheet round over it.</h3>
+    <p>The hero stays clean and flat like the reference: a bare white <strong>U mark</strong> (U only — the mortarboard is retired everywhere as of 27 Oct 2026), bold white brand name, and tagline on default. The one change is colour — a <strong>160° jade → jade700 gradient</strong> instead of the flat block, giving a richer, deeper feel. Three soft white blobs sit behind for depth. Brand name forces <span class="mono">white-space:nowrap</span> so "Université de Djibouti" never wraps. No fixed height — the hero sizes to content.</p>
+    <span class="rec">Deeper gradient · bare logo · no badge · intrinsic height.</span>
+  </div>
+  <div class="decision" style="margin-top:12px;">
+    <div class="dk">Decision 2 · Form surface</div>
+    <h3>The form is a white sheet that lifts 28px over the hero.</h3>
+    <p>The body becomes a <span class="mono">surface</span> card with <span class="mono">rSheet 30</span> top corners, <span class="mono">marginTop -28</span> and a soft upward shadow — the same "sheet over hero" depth used by the QR and Session sheets. This gives the screen a clear figure/ground and a premium first impression instead of input fields floating on bg.</p>
+    <span class="rec">surface · rTop 30 · overlap -28 · upward shadow.</span>
+  </div>
+  <div class="decision" style="margin-top:12px;">
+    <div class="dk">Decision 3 · Input styles</div>
+    <h3>Two-style inputs, matching the reference: outlined ID, filled password.</h3>
+    <p>The reference uses two deliberately different field looks and we keep them: the <strong>student-ID</strong> field is <span class="mono">surface</span> + <span class="mono">hair2</span> hairline (a clean outlined box, mono value), and the <strong>password</strong> field is a soft <span class="mono">jadeFaint</span> fill with no border. Both are <span class="mono">58</span> tall, <span class="mono">r16</span>. Focus adds a jade border + 3px jadeFaint ring; error tints both <span class="mono">dangerBg</span> + <span class="mono">danger</span> border; disabled goes <span class="mono">sunken</span>.</p>
+    <span class="rec">ID outlined · password filled · jade focus ring · dangerBg error.</span>
+  </div>
+  <div class="decision" style="margin-top:12px;">
+    <div class="dk">Decision 4 · State preview</div>
+    <h3>A minimal frosted pill bar pins to the bottom of the screen.</h3>
+    <p>The dev-only state switcher is a slim <strong>frosted bar</strong> (surface@92% + blur) with a scrollable row of pills — active pill jade, the rest grey. No label, no heavy chrome, matching the reference's simple switcher. In the live prototype the same six states are also drivable from the control rail.</p>
+    <span class="rec">Frosted blur bar · scroll pills · jade active.</span>
+  </div>
+
+  <!-- HERO PREVIEW -->
+  <div class="grid g2" style="margin-top:18px;">
+    <div class="heroprev">
+      <div class="blob" style="width:260px;height:260px;top:-90px;left:-40px;"></div>
+      <div class="blob" style="width:240px;height:240px;top:-70px;right:-60px;background:rgba(255,255,255,0.06);"></div>
+      <div class="blob" style="width:220px;height:220px;bottom:-40px;left:30%;background:rgba(255,255,255,0.05);"></div>
+      <svg width="64" height="69" viewBox="15.06 7.89 74.15 79.88" fill="#fff"><path d="M26.4219 14.8672C34.0805 19.5678 38.5367 28.096 38.0225 37.0674L37.1553 52.1963C36.6268 61.414 43.9595 69.1796 53.1924 69.1797C61.8981 69.1797 68.8706 61.9632 68.5713 53.2627L67.9844 36.2168C67.6906 27.6772 71.8344 19.5925 78.9385 14.8447L89.207 7.98242V57.0488C89.207 74.0141 75.4544 87.7674 58.4893 87.7676H45.7773C28.8122 87.7673 15.0596 74.014 15.0596 57.0488V7.89258L26.4219 14.8672Z"/></svg>
+      <div class="bn">Université de Djibouti</div>
+      <div class="tg">Connectez-vous à votre espace étudiant</div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0;">Brand mark — U mark (revised 27 Oct 2026)</h3>
+      <p class="note"><strong>The U replaces the mortarboard everywhere</strong>, including the splash and login. Use the U-only mark — the same U path as the old logo, filled, with no cap or tassel. <span class="mono">assets/icons/Logo.svg</span> (cap over U) is retired.</p>
+      <div class="specrow"><span class="k">Asset</span><span class="v">unipocket-u-mark.svg (viewBox 15.06 7.89 74.15 79.88, currentColor)</span></div>
+      <div class="specrow"><span class="k">Render size</span><span class="v">64 × 69 · white · bare (no badge)</span></div>
+      <div class="specrow"><span class="k">Placement</span><span class="v">hero, centered · 20 above name</span></div>
+      <div class="specrow"><span class="k">Splash</span><span class="v">white U centred on flat #0A3D2E (matches the adaptive-icon background fallback)</span></div>
+    </div>
+  </div>
+
+  <!-- 1 · LAYOUT TREE -->
+  <h2><span class="n">1</span> Layout tree (render order)</h2>
+  <div class="card">
+<div class="tree">LoginScreen  <span class="c">// surface root · single vertical scroll · pinned demo bar</span>
+├─ ScrollBody  <span class="c">(min-height 100% · flex column so the sheet fills to the bottom)</span>
+│   ├─ Hero  <span class="v">gradient 155° jade→jade700 · 3 blobs · paddingBottom 56</span>
+│   │   ├─ HeroStatusBar     <span class="c">44 tall · WHITE glyphs (hero is jade, not surface)</span>
+│   │   └─ HeroContent       <span class="c">centered · paddingTop 26</span>
+│   │       ├─ BrandMark     <span class="c">U mark 64×69 · white · bare</span>
+│   │       ├─ BrandName     <span class="c">21 · 800 · nowrap · #fff</span>
+│   │       └─ Tagline       <span class="c">14 · #fff@78% · (default + skeleton only)</span>
+│   └─ FormSheet  <span class="v">surface · rTop 30 · marginTop -28 · upward shadow · pad 22</span>
+│       ├─ [default|submitting|error]  IdField + PwField(+ inline/below forgot) + (ErrorCard) + Cta
+│       ├─ [locked]    LockCard + disabled PwField + disabled Cta + help link
+│       └─ [session]   SessionCard + SavedRow + PwField + Cta
+└─ DemoBar  <span class="c">absolute bottom · frosted blur · "Aperçu des états" + 6 scroll pills</span></div>
+  </div>
+  <p class="note" style="margin-top:12px;"><strong>One scroll, no nested regions.</strong> The hero scrolls with the form (tall states like locked-out simply scroll). The demo bar is the only fixed element — there is no floating nav on the pre-auth screen. The form sheet <span class="mono">flex:1</span> so its white fills to the bottom on short states.</p>
+
+  <!-- 2 · STATES -->
+  <h2><span class="n">2</span> States inventory</h2>
+  <div class="card"><table>
+    <thead><tr><th>State</th><th>Hero</th><th>Form renders</th><th>CTA</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">default</td><td>badge + name + tagline</td><td>ID field · PW field (inline "Mot de passe oublié ?")</td><td><span class="pill">Se connecter</span></td></tr>
+      <tr><td class="lead">submitting</td><td>name only</td><td>both fields disabled, dimmed</td><td><span class="pill">spinner</span> jade, no label</td></tr>
+      <tr><td class="lead">error</td><td>name only</td><td>both fields <span class="tag fix">dangerBg</span> · ErrorCard (icon + "ID ou mot de passe incorrect" + attempts) · forgot link below</td><td><span class="pill">Réessayer</span></td></tr>
+      <tr><td class="lead">locked-out</td><td>name only</td><td>LockCard (triangle + title + "5:00" mono timer + minutes) · disabled PW · help link</td><td><span class="pill slate">Se connecter — disabled</span></td></tr>
+      <tr><td class="lead">session-expired</td><td>name only</td><td>SessionCard (key) · SavedRow (avatar + name + id + "Changer de compte") · PW field only</td><td><span class="pill">Se connecter</span></td></tr>
+      <tr><td class="lead">skeleton</td><td>bone badge + 2 bone lines</td><td>label/field/label/field/button bones, pulsing</td><td>—</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note" style="margin-top:12px;">The tagline shows only on <span class="mono">default</span> and <span class="mono">skeleton</span> so the taller stateful layouts (error, locked) keep the hero compact. <span class="mono">network-error</span> from the audit is intentionally omitted from this polish pass.</p>
+
+  <!-- 3 · MEASURED -->
+  <h2><span class="n">3</span> Measured values</h2>
+
+  <h3>Hero</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Hero</td><td>background</td><td class="mono">linear 155° jade → jade700</td><td>identical in dark (brand anchor)</td></tr>
+      <tr><td></td><td>paddingBottom</td><td class="mono">56</td><td>gradient tail the sheet overlaps</td></tr>
+      <tr><td class="lead">Blobs ×3</td><td>size · fill</td><td class="mono">230 / 200 / 160 · white@8/6/5%</td><td>top-right, mid-left, bottom-right</td></tr>
+      <tr><td class="lead">Status bar</td><td>glyph colour</td><td class="mono">#fff</td><td><span class="tag fix">fix</span> white on jade, not token text1</td></tr>
+      <tr><td class="lead">Logo</td><td>size</td><td class="mono">64×69 (bare)</td><td>U mark · white · no badge</td></tr>
+      <tr><td class="lead">Brand name</td><td>size / weight</td><td class="mono">24 · 800 · -0.4 · nowrap</td><td>#fff</td></tr>
+      <tr><td class="lead">Tagline</td><td>size</td><td class="mono">16</td><td>#fff@82% · default only</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Form sheet &amp; fields</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Sheet</td><td>radius · overlap</td><td class="mono">rTop 30 · marginTop -28</td><td>surface · padding 22 / 28 / 96</td></tr>
+      <tr><td></td><td>shadow</td><td class="mono">0 -10 30 rgba(16,22,20,.07)</td><td>upward lift</td></tr>
+      <tr><td class="lead">Field</td><td>height · radius</td><td class="mono">54 · r14</td><td>rLg · padInline 16</td></tr>
+      <tr><td></td><td>idle</td><td class="mono">surface · 1.5px hair2</td><td>single resting style</td></tr>
+      <tr><td></td><td>focus</td><td class="mono">border jade · ring 4px jadeFaint</td><td>transition .15s</td></tr>
+      <tr><td></td><td>error</td><td class="mono">dangerBg · 1.5px danger</td><td>both fields</td></tr>
+      <tr><td></td><td>disabled</td><td class="mono">sunken · hair · text3</td><td>submitting / locked</td></tr>
+      <tr><td class="lead">Field label</td><td>size / weight</td><td class="mono">14 · 600</td><td>text1 · row w/ inline forgot</td></tr>
+      <tr><td class="lead">CTA</td><td>height · radius</td><td class="mono">56 · r16</td><td>jade · #fff · 16/700</td></tr>
+      <tr><td></td><td>shadow</td><td class="mono">0 8 20 rgba(15,110,86,.28)</td><td>none when disabled</td></tr>
+      <tr><td></td><td>disabled</td><td class="mono">sunken · text3</td><td>locked-out</td></tr>
+      <tr><td class="lead">Forgot link</td><td>size</td><td class="mono">14 · 600 · jadeText</td><td>inline (default) / centered (error)</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- 4 · STATE CARDS -->
+  <h2><span class="n">4</span> State cards</h2>
+  <div class="grid g3">
+    <div class="card">
+      <span class="pill red">ErrorCard</span>
+      <div class="specrow" style="margin-top:10px;"><span class="k">bg / border</span><span class="v">amberBg · 1px amber</span></div>
+      <div class="specrow"><span class="k">radius · pad</span><span class="v">r14 · 14/16</span></div>
+      <div class="specrow"><span class="k">icon</span><span class="v">alert · amber 22</span></div>
+      <div class="specrow"><span class="k">title</span><span class="v">14.5 · 700 · danger</span></div>
+      <div class="specrow"><span class="k">body</span><span class="v">12.5 · text2</span></div>
+    </div>
+    <div class="card">
+      <span class="pill amber">LockCard</span>
+      <div class="specrow" style="margin-top:10px;"><span class="k">bg / border</span><span class="v">amberBg · 1px amber</span></div>
+      <div class="specrow"><span class="k">radius · pad</span><span class="v">r18 · 20 · center</span></div>
+      <div class="specrow"><span class="k">icon</span><span class="v">alert · amber 34</span></div>
+      <div class="specrow"><span class="k">title</span><span class="v">17 · 700 · deepAmber</span></div>
+      <div class="specrow"><span class="k">timer</span><span class="v">mono 46 · 500 · deepAmber</span></div>
+      <div class="specrow"><span class="k">deepAmber</span><span class="v">#8A5512 light · amber dark</span></div>
+    </div>
+    <div class="card">
+      <span class="pill">SessionCard + SavedRow</span>
+      <div class="specrow" style="margin-top:10px;"><span class="k">card bg</span><span class="v">jadeFaint · 1px jade@20%</span></div>
+      <div class="specrow"><span class="k">key chip</span><span class="v">42² · r12 · surface · jadeText</span></div>
+      <div class="specrow"><span class="k">SavedRow</span><span class="v">surface · 1px hair · r16</span></div>
+      <div class="specrow"><span class="k">avatar</span><span class="v">44 · "AO" · jadeFaint</span></div>
+      <div class="specrow"><span class="k">change link</span><span class="v">13 · 600 · jadeText</span></div>
+    </div>
+  </div>
+
+  <!-- 5 · TYPE -->
+  <h2><span class="n">5</span> Type scale used</h2>
+  <div class="card"><table>
+    <thead><tr><th>Role</th><th>Family</th><th>Size / weight</th><th>Colour</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Brand name</td><td>Jakarta</td><td class="mono">21 · 800</td><td>#fff</td></tr>
+      <tr><td class="lead">Tagline</td><td>Jakarta</td><td class="mono">14 · 500</td><td>#fff@78%</td></tr>
+      <tr><td class="lead">Field label</td><td>Jakarta</td><td class="mono">14 · 600</td><td>text1</td></tr>
+      <tr><td class="lead">Student-ID input</td><td>DM Mono</td><td class="mono">15 · 500</td><td>text1 · track .5</td></tr>
+      <tr><td class="lead">Password input</td><td>Jakarta</td><td class="mono">15.5 · 500</td><td>text1 · track 3</td></tr>
+      <tr><td class="lead">CTA</td><td>Jakarta</td><td class="mono">16 · 700</td><td>#fff</td></tr>
+      <tr><td class="lead">Lock timer</td><td>DM Mono</td><td class="mono">46 · 500</td><td>deepAmber</td></tr>
+      <tr><td class="lead">Card titles</td><td>Jakarta</td><td class="mono">14.5–17 · 700</td><td>danger / deepAmber / jadeText</td></tr>
+      <tr><td class="lead">Saved ID</td><td>DM Mono</td><td class="mono">12.5</td><td>text2</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note" style="margin-top:12px;">Arabic (RTL) swaps Jakarta → <span class="mono">Noto Naskh Arabic</span> via <span class="mono">useFont()</span>, drops negative tracking, and mirrors the whole sheet (labels, forgot link, saved row, demo bar) with <span class="mono">direction:rtl</span> + logical <span class="mono">insetInline*</span>. Mono runs (ID, timer) stay LTR.</p>
+
+  <!-- 6 · COLOR -->
+  <h2><span class="n">6</span> Colour tokens</h2>
+  <div class="grid g2">
+    <div class="card">
+      <h3 style="margin-top:0;">Light</h3>
+      <div class="sw"><span class="chip" style="background:#1D9E75;"></span><span class="nm">jade</span><span class="hex">#1D9E75</span></div>
+      <div class="sw"><span class="chip" style="background:#0F6E56;"></span><span class="nm">jade600</span><span class="hex">#0F6E56</span></div>
+      <div class="sw"><span class="chip" style="background:#0B5544;"></span><span class="nm">jade700</span><span class="hex">#0B5544</span></div>
+      <div class="sw"><span class="chip" style="background:#fff;"></span><span class="nm">surface</span><span class="hex">#FFFFFF</span></div>
+      <div class="sw"><span class="chip" style="background:#ECEFEC;"></span><span class="nm">sunken</span><span class="hex">#ECEFEC</span></div>
+      <div class="sw"><span class="chip" style="background:#E08A1E;"></span><span class="nm">amber</span><span class="hex">#E08A1E</span></div>
+      <div class="sw"><span class="chip" style="background:#8A5512;"></span><span class="nm">deepAmber</span><span class="hex">#8A5512</span></div>
+      <div class="sw"><span class="chip" style="background:#EF4444;"></span><span class="nm">danger</span><span class="hex">#EF4444</span></div>
+    </div>
+    <div class="card darkstrip">
+      <h3 style="margin-top:0;color:#ECF1EE;">Dark</h3>
+      <div class="sw"><span class="chip" style="background:#2BB989;"></span><span class="nm" style="color:#ECF1EE;">jade</span><span class="hex">#2BB989</span></div>
+      <div class="sw"><span class="chip" style="background:#0F6E56;"></span><span class="nm" style="color:#ECF1EE;">jade600 (hero)</span><span class="hex">#0F6E56</span></div>
+      <div class="sw"><span class="chip" style="background:#17211D;"></span><span class="nm" style="color:#ECF1EE;">surface</span><span class="hex">#17211D</span></div>
+      <div class="sw"><span class="chip" style="background:#0A0F0D;"></span><span class="nm" style="color:#ECF1EE;">sunken</span><span class="hex">#0A0F0D</span></div>
+      <div class="sw"><span class="chip" style="background:#F0A84B;"></span><span class="nm" style="color:#ECF1EE;">amber / deepAmber</span><span class="hex">#F0A84B</span></div>
+      <div class="sw"><span class="chip" style="background:#FF6B6B;"></span><span class="nm" style="color:#ECF1EE;">danger</span><span class="hex">#FF6B6B</span></div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:12px;">The hero gradient is the <strong>same in both themes</strong> — it is the brand anchor, so there are no per-theme hero colours to maintain. In dark mode the form sheet is <span class="mono">surface #17211D</span> over the jade hero, giving the same figure/ground as light.</p>
+
+  <!-- 7 · INTERACTION -->
+  <h2><span class="n">7</span> Interaction &amp; motion</h2>
+  <div class="card">
+    <ul>
+      <li><strong>Field focus</strong> — border → jade, 4px jadeFaint ring, 0.15s ease.</li>
+      <li><strong>CTA submitting</strong> — label swaps to a 22px spinner (<span class="mono">udjSpin .8s linear</span>); button stays jade, fields disable.</li>
+      <li><strong>Skeleton</strong> — bones pulse <span class="mono">udjBone</span> (opacity .5→.85, 1s ease-in-out); hero badge + 2 lines, form 2 label/field pairs + button.</li>
+      <li><strong>Demo bar</strong> — frosted (surface@86% + blur 12px), horizontal scroll, active pill jade with <span class="mono">0 2 8 jade@25%</span> shadow.</li>
+      <li><strong>Forgot / help / change</strong> — wired as real <span class="mono">&lt;button&gt;</span> affordances (no dead Pressables in the prototype).</li>
+    </ul>
+  </div>
+
+  <!-- 8 · POLISH vs AUDIT -->
+  <h2><span class="n">8</span> Polish vs. the audit</h2>
+  <div class="card"><table>
+    <thead><tr><th>Audit item</th><th>This pass</th></tr></thead>
+    <tbody>
+      <tr><td>Two inconsistent input resting states</td><td><span class="tag fix">fixed</span> single surface + hair2 idle, jade focus ring (§3, Decision 3)</td></tr>
+      <tr><td>greenSubtitle 13px / button 16px off-scale; greenTitle 700</td><td><span class="tag chg">retuned</span> brand 21/800, tagline 14, CTA 16/700 — committed scale (§5)</td></tr>
+      <tr><td>3 dead Pressables (forgot ×2, help)</td><td><span class="tag fix">fixed</span> real button affordances in the prototype (§7)</td></tr>
+      <tr><td>Flat 277px hero, raw magic number</td><td><span class="tag chg">replaced</span> intrinsic-height gradient hero (§3, Decision 1)</td></tr>
+      <tr><td>avatarCircle radius 66 raw → rFull</td><td><span class="tag fix">fixed</span> SavedRow avatar uses full-round Avatar primitive</td></tr>
+      <tr><td>4× hardcoded #92400E in lockout</td><td><span class="tag dec">single token</span> <span class="mono">deepAmber</span> (one value, theme-aware) (§4, §6)</td></tr>
+      <tr><td class="lead">KeyboardAwareScrollView (P0)</td><td><span class="tag">RN-only</span> out of scope for this HTML polish — keep on the native backlog</td></tr>
+      <tr><td class="lead">returnKeyType focus chain (P2)</td><td><span class="tag">RN-only</span> out of scope — native backlog</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note" style="margin-top:12px;">Items tagged <span class="tag">RN-only</span> are behavioural and live in <span class="mono">login.tsx</span> — this spec is the visual target; the keyboard-controller and focus-chain fixes from the audit's P0/P2 still need to be done in the React-Native screen.</p>
+
+</div>
+</body>
+</html>

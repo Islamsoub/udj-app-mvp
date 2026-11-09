@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unipocket PWA — Tableau de bord (reference build)</title>
+<!-- URL params: ?collapsed=1  ?theme=dark  ?lang=ar -->
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/app.css">
+<link rel="stylesheet" href="css/hardening.css">
+</head>
+<body>
+<div class="toast-stack" id="toast-stack"></div>
+<div id="app-shell" class="active">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="mark" style="background:transparent"><img src="assets/unipocket-sidebar-mark.png" alt="Unipocket" style="width:34px;height:34px;border-radius:10px"></div>
+      <div class="brand">Unipocket</div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="dashboard" data-fr-lbl="Tableau de bord" data-ar-lbl="لوحة التحكم">
+        <svg viewBox="0 0 24 24"><g transform="translate(3.556 2.5) scale(1.05556)"><path fill="currentColor" d="M2 15.5H5V10.5C5 10.2167 5.096 9.97933 5.288 9.788C5.48 9.59667 5.71733 9.50067 6 9.5H10C10.2833 9.5 10.521 9.596 10.713 9.788C10.905 9.98 11.0007 10.2173 11 10.5V15.5H14V6.5L8 2L2 6.5V15.5ZM0 15.5V6.5C0 6.18333 0.0709998 5.88333 0.213 5.6C0.355 5.31667 0.550667 5.08333 0.8 4.9L6.8 0.4C7.15 0.133333 7.55 0 8 0C8.45 0 8.85 0.133333 9.2 0.4L15.2 4.9C15.45 5.08333 15.646 5.31667 15.788 5.6C15.93 5.88333 16.0007 6.18333 16 6.5V15.5C16 16.05 15.804 16.521 15.412 16.913C15.02 17.305 14.5493 17.5007 14 17.5H10C9.71667 17.5 9.47933 17.404 9.288 17.212C9.09667 17.02 9.00067 16.7827 9 16.5V11.5H7V16.5C7 16.7833 6.904 17.021 6.712 17.213C6.52 17.405 6.28267 17.5007 6 17.5H2C1.45 17.5 0.979333 17.3043 0.588 16.913C0.196666 16.5217 0.000666667 16.0507 0 15.5Z"></path></g></svg>
+        <span class="lbl" data-fr="Tableau de bord" data-ar="لوحة التحكم">Tableau de bord</span>
+      </button>
+      <button class="nav-item" data-view="schedule" data-fr-lbl="Emploi du temps" data-ar-lbl="جدول الحصص">
+        <svg viewBox="0 0 24 24"><g transform="translate(2.25 2.25) scale(0.975)"><path fill="currentColor" d="M17 2H15V1C15 0.734784 14.8946 0.48043 14.7071 0.292893C14.5196 0.105357 14.2652 0 14 0C13.7348 0 13.4804 0.105357 13.2929 0.292893C13.1054 0.48043 13 0.734784 13 1V2H7V1C7 0.734784 6.89464 0.48043 6.70711 0.292893C6.51957 0.105357 6.26522 0 6 0C5.73478 0 5.48043 0.105357 5.29289 0.292893C5.10536 0.48043 5 0.734784 5 1V2H3C2.20435 2 1.44129 2.31607 0.87868 2.87868C0.316071 3.44129 0 4.20435 0 5V17C0 17.7956 0.316071 18.5587 0.87868 19.1213C1.44129 19.6839 2.20435 20 3 20H17C17.7956 20 18.5587 19.6839 19.1213 19.1213C19.6839 18.5587 20 17.7956 20 17V5C20 4.20435 19.6839 3.44129 19.1213 2.87868C18.5587 2.31607 17.7956 2 17 2ZM18 17C18 17.2652 17.8946 17.5196 17.7071 17.7071C17.5196 17.8946 17.2652 18 17 18H3C2.73478 18 2.48043 17.8946 2.29289 17.7071C2.10536 17.5196 2 17.2652 2 17V10H18V17ZM18 8H2V5C2 4.73478 2.10536 4.48043 2.29289 4.29289C2.48043 4.10536 2.73478 4 3 4H5V5C5 5.26522 5.10536 5.51957 5.29289 5.70711C5.48043 5.89464 5.73478 6 6 6C6.26522 6 6.51957 5.89464 6.70711 5.70711C6.89464 5.51957 7 5.26522 7 5V4H13V5C13 5.26522 13.1054 5.51957 13.2929 5.70711C13.4804 5.89464 13.7348 6 14 6C14.2652 6 14.5196 5.89464 14.7071 5.70711C14.8946 5.51957 15 5.26522 15 5V4H17C17.2652 4 17.5196 4.10536 17.7071 4.29289C17.8946 4.48043 18 4.73478 18 5V8Z"></path></g></svg>
+        <span class="lbl" data-fr="Emploi du temps" data-ar="جدول الحصص">Emploi du temps</span>
+      </button>
+      <button class="nav-item" data-view="grades">
+        <svg viewBox="0 0 24 24"><g transform="translate(2.25 5.5) scale(1.08333)"><path fill="currentColor" d="M1 12C0.71667 12 0.479337 11.904 0.288004 11.712C0.0966702 11.52 0.000670115 11.2827 3.44827e-06 11C-0.000663218 10.7173 0.0953369 10.48 0.288004 10.288C0.48067 10.096 0.718003 10 1 10H11C11.2833 10 11.521 10.096 11.713 10.288C11.905 10.48 12.0007 10.7173 12 11C11.9993 11.2827 11.9033 11.5203 11.712 11.713C11.5207 11.9057 11.2833 12.0013 11 12H1ZM1 7C0.71667 7 0.479337 6.904 0.288004 6.712C0.0966702 6.52 0.000670115 6.28267 3.44827e-06 6C-0.000663218 5.71733 0.0953369 5.48 0.288004 5.288C0.48067 5.096 0.718003 5 1 5H17C17.2833 5 17.521 5.096 17.713 5.288C17.905 5.48 18.0007 5.71733 18 6C17.9993 6.28267 17.9033 6.52033 17.712 6.713C17.5207 6.90567 17.2833 7.00133 17 7H1ZM1 2C0.71667 2 0.479337 1.904 0.288004 1.712C0.0966702 1.52 0.000670115 1.28267 3.44827e-06 1C-0.000663218 0.717333 0.0953369 0.48 0.288004 0.288C0.48067 0.0960001 0.718003 0 1 0H17C17.2833 0 17.521 0.0960001 17.713 0.288C17.905 0.48 18.0007 0.717333 18 1C17.9993 1.28267 17.9033 1.52033 17.712 1.713C17.5207 1.90567 17.2833 2.00133 17 2H1Z"></path></g></svg>
+        <span class="lbl" data-fr="Notes" data-ar="الدرجات">Notes</span>
+      </button>
+      <button class="nav-item" data-view="attendance">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>
+        <span class="lbl" data-fr="Présence" data-ar="الحضور">Présence</span>
+      </button>
+      <button class="nav-item" data-view="news">
+        <svg viewBox="0 0 24 24"><g transform="translate(1.5 1.5)"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" d="M0.750168 17.9082V13.2572C0.750168 12.5472 0.750168 12.1932 0.881168 12.1532C1.01317 12.1132 1.21417 12.4192 1.61617 13.0302C3.00817 15.1442 5.35617 17.4922 7.47017 18.8842C8.08017 19.2862 8.38617 19.4872 8.34717 19.6192C8.30717 19.7492 7.95317 19.7492 7.24317 19.7492H2.59217C1.72417 19.7492 1.28917 19.7492 1.02017 19.4802C0.750168 19.2102 0.750168 18.7762 0.750168 17.9082ZM19.7502 2.59224V7.24324C19.7502 7.95324 19.7502 8.30724 19.6202 8.34724C19.4882 8.38624 19.2872 8.08124 18.8842 7.47024C17.4922 5.35624 15.1442 3.00824 13.0302 1.61624C12.4202 1.21424 12.1142 1.01324 12.1542 0.881244C12.1942 0.750244 12.5482 0.750244 13.2572 0.750244H17.9092C18.7772 0.750244 19.2112 0.750244 19.4812 1.02024C19.7512 1.29024 19.7502 1.72424 19.7502 2.59224ZM0.750168 2.65024V4.87624C0.750168 5.65324 0.750168 6.04124 0.895168 6.39024C1.03917 6.74024 1.31417 7.01424 1.86317 7.56324L12.9372 18.6372C13.4872 19.1872 13.7612 19.4612 14.1102 19.6052C14.4592 19.7492 14.8472 19.7502 15.6242 19.7502H17.8502C18.7462 19.7502 19.1932 19.7502 19.4722 19.4722C19.7502 19.1932 19.7502 18.7462 19.7502 17.8502V15.6242C19.7502 14.8472 19.7502 14.4592 19.6052 14.1102C19.4612 13.7602 19.1862 13.4862 18.6372 12.9372L7.56317 1.86324C7.01317 1.31324 6.73917 1.03924 6.39017 0.895244C6.04117 0.751244 5.65317 0.750244 4.87617 0.750244H2.65017C1.75417 0.750244 1.30617 0.750244 1.02817 1.02824C0.750168 1.30724 0.750168 1.75424 0.750168 2.65024Z"></path></g></svg>
+        <span class="lbl" data-fr="Actualités" data-ar="الأخبار">Actualités</span>
+      </button>
+      <button class="nav-item" data-view="profile">
+        <svg viewBox="0 0 24 24"><g transform="translate(1.5 1.5) scale(0.875)"><path fill="none" stroke="currentColor" stroke-width="1.714" stroke-linejoin="round" d="M4 18C4 16.9391 4.42143 15.9217 5.17157 15.1716C5.92172 14.4214 6.93913 14 8 14H16C17.0609 14 18.0783 14.4214 18.8284 15.1716C19.5786 15.9217 20 16.9391 20 18C20 18.5304 19.7893 19.0391 19.4142 19.4142C19.0391 19.7893 18.5304 20 18 20H6C5.46957 20 4.96086 19.7893 4.58579 19.4142C4.21071 19.0391 4 18.5304 4 18Z"></path><path fill="none" stroke="currentColor" stroke-width="1.714" stroke-linejoin="round" d="M12 10C13.6569 10 15 8.65685 15 7C15 5.34315 13.6569 4 12 4C10.3431 4 9 5.34315 9 7C9 8.65685 10.3431 10 12 10Z"></path></g></svg>
+        <span class="lbl" data-fr="Profil" data-ar="الملف الشخصي">Profil</span>
+      </button>
+    </nav>
+    <div class="sidebar-foot">
+      <button class="collapse-btn" id="btn-collapse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"></path></svg><span class="lbl" data-fr="Réduire" data-ar="طي">Réduire</span></button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <h1 class="page-title" id="page-title" data-fr="Tableau de bord" data-ar="لوحة التحكم">Tableau de bord</h1>
+      <div class="topbar-right">
+        <div style="position:relative">
+          <button class="icon-btn" id="btn-bell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"></path><path d="M10 20a2 2 0 0 0 4 0"></path></svg><span class="badge-dot"></span></button>
+          <div class="notif-panel" id="notif-panel">
+            <h4 data-fr="Notifications" data-ar="الإشعارات">Notifications</h4>
+            <div class="notif-row"><div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5-9 5-9-5 9-5z"></path></svg></div><div><div class="t" data-fr="Vos notes de Réseaux sont publiées" data-ar="تم نشر درجات مادة الشبكات">Vos notes de Réseaux sont publiées</div><div class="d">09:12</div></div></div>
+            <div class="notif-row"><div class="chip" style="background:var(--warning-bg);color:var(--warning)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div><div><div class="t" data-fr="Présence à 72 % — sous le seuil" data-ar="نسبة الحضور 72٪ — دون الحد الأدنى">Présence à 72 % — sous le seuil</div><div class="d">Hier</div></div></div>
+            <div class="notif-row"><div class="chip" style="background:var(--exam-bg);color:var(--exam)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 9h18"></path></svg></div><div><div class="t" data-fr="Calendrier des examens S2 publié" data-ar="تم نشر جدول امتحانات الفصل الثاني">Calendrier des examens S2 publié</div><div class="d">Lundi</div></div></div>
+          </div>
+        </div>
+        <div style="position:relative">
+          <button class="avatar-btn" id="btn-avatar"><div class="avatar">AM</div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"></path></svg></button>
+          <div class="dropdown" id="avatar-dropdown">
+            <button class="dd-item" data-view-link="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"></circle><path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path></svg><span data-fr="Profil" data-ar="الملف الشخصي">Profil</span></button>
+            <button class="dd-item" data-view-link="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg><span data-fr="Paramètres" data-ar="الإعدادات">Paramètres</span></button>
+            <div class="dd-sep"></div>
+            <button class="dd-item" id="btn-logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg><span data-fr="Se déconnecter" data-ar="تسجيل الخروج">Se déconnecter</span></button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="offline-banner" id="offline-banner" style="display:none"><span class="dot"></span><span data-fr="Vous êtes hors ligne. Données mises en cache affichées." data-ar="أنت غير متصل بالإنترنت. البيانات المعروضة مخزّنة مؤقتًا.">Vous êtes hors ligne. Données mises en cache affichées.</span></div>
+
+      <!-- DASHBOARD -->
+      <div class="view active" id="view-dashboard" data-screen-label="Dashboard">
+        <div class="welcome" style="margin-bottom:24px">
+          <h1 data-fr-tpl="Bonjour, &lt;span&gt;Amina&lt;/span&gt;" data-ar-tpl="مرحباً، &lt;span&gt;أمينة&lt;/span&gt;">Bonjour, <span>Amina</span></h1>
+          <p data-fr="Licence Informatique · Semestre 4" data-ar="إجازة في المعلوماتية · الفصل الرابع">Licence Informatique · Semestre 4</p>
+        </div>
+        <div class="grid-cards">
+          <div class="card span-2">
+            <div class="card-head"><h3 data-fr="Aujourd'hui · Mardi 10 juin" data-ar="اليوم · الثلاثاء 10 يونيو">Aujourd'hui · Mardi 10 juin</h3><button class="see-all" data-view-link="schedule" data-fr="Voir tout" data-ar="عرض الكل">Voir tout</button></div>
+            <div class="countdown"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg><span data-fr="Prochain cours dans 45 min" data-ar="الحصة القادمة خلال 45 دقيقة">Prochain cours dans 45 min</span></div>
+            <div class="mini-class"><div class="rail" style="background:#2E9E5B"></div><div class="body"><div class="t">Réseaux informatiques</div><div class="s">Labo Info 2</div></div><div class="time">08:00<br>09:30</div></div>
+            <div class="mini-class"><div class="rail" style="background:#2F7DD1"></div><div class="body"><div class="t">Systèmes d'exploitation</div><div class="s">Amphi A1</div></div><div class="time">10:00<br>11:30</div></div>
+            <div class="mini-class"><div class="rail" style="background:#E08A1E"></div><div class="body"><div class="t">Statistiques L2</div><div class="s">Salle B08</div></div><div class="time">13:00<br>14:30</div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="hero-jade" style="padding:18px">
+              <div class="depth-circle"></div>
+              <div class="hj-label" data-fr="Moyenne générale" data-ar="المعدل العام">Moyenne générale</div>
+              <div class="hj-value" style="font-size:32px">12.3<span class="suf">/20</span></div>
+              <div class="mention-badge" data-view-link="grades"><span class="dot" style="background:#FFD27D"></span><span data-fr="Assez Bien" data-ar="مستحسن">Assez Bien</span></div>
+            </div>
+            <div class="card" style="cursor:pointer;flex:1;padding:16px" data-view-link="attendance">
+              <h3 data-fr="Assiduité" data-ar="المواظبة">Assiduité</h3>
+              <div class="gauge-wrap">
+                <div class="gauge" style="background:conic-gradient(var(--warning) 0 87%, var(--sunken) 0 100%)"><div class="hole"><b>87%</b><small data-fr="TAUX" data-ar="النسبة">TAUX</small></div></div>
+                <p class="attend-note"><strong data-fr="Seuil : 75%" data-ar="الحد الأدنى: 75٪">Seuil : 75%</strong><br><span data-fr="2 absences avant avertissement." data-ar="غيابان قبل التحذير.">2 absences avant avertissement.</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="card dash-notif-card" style="display:flex;flex-direction:column">
+            <div class="card-head"><h3 data-fr="Notifications" data-ar="الإشعارات">Notifications</h3><button class="see-all" id="dash-notif-all" data-fr="Tout voir" data-ar="عرض الكل">Tout voir</button></div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div class="notif-row" style="padding:10px 0"><div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5-9 5-9-5 9-5z"></path></svg></div><div><div class="t" data-fr="Vos notes de Réseaux sont publiées" data-ar="تم نشر درجات مادة الشبكات">Vos notes de Réseaux sont publiées</div><div class="d">09:12</div></div></div>
+              <div class="notif-row" style="padding:10px 0"><div class="chip" style="background:var(--warning-bg);color:var(--warning)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div><div><div class="t" data-fr="Présence à 72 % — sous le seuil" data-ar="نسبة الحضور 72٪ — دون الحد الأدنى">Présence à 72 % — sous le seuil</div><div class="d">Hier</div></div></div>
+              <div class="notif-row" style="padding:10px 0"><div class="chip" style="background:var(--exam-bg);color:var(--exam)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 9h18"></path></svg></div><div><div class="t" data-fr="Calendrier des examens S2 publié" data-ar="تم نشر جدول امتحانات الفصل الثاني">Calendrier des examens S2 publié</div><div class="d">Lundi</div></div></div>
+            </div>
+          </div>
+          <div class="card span-all">
+            <h3 style="margin-bottom:12px" data-fr="Accès rapide" data-ar="روابط سريعة">Accès rapide</h3>
+            <div class="quicklinks">
+              <button class="qlink" data-view-link="attendance"><div class="qi" style="background:var(--warning-bg);color:#9a5b06"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15V3m0 0 4 4m-4-4-4 4"></path><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path></svg></div><div class="qt"><span data-fr="Justifier une absence" data-ar="تبرير غياب">Justifier une absence</span><small data-fr="1 en attente" data-ar="1 قيد الانتظار">1 en attente</small></div></button>
+              <button class="qlink" data-view-link="grades"><div class="qi" style="background:var(--info-bg);color:var(--info)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"></rect><path d="M9 7h6M8 12h1M12 12h1M16 12h1"></path></svg></div><div class="qt"><span data-fr="Simuler ma moyenne" data-ar="محاكاة معدلي">Simuler ma moyenne</span><small data-fr="Calculatrice" data-ar="الحاسبة">Calculatrice</small></div></button>
+              <button class="qlink" data-view-link="schedule"><div class="qi" style="background:var(--jade-faint);color:var(--jade-text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M3 10h18M8 3v4M16 3v4"></path></svg></div><div class="qt"><span data-fr="Imprimer mon planning" data-ar="طباعة الجدول">Imprimer mon planning</span><small data-fr="Semaine en cours" data-ar="هذا الأسبوع">Semaine en cours</small></div></button>
+            </div>
+          </div>
+          <div class="card span-all">
+            <div class="card-head"><h3 data-fr="Actualités récentes" data-ar="آخر الأخبار">Actualités récentes</h3><button class="see-all" data-view-link="news" data-fr="Voir tout" data-ar="عرض الكل">Voir tout</button></div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="article-card2" data-view-link="news"><div class="thumb"></div><div class="ac-right"><div class="ac-top"><span class="cat-pill cat-officiel" data-fr="Officiel" data-ar="رسمي">Officiel</span><span class="ac-time"><span class="unread-dot"></span>10 juin</span></div><div class="ac-title" data-fr="Calendrier des examens du semestre 2 publié" data-ar="تم نشر جدول امتحانات الفصل الثاني">Calendrier des examens du semestre 2 publié</div></div></div>
+              <div class="article-card2" data-view-link="news"><div class="thumb"></div><div class="ac-right"><div class="ac-top"><span class="cat-pill cat-evenement" data-fr="Événement" data-ar="فعالية">Événement</span><span class="ac-time">8 juin</span></div><div class="ac-title" data-fr="Journée portes ouvertes — Faculté des Sciences" data-ar="اليوم المفتوح — كلية العلوم">Journée portes ouvertes — Faculté des Sciences</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <nav class="bottom-tabbar">
+    <button class="tab-item active" data-view="dashboard"><svg viewBox="0 0 24 24"><g transform="translate(3.556 2.5) scale(1.05556)"><path fill="currentColor" d="M2 15.5H5V10.5C5 10.2167 5.096 9.97933 5.288 9.788C5.48 9.59667 5.71733 9.50067 6 9.5H10C10.2833 9.5 10.521 9.596 10.713 9.788C10.905 9.98 11.0007 10.2173 11 10.5V15.5H14V6.5L8 2L2 6.5V15.5ZM0 15.5V6.5C0 6.18333 0.0709998 5.88333 0.213 5.6C0.355 5.31667 0.550667 5.08333 0.8 4.9L6.8 0.4C7.15 0.133333 7.55 0 8 0C8.45 0 8.85 0.133333 9.2 0.4L15.2 4.9C15.45 5.08333 15.646 5.31667 15.788 5.6C15.93 5.88333 16.0007 6.18333 16 6.5V15.5C16 16.05 15.804 16.521 15.412 16.913C15.02 17.305 14.5493 17.5007 14 17.5H10C9.71667 17.5 9.47933 17.404 9.288 17.212C9.09667 17.02 9.00067 16.7827 9 16.5V11.5H7V16.5C7 16.7833 6.904 17.021 6.712 17.213C6.52 17.405 6.28267 17.5007 6 17.5H2C1.45 17.5 0.979333 17.3043 0.588 16.913C0.196666 16.5217 0.000666667 16.0507 0 15.5Z"></path></g></svg><span data-fr="Accueil" data-ar="الرئيسية">Accueil</span></button>
+    <button class="tab-item" data-view="schedule"><svg viewBox="0 0 24 24"><g transform="translate(2.25 2.25) scale(0.975)"><path fill="currentColor" d="M17 2H15V1C15 0.734784 14.8946 0.48043 14.7071 0.292893C14.5196 0.105357 14.2652 0 14 0C13.7348 0 13.4804 0.105357 13.2929 0.292893C13.1054 0.48043 13 0.734784 13 1V2H7V1C7 0.734784 6.89464 0.48043 6.70711 0.292893C6.51957 0.105357 6.26522 0 6 0C5.73478 0 5.48043 0.105357 5.29289 0.292893C5.10536 0.48043 5 0.734784 5 1V2H3C2.20435 2 1.44129 2.31607 0.87868 2.87868C0.316071 3.44129 0 4.20435 0 5V17C0 17.7956 0.316071 18.5587 0.87868 19.1213C1.44129 19.6839 2.20435 20 3 20H17C17.7956 20 18.5587 19.6839 19.1213 19.1213C19.6839 18.5587 20 17.7956 20 17V5C20 4.20435 19.6839 3.44129 19.1213 2.87868C18.5587 2.31607 17.7956 2 17 2ZM18 17C18 17.2652 17.8946 17.5196 17.7071 17.7071C17.5196 17.8946 17.2652 18 17 18H3C2.73478 18 2.48043 17.8946 2.29289 17.7071C2.10536 17.5196 2 17.2652 2 17V10H18V17ZM18 8H2V5C2 4.73478 2.10536 4.48043 2.29289 4.29289C2.48043 4.10536 2.73478 4 3 4H5V5C5 5.26522 5.10536 5.51957 5.29289 5.70711C5.48043 5.89464 5.73478 6 6 6C6.26522 6 6.51957 5.89464 6.70711 5.70711C6.89464 5.51957 7 5.26522 7 5V4H13V5C13 5.26522 13.1054 5.51957 13.2929 5.70711C13.4804 5.89464 13.7348 6 14 6C14.2652 6 14.5196 5.89464 14.7071 5.70711C14.8946 5.51957 15 5.26522 15 5V4H17C17.2652 4 17.5196 4.10536 17.7071 4.29289C17.8946 4.48043 18 4.73478 18 5V8Z"></path></g></svg><span data-fr="Agenda" data-ar="الجدول">Agenda</span></button>
+    <button class="tab-item" data-view="grades"><svg viewBox="0 0 24 24"><g transform="translate(2.25 5.5) scale(1.08333)"><path fill="currentColor" d="M1 12C0.71667 12 0.479337 11.904 0.288004 11.712C0.0966702 11.52 0.000670115 11.2827 3.44827e-06 11C-0.000663218 10.7173 0.0953369 10.48 0.288004 10.288C0.48067 10.096 0.718003 10 1 10H11C11.2833 10 11.521 10.096 11.713 10.288C11.905 10.48 12.0007 10.7173 12 11C11.9993 11.2827 11.9033 11.5203 11.712 11.713C11.5207 11.9057 11.2833 12.0013 11 12H1ZM1 7C0.71667 7 0.479337 6.904 0.288004 6.712C0.0966702 6.52 0.000670115 6.28267 3.44827e-06 6C-0.000663218 5.71733 0.0953369 5.48 0.288004 5.288C0.48067 5.096 0.718003 5 1 5H17C17.2833 5 17.521 5.096 17.713 5.288C17.905 5.48 18.0007 5.71733 18 6C17.9993 6.28267 17.9033 6.52033 17.712 6.713C17.5207 6.90567 17.2833 7.00133 17 7H1ZM1 2C0.71667 2 0.479337 1.904 0.288004 1.712C0.0966702 1.52 0.000670115 1.28267 3.44827e-06 1C-0.000663218 0.717333 0.0953369 0.48 0.288004 0.288C0.48067 0.0960001 0.718003 0 1 0H17C17.2833 0 17.521 0.0960001 17.713 0.288C17.905 0.48 18.0007 0.717333 18 1C17.9993 1.28267 17.9033 1.52033 17.712 1.713C17.5207 1.90567 17.2833 2.00133 17 2H1Z"></path></g></svg><span data-fr="Notes" data-ar="الدرجات">Notes</span></button>
+    <button class="tab-item" data-view="news"><svg viewBox="0 0 24 24"><g transform="translate(1.5 1.5)"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" d="M0.750168 17.9082V13.2572C0.750168 12.5472 0.750168 12.1932 0.881168 12.1532C1.01317 12.1132 1.21417 12.4192 1.61617 13.0302C3.00817 15.1442 5.35617 17.4922 7.47017 18.8842C8.08017 19.2862 8.38617 19.4872 8.34717 19.6192C8.30717 19.7492 7.95317 19.7492 7.24317 19.7492H2.59217C1.72417 19.7492 1.28917 19.7492 1.02017 19.4802C0.750168 19.2102 0.750168 18.7762 0.750168 17.9082ZM19.7502 2.59224V7.24324C19.7502 7.95324 19.7502 8.30724 19.6202 8.34724C19.4882 8.38624 19.2872 8.08124 18.8842 7.47024C17.4922 5.35624 15.1442 3.00824 13.0302 1.61624C12.4202 1.21424 12.1142 1.01324 12.1542 0.881244C12.1942 0.750244 12.5482 0.750244 13.2572 0.750244H17.9092C18.7772 0.750244 19.2112 0.750244 19.4812 1.02024C19.7512 1.29024 19.7502 1.72424 19.7502 2.59224ZM0.750168 2.65024V4.87624C0.750168 5.65324 0.750168 6.04124 0.895168 6.39024C1.03917 6.74024 1.31417 7.01424 1.86317 7.56324L12.9372 18.6372C13.4872 19.1872 13.7612 19.4612 14.1102 19.6052C14.4592 19.7492 14.8472 19.7502 15.6242 19.7502H17.8502C18.7462 19.7502 19.1932 19.7502 19.4722 19.4722C19.7502 19.1932 19.7502 18.7462 19.7502 17.8502V15.6242C19.7502 14.8472 19.7502 14.4592 19.6052 14.1102C19.4612 13.7602 19.1862 13.4862 18.6372 12.9372L7.56317 1.86324C7.01317 1.31324 6.73917 1.03924 6.39017 0.895244C6.04117 0.751244 5.65317 0.750244 4.87617 0.750244H2.65017C1.75417 0.750244 1.30617 0.750244 1.02817 1.02824C0.750168 1.30724 0.750168 1.75424 0.750168 2.65024Z"></path></g></svg><span data-fr="Actualités" data-ar="الأخبار">Actualités</span></button>
+    <button class="tab-item" data-view="profile"><svg viewBox="0 0 24 24"><g transform="translate(1.5 1.5) scale(0.875)"><path fill="none" stroke="currentColor" stroke-width="1.714" stroke-linejoin="round" d="M4 18C4 16.9391 4.42143 15.9217 5.17157 15.1716C5.92172 14.4214 6.93913 14 8 14H16C17.0609 14 18.0783 14.4214 18.8284 15.1716C19.5786 15.9217 20 16.9391 20 18C20 18.5304 19.7893 19.0391 19.4142 19.4142C19.0391 19.7893 18.5304 20 18 20H6C5.46957 20 4.96086 19.7893 4.58579 19.4142C4.21071 19.0391 4 18.5304 4 18Z"></path><path fill="none" stroke="currentColor" stroke-width="1.714" stroke-linejoin="round" d="M12 10C13.6569 10 15 8.65685 15 7C15 5.34315 13.6569 4 12 4C10.3431 4 9 5.34315 9 7C9 8.65685 10.3431 10 12 10Z"></path></g></svg><span data-fr="Profil" data-ar="الملف الشخصي">Profil</span></button>
+  </nav>
+</div>
+
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const q=new URLSearchParams(location.search);
+let lang=q.get('lang')==='ar'?'ar':'fr',theme=q.get('theme')==='dark'?'dark':'light',collapsed=q.get('collapsed')==='1';
+function applyLang(){document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+$$('[data-fr]').forEach(el=>{if(el.dataset.ar!==undefined)el.textContent=lang==='ar'?el.dataset.ar:el.dataset.fr;});
+$$('[data-fr-tpl]').forEach(el=>{el.innerHTML=lang==='ar'?el.dataset.arTpl:el.dataset.frTpl;});}
+document.documentElement.setAttribute('data-theme',theme);
+$('#sidebar').classList.toggle('collapsed',collapsed);
+$('#btn-collapse').onclick=()=>{collapsed=!collapsed;$('#sidebar').classList.toggle('collapsed',collapsed);};
+$('#btn-bell').onclick=e=>{e.stopPropagation();$('#notif-panel').classList.toggle('open');$('#avatar-dropdown').classList.remove('open');};
+$('#btn-avatar').onclick=e=>{e.stopPropagation();$('#avatar-dropdown').classList.toggle('open');$('#notif-panel').classList.remove('open');};
+$('#dash-notif-all').onclick=e=>{e.stopPropagation();$('#notif-panel').classList.add('open');};
+document.addEventListener('click',()=>{$('#notif-panel').classList.remove('open');$('#avatar-dropdown').classList.remove('open');});
+const mqTablet=matchMedia('(min-width:640px) and (max-width:1023px)');
+function checkTablet(){document.body.classList.toggle('tablet',mqTablet.matches);}
+mqTablet.addEventListener('change',checkTablet);addEventListener('resize',checkTablet);addEventListener('load',checkTablet);
+$('#sidebar').style.transition='none';checkTablet();applyLang();requestAnimationFrame(()=>requestAnimationFrame(()=>{checkTablet();$('#sidebar').style.transition='';}));
+</script>
+</body>
+</html>

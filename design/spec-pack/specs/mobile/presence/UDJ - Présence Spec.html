@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>UDJ — Présence Implementation Spec</title>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" rx="22" fill="#0F6E56"/>
+    <text x="50" y="64" font-family="sans-serif" font-size="30" font-weight="800" fill="#fff" text-anchor="middle">87%</text>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#F2F5F3; --surface:#fff; --ink:#1C2320; --ink2:#6B7B74; --ink3:#9EADA7;
+    --hair:rgba(28,35,32,0.10); --jade:#1D9E75; --jade6:#0F6E56; --amber:#E08A1E; --danger:#EF4444;
+    --sans:'Plus Jakarta Sans',sans-serif; --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1000px;margin:0 auto;padding:56px 32px 100px;}
+  h1{font-size:34px;font-weight:800;letter-spacing:-0.8px;margin:0;}
+  .sub{color:var(--ink2);font-size:15px;margin-top:8px;max-width:64ch;line-height:1.55;}
+  h2{font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--jade6);margin:54px 0 18px;display:flex;align-items:center;gap:10px;}
+  h2 .n{width:22px;height:22px;border-radius:7px;background:var(--jade6);color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+  h3{font-size:17px;font-weight:700;margin:26px 0 10px;}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:18px;padding:22px;box-shadow:0 1px 2px rgba(28,35,32,0.04);}
+  .grid{display:grid;gap:14px;}
+  .g2{grid-template-columns:1fr 1fr;}
+  .g3{grid-template-columns:1fr 1fr 1fr;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:start;padding:8px 10px;border-bottom:1px solid var(--hair);vertical-align:top;}
+  th{font-size:11px;letter-spacing:0.6px;text-transform:uppercase;color:var(--ink3);font-weight:700;}
+  td.mono,.mono{font-family:var(--mono);font-size:12px;}
+  .lead{font-weight:700;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:3px 9px;border-radius:9999px;background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .pill.amber{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .pill.red{background:rgba(239,68,68,0.12);color:#b91c1c;}
+  .pill.warn{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .note{font-size:13px;color:var(--ink2);line-height:1.55;}
+  .specrow{font-size:13px;display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px solid var(--hair);}
+  .specrow:last-child{border-bottom:none;}
+  .specrow .k{color:var(--ink2);}
+  .specrow .v{font-family:var(--mono);font-size:12px;text-align:end;}
+  ul{margin:8px 0 0;padding-inline-start:20px;}
+  li{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:5px;}
+  .sw{display:flex;align-items:center;gap:11px;padding:7px 0;border-bottom:1px solid var(--hair);font-size:13px;}
+  .sw:last-child{border-bottom:none;}
+  .chip{width:28px;height:28px;border-radius:8px;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);}
+  .nm{font-weight:600;}
+  .hex{font-family:var(--mono);color:var(--ink2);font-size:12px;margin-inline-start:auto;}
+  .darkstrip{background:#0E1512;border-radius:14px;padding:14px 16px;}
+  .darkstrip .sw{border-color:rgba(255,255,255,0.08);color:#ECF1EE;}
+  .darkstrip .hex{color:#9DB0A8;}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:6px;background:rgba(28,35,32,0.06);color:var(--ink2);}
+  .tag.add{background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .tag.chg{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  /* tree */
+  .tree{font-family:var(--mono);font-size:12.5px;line-height:1.85;color:var(--ink);white-space:pre;overflow-x:auto;}
+  .tree .c{color:var(--ink3);}
+  .tree .v{color:var(--jade6);}
+  @media print{.wrap{padding:0;}.card{break-inside:avoid;}}
+  @media(max-width:720px){.g2,.g3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>UDJ — Présence Spec</h1>
+  <p class="sub">Implementation reference for the polished <strong>Présence / الحضور</strong> screen and its justification-upload flow, in the <strong>Soft Elevated</strong> language (matches Profile). Reached from the Profile <em>Présence</em> quick-action. Values are the source of truth; wire them as tokens — don't hardcode. Supports light, dark, and RTL.</p>
+
+  <!-- 1 · LAYOUT TREE -->
+  <h2><span class="n">1</span> Layout tree (render order)</h2>
+  <div class="card">
+<div class="tree">PresenceScreen  <span class="c">// Scaffold: fixed status bar + compact header, single vertical scroll</span>
+├─ StatusBar              <span class="c">44 tall · time + signal/wifi/battery</span>
+├─ Header  <span class="c">(non-scrolling)</span>
+│   ├─ BackButton         <span class="c">38×38 circle · surface · cardShadow · RTL-flips</span>
+│   └─ Title "Présence"   <span class="c">20 / 800</span>
+└─ ScrollBody  <span class="c">(top:96 → bottom, paddingBottom 92 to clear floating nav)</span>
+    ├─ HeroSummaryCard    <span class="v">jade gradient · ring + rate + badge + summary</span>
+    │   ├─ DepthCircle    <span class="c">decorative, absolute, clipped</span>
+    │   ├─ RingStat       <span class="c">96 ring, white track, "87%" mono center</span>
+    │   └─ Column         <span class="c">rateLabel · StatusPill · summary</span>
+    ├─ SectionLabel "Par matière"
+    ├─ SubjectList        <span class="c">column, gap 10</span>
+    │   └─ SubjectCard ×4 <span class="c">dot + name + sessions + pct + bar + projection</span>
+    ├─ SectionLabel "Justificatifs"
+    └─ UploadRow          <span class="c">icon chip + label + hint → opens UploadSheet</span>
+
+UploadSheet  <span class="c">// overlay above everything, over scrim</span>
+├─ Scrim              <span class="c">rgba(16,22,20,.45) · tap to close</span>
+└─ Sheet              <span class="c">bottom, top radius 24, slide-up</span>
+    ├─ GrabHandle     <span class="c">38×5</span>
+    ├─ Title + Subtitle
+    ├─ DropZone       <span class="c">dashed border · upload icon · hint</span>
+    ├─ PrimaryBtn "Choisir un fichier"
+    └─ OutlineBtn "Annuler"</div>
+  </div>
+  <p class="note" style="margin-top:12px;">The whole body is <strong>one vertical scroll</strong> (no nested scroll regions, no horizontal carousels). Header and status bar are pinned. There are <strong>no filter tabs</strong> — see §5.</p>
+
+  <!-- 2 · MEASURED VALUES -->
+  <h2><span class="n">2</span> Measured values</h2>
+
+  <h3>Scaffold &amp; header (shared with all stack screens)</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Status bar</td><td>height</td><td class="mono">44</td><td>—</td></tr>
+      <tr><td class="lead">Header</td><td>padding</td><td class="mono">2 / 14 / 8 / 14</td><td>—</td></tr>
+      <tr><td></td><td>back btn</td><td class="mono">38×38, radius 9999</td><td>surface + cardShadow</td></tr>
+      <tr><td></td><td>back→title gap</td><td class="mono">8 (+2 title padInline)</td><td>—</td></tr>
+      <tr><td></td><td>title</td><td class="mono">20 / 800 / -0.6 track</td><td>text1</td></tr>
+      <tr><td class="lead">Scroll body</td><td>top offset</td><td class="mono">96</td><td>—</td></tr>
+      <tr><td></td><td>paddingBottom</td><td class="mono">92</td><td>clears floating nav</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">Header title is the compact variant (<span class="mono">big=false → 20px</span>). RTL sets letter-spacing to 0 and flips the back chevron.</p>
+  </div>
+
+  <h3>Hero summary card</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Card</td><td>margin</td><td class="mono">4 / 16 / 16 / 16</td><td>—</td></tr>
+      <tr><td></td><td>padding</td><td class="mono">18 all</td><td>—</td></tr>
+      <tr><td></td><td>radius</td><td class="mono">22</td><td>hero</td></tr>
+      <tr><td></td><td>background</td><td class="mono">linear 150° jade→jade700</td><td>#1D9E75 → #0B5544</td></tr>
+      <tr><td></td><td>shadow</td><td class="mono">0 12px 28px rgba(15,110,86,.30)</td><td>brand glow</td></tr>
+      <tr><td></td><td>inner row</td><td class="mono">flex, align center, gap 18</td><td>—</td></tr>
+      <tr><td class="lead">Depth circle</td><td>size / pos</td><td class="mono">140, top -40, end -40</td><td>rgba(255,255,255,.07)</td></tr>
+      <tr><td class="lead">Ring</td><td>box</td><td class="mono">96×96</td><td>—</td></tr>
+      <tr><td></td><td>stroke</td><td class="mono">8</td><td>track #fff@25%, fill #fff</td></tr>
+      <tr><td></td><td>cap / rotate</td><td class="mono">round · -90°</td><td>fill = pct·circumference</td></tr>
+      <tr><td></td><td>center "87%"</td><td class="mono">DM Mono 24 / 500</td><td>#fff</td></tr>
+      <tr><td class="lead">Rate label</td><td>type</td><td class="mono">12.5 / 400</td><td>#fff@78%</td></tr>
+      <tr><td class="lead">Status pill</td><td>padding / gap</td><td class="mono">5 / 11, gap 6, mt 8</td><td>bg #fff@18%, radius full</td></tr>
+      <tr><td></td><td>dot</td><td class="mono">6×6 round</td><td><span class="mono">#7DF3C4</span> (mint)</td></tr>
+      <tr><td></td><td>label "Régulier"</td><td class="mono">12.5 / 700</td><td>#fff</td></tr>
+      <tr><td class="lead">Summary</td><td>type / mt</td><td class="mono">13 / 400, mt 10</td><td>#fff@85%</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Section label (repeats)</h3>
+  <div class="card"><div class="specrow"><span class="k">Type</span><span class="v">12.5 / 700 / 0.3 track / UPPERCASE</span></div>
+    <div class="specrow"><span class="k">Color</span><span class="v">text3</span></div>
+    <div class="specrow"><span class="k">Margin — Par matière</span><span class="v">0 / 20 / 10 / 20</span></div>
+    <div class="specrow"><span class="k">Margin — Justificatifs</span><span class="v">22 / 20 / 10 / 20</span></div>
+  </div>
+
+  <h3>SubjectCard (×4)</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Card</td><td>bg / radius / pad</td><td class="mono">surface · 16 · 14</td><td>shadow = cardShadow</td></tr>
+      <tr><td></td><td>list gap</td><td class="mono">10</td><td>side padding 16</td></tr>
+      <tr><td class="lead">Top row</td><td>layout</td><td class="mono">flex, align start, gap 10</td><td>—</td></tr>
+      <tr><td class="lead">Status dot</td><td>size / mt</td><td class="mono">9×9 round, mt 5</td><td>= level color</td></tr>
+      <tr><td class="lead">Name</td><td>type</td><td class="mono">14.5 / 600</td><td>text1</td></tr>
+      <tr><td class="lead">Sessions</td><td>type / mt</td><td class="mono">12.5 / 400, mt 1</td><td>text3</td></tr>
+      <tr><td class="lead">Percent</td><td>type</td><td class="mono">DM Mono 17 / 500</td><td>= level color</td></tr>
+      <tr><td class="lead">Progress track</td><td>h / radius / mt</td><td class="mono">6 · full · 11</td><td>bg hair2</td></tr>
+      <tr><td></td><td>fill</td><td class="mono">width = pct%</td><td>= level color</td></tr>
+      <tr><td class="lead">Projection row</td><td>layout / mt</td><td class="mono">flex align center, gap 6, mt 9</td><td>—</td></tr>
+      <tr><td></td><td>warn icon</td><td class="mono">13×13 triangle (only if ≠ ok)</td><td>= level color</td></tr>
+      <tr><td></td><td>text</td><td class="mono">12.5 / 400(ok) · 600(warn/danger)</td><td>ok→text3, else level color</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;"><strong>Level → color:</strong> <span class="pill">ok = jade</span> <span class="pill amber">warn = amber</span> <span class="pill red">danger = danger</span>. One token drives dot, percent, bar fill, projection icon &amp; text — never mix.</p>
+  </div>
+
+  <h3>Upload row + Upload sheet</h3>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Upload row</h3>
+      <div class="specrow"><span class="k">Card</span><span class="v">surface · radius 16 · pad 16/14</span></div>
+      <div class="specrow"><span class="k">Layout</span><span class="v">flex align center, gap 13</span></div>
+      <div class="specrow"><span class="k">Icon chip</span><span class="v">38×38 · radius 12 · jadeFaint</span></div>
+      <div class="specrow"><span class="k">Icon</span><span class="v">upload · 17 · jadeText</span></div>
+      <div class="specrow"><span class="k">Label</span><span class="v">14.5 / 600 · text1</span></div>
+      <div class="specrow"><span class="k">Hint</span><span class="v">12.5 / 400 · text3 · mt 1</span></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">Upload sheet</h3>
+      <div class="specrow"><span class="k">Sheet top radius</span><span class="v">24 · slide-up · padBottom 26</span></div>
+      <div class="specrow"><span class="k">Grab handle</span><span class="v">38×5 · radius full · hair2</span></div>
+      <div class="specrow"><span class="k">Title / subtitle</span><span class="v">17 / 700 · 13 / text2</span></div>
+      <div class="specrow"><span class="k">Drop zone</span><span class="v">1.5px dashed hair2 · radius 16</span></div>
+      <div class="specrow"><span class="k">Drop zone pad/bg</span><span class="v">26/16 · surface2 · gap 10</span></div>
+      <div class="specrow"><span class="k">Drop icon ring</span><span class="v">48×48 round · jadeFaint · icon 22</span></div>
+      <div class="specrow"><span class="k">Drop hint</span><span class="v">13 / 400 · text2</span></div>
+      <div class="specrow"><span class="k">Buttons</span><span class="v">50 tall · radius 14 · gap 10</span></div>
+      <div class="specrow"><span class="k">Scrim</span><span class="v">rgba(16,22,20,.45)</span></div>
+    </div>
+  </div>
+
+  <!-- 3 · COLORS -->
+  <h2><span class="n">3</span> Color tokens used</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Light</h3><div id="light"></div></div>
+    <div class="card darkstrip"><h3 style="margin-top:0;color:#ECF1EE;">Dark</h3><div id="dark"></div></div>
+  </div>
+  <p class="note" style="margin-top:14px;"><strong>On-gradient colors are literal (not tokenized)</strong> because they sit on jade in both themes: ring track <span class="mono">#fff@25%</span>, fill <span class="mono">#fff</span>, pill bg <span class="mono">#fff@18%</span>, mint dot <span class="mono">#7DF3C4</span>, text whites at 78/85%. Keep the hero gradient identical in dark mode (don't darken the card) — the jade is the brand anchor.</p>
+
+  <!-- 4 · COMPONENT INVENTORY -->
+  <h2><span class="n">4</span> Component inventory</h2>
+  <div class="card"><table>
+    <thead><tr><th>Component</th><th>Suggested file</th><th>Props</th><th>Renders</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">PresenceScreen</td><td class="mono">presence/PresenceScreen</td><td class="mono">nav, openOverlay</td><td>Scaffold + hero + subjects + upload row</td></tr>
+      <tr><td class="lead">HeroRing</td><td class="mono">presence/HeroRing</td><td class="mono">pct, size=96</td><td>2-circle SVG ring (track + fill)</td></tr>
+      <tr><td class="lead">SubjectCard</td><td class="mono">presence/SubjectCard</td><td class="mono">name, pct, sessions, proj, level</td><td>dot · name · sessions · pct · bar · projection</td></tr>
+      <tr><td class="lead">UploadRow</td><td class="mono">presence/UploadRow</td><td class="mono">onPress</td><td>icon chip + label + hint, tappable</td></tr>
+      <tr><td class="lead">UploadSheet</td><td class="mono">presence/UploadSheet</td><td class="mono">onClose</td><td>drop zone + 2 buttons in Sheet</td></tr>
+      <tr><td class="lead">Scaffold*</td><td class="mono">ui/Scaffold</td><td class="mono">title, onBack, big, children</td><td>shared — status bar + header + scroll</td></tr>
+      <tr><td class="lead">Sheet*</td><td class="mono">ui/Sheet</td><td class="mono">title, subtitle, onClose, children</td><td>shared — scrim + slide-up panel</td></tr>
+      <tr><td class="lead">SheetBtn*</td><td class="mono">ui/SheetBtn</td><td class="mono">kind: primary|danger|outline</td><td>shared — 50-tall full-width button</td></tr>
+      <tr><td class="lead">CatIcon*</td><td class="mono">ui/CatIcon</td><td class="mono">kind, color, size</td><td>shared — adds <span class="mono">upload</span> + <span class="mono">chart</span> glyphs</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">* already exist from the Profile/Settings polish — reuse, don't fork. Only <strong>HeroRing</strong>, <strong>SubjectCard</strong> and the <strong>upload</strong>/<strong>chart</strong> CatIcon glyphs are net-new.</p>
+  </div>
+
+  <!-- 5 · STATES -->
+  <h2><span class="n">5</span> States</h2>
+  <div class="card"><table>
+    <thead><tr><th>State</th><th>Treatment</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Loaded</td><td>As specified — hero + 4 subject cards + upload row.</td></tr>
+      <tr><td class="lead">Loading / skeleton</td><td>Hero replaced by a <span class="mono">skeletonBase</span> block at the hero's footprint (radius 22, ~132 tall); 4 subject-card skeletons (radius 16, ~96 tall) using the existing SkeletonBox shimmer (800ms, ~1600ms cycle). Section labels render immediately. Upload row hidden until loaded.</td></tr>
+      <tr><td class="lead">Empty <span class="tag">no records</span></td><td>Hero shows <span class="mono">—%</span> with an empty (track-only) ring and badge "Aucune donnée". Subject list replaced by a centered empty block: 64 round <span class="mono">examBg</span> circle + chart icon, title 16/700, body 14/text2 ("Aucune séance enregistrée pour le moment."). Upload row still shown.</td></tr>
+      <tr><td class="lead">Error</td><td>Reuse the Profile/Settings error block: 72 round circle (examBg) + icon, title 16/700, body 14/text2 (max-width ~220, centered), retry button 168 wide / 48 tall. No hero.</td></tr>
+      <tr><td class="lead">Offline <span class="tag">cached</span></td><td>One canonical offline banner above the hero (the shared OfflineBanner — <strong>not</strong> a new variant): bg <span class="mono">offlineBg</span>, 1px <span class="mono">warningBorder</span>, 8×8 <span class="mono">offline</span> dot, text 12 <span class="mono">offlineText</span>, fontFamily set. Data renders from cache; percentages keep their level colors.</td></tr>
+      <tr><td class="lead">Upload flow</td><td>Tap upload row → UploadSheet slides up over scrim → tap "Choisir un fichier" → OS picker (camera/photo/PDF). On pick: drop zone swaps to a file chip (name + size + remove ✕) and primary button becomes "Envoyer". Submit → sheet closes, transient success toast/snackbar. Tap scrim or "Annuler" dismisses.</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- 6 · INTERACTIONS -->
+  <h2><span class="n">6</span> Interactions</h2>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Action</th><th>Target ≥44</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Back button</td><td>Pop to Profile</td><td>38 + 8 hitSlop → ✓</td></tr>
+      <tr><td class="lead">Hero card</td><td><span class="tag chg">decide</span> Static, OR tap → full attendance history. Current build: static.</td><td>—</td></tr>
+      <tr><td class="lead">SubjectCard</td><td><span class="tag chg">decide</span> Static, OR tap → per-subject session list (dates present/absent). Current build: static — add onPress + chevron if drilling in.</td><td>card ✓</td></tr>
+      <tr><td class="lead">Upload row</td><td>Open UploadSheet</td><td>~70 tall ✓</td></tr>
+      <tr><td class="lead">Choisir un fichier</td><td>OS file/photo/camera picker</td><td>50 ✓</td></tr>
+      <tr><td class="lead">Annuler / scrim</td><td>Dismiss sheet</td><td>50 / full ✓</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;"><strong>No filter tabs, no swipe gestures.</strong> Subjects are a plain vertical list. If filtering is wanted later, add a segmented control (Tous / À risque) below the hero — but it's out of scope for this polish.</p>
+  </div>
+
+  <!-- 7 · DIFFERENCES -->
+  <h2><span class="n">7</span> Differences vs current build</h2>
+  <div class="card">
+    <ul>
+      <li><span class="tag add">add</span> Screen didn't exist as a polished surface — this introduces the Soft Elevated treatment (matches Profile).</li>
+      <li><span class="tag add">add</span> <strong>Single canonical 87%</strong> overall figure in the hero ring. The current app shows Présence stats in two places with conflicting numbers/colors — consolidate to this one source.</li>
+      <li><span class="tag add">add</span> <strong>Level-driven color system</strong> (ok/warn/danger) unifying dot + percent + bar + projection. Replaces ad-hoc per-row coloring.</li>
+      <li><span class="tag add">add</span> Projection line per subject ("2 absences restantes" / "Limite atteinte") — actionable, not just a number.</li>
+      <li><span class="tag chg">chg</span> Justification entry promoted to a first-class card + bottom-sheet flow (drop zone + picker), instead of a buried button.</li>
+      <li><span class="tag chg">chg</span> Header uses the shared compact Scaffold (no bespoke 22/56 header) and the floating nav is cleared by paddingBottom 92.</li>
+      <li><span class="tag">keep</span> Reuses Scaffold, Sheet, SheetBtn, SkeletonBox, OfflineBanner, error block — no new chrome.</li>
+    </ul>
+  </div>
+
+  <!-- 8 · DARK + RTL -->
+  <h2><span class="n">8</span> Dark mode &amp; RTL</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Dark mode</h3>
+      <ul>
+        <li>Surfaces, text, hair, skeleton all swap via tokens (surface #17211D, text1 #ECF1EE, hair2 #fff@13%).</li>
+        <li><strong>Hero gradient is unchanged</strong> — jade is the brand anchor; the card stays bright in dark mode.</li>
+        <li>Level colors lift for contrast: jade→#2BB989, amber→#F0A84B, danger→#FF6B6B. Percent + bar fill follow.</li>
+        <li>Bar track uses hair2 (lighter in dark) so low percentages stay visible.</li>
+        <li>Status bar glyphs + back chevron are token-driven — never hardcode dark-content.</li>
+      </ul>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">RTL (Arabic)</h3>
+      <ul>
+        <li>Root <span class="mono">direction: rtl</span> — back button + chevron flip to the right edge.</li>
+        <li>Depth circle uses <span class="mono">insetInlineEnd</span> so it stays in the trailing corner.</li>
+        <li>Status dot, ring, and percent mirror with the row; ring numerals stay LTR ("87%").</li>
+        <li>All copy from <span class="mono">t('presence.*')</span>; subjects use Arabic-Indic numerals in sessions ("١٩/٢٠ حصة").</li>
+        <li>Font switches to Noto Naskh Arabic; mono percent/ID stays Latin DM Mono.</li>
+        <li>Drop-zone, buttons and section labels all mirror; verify in dark+AR together.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- DATA -->
+  <h2><span class="n">9</span> Reference data (FR / AR)</h2>
+  <div class="card"><table>
+    <thead><tr><th>Subject (FR / AR)</th><th>%</th><th>Sessions</th><th>Projection</th><th>Level</th></tr></thead>
+    <tbody>
+      <tr><td>Algorithmique avancée<br><span class="note">الخوارزميات المتقدمة</span></td><td class="mono">95</td><td class="mono">19/20</td><td>Encore 3 absences possibles</td><td><span class="pill">ok</span></td></tr>
+      <tr><td>Statistiques L2<br><span class="note">الإحصاء س٢</span></td><td class="mono">80</td><td class="mono">16/20</td><td>2 absences restantes</td><td><span class="pill amber">warn</span></td></tr>
+      <tr><td>Physique Quantique<br><span class="note">الفيزياء الكمية</span></td><td class="mono">72</td><td class="mono">13/18</td><td>Limite atteinte</td><td><span class="pill red">danger</span></td></tr>
+      <tr><td>Anglais Technique<br><span class="note">الإنجليزية التقنية</span></td><td class="mono">100</td><td class="mono">12/12</td><td>Présence parfaite</td><td><span class="pill">ok</span></td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">Overall hero: <strong>87%</strong> · badge "Régulier / منتظم" · summary "12 absences sur 90 séances / ١٢ غياب من أصل ٩٠ حصة". These are placeholder values — wire to real attendance data, nothing hardcoded in components.</p>
+  </div>
+</div>
+<script>
+  const light=[['surface','#FFFFFF'],['surface2','#F4F7F5'],['bg','#F2F5F3'],['text1','#1C2320'],['text2','#6B7B74'],['text3','#9EADA7'],['hair2','rgba(28,35,32,0.11)'],['jade','#1D9E75'],['jade700','#0B5544'],['jadeText','#0F6E56'],['jadeFaint','rgba(29,158,117,0.10)'],['amber','#E08A1E'],['danger','#EF4444'],['examBg','rgba(139,92,246,0.12)']];
+  const dark=[['surface','#17211D'],['surface2','#1E2A25'],['bg','#0E1512'],['text1','#ECF1EE'],['text2','#9DB0A8'],['text3','#6E847B'],['hair2','rgba(255,255,255,0.13)'],['jade','#2BB989'],['jade700','#0B5544'],['jadeText','#5FD3A6'],['jadeFaint','rgba(43,185,137,0.16)'],['amber','#F0A84B'],['danger','#FF6B6B'],['examBg','rgba(169,139,240,0.18)']];
+  const swatch=(arr,el)=>{el.innerHTML=arr.map(([n,v])=>`<div class="sw"><span class="chip" style="background:${v}"></span><span class="nm">${n}</span><span class="hex">${v}</span></div>`).join('');};
+  swatch(light,document.getElementById('light'));
+  swatch(dark,document.getElementById('dark'));
+</script>
+</body>
+</html>

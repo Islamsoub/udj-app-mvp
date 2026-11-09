@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>UDJ — Press Interaction Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ink: #21302A; --ink2: #5A675F; --ink3: #8A958F;
+    --jade: #157A5E; --jadeDk: #0F6E56; --jadeFaint: #E9F4EF;
+    --paper: #FCFDFC; --line: #E6ECE8; --code-bg: #F4F7F5; --codedk: #1B2722;
+    --amber: #B27A1E; --blue: #2E6FCB;
+    --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --mono: 'DM Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #DDE4DF; color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  .doc { max-width: 860px; margin: 0 auto; background: var(--paper); padding: 64px 72px 90px; }
+
+  h1 { font-size: 34px; font-weight: 800; letter-spacing: -.8px; margin: 0; line-height: 1.1; }
+  .lede { font-size: 16px; color: var(--ink2); line-height: 1.6; margin: 16px 0 0; max-width: 620px; }
+  .meta { display: flex; gap: 22px; margin-top: 22px; font-size: 12.5px; font-family: var(--mono); color: var(--ink3); flex-wrap: wrap; }
+  .meta b { color: var(--jade); font-weight: 600; }
+
+  h2 { font-size: 13px; font-weight: 700; font-family: var(--mono); text-transform: uppercase; letter-spacing: 1px; color: var(--jade); margin: 56px 0 0; padding-bottom: 10px; border-bottom: 2px solid var(--jadeFaint); }
+  h3 { font-size: 20px; font-weight: 800; letter-spacing: -.3px; margin: 30px 0 0; }
+  p { font-size: 15px; line-height: 1.65; color: var(--ink2); margin: 12px 0 0; }
+  p b, li b { color: var(--ink); font-weight: 700; }
+  ul { margin: 12px 0 0; padding-inline-start: 20px; }
+  li { font-size: 15px; line-height: 1.6; color: var(--ink2); margin-top: 7px; }
+  code { font-family: var(--mono); font-size: .88em; background: var(--code-bg); padding: 2px 6px; border-radius: 5px; color: var(--jadeDk); }
+  a { color: var(--jade); }
+
+  .callout { margin-top: 22px; background: var(--jadeFaint); border-radius: 14px; padding: 18px 20px; }
+  .callout .h { font-size: 13px; font-weight: 800; color: var(--jadeDk); margin: 0; }
+  .callout p { margin-top: 7px; color: #2E4A40; }
+  .warn { background: #FBF1E3; }
+  .warn .h { color: var(--amber); }
+  .warn p { color: #6B5121; }
+
+  pre { margin: 18px 0 0; background: var(--codedk); color: #D7E4DD; border-radius: 14px; padding: 22px 24px; overflow-x: auto; font-family: var(--mono); font-size: 13px; line-height: 1.65; }
+  pre .c { color: #6E8279; }
+  pre .k { color: #7FD1AC; }
+  pre .s { color: #E0B589; }
+  pre .n { color: #E2A6C4; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13.5px; }
+  th, td { text-align: left; padding: 11px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--ink3); font-weight: 600; }
+  td { color: var(--ink2); line-height: 1.45; }
+  td b { color: var(--ink); }
+  td.tier { font-family: var(--mono); font-weight: 600; white-space: nowrap; }
+  .pill { display: inline-block; font-family: var(--mono); font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 9999px; }
+  .p-lift { background: #E6F3EE; color: #157A5E; }
+  .p-settle { background: #E9EEF6; color: #2E6FCB; }
+  .p-button { background: #FBF1E3; color: #B27A1E; }
+  .p-icon { background: #F0ECF6; color: #7659B0; }
+  .p-tint { background: #ECEFED; color: #5A675F; }
+
+  .vals { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 18px; }
+  .vc { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  .vc .vh { display: flex; align-items: center; gap: 9px; }
+  .vc .vh .nm { font-size: 15px; font-weight: 800; }
+  .vc dl { margin: 12px 0 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 13px; }
+  .vc dt { font-family: var(--mono); color: var(--ink3); }
+  .vc dd { margin: 0; font-family: var(--mono); color: var(--ink); font-weight: 600; text-align: right; }
+
+  .foot { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink3); font-family: var(--mono); }
+
+  @media print { html, body { background: #fff; } .doc { padding: 0; max-width: 100%; } pre { -webkit-print-color-adjust: exact; print-color-adjust: exact; } h2 { break-after: avoid; } pre, table, .vc, .callout { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <h1>UDJ — Card &amp; button press interactions</h1>
+  <p class="lede">Replaces the default grey tap-flash with one coherent press system across the app. Three tiers built from a single spring, so every tap feels like it belongs to the same product.</p>
+  <div class="meta">
+    <span>Target&nbsp;·&nbsp;<b>React Native (Expo)</b></span>
+    <span>Engine&nbsp;·&nbsp;<b>Reanimated 3 + Pressable</b></span>
+    <span>For&nbsp;·&nbsp;<b>Claude Code</b></span>
+    <span>v&nbsp;·&nbsp;<b>2.0 · single-node</b></span>
+  </div>
+
+  <h2>0 · First, remove the current behaviour</h2>
+  <p>The grey box on press is the platform default — it comes from <code>TouchableHighlight</code> (its <code>underlayColor</code>) or the Android <code>TouchableOpacity</code>/Pressable <b>ripple</b>. Before adding the new system:</p>
+  <ul>
+    <li>Replace every <code>TouchableHighlight</code> / <code>TouchableOpacity</code> on these surfaces with the <code>&lt;Pressable&gt;</code>-based component below.</li>
+    <li>On Android, explicitly pass <code>android_ripple={null}</code> so no ripple is drawn.</li>
+    <li>Globally keep <code>&lt;Pressable&gt;</code>'s default — it has <b>no</b> highlight unless you add one. Our feedback comes entirely from the animation, not from a background flash.</li>
+  </ul>
+
+  <h2>1 · The system at a glance</h2>
+  <p>Every interactive surface falls into exactly one of three tiers. The motion direction encodes what the element <i>is</i>: content lifts toward you, buttons press in, rows stay flat.</p>
+
+  <div class="vals">
+    <div class="vc">
+      <div class="vh"><span class="pill p-lift">lift · E</span><span class="nm">Cards that navigate</span></div>
+      <p style="margin-top:10px;font-size:13px">Grows slightly + shadow deepens. Reads as "opening this."</p>
+      <dl>
+        <dt>scale</dt><dd>1.00 → 1.02</dd>
+        <dt>shadow</dt><dd>base → deep</dd>
+        <dt>overlay</dt><dd>none</dd>
+      </dl>
+    </div>
+    <div class="vc">
+      <div class="vh"><span class="pill p-settle">settle · C</span><span class="nm">Big cards</span></div>
+      <p style="margin-top:10px;font-size:13px">Shrinks slightly + shadow flattens. Calmer — for large surfaces.</p>
+      <dl>
+        <dt>scale</dt><dd>1.00 → 0.98</dd>
+        <dt>shadow</dt><dd>base → flat</dd>
+        <dt>overlay</dt><dd>none</dd>
+      </dl>
+    </div>
+    <div class="vc">
+      <div class="vh"><span class="pill p-button">button</span><span class="nm">Buttons / CTAs</span></div>
+      <p style="margin-top:10px;font-size:13px">Presses in + faint darken. A surface you push down on.</p>
+      <dl>
+        <dt>scale</dt><dd>1.00 → 0.965</dd>
+        <dt>overlay</dt><dd>0 → 6% ink</dd>
+        <dt>shadow</dt><dd>base → flat</dd>
+      </dl>
+    </div>
+    <div class="vc">
+      <div class="vh"><span class="pill p-icon">icon</span><span class="nm">Round icon buttons</span></div>
+      <p style="margin-top:10px;font-size:13px">Quick shrink + faint wash. Snappy, small target.</p>
+      <dl>
+        <dt>scale</dt><dd>1.00 → 0.90</dd>
+        <dt>overlay</dt><dd>0 → 6% ink</dd>
+        <dt>shadow</dt><dd>none</dd>
+      </dl>
+    </div>
+    <div class="vc" style="grid-column: 1 / -1">
+      <div class="vh"><span class="pill p-tint">tint</span><span class="nm">List rows, day cells, chips, nav tabs</span></div>
+      <p style="margin-top:10px;font-size:13px">No movement at all — a whisper of wash. These sit in tight stacks or are selection controls, so transforms look restless. The element's <i>selected</i> state (jade fill etc.) is unchanged; this is only the momentary press.</p>
+      <dl style="grid-template-columns:auto 1fr auto 1fr">
+        <dt>scale</dt><dd>none</dd>
+        <dt>overlay</dt><dd>0 → 4% ink</dd>
+      </dl>
+    </div>
+  </div>
+
+  <h2>2 · Motion tokens</h2>
+  <p>One press-in curve, one release spring, shared by every scale-based tier. The slight overshoot on release is what makes it feel alive rather than mechanical.</p>
+  <table>
+    <thead><tr><th>Token</th><th>Value</th><th>Used for</th></tr></thead>
+    <tbody>
+      <tr><td class="tier">PRESS_IN</td><td><code>withTiming, 110ms, Easing.out(Easing.quad)</code></td><td>Finger down — fast, no bounce</td></tr>
+      <tr><td class="tier">RELEASE</td><td><code>withSpring · damping 15 · stiffness 200 · mass 0.7</code></td><td>Finger up — gentle overshoot back to rest</td></tr>
+      <tr><td class="tier">TINT_FADE</td><td><code>withTiming · in 70ms / out 240ms</code></td><td>Overlay-only tiers (tint) — no spring</td></tr>
+    </tbody>
+  </table>
+  <p>Ink colour for overlays / shadows is the app's near-black <code>#21302A</code> (token <code>ink</code>). Card base shadow stays as today: <code>shadowOpacity 0.07</code>, <code>radius 10</code> (iOS) / <code>elevation 3</code> (Android).</p>
+
+  <h3>Wash colour is a theme token, not a constant</h3>
+  <p>The press wash must come from a <b>theme-aware token</b>, not a hardcoded value — a black wash is invisible on dark surfaces, exactly where feedback matters most. Define <code>pressWash</code> per theme:</p>
+  <table>
+    <thead><tr><th>Token</th><th>Light mode</th><th>Dark mode</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td class="tier">pressWash</td><td><code>#21302A</code> (near-black)</td><td><code>#FFFFFF</code> (white)</td><td>The overlay colour; opacity comes from the tier preset.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <p class="h">Why this can't be hardcoded</p>
+    <p>The 4–6% black wash is tuned for light/white surfaces. On a <b>dark</b> surface, black-on-dark is near-invisible. On a <b>saturated</b> surface (the jade GPA hero) black reads as “muddy,” not “pressed” — which is the reason the GPA hero is a <code>settle</code> tier (overlay <code>0</code>, scale-driven), so it never relies on the wash. Build <code>pressWash</code> as a token now: it's a one-line addition pre-migration, but a find-replace-and-retest if bolted on after dark mode lands.</p>
+  </div>
+
+  <h2>3 · The reusable component</h2>
+  <p>One component, <b>one node</b>, all five behaviours via a <code>tier</code> prop. Drop it in <code>components/PressBox.tsx</code>. The single node is built with <code>Animated.createAnimatedComponent(Pressable)</code> so the caller's full <code>style</code> lands directly on the node the parent measures — this is what prevents the flex-collapse (see §7). The wash overlay is an <code>absoluteFill</code> child that clips itself via its <b>own</b> <code>borderRadius</code>, so we <b>never</b> set <code>overflow:'hidden'</code> and iOS shadows render on every tier. Its colour comes from the <code>pressWash</code> theme token (§2) — <b>never</b> a hardcoded ink.</p>
+  <pre><span class="c">// components/PressBox.tsx</span>
+<span class="k">import</span> React <span class="k">from</span> <span class="s">'react'</span>;
+<span class="k">import</span> { Pressable, Platform, StyleSheet, PressableProps, ViewStyle } <span class="k">from</span> <span class="s">'react-native'</span>;
+<span class="k">import</span> Animated, {
+  useSharedValue, useAnimatedStyle, withSpring, withTiming, Easing, interpolate,
+} <span class="k">from</span> <span class="s">'react-native-reanimated'</span>;
+
+<span class="c">// Create ONCE at module scope — never inside the component (re-creates type every render).</span>
+<span class="k">const</span> AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+<span class="k">const</span> RELEASE = { damping: <span class="n">15</span>, stiffness: <span class="n">200</span>, mass: <span class="n">0.7</span> };
+<span class="k">const</span> PRESS_IN = { duration: <span class="n">110</span>, easing: Easing.out(Easing.quad) };
+
+<span class="k">type</span> Tier = <span class="s">'lift'</span> | <span class="s">'settle'</span> | <span class="s">'button'</span> | <span class="s">'icon'</span> | <span class="s">'tint'</span>;
+
+<span class="k">const</span> PRESET = {
+  lift:   { scale: <span class="n">1.02</span>,  overlay: <span class="n">0</span>,    shadow: <span class="s">'up'</span>   },
+  settle: { scale: <span class="n">0.98</span>,  overlay: <span class="n">0</span>,    shadow: <span class="s">'down'</span> },
+  button: { scale: <span class="n">0.965</span>, overlay: <span class="n">0.06</span>, shadow: <span class="s">'down'</span> },
+  icon:   { scale: <span class="n">0.90</span>,  overlay: <span class="n">0.06</span>, shadow: <span class="s">'none'</span> },
+  tint:   { scale: <span class="n">1.0</span>,   overlay: <span class="n">0.04</span>, shadow: <span class="s">'none'</span> },
+} <span class="k">as const</span>;
+
+<span class="k">type</span> Props = PressableProps & {
+  tier?: Tier;
+  style?: ViewStyle;        <span class="c">// full surface style — layout AND visual, all on the one node</span>
+  radius?: number;          <span class="c">// corner radius for the wash overlay; defaults to style.borderRadius</span>
+  children?: React.ReactNode;
+};
+
+<span class="k">export function</span> PressBox({ tier = <span class="s">'lift'</span>, style, radius, children, disabled, ...rest }: Props) {
+  <span class="k">const</span> cfg = PRESET[tier];
+  <span class="k">const</span> { pressWash } = useTheme();   <span class="c">// near-black in light, white in dark — NEVER hardcode</span>
+  <span class="k">const</span> p = useSharedValue(<span class="n">0</span>);
+  <span class="k">const</span> isTint = cfg.scale === <span class="n">1</span> && cfg.shadow === <span class="s">'none'</span>;
+  <span class="k">const</span> r = radius ?? (StyleSheet.flatten(style)?.borderRadius <span class="k">as</span> number) ?? <span class="n">0</span>;
+
+  <span class="k">const</span> node = useAnimatedStyle(() => {
+    <span class="k">const</span> out: any = { transform: [{ scale: interpolate(p.value, [<span class="n">0</span>, <span class="n">1</span>], [<span class="n">1</span>, cfg.scale]) }] };
+    <span class="k">if</span> (Platform.OS === <span class="s">'ios'</span> && cfg.shadow !== <span class="s">'none'</span>) {
+      <span class="k">const</span> hiOp = cfg.shadow === <span class="s">'up'</span> ? <span class="n">0.16</span> : <span class="n">0.05</span>;
+      <span class="k">const</span> hiR  = cfg.shadow === <span class="s">'up'</span> ? <span class="n">22</span>   : <span class="n">4</span>;
+      <span class="c">// shadowOffset stays static; only opacity + radius animate.</span>
+      out.shadowOpacity = interpolate(p.value, [<span class="n">0</span>, <span class="n">1</span>], [<span class="n">0.07</span>, hiOp]);
+      out.shadowRadius  = interpolate(p.value, [<span class="n">0</span>, <span class="n">1</span>], [<span class="n">10</span>, hiR]);
+    }
+    <span class="k">return</span> out;
+  });
+
+  <span class="k">const</span> wash = useAnimatedStyle(() => ({ opacity: interpolate(p.value, [<span class="n">0</span>, <span class="n">1</span>], [<span class="n">0</span>, cfg.overlay]) }));
+
+  <span class="k">return</span> (
+    &lt;AnimatedPressable
+      disabled={disabled}
+      android_ripple={null}
+      onPressIn={() => { <span class="k">if</span> (disabled) <span class="k">return</span>; p.value = isTint ? withTiming(<span class="n">1</span>, { duration: <span class="n">70</span> }) : withTiming(<span class="n">1</span>, PRESS_IN); }}
+      onPressOut={() => { <span class="k">if</span> (disabled) <span class="k">return</span>; p.value = isTint ? withTiming(<span class="n">0</span>, { duration: <span class="n">240</span> }) : withSpring(<span class="n">0</span>, RELEASE); }}
+      style={[style, node]}        <span class="c">// full style + animation on the SAME node the parent measures</span>
+      {...rest}&gt;
+      {children}
+      {cfg.overlay &gt; <span class="n">0</span> && (
+        &lt;Animated.View pointerEvents=<span class="s">"none"</span>
+          style={[StyleSheet.absoluteFill, { backgroundColor: pressWash, borderRadius: r }, wash]} /&gt;
+      )}
+    &lt;/AnimatedPressable&gt;
+  );
+}</pre>
+  <div class="callout warn">
+    <p class="h">The rules that keep this working</p>
+    <p>1 · <b>Never</b> set <code>overflow:'hidden'</code> on the node — the wash clips itself via its own <code>borderRadius</code>, so shadows survive on every tier (incl. button). 2 · <code>AnimatedPressable</code> is created <b>once at module scope</b>; defining it in the body re-creates the type each render and breaks the animation. 3 · Don't use Pressable's function <code>style</code>/<code>children</code> — animation is driven by the shared value, so the component never needs to re-render on press. 4 · Android can't smoothly animate <code>elevation</code>; keep it static on the card style and let scale carry the effect there. 5 · The wash colour is the <code>pressWash</code> theme token — <b>never</b> a hardcoded ink, or feedback disappears in dark mode.</p>
+  </div>
+
+  <h2>4 · Per-component assignment</h2>
+  <p>Map each existing component to its tier. Names below describe the surface — match them to your actual component names.</p>
+  <table>
+    <thead><tr><th>Component / surface</th><th>Tier</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><b>Schedule card</b> (timeline + home agenda)</td><td><span class="pill p-lift">lift</span></td><td>The original request. <code>scale 1.02</code>.</td></tr>
+      <tr><td><b>News list card</b> (compact row-card w/ thumb)</td><td><span class="pill p-lift">lift</span></td><td>It's a self-contained card that opens an article.</td></tr>
+      <tr><td><b>Stat cards</b> (moyenne / présence / crédits)</td><td><span class="pill p-lift">lift</span></td><td>Tappable ones only; non-tappable stay static.</td></tr>
+      <tr><td><b>Presence "upload justificatif" card</b></td><td><span class="pill p-lift">lift</span></td><td>Opens the upload sheet.</td></tr>
+      <tr><td><b>News feature card</b> (large, image hero)</td><td><span class="pill p-settle">settle</span></td><td><b>Your choice:</b> big cards settle, not lift. <code>scale 0.98</code>.</td></tr>
+      <tr><td><b>Grade hero</b> (gradient GPA card)</td><td><span class="pill p-settle">settle</span></td><td>Same — large surface, calmer press.</td></tr>
+      <tr><td><b>Primary CTA</b> ("Se connecter", "Partager")</td><td><span class="pill p-button">button</span></td><td><code>scale 0.965</code> + 6% darken.</td></tr>
+      <tr><td><b>Secondary / danger button</b> ("Vider le cache")</td><td><span class="pill p-button">button</span></td><td>Same preset.</td></tr>
+      <tr><td><b>Round icon buttons</b> (bell, back, calc, bookmark, week arrows)</td><td><span class="pill p-icon">icon</span></td><td><code>scale 0.90</code>. Snappy.</td></tr>
+      <tr><td><b>Notification rows</b></td><td><span class="pill p-tint">tint</span></td><td>4% wash, no transform.</td></tr>
+      <tr><td><b>FAQ rows · settings rows · calc dropdown items</b></td><td><span class="pill p-tint">tint</span></td><td>Same. Keep the chevron-rotate / expand animations they already have.</td></tr>
+      <tr><td><b>Day strip cells</b></td><td><span class="pill p-tint">tint</span></td><td>Press = tint only; the selection (jade fill) animation is unchanged.</td></tr>
+      <tr><td><b>Filter chips · segmented controls · nav-bar tabs</b></td><td><span class="pill p-tint">tint</span></td><td>Near-silent press; selected-state transition stays as-is.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>5 · Usage examples</h2>
+  <pre><span class="c">// Schedule card — lift</span>
+&lt;PressBox tier=<span class="s">"lift"</span> style={styles.scheduleCard} onPress={() => openCourse(item)}&gt;
+  {<span class="c">/* …card content… */</span>}
+&lt;/PressBox&gt;
+
+<span class="c">// Feature / hero card — settle</span>
+&lt;PressBox tier=<span class="s">"settle"</span> style={styles.featureCard} onPress={() => openArticle(a)}&gt; … &lt;/PressBox&gt;
+
+<span class="c">// Primary button — press-in</span>
+&lt;PressBox tier=<span class="s">"button"</span> style={styles.cta} onPress={signIn}&gt;
+  &lt;Text style={styles.ctaLabel}&gt;Se connecter&lt;/Text&gt;
+&lt;/PressBox&gt;
+
+<span class="c">// Round icon button — icon</span>
+&lt;PressBox tier=<span class="s">"icon"</span> style={styles.iconBtn} onPress={openNotifs}&gt;&lt;BellIcon/&gt;&lt;/PressBox&gt;
+
+<span class="c">// Notification row — tint (no movement)</span>
+&lt;PressBox tier=<span class="s">"tint"</span> style={styles.notifRow} onPress={() => openNotif(n)}&gt; … &lt;/PressBox&gt;
+
+<span class="c">// Asymmetric corners (e.g. hero rounded only on top): pass radius explicitly</span>
+<span class="c">// so the wash matches — or pass the four corner values through.</span>
+&lt;PressBox tier=<span class="s">"settle"</span> style={styles.featureCard} radius={<span class="n">18</span>} onPress={openArticle}&gt; … &lt;/PressBox&gt;</pre>
+
+  <h2>6 · Accessibility &amp; polish</h2>
+  <ul>
+    <li><b>Dark mode wash.</b> The press wash uses the <code>pressWash</code> theme token (§2): near-black in light mode, <b>white</b> (~8–10%) in dark mode. A black wash on a dark surface is invisible — never hardcode the colour. Wire this token from the start, even though dark mode ships later.</li>
+    <li><b>Reduce Motion.</b> If <code>AccessibilityInfo.isReduceMotionEnabled()</code> is true, skip the scale on all tiers and fall back to the <code>tint</code> behaviour (wash via <code>pressWash</code>) so there's still feedback without movement. Read it once at mount and gate the <code>onPressIn/Out</code> bodies on it.</li>
+    <li><b>Scroll cancellation.</b> <code>Pressable</code> inside a <code>ScrollView</code>/<code>FlatList</code> already cancels the press when a scroll begins, so the card won't stick in its pressed state — no extra work needed.</li>
+    <li><b>Haptics (optional, recommended for Tier 1).</b> On <code>onPressIn</code> for <code>lift</code> + <code>settle</code> cards, fire <code>Haptics.selectionAsync()</code> (<code>expo-haptics</code>). Skip it for tint rows and nav tabs to avoid buzz spam.</li>
+    <li><b>Hit slop.</b> Keep the existing <code>hitSlop</code> on the small icon buttons; the 0.90 scale must not shrink the touch target below 44pt.</li>
+    <li><b>Disabled state.</b> When <code>disabled</code>, pass it through to <code>Pressable</code> and short-circuit the animations (no scale, no wash).</li>
+  </ul>
+
+  <div class="callout">
+    <p class="h">Acceptance check</p>
+    <p>Press &amp; hold any schedule card → it grows ~2% and the shadow deepens, springs back on release, <b>no grey box</b>. Feature card &amp; grade hero shrink ~2% instead. Buttons press in with a faint darken. Rows show only a soft wash. All share the same release bounce. Reference feel: the <i>UDJ — Press System Demo</i> prototype.</p>
+  </div>
+
+  <h2>7 · Why single-node (post-mortem)</h2>
+  <p>The first implementation (v1.0) wrapped <code>&lt;Pressable&gt;</code> around an inner <code>&lt;Animated.View style={fullStyle}&gt;</code> — two nodes. <b>This collapsed every flex-sized surface</b> and is the reason we reverted. Recording it so we don't repeat it.</p>
+  <ul>
+    <li><b>Root cause.</b> In React Native flex layout the <i>parent measures the outer node</i> — here the unstyled <code>Pressable</code>. All the sizing (<code>flex:1</code>, <code>alignSelf:'stretch'</code>, <code>aspectRatio</code>, width-by-stretch) lived on the <i>inner</i> view the parent never sizes. The Pressable shrank to content/zero, and the added <code>overflow:'hidden'</code> clipped the content to an empty rounded box.</li>
+    <li><b>Why it looked selective.</b> Surfaces sized by their parent collapsed — <b>stat-card row, semester segmented control, day cells, tab-bar cells, profile/student card</b>. Full-width cards with intrinsic content height — <b>schedule, news, agenda, grade hero</b> — don't depend on parent flex sizing, so they survived. That split is the signature of this bug.</li>
+    <li><b>The half-fix we rejected.</b> Splitting style keys (layout → Pressable, visual → inner view) works in theory but has too many edge cases (<code>margin</code> vs <code>padding</code>, transforms, percentage sizing, shadow-vs-clip), so it stays brittle.</li>
+    <li><b>The fix (v2.0).</b> Collapse to <b>one node</b> via <code>Animated.createAnimatedComponent(Pressable)</code>. The caller's full <code>style</code> sits on the exact node the parent measures, so flex/stretch/aspect-ratio all resolve normally. Bonus: <code>scale</code> is a post-layout transform, so a pressed card never reflows its neighbours.</li>
+    <li><b>The clip trap, avoided.</b> v1.0 clipped the wash with <code>overflow:'hidden'</code> on the card node — which on iOS also clips the card's own shadow, and breaks the button tier (shadow + wash together). v2.0 gives the wash its <b>own</b> <code>borderRadius</code> and never sets <code>overflow:'hidden'</code>, so shadow and wash coexist on one node.</li>
+  </ul>
+  <div class="callout warn">
+    <p class="h">If a surface still collapses after this change</p>
+    <p>It means a layout style isn't reaching the node — check the caller is passing <code>flex</code>/<code>width</code> on the <code>style</code> prop given to <code>PressBox</code> (not on a wrapping <code>&lt;View&gt;</code> that's now redundant). There should be <b>no</b> intermediate view between the parent and <code>PressBox</code> holding the sizing.</p>
+  </div>
+
+  <div class="foot">UDJ press interaction spec · v2.0 (single-node) · hand to Claude Code alongside the demo prototype for the reference feel.</div>
+
+</div>
+</body>
+</html>

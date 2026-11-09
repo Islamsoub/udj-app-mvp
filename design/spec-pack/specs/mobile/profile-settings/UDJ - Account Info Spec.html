@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>UDJ — Account Info Implementation Spec</title>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" rx="22" fill="#0F6E56"/>
+    <circle cx="50" cy="40" r="15" fill="none" stroke="#fff" stroke-width="6"/>
+    <path d="M26 76 c4-16 44-16 48 0" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#F2F5F3; --surface:#fff; --ink:#1C2320; --ink2:#6B7B74; --ink3:#9EADA7;
+    --hair:rgba(28,35,32,0.10); --jade:#1D9E75; --jade6:#0F6E56; --amber:#E08A1E; --danger:#EF4444;
+    --sans:'Plus Jakarta Sans',sans-serif; --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1000px;margin:0 auto;padding:56px 32px 100px;}
+  h1{font-size:34px;font-weight:800;letter-spacing:-0.8px;margin:0;}
+  .crumbs{font-size:12.5px;color:var(--ink3);font-family:var(--mono);margin-bottom:14px;}
+  .sub{color:var(--ink2);font-size:15px;margin-top:8px;max-width:64ch;line-height:1.55;}
+  h2{font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--jade6);margin:54px 0 18px;display:flex;align-items:center;gap:10px;}
+  h2 .n{width:22px;height:22px;border-radius:7px;background:var(--jade6);color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+  h3{font-size:17px;font-weight:700;margin:26px 0 10px;}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:18px;padding:22px;box-shadow:0 1px 2px rgba(28,35,32,0.04);}
+  .grid{display:grid;gap:14px;}
+  .g2{grid-template-columns:1fr 1fr;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:start;padding:8px 10px;border-bottom:1px solid var(--hair);vertical-align:top;}
+  th{font-size:11px;letter-spacing:0.6px;text-transform:uppercase;color:var(--ink3);font-weight:700;}
+  td.mono,.mono{font-family:var(--mono);font-size:12px;}
+  .lead{font-weight:700;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:3px 9px;border-radius:9999px;background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .note{font-size:13px;color:var(--ink2);line-height:1.55;}
+  .specrow{font-size:13px;display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px solid var(--hair);}
+  .specrow:last-child{border-bottom:none;}
+  .specrow .k{color:var(--ink2);}
+  .specrow .v{font-family:var(--mono);font-size:12px;text-align:end;}
+  ul{margin:8px 0 0;padding-inline-start:20px;}
+  li{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:5px;}
+  .sw{display:flex;align-items:center;gap:11px;padding:7px 0;border-bottom:1px solid var(--hair);font-size:13px;}
+  .sw:last-child{border-bottom:none;}
+  .chip{width:28px;height:28px;border-radius:8px;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);}
+  .nm{font-weight:600;}
+  .hex{font-family:var(--mono);color:var(--ink2);font-size:12px;margin-inline-start:auto;}
+  .darkstrip{background:#0E1512;border-radius:14px;padding:14px 16px;}
+  .darkstrip .sw{border-color:rgba(255,255,255,0.08);color:#ECF1EE;}
+  .darkstrip .hex{color:#9DB0A8;}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:6px;background:rgba(28,35,32,0.06);color:var(--ink2);}
+  .tag.add{background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .tag.chg{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .tree{font-family:var(--mono);font-size:12.5px;line-height:1.85;color:var(--ink);white-space:pre;overflow-x:auto;}
+  .tree .c{color:var(--ink3);}
+  .tree .v{color:var(--jade6);}
+  @media print{.wrap{padding:0;}.card{break-inside:avoid;}}
+  @media(max-width:720px){.g2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs">Profil › Paramètres › Informations du compte &nbsp;·&nbsp; /account-info</div>
+  <h1>UDJ — Account Info Spec</h1>
+  <p class="sub">Implementation reference for the polished <strong>Informations du compte / معلومات الحساب</strong> screen, in the <strong>Soft Elevated</strong> language. Reached from Settings → <em>Informations du compte</em> (also from any Profile detail-row tap). A read-only identity screen — no editing, no overlays. Values are the source of truth; wire as tokens, don't hardcode. Supports light, dark, RTL.</p>
+
+  <!-- 1 · LAYOUT TREE -->
+  <h2><span class="n">1</span> Layout tree (render order)</h2>
+  <div class="card">
+<div class="tree">AccountScreen  <span class="c">// Scaffold: status bar + compact header, single vertical scroll</span>
+├─ StatusBar              <span class="c">44 tall</span>
+├─ Header  <span class="c">(non-scrolling)</span>
+│   ├─ BackButton         <span class="c">38×38 circle · surface · cardShadow · RTL-flips</span>
+│   └─ Title "Informations du compte"   <span class="c">20 / 800</span>
+└─ ScrollBody  <span class="c">(top:96 → bottom, paddingBottom 92)</span>
+    ├─ IdentityBlock      <span class="c">centered column</span>
+    │   ├─ Avatar 84      <span class="v">ring · "AO" initials</span>
+    │   ├─ FullName       <span class="c">19 / 700</span>
+    │   ├─ StudentId      <span class="c">DM Mono 13</span>
+    │   └─ StatusPill     <span class="c">jadeFaint · dot + "En ligne"</span>
+    └─ TileGroup "Détails"
+        ├─ TileRow  Filière    <span class="c">user · jade</span>
+        ├─ TileRow  Faculté    <span class="c">info · blue</span>
+        ├─ TileRow  Année      <span class="c">cal · amber</span>
+        ├─ TileRow  Email      <span class="c">mail · violet</span>
+        └─ TileRow  Téléphone  <span class="c">phone · slate · mono value</span></div>
+  </div>
+  <p class="note" style="margin-top:12px;"><strong>One vertical scroll</strong>, no nested regions, no overlays. The identity block is centered; the single tile group holds five static value rows.</p>
+
+  <!-- 2 · MEASURED VALUES -->
+  <h2><span class="n">2</span> Measured values</h2>
+
+  <h3>Scaffold &amp; header (shared)</h3>
+  <div class="card">
+    <div class="specrow"><span class="k">Status bar height</span><span class="v">44</span></div>
+    <div class="specrow"><span class="k">Header padding</span><span class="v">2 / 14 / 8 / 14</span></div>
+    <div class="specrow"><span class="k">Back button</span><span class="v">38×38 · radius 9999 · surface + cardShadow</span></div>
+    <div class="specrow"><span class="k">Title</span><span class="v">20 / 800 / -0.6 track · text1</span></div>
+    <div class="specrow"><span class="k">Scroll body top / padBottom</span><span class="v">96 / 92</span></div>
+  </div>
+
+  <h3>Identity block</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Container</td><td>layout / padding</td><td class="mono">column, center · 6/0/18/0</td><td>—</td></tr>
+      <tr><td class="lead">Avatar</td><td>size / radius</td><td class="mono">84×84 · 9999</td><td>bg jadeFaint</td></tr>
+      <tr><td></td><td>ring</td><td class="mono">0 0 0 3 surface, 0 0 0 5 jadeFaint</td><td>double halo</td></tr>
+      <tr><td></td><td>initials</td><td class="mono">35 (size·0.42) / 700</td><td>jadeText</td></tr>
+      <tr><td class="lead">Full name</td><td>type / mt</td><td class="mono">19 / 700, mt 14</td><td>text1</td></tr>
+      <tr><td class="lead">Student ID</td><td>type / mt</td><td class="mono">DM Mono 13, mt 4</td><td>text2</td></tr>
+      <tr><td class="lead">Status pill</td><td>padding / gap / mt</td><td class="mono">5/12, gap 7, mt 10</td><td>bg jadeFaint, radius full</td></tr>
+      <tr><td></td><td>dot</td><td class="mono">6×6 round</td><td>jade</td></tr>
+      <tr><td></td><td>label "En ligne"</td><td class="mono">12 / 600</td><td>jadeText</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>TileGroup + TileRow (shared icon-led list)</h3>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">TileGroup</h3>
+      <div class="specrow"><span class="k">Margin</span><span class="v">0 / 16 / 14 / 16</span></div>
+      <div class="specrow"><span class="k">Title</span><span class="v">12.5 / 700 / 0.3 / UPPER · text3</span></div>
+      <div class="specrow"><span class="k">Title margin</span><span class="v">0 / 4 / 8 / 4</span></div>
+      <div class="specrow"><span class="k">Card</span><span class="v">surface · radius 18 · padInline 4</span></div>
+      <div class="specrow"><span class="k">Shadow</span><span class="v">cardShadow</span></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">TileRow</h3>
+      <div class="specrow"><span class="k">Min height</span><span class="v">58</span></div>
+      <div class="specrow"><span class="k">Padding</span><span class="v">left 14 / right 16 · gap 13</span></div>
+      <div class="specrow"><span class="k">Icon chip</span><span class="v">34×34 · radius 11</span></div>
+      <div class="specrow"><span class="k">Icon</span><span class="v">17 · stroke 1.9</span></div>
+      <div class="specrow"><span class="k">Label / sub</span><span class="v">15 / 600 · 12.5 / text3</span></div>
+      <div class="specrow"><span class="k">Value</span><span class="v">14 / 500 · text2 · nowrap</span></div>
+      <div class="specrow"><span class="k">Divider</span><span class="v">1px hair · none on last</span></div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:10px;"><strong>Standardize all icon chips to 34×34 / radius 11</strong> (chips, not circles). The 5 rows here use the canonical chip; do not let any drift to 36 or to a circle.</p>
+
+  <h3>Per-row icon + tint mapping</h3>
+  <div class="card"><table>
+    <thead><tr><th>Row</th><th>Icon</th><th>Tint (light)</th><th>Chip bg</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Filière</td><td class="mono">user</td><td><span class="pill">jadeText #0F6E56</span></td><td class="mono">jadeFaint</td></tr>
+      <tr><td class="lead">Faculté</td><td class="mono">info</td><td class="mono" style="color:#2F7DD1">blue #2F7DD1</td><td class="mono">blueBg</td></tr>
+      <tr><td class="lead">Année</td><td class="mono">cal</td><td class="mono" style="color:#9a5b06">amber #E08A1E</td><td class="mono">amberBg</td></tr>
+      <tr><td class="lead">Email</td><td class="mono">mail</td><td class="mono" style="color:#8B5CF6">violet #8B5CF6</td><td class="mono">examBg</td></tr>
+      <tr><td class="lead">Téléphone</td><td class="mono">phone</td><td class="mono" style="color:#5A6B7B">slate #5A6B7B</td><td class="mono">slateBg · value mono</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- 3 · COLORS -->
+  <h2><span class="n">3</span> Color tokens used</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Light</h3><div id="light"></div></div>
+    <div class="card darkstrip"><h3 style="margin-top:0;color:#ECF1EE;">Dark</h3><div id="dark"></div></div>
+  </div>
+  <p class="note" style="margin-top:14px;">Accent chips pair a <span class="mono">tint</span> stroke with a <span class="mono">tintBg</span> fill (~12% light / ~16% dark). Status-pill uses <span class="mono">jadeText</span> on <span class="mono">jadeFaint</span> in both themes.</p>
+
+  <!-- 4 · COMPONENT INVENTORY -->
+  <h2><span class="n">4</span> Component inventory</h2>
+  <div class="card"><table>
+    <thead><tr><th>Component</th><th>Suggested file</th><th>Props</th><th>Renders</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">AccountScreen</td><td class="mono">account/AccountScreen</td><td class="mono">nav</td><td>Scaffold + identity block + Détails group</td></tr>
+      <tr><td class="lead">IdentityBlock</td><td class="mono">account/IdentityBlock</td><td class="mono">name, id, status</td><td>avatar + name + id + status pill</td></tr>
+      <tr><td class="lead">Avatar*</td><td class="mono">ui/Avatar</td><td class="mono">size, initials, ring</td><td>shared — jadeFaint disc + initials</td></tr>
+      <tr><td class="lead">TileGroup*</td><td class="mono">ui/TileGroup</td><td class="mono">title, children</td><td>shared — labelled elevated card</td></tr>
+      <tr><td class="lead">TileRow*</td><td class="mono">ui/TileRow</td><td class="mono">icon, tint, tintBg, label, value, mono, last</td><td>shared — chip + label + value</td></tr>
+      <tr><td class="lead">Scaffold*</td><td class="mono">ui/Scaffold</td><td class="mono">title, onBack, big, children</td><td>shared — status bar + header + scroll</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">* already exist — reuse. <strong>Zero net-new components</strong>; only IdentityBlock is a thin composition. This screen is the lowest-effort of the set.</p>
+  </div>
+
+  <!-- 5 · STATES -->
+  <h2><span class="n">5</span> States</h2>
+  <div class="card"><table>
+    <thead><tr><th>State</th><th>Treatment</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Loaded</td><td>As specified — identity block + 5 rows.</td></tr>
+      <tr><td class="lead">Loading / skeleton</td><td>Avatar → 84 round skeleton; name/ID → two centered skeleton bars (140×18, 110×13); 5 row skeletons (chip 34 + label bar) inside the group. SkeletonBox shimmer 800ms / ~1600ms cycle.</td></tr>
+      <tr><td class="lead">Empty</td><td><strong>N/A</strong> — identity always exists for a logged-in user. If a field is missing, render the row with value "—" (text3), never hide the row.</td></tr>
+      <tr><td class="lead">Error</td><td>Shared error block (72 round examBg circle + icon, title 16/700, body 14/text2 max-width ~220 centered, retry 168×48). Used when the profile fetch fails.</td></tr>
+      <tr><td class="lead">Offline <span class="tag">cached</span></td><td>Shared OfflineBanner above the identity block (offlineBg, 1px warningBorder, 8×8 offline dot, 12 offlineText). Status pill flips dot→<span class="mono">offline</span> color and label→"Hors ligne" (text2). Cached identity renders normally.</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- 6 · INTERACTIONS -->
+  <h2><span class="n">6</span> Interactions</h2>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Action</th><th>Target ≥44</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Back button</td><td>Pop to previous screen</td><td>38 + 8 hitSlop → ✓</td></tr>
+      <tr><td class="lead">Rows</td><td>Static (read-only). No tap, no chevron.</td><td>—</td></tr>
+      <tr><td class="lead" style="color:var(--ink3)"><span class="tag chg">decide</span> Edit</td><td>If editing is ever wanted, add a single "Modifier" action in the header right-slot → an edit sheet. Out of scope for this polish.</td><td>—</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;"><strong>No overlays, no swipes, no chevrons.</strong> This is a pure read-only display. Don't add chevrons to rows that don't navigate (a current-build sin elsewhere).</p>
+  </div>
+
+  <!-- 7 · DIFFERENCES -->
+  <h2><span class="n">7</span> Differences vs current build</h2>
+  <div class="card"><ul>
+    <li><span class="tag chg">chg</span> Avatar enlarged to 84 with the double ring (was a plain 80 grey circle, off-token).</li>
+    <li><span class="tag add">add</span> Online/offline status pill under the ID — ties identity to connectivity at a glance.</li>
+    <li><span class="tag chg">chg</span> Rows gain tinted icon chips (was a flat label/value list with heavy hairlines).</li>
+    <li><span class="tag chg">chg</span> Grouped elevated card (radius 18) replaces full-bleed rows + #D9D9D9 dividers.</li>
+    <li><span class="tag chg">chg</span> Header uses the shared compact Scaffold; status bar is token-driven (was hardcoded dark-content → invisible in dark mode).</li>
+    <li><span class="tag">keep</span> Reuses Avatar, TileGroup, TileRow, Scaffold — no new chrome.</li>
+  </ul></div>
+
+  <!-- 8 · DARK + RTL -->
+  <h2><span class="n">8</span> Dark mode &amp; RTL</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Dark mode</h3><ul>
+      <li>All surfaces/text/hair swap via tokens; chips lift accents (jade→#2BB989 etc.).</li>
+      <li>Avatar ring inner halo uses surface so the disc still separates from the dark bg.</li>
+      <li>Status pill: jadeText→#5FD3A6 on jadeFaint@16%.</li>
+      <li>Status bar glyphs token-driven — never hardcode dark-content.</li>
+    </ul></div>
+    <div class="card"><h3 style="margin-top:0;">RTL (Arabic)</h3><ul>
+      <li>Root <span class="mono">direction: rtl</span> — back button + chevron-free rows mirror; chips move to the trailing edge, values to the leading edge.</li>
+      <li>Identity block stays centered (direction-agnostic).</li>
+      <li>Copy from <span class="mono">t('account.*')</span>; ID, email, phone stay Latin/DM Mono in both languages.</li>
+      <li>Font switches to Noto Naskh Arabic; verify dark+AR together.</li>
+    </ul></div>
+  </div>
+
+  <!-- 9 · DATA -->
+  <h2><span class="n">9</span> Reference data (FR / AR)</h2>
+  <div class="card"><table>
+    <thead><tr><th>Field</th><th>FR value</th><th>AR value</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Name</td><td>Ahmed Omar</td><td>أحمد عمر</td></tr>
+      <tr><td class="lead">Student ID</td><td class="mono">UDJ-2024-00831</td><td class="mono">UDJ-2024-00831</td></tr>
+      <tr><td class="lead">Filière</td><td>Génie Informatique</td><td>هندسة المعلوماتية</td></tr>
+      <tr><td class="lead">Faculté</td><td>Sciences et Tech.</td><td>العلوم والتكنولوجيا</td></tr>
+      <tr><td class="lead">Année</td><td>L3 — Licence 3</td><td>السنة الثالثة — ليسانس</td></tr>
+      <tr><td class="lead">Email</td><td class="mono">ahmed.omar@univ.dj</td><td class="mono">ahmed.omar@univ.dj</td></tr>
+      <tr><td class="lead">Téléphone</td><td class="mono">+253 77 12 34 56</td><td class="mono">+253 77 12 34 56</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">Placeholder values — wire to the real account record, nothing hardcoded in components.</p>
+  </div>
+</div>
+<script>
+  const light=[['surface','#FFFFFF'],['bg','#F2F5F3'],['text1','#1C2320'],['text2','#6B7B74'],['text3','#9EADA7'],['hair','rgba(28,35,32,0.07)'],['jade','#1D9E75'],['jadeText','#0F6E56'],['jadeFaint','rgba(29,158,117,0.10)'],['blue','#2F7DD1'],['amber','#E08A1E'],['exam','#8B5CF6'],['slate','#5A6B7B']];
+  const dark=[['surface','#17211D'],['bg','#0E1512'],['text1','#ECF1EE'],['text2','#9DB0A8'],['text3','#6E847B'],['hair','rgba(255,255,255,0.08)'],['jade','#2BB989'],['jadeText','#5FD3A6'],['jadeFaint','rgba(43,185,137,0.16)'],['blue','#5AA0E6'],['amber','#F0A84B'],['exam','#A98BF0'],['slate','#9DB0BE']];
+  const swatch=(arr,el)=>{el.innerHTML=arr.map(([n,v])=>`<div class="sw"><span class="chip" style="background:${v}"></span><span class="nm">${n}</span><span class="hex">${v}</span></div>`).join('');};
+  swatch(light,document.getElementById('light'));swatch(dark,document.getElementById('dark'));
+</script>
+</body>
+</html>

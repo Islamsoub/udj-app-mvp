@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Unipocket PWA — Login Screen Spec</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+doc-page:not(:defined){visibility:hidden}
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+doc-page{font-family:'Plus Jakarta Sans',sans-serif;color:#1E231F;font-size:10pt;line-height:1.45}
+a{color:#0F6E56}a:hover{color:#1D9E75}
+h1{font-size:24pt;font-weight:800;letter-spacing:-.5px;margin:0 0 4pt}
+h2{font-size:14pt;font-weight:800;margin:22pt 0 8pt;padding-top:8pt;border-top:1.5px solid #1E231F;break-after:avoid}
+h3{font-size:11pt;font-weight:700;margin:14pt 0 6pt;break-after:avoid}
+p{margin:0 0 6pt}
+.sub{color:#6C7267;font-size:11pt;margin-bottom:14pt}
+.meta{display:flex;gap:18pt;font-size:9pt;color:#6C7267;font-family:'DM Mono',monospace;margin-bottom:6pt}
+code,.m{font-family:'DM Mono',monospace;font-size:9pt}
+table{width:100%;border-collapse:collapse;margin:4pt 0 10pt;font-size:9pt}
+th{text-align:left;font-weight:700;color:#6C7267;font-size:8pt;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid rgba(30,35,31,.25);padding:4pt 6pt}
+td{border-bottom:1px solid rgba(30,35,31,.10);padding:4pt 6pt;vertical-align:top}
+tr{break-inside:avoid}
+td.m,td code{white-space:nowrap}
+.sw{display:inline-block;width:14pt;height:14pt;border-radius:3pt;vertical-align:middle;border:1px solid rgba(30,35,31,.15);margin-right:4pt}
+.figrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14pt;margin:8pt 0 12pt}
+.fig{break-inside:avoid}
+.fig .cap{font-size:8.5pt;color:#6C7267;margin-top:5pt;font-family:'DM Mono',monospace}
+.stack{counter-reset:s;margin:0;padding:0;list-style:none}
+.stack li{counter-increment:s;display:grid;grid-template-columns:22pt 1fr;gap:4pt;padding:3pt 0;border-bottom:1px solid rgba(30,35,31,.08)}
+.stack li::before{content:counter(s);font-family:'DM Mono',monospace;font-size:8.5pt;color:#0F6E56;font-weight:500}
+.ind{padding-left:22pt}
+.icons{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10pt;margin:6pt 0 10pt}
+.icons div{border:1px solid rgba(30,35,31,.12);border-radius:8pt;padding:10pt;text-align:center;font-size:8.5pt;break-inside:avoid}
+.icons img{width:28pt;height:28pt;display:block;margin:0 auto 6pt}
+.icons .ttl{font-weight:700;font-size:9pt}
+.icons .m{color:#6C7267;font-size:8pt}
+.note{font-size:9pt;color:#6C7267}
+/* ---- scoped mock of the real card ---- */
+.mock{--bg:#F7F4EE;--surface:#FFFFFF;--surface2:#F8F5EF;--sunken:#EFEAE0;--ink:#1E231F;--ink2:#6C7267;--ink3:#9CA396;--hair:rgba(30,35,31,.10);--hair2:rgba(30,35,31,.16);--jade:#1D9E75;--jade-hover:#0F6E56;--jade-text:#0F6E56;--jade-faint:rgba(29,158,117,.10);--danger:#EF4444;--danger-bg:rgba(239,68,68,.10);--info:#3B82F6;--info-bg:rgba(59,130,246,.12);background:var(--bg);padding:14pt;border-radius:8pt;color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;line-height:normal}
+.mock.dark{--bg:#15201A;--surface:#1C2721;--surface2:#22302A;--sunken:#0F1713;--ink:#EDF2ED;--ink2:#9FB0A6;--ink3:#71887C;--hair:rgba(255,255,255,.08);--hair2:rgba(255,255,255,.14);--jade:#2BB989;--jade-hover:#3FCB9A;--jade-text:#5FD3A6;--jade-faint:rgba(43,185,137,.16);--danger:#FF6B6B;--danger-bg:rgba(255,107,107,.15);--info:#5AA0E6;--info-bg:rgba(90,160,230,.18)}
+.mock .scale{width:420px;zoom:.72;margin:0 auto}
+.mock .login-card{width:100%;background:var(--surface);border-radius:24px;box-shadow:0 12px 32px rgba(30,35,31,.12);overflow:hidden}
+.mock .login-hero{background:linear-gradient(155deg,var(--jade),var(--jade-hover));padding:40px 32px 30px;text-align:center;color:#fff;position:relative;overflow:hidden}
+.mock .blob{position:absolute;border-radius:50%;background:rgba(255,255,255,.07)}
+.mock .bn{position:relative;font-weight:800;font-size:20px;letter-spacing:-.3px;margin-top:14px;white-space:nowrap}
+.mock .tg{position:relative;font-size:13.5px;color:rgba(255,255,255,.82);margin-top:5px}
+.mock .login-body{padding:28px 28px 30px}
+.mock .field{margin-bottom:16px}
+.mock .field label{display:block;font-size:13.5px;font-weight:600;margin-bottom:7px}
+.mock .inp{height:50px;border-radius:12px;padding:0 14px;font-size:14.5px;color:var(--ink);border:1.5px solid var(--hair2);background:var(--surface);display:flex;align-items:center}
+.mock .inp.mono{font-family:'DM Mono',monospace}
+.mock .inp.focus{border-color:var(--jade);box-shadow:0 0 0 3px var(--jade-faint)}
+.mock .pw .inp{background:var(--jade-faint);border-color:transparent;letter-spacing:2px}
+.mock .err .inp{background:var(--danger-bg);border-color:var(--danger)}
+.mock .errcard{display:flex;gap:10px;background:var(--danger-bg);border:1px solid var(--danger);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:12.5px;color:var(--ink2)}
+.mock .errcard strong{display:block;color:var(--danger);font-size:13.5px;margin-bottom:2px}
+.mock .errcard.info{background:var(--info-bg);border-color:var(--info)}
+.mock .errcard.info strong{color:var(--info)}
+.mock .errcard .ic{width:26px;height:26px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--info)}
+.mock .errcard .ic svg{width:13px;height:13px}
+.mock .lang-chip{position:absolute;top:14px;left:14px;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.16);border-radius:9999px;padding:5px 10px;color:#fff;font-size:11px;font-weight:700;z-index:2}
+.mock .lang-chip svg{width:13px;height:13px}
+.mock .offline-row{display:flex;gap:10px;align-items:flex-start;background:var(--jade-faint);border-radius:12px;padding:11px 12px;margin-bottom:16px}
+.mock .offline-row .ic{width:30px;height:30px;border-radius:8px;background:var(--surface);color:var(--jade-text);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mock .offline-row .ic svg{width:15px;height:15px}
+.mock .tx{flex:1;min-width:0}
+.mock .tx .l{font-size:13px;font-weight:700;margin-bottom:3px;line-height:1.3}
+.mock .tx .h{font-size:11.5px;color:var(--ink2);line-height:1.4}
+.mock .sw2{width:38px;height:22px;border-radius:9999px;background:var(--sunken);position:relative;flex-shrink:0;margin-top:1px}
+.mock .sw2::after{content:'';position:absolute;top:2.5px;left:2.5px;width:17px;height:17px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.mock .sw2.on{background:var(--jade)}.mock .sw2.on::after{left:18.5px}
+.mock .row{margin-bottom:16px;font-size:13px;color:var(--jade-text);text-decoration:underline}
+.mock .btn{height:52px;border-radius:12px;background:var(--jade);color:#fff;font-size:15px;font-weight:700;box-shadow:0 8px 20px rgba(15,110,86,.25);display:flex;align-items:center;justify-content:center}
+.mock .btn.wait{background:var(--sunken);color:var(--ink3);box-shadow:none;font-family:'DM Mono',monospace}
+.mock .hint{text-align:center;font-size:12.5px;color:var(--ink3);margin-top:16px}
+.mock.rtl .scale{direction:rtl;font-family:'Noto Naskh Arabic',serif}
+.mock.rtl .lang-chip{left:auto;right:14px}
+.mock.rtl .sw2::after{left:auto;right:2.5px}
+</style>
+</head>
+<body>
+<doc-page margin="0.6in">
+<div class="meta"><span>UNIPOCKET PWA</span><span>SCREEN: LOGIN</span><span>SOURCE: Unipocket PWA - Login Screen.html</span></div>
+<h1>Login Screen — Build Spec</h1>
+<p class="sub">Every color, size, gradient, layer and asset used on the student login screen. All px values are CSS px at 1×. Light theme is default; dark-theme values follow the same token names.</p>
+
+<div class="figrow">
+<div class="fig"><div class="mock"><div class="scale"><div class="login-card">
+<div class="login-hero"><div class="lang-chip"><img src="icons/globe-lang.svg" alt="" style="width:13px;height:13px;filter:invert(1)"/>FR</div><div class="blob" style="width:180px;height:180px;top:-70px;left:-40px"></div><div class="blob" style="width:160px;height:160px;top:-50px;right:-50px"></div><img src="assets/unipocket-icon-foreground.png" alt="Unipocket" style="width:64px;height:64px;position:relative"/><div class="bn">Université de Djibouti</div><div class="tg">Connectez-vous à votre espace étudiant</div></div>
+<div class="login-body"><div class="field"><label>Numéro étudiant</label><div class="inp mono">UDJ-2024-0451</div></div><div class="field pw"><label>Mot de passe</label><div class="inp">••••••••</div></div>
+<div class="offline-row"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6z"></path></svg></div><div class="tx"><div class="l">Garder mes données hors ligne sur cet appareil</div><div class="h">Déconseillé sur un poste partagé (salle info, bibliothèque)</div></div><div class="sw2"></div></div>
+<div class="row">Mot de passe oublié</div><div class="btn">Se connecter</div></div></div></div></div><div class="cap">A · Light / default</div></div>
+<div class="fig"><div class="mock dark"><div class="scale"><div class="login-card">
+<div class="login-hero"><div class="lang-chip"><img src="icons/globe-lang.svg" alt="" style="width:13px;height:13px;filter:invert(1)"/>FR</div><div class="blob" style="width:180px;height:180px;top:-70px;left:-40px"></div><div class="blob" style="width:160px;height:160px;top:-50px;right:-50px"></div><img src="assets/unipocket-icon-foreground.png" alt="Unipocket" style="width:64px;height:64px;position:relative"/><div class="bn">Université de Djibouti</div><div class="tg">Connectez-vous à votre espace étudiant</div></div>
+<div class="login-body"><div class="field"><label>Numéro étudiant</label><div class="inp mono focus">UDJ-2024-0451</div></div><div class="field pw"><label>Mot de passe</label><div class="inp">••••••••</div></div>
+<div class="offline-row"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6z"></path></svg></div><div class="tx"><div class="l">Garder mes données hors ligne sur cet appareil</div><div class="h">Notes, horaires et présence dispo hors ligne — effacés à la déconnexion</div></div><div class="sw2 on"></div></div>
+<div class="row">Mot de passe oublié</div><div class="btn">Se connecter</div></div></div></div></div><div class="cap">B · Dark / ID focused / offline ON</div></div>
+</div>
+
+<h2>1 · Layer stack (what sits on what)</h2>
+<ol class="stack">
+<li><span><b>Page</b> — <code>#screen-login</code>, full viewport, bg <code>--bg</code>. Flex, centered both axes, padding 24px.</span></li>
+<li><span><b>Card</b> — <code>.login-card</code>, width 100%, max-width 420px, bg <code>--surface</code>, radius 24px, shadow <code>0 12px 32px rgba(30,35,31,.12)</code>, <code>overflow:hidden</code> (clips hero to the card's top corners).</span></li>
+<li><span><b>Hero</b> (top of card) — gradient bg, <code>position:relative; overflow:hidden</code>, text-align center, color #FFF.</span></li>
+<li class="ind"><span>3a · <b>Blob 1</b> — circle 180×180, top −70px, inline-start −40px, rgba(255,255,255,.07). Absolute, behind content.</span></li>
+<li class="ind"><span>3b · <b>Blob 2</b> — circle 160×160, top −50px, inline-end −50px, rgba(255,255,255,.07).</span></li>
+<li class="ind"><span>3c · <b>Language chip</b> — absolute, top 14px, inline-start 14px, z-index 2 (above blobs).</span></li>
+<li class="ind"><span>3d · <b>Logo</b> → <b>Title</b> → <b>Tagline</b> — relative-positioned so they paint above the blobs.</span></li>
+<li><span><b>Body</b> — <code>.login-body</code>, padding 28px 28px 30px. Vertical order: [error card] → ID field → password field → offline row → forgot link → primary button → demo hint.</span></li>
+<li><span><b>Overlays</b> — toast stack (bottom 24px, centered, z 900). Demo control rail (bottom-right, z 500) is <i>prototype-only, do not ship</i>.</span></li>
+</ol>
+
+<h2>2 · Color tokens</h2>
+<table><thead><tr><th>Token</th><th>Light</th><th>Dark</th><th>Used for</th></tr></thead><tbody>
+<tr><td><code>--bg</code></td><td><span class="sw" style="background:#F7F4EE"></span>#F7F4EE</td><td><span class="sw" style="background:#15201A"></span>#15201A</td><td>Page background</td></tr>
+<tr><td><code>--surface</code></td><td><span class="sw" style="background:#FFFFFF"></span>#FFFFFF</td><td><span class="sw" style="background:#1C2721"></span>#1C2721</td><td>Card, input bg, icon tiles</td></tr>
+<tr><td><code>--surface2</code></td><td><span class="sw" style="background:#F8F5EF"></span>#F8F5EF</td><td><span class="sw" style="background:#22302A"></span>#22302A</td><td>Hover fills</td></tr>
+<tr><td><code>--sunken</code></td><td><span class="sw" style="background:#EFEAE0"></span>#EFEAE0</td><td><span class="sw" style="background:#0F1713"></span>#0F1713</td><td>Switch track OFF, disabled button</td></tr>
+<tr><td><code>--ink</code></td><td><span class="sw" style="background:#1E231F"></span>#1E231F</td><td><span class="sw" style="background:#EDF2ED"></span>#EDF2ED</td><td>Labels, input text, toast bg</td></tr>
+<tr><td><code>--ink2</code></td><td><span class="sw" style="background:#6C7267"></span>#6C7267</td><td><span class="sw" style="background:#9FB0A6"></span>#9FB0A6</td><td>Secondary text, error body</td></tr>
+<tr><td><code>--ink3</code></td><td><span class="sw" style="background:#9CA396"></span>#9CA396</td><td><span class="sw" style="background:#71887C"></span>#71887C</td><td>Hint, disabled button text</td></tr>
+<tr><td><code>--hair</code></td><td>rgba(30,35,31,.10)</td><td>rgba(255,255,255,.08)</td><td>Hairlines</td></tr>
+<tr><td><code>--hair2</code></td><td>rgba(30,35,31,.16)</td><td>rgba(255,255,255,.14)</td><td>Input border (default)</td></tr>
+<tr><td><code>--jade</code></td><td><span class="sw" style="background:#1D9E75"></span>#1D9E75</td><td><span class="sw" style="background:#2BB989"></span>#2BB989</td><td>Primary, gradient start, focus border, switch ON</td></tr>
+<tr><td><code>--jade-hover</code></td><td><span class="sw" style="background:#0F6E56"></span>#0F6E56</td><td><span class="sw" style="background:#3FCB9A"></span>#3FCB9A</td><td>Gradient end, button hover</td></tr>
+<tr><td><code>--jade-text</code></td><td><span class="sw" style="background:#0F6E56"></span>#0F6E56</td><td><span class="sw" style="background:#5FD3A6"></span>#5FD3A6</td><td>Links, shield icon</td></tr>
+<tr><td><code>--jade-faint</code></td><td>rgba(29,158,117,.10)</td><td>rgba(43,185,137,.16)</td><td>Password bg, offline row bg, focus ring</td></tr>
+<tr><td><code>--danger</code></td><td><span class="sw" style="background:#EF4444"></span>#EF4444</td><td><span class="sw" style="background:#FF6B6B"></span>#FF6B6B</td><td>Error border + title</td></tr>
+<tr><td><code>--danger-bg</code></td><td>rgba(239,68,68,.10)</td><td>rgba(255,107,107,.15)</td><td>Error card + errored input bg</td></tr>
+<tr><td><code>--info</code></td><td><span class="sw" style="background:#3B82F6"></span>#3B82F6</td><td><span class="sw" style="background:#5AA0E6"></span>#5AA0E6</td><td>Rate-limit card border, title, icon</td></tr>
+<tr><td><code>--info-bg</code></td><td>rgba(59,130,246,.12)</td><td>rgba(90,160,230,.18)</td><td>Rate-limit card bg</td></tr>
+</tbody></table>
+<h3>Fixed colors on the hero (both themes)</h3>
+<table><thead><tr><th>Element</th><th>Value</th></tr></thead><tbody>
+<tr><td>Title, chip text/icon, logo glyph</td><td>#FFFFFF</td></tr>
+<tr><td>Tagline</td><td>rgba(255,255,255,.82)</td></tr>
+<tr><td>Blobs</td><td>rgba(255,255,255,.07)</td></tr>
+<tr><td>Language chip bg</td><td>rgba(255,255,255,.16)</td></tr>
+</tbody></table>
+
+<h2>3 · Gradient &amp; shadows</h2>
+<table><thead><tr><th>Name</th><th>Value</th></tr></thead><tbody>
+<tr><td><b>Hero gradient</b></td><td><code>linear-gradient(155deg, var(--jade) 0%, var(--jade-hover) 100%)</code><br/>Light: #1D9E75 → #0F6E56 &nbsp;·&nbsp; Dark: #2BB989 → #3FCB9A</td></tr>
+<tr><td>Card shadow (lg)</td><td><code>0 12px 32px rgba(30,35,31,.12)</code></td></tr>
+<tr><td>Primary button shadow</td><td><code>0 8px 20px rgba(15,110,86,.25)</code></td></tr>
+<tr><td>Input focus ring</td><td><code>0 0 0 3px var(--jade-faint)</code></td></tr>
+<tr><td>Switch knob</td><td><code>0 1px 3px rgba(0,0,0,.2)</code></td></tr>
+<tr><td>Toast / rail</td><td>Toast: shadow-lg · Rail: <code>0 2px 10px rgba(30,35,31,.06)</code> + <code>backdrop-filter: blur(12px)</code></td></tr>
+<tr><td>Keyboard focus (global)</td><td><code>outline: 2px solid var(--jade); outline-offset: 2px; radius 4px</code></td></tr>
+</tbody></table>
+
+<h2>4 · Typography</h2>
+<p>Fonts (Google Fonts): <b>Plus Jakarta Sans</b> 400–800 (FR UI), <b>Noto Naskh Arabic</b> 400–700 (whole UI when <code>dir="rtl"</code>), <b>DM Mono</b> 400/500 (student ID input + countdown). <code>-webkit-font-smoothing: antialiased</code>.</p>
+<table><thead><tr><th>Element</th><th>Font</th><th>Size</th><th>Weight</th><th>Other</th></tr></thead><tbody>
+<tr><td>Hero title "Université de Djibouti"</td><td>Jakarta</td><td>20px</td><td>800</td><td>letter-spacing −0.3px, nowrap, margin-top 14px</td></tr>
+<tr><td>Hero tagline</td><td>Jakarta</td><td>13.5px</td><td>400</td><td>margin-top 5px, 82% white</td></tr>
+<tr><td>Language chip</td><td>Jakarta</td><td>11px</td><td>700</td><td>"FR" / "AR"</td></tr>
+<tr><td>Field label</td><td>Jakarta</td><td>13.5px</td><td>600</td><td>margin-bottom 7px, color ink</td></tr>
+<tr><td>Student ID input</td><td>DM Mono</td><td>14.5px</td><td>400</td><td>always <code>direction:ltr</code></td></tr>
+<tr><td>Password input</td><td>Jakarta</td><td>14.5px</td><td>400</td><td></td></tr>
+<tr><td>Offline row title</td><td>Jakarta</td><td>13px</td><td>700</td><td>line-height 1.3, mb 3px</td></tr>
+<tr><td>Offline row hint</td><td>Jakarta</td><td>11.5px</td><td>400</td><td>line-height 1.4, ink2</td></tr>
+<tr><td>Forgot password link</td><td>Jakarta</td><td>13px</td><td>400</td><td>jade-text, underlined (browser default)</td></tr>
+<tr><td>Primary button</td><td>Jakarta</td><td>15px</td><td>700</td><td>white</td></tr>
+<tr><td>Countdown button</td><td>DM Mono</td><td>15px</td><td>700</td><td>ink3 on sunken</td></tr>
+<tr><td>Error card title / body</td><td>Jakarta</td><td>13.5 / 12.5px</td><td>700 / 400</td><td>title mb 2px</td></tr>
+<tr><td>Demo hint</td><td>Jakarta</td><td>12.5px</td><td>400 (link 600)</td><td>ink3, centered, mt 16px</td></tr>
+<tr><td>Toast</td><td>Jakarta</td><td>13.5px</td><td>600</td><td>ink bg, bg-colored text</td></tr>
+</tbody></table>
+
+<h2>5 · Component specs</h2>
+<h3>Hero</h3>
+<table><tbody>
+<tr><td>Padding</td><td>40px top · 32px sides · 30px bottom</td></tr>
+<tr><td>Logo</td><td><code>assets/unipocket-icon-foreground.png</code> (1024×1024 transparent PNG, white U glyph) rendered at <b>64×64</b>, centered, no tile behind it</td></tr>
+<tr><td>Language chip</td><td>Pill (9999px), padding 5px 10px, gap 5px, globe icon 13×13 stroke 2, no border. Toggles FR ↔ AR and fires a toast</td></tr>
+</tbody></table>
+<h3>Text inputs</h3>
+<table><thead><tr><th>State</th><th>Background</th><th>Border</th><th>Extra</th></tr></thead><tbody>
+<tr><td>Default (ID)</td><td>--surface</td><td>1.5px --hair2</td><td>—</td></tr>
+<tr><td>Password (default)</td><td>--jade-faint</td><td>1.5px transparent</td><td>—</td></tr>
+<tr><td>Focus</td><td>unchanged</td><td>1.5px --jade</td><td>ring 3px --jade-faint</td></tr>
+<tr><td>Error</td><td>--danger-bg</td><td>1.5px --danger</td><td>applied to both fields</td></tr>
+</tbody></table>
+<p>Size: width 100%, height <b>50px</b>, radius 12px, padding 0 14px. Field spacing: 16px below each field. Transition all .15s.</p>
+<h3>Offline-storage row</h3>
+<table><tbody>
+<tr><td>Container</td><td>flex, gap 10px, align-items flex-start, bg --jade-faint, radius 12px, padding 11px 12px, mb 16px</td></tr>
+<tr><td>Icon tile</td><td>30×30, radius 8px, bg --surface, shield icon 15×15 in --jade-text</td></tr>
+<tr><td>Switch</td><td>38×22 pill. Track OFF --sunken / ON --jade. Knob 17×17 white circle at top 2.5px, inline-start 2.5px (OFF) → 18.5px (ON). Transition .1s cubic-bezier(0,0,.2,1)</td></tr>
+<tr><td>Hint copy</td><td>swaps OFF→ON text (see §7)</td></tr>
+</tbody></table>
+<h3>Primary button</h3>
+<table><tbody>
+<tr><td>Default</td><td>width 100%, height <b>52px</b>, radius 12px, bg --jade, white 15/700, shadow 0 8px 20px rgba(15,110,86,.25), no border</td></tr>
+<tr><td>Hover</td><td>bg --jade-hover</td></tr>
+<tr><td>Rate-limited (disabled)</td><td>bg --sunken, text --ink3, no shadow, DM Mono, label "Réessayer dans 47 s" counting down 1/s, re-enabled at 0</td></tr>
+</tbody></table>
+<h3>Alert cards (top of body)</h3>
+<table><tbody>
+<tr><td>Shared</td><td>flex, gap 10px, radius 12px, padding 12px 14px, 1px border, mb 16px</td></tr>
+<tr><td>Wrong credentials</td><td>bg --danger-bg, border --danger, title --danger. No icon. Both inputs switch to error state</td></tr>
+<tr><td>Network rate-limit</td><td>bg --info-bg, border --info, title --info. Icon: 26×26 circle, bg --surface, wifi icon 13×13 in --info. Inputs stay neutral</td></tr>
+<tr><td>Dismiss</td><td>Clicking the ID field hides both cards and clears error state</td></tr>
+</tbody></table>
+<h3>Radii summary</h3>
+<p>sm 8px (offline icon tile) · md 12px (inputs, button, cards, offline row) · 2xl 24px (login card) · pill 9999px (chip, switch, toast). Toast: padding 11px 18px, enters with opacity 0→1 + translateY 8→0 over .2s, auto-dismiss 2.2s.</p>
+
+<h2>6 · Icons &amp; image assets</h2>
+<p>All icons: 24×24 viewBox, <code>fill:none; stroke:currentColor; stroke-width:2; round caps/joins</code>. Color comes from the parent's <code>color</code>.</p>
+<div class="icons">
+<div><img src="icons/globe-lang.svg" alt=""/><div class="ttl">Globe</div><div class="m">icons/globe-lang.svg</div><div class="m">13px · #FFF · lang chip</div></div>
+<div><img src="icons/shield-offline.svg" alt=""/><div class="ttl">Shield</div><div class="m">icons/shield-offline.svg</div><div class="m">15px · jade-text · offline row</div></div>
+<div><img src="icons/wifi-rate-limit.svg" alt=""/><div class="ttl">Wi-Fi</div><div class="m">icons/wifi-rate-limit.svg</div><div class="m">13px · info · rate-limit card</div></div>
+<div><img src="icons/gear-demo-only.svg" alt=""/><div class="ttl">Gear</div><div class="m">icons/gear-demo-only.svg</div><div class="m">16px · demo rail only</div></div>
+</div>
+<table><thead><tr><th>Image</th><th>File</th><th>Notes</th></tr></thead><tbody>
+<tr><td>Hero logo</td><td><code>assets/unipocket-icon-foreground.png</code></td><td>1024×1024, transparent; displayed 64×64</td></tr>
+<tr><td>App icon (reference)</td><td><code>assets/unipocket-icon.png</code></td><td>Full icon with background — not used on login, included for manifest/PWA</td></tr>
+</tbody></table>
+
+<h2>7 · Copy (FR / AR)</h2>
+<table><thead><tr><th>Key</th><th>Français</th><th>العربية</th></tr></thead><tbody>
+<tr><td>Title</td><td>Université de Djibouti</td><td dir="rtl" style="font-family:'Noto Naskh Arabic'">جامعة جيبوتي</td></tr>
+<tr><td>Tagline</td><td>Connectez-vous à votre espace étudiant</td><td dir="rtl" style="font-family:'Noto Naskh Arabic'">سجّل الدخول إلى فضائك الطلابي</td></tr>
+<tr><td>ID label / placeholder</td><td>Numéro étudiant · UDJ-2024-0451</td><td dir="rtl" style="font-family:'Noto Naskh Arabic'">الرقم الجامعي</td></tr>
+<tr><td>Password label</td><td>Mot de passe · ••••••••</td><td dir="rtl" style="font-family:'Noto Naskh Arabic'">كلمة المرور</td></tr>
+<tr><td>Offline title</td><td>Garder mes données hors ligne sur cet appareil</td><td dir="rtl" style="font-family:'Noto Naskh Arabic'">الاحتفاظ ببياناتي دون اتصال على هذا الجهاز</td></tr>
+<tr><td>Offline hint (OFF)</td><td>Déconseillé sur un poste partagé (salle info, bibliothèque)</td><td dir="rtl" style="font-family:'Noto Naskh Arabic'">لا يُنصح به عند استخدام جهاز مشترك (قاعة الحاسوب، المكتبة)</td></tr>
+<tr><td>Offline hint (ON)</td><td>Notes, horaires et présence dispo hors ligne — effacés à la déconnexion</td><td dir="rtl" style="font-family:'Noto Naskh Arabic'">الدرجات والجدول والحضور متاحة دون اتصال — تُحذف عند تسجيل الخروج</td></tr>
+<tr><td>Forgot link</td><td>Mot de passe oublié</td><td dir="rtl" style="font-family:'Noto Naskh Arabic'">نسيت كلمة المرور</td></tr>
+<tr><td>Button</td><td>Se connecter</td><td dir="rtl" style="font-family:'Noto Naskh Arabic'">تسجيل الدخول</td></tr>
+<tr><td>Countdown</td><td>Réessayer dans {s} s</td><td dir="rtl" style="font-family:'Noto Naskh Arabic'">أعد المحاولة بعد {s} ث</td></tr>
+<tr><td>Error — credentials</td><td><b>Identifiants incorrects</b> — Vérifiez votre numéro étudiant et votre mot de passe. Il vous reste 3 tentatives.</td><td dir="rtl" style="font-family:'Noto Naskh Arabic'"><b>بيانات الدخول غير صحيحة</b> — تحقق من رقمك الجامعي وكلمة المرور. لديك 3 محاولات متبقية.</td></tr>
+<tr><td>Error — rate limit</td><td><b>Réseau très sollicité</b> — Trop de connexions depuis ce réseau. Ce n'est pas lié à vos identifiants.</td><td dir="rtl" style="font-family:'Noto Naskh Arabic'"><b>الشبكة مزدحمة حالياً</b> — عدد كبير من محاولات الدخول من هذه الشبكة. لا علاقة لبيانات دخولك بالأمر.</td></tr>
+<tr><td>Lang toast</td><td>Français activé</td><td dir="rtl" style="font-family:'Noto Naskh Arabic'">العربية مفعّلة</td></tr>
+</tbody></table>
+<p class="note">RTL: set <code>&lt;html dir="rtl" lang="ar"&gt;</code>. All positioning uses logical properties (<code>inset-inline-start/end</code>), so the lang chip, blobs and switch knob mirror automatically. The student ID input stays LTR.</p>
+
+<h2 style="break-before:page">8 · States</h2>
+<div class="figrow">
+<div class="fig"><div class="mock"><div class="scale"><div class="login-card"><div class="login-body">
+<div class="errcard"><div><strong>Identifiants incorrects</strong>Vérifiez votre numéro étudiant et votre mot de passe. Il vous reste 3 tentatives.</div></div>
+<div class="field err"><label>Numéro étudiant</label><div class="inp mono">UDJ-2024-0451</div></div><div class="field pw err"><label>Mot de passe</label><div class="inp">••••••••</div></div><div class="btn">Se connecter</div></div></div></div></div><div class="cap">C · Wrong credentials</div></div>
+<div class="fig"><div class="mock"><div class="scale"><div class="login-card"><div class="login-body">
+<div class="errcard info"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.5a16 16 0 0 1 20 0"></path><path d="M5.5 12.5a11 11 0 0 1 13 0"></path><path d="M9 16.5a5.5 5.5 0 0 1 6 0"></path><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"></circle></svg></div><div><strong>Réseau très sollicité</strong>Trop de connexions depuis ce réseau. Ce n'est pas lié à vos identifiants.</div></div>
+<div class="field"><label>Numéro étudiant</label><div class="inp mono">UDJ-2024-0451</div></div><div class="field pw"><label>Mot de passe</label><div class="inp">••••••••</div></div><div class="btn wait">Réessayer dans 47 s</div></div></div></div></div><div class="cap">D · Network rate-limit (countdown)</div></div>
+</div>
+<div class="figrow">
+<div class="fig"><div class="mock rtl"><div class="scale"><div class="login-card">
+<div class="login-hero"><div class="lang-chip"><img src="icons/globe-lang.svg" alt="" style="width:13px;height:13px;filter:invert(1)"/>AR</div><div class="blob" style="width:180px;height:180px;top:-70px;right:-40px"></div><div class="blob" style="width:160px;height:160px;top:-50px;left:-50px"></div><img src="assets/unipocket-icon-foreground.png" alt="Unipocket" style="width:64px;height:64px;position:relative"/><div class="bn">جامعة جيبوتي</div><div class="tg">سجّل الدخول إلى فضائك الطلابي</div></div>
+<div class="login-body"><div class="field"><label>الرقم الجامعي</label><div class="inp mono" style="direction:ltr;justify-content:flex-end">UDJ-2024-0451</div></div><div class="field pw"><label>كلمة المرور</label><div class="inp">••••••••</div></div><div class="btn">تسجيل الدخول</div></div></div></div></div><div class="cap">E · Arabic / RTL</div></div>
+<div class="fig"><table><thead><tr><th>Trigger</th><th>Result</th></tr></thead><tbody>
+<tr><td>Lang chip tap</td><td>FR↔AR, flips <code>dir</code>, swaps font family, toast</td></tr>
+<tr><td>Switch tap</td><td>Track → jade, knob slides 16px, hint copy swaps</td></tr>
+<tr><td>Auth 401</td><td>State C</td></tr>
+<tr><td>Auth 429</td><td>State D, button locked 47 s</td></tr>
+<tr><td>Tap ID field</td><td>Clears C / D cards and error borders</td></tr>
+<tr><td>Submit OK</td><td>Navigate to Home (prototype: toast)</td></tr>
+</tbody></table></div>
+</div>
+
+<h2>9 · Package contents (zip)</h2>
+<table><tbody>
+<tr><td><code>Login Screen Spec.html</code></td><td>This document (PDF source)</td></tr>
+<tr><td><code>assets/</code></td><td>unipocket-u-mark.svg (U-only mark, currentColor), unipocket-u-tile.svg (mark on jade tile), unipocket-icon-foreground.png (hero logo), unipocket-icon.png</td></tr>
+<tr><td><code>icons/</code></td><td>globe-lang.svg, shield-offline.svg, wifi-rate-limit.svg, gear-demo-only.svg</td></tr>
+<tr><td><code>tokens/</code></td><td>tokens.css (CSS custom properties, light + dark), tokens.json (colors, radii, shadows, gradient, fonts)</td></tr>
+<tr><td><code>source/</code></td><td>login-screen.html (working prototype), login-screen.css (full stylesheet)</td></tr>
+<tr><td><code>screenshots/</code></td><td>Light default, credential error, rate limit, dark + offline ON, Arabic RTL</td></tr>
+</tbody></table>
+</doc-page>
+<script src="doc-page.js"></script>
+</body>
+</html>

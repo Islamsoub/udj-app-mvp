@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>UDJ — Grades (Notes) Implementation Spec</title>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" rx="22" fill="#0F6E56"/>
+    <text x="50" y="62" font-family="monospace" font-size="30" font-weight="700" fill="#fff" text-anchor="middle">12.3</text>
+    <rect x="28" y="72" width="44" height="5" rx="2.5" fill="rgba(255,255,255,0.35)"/>
+    <rect x="28" y="72" width="27" height="5" rx="2.5" fill="#fff"/>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#F2F5F3; --surface:#fff; --surface2:#F4F7F5; --sunken:#ECEFEC; --ink:#1C2320; --ink2:#6B7B74; --ink3:#9EADA7;
+    --hair:rgba(28,35,32,0.10); --jade:#1D9E75; --jade6:#0F6E56; --amber:#E08A1E; --danger:#EF4444; --blue:#2F7DD1; --violet:#8B5CF6; --slate:#5A6B7B;
+    --sans:'Plus Jakarta Sans',sans-serif; --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1020px;margin:0 auto;padding:56px 32px 110px;}
+  h1{font-size:34px;font-weight:800;letter-spacing:-0.8px;margin:0;}
+  .sub{color:var(--ink2);font-size:15px;margin-top:8px;max-width:70ch;line-height:1.55;}
+  h2{font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--jade6);margin:50px 0 18px;display:flex;align-items:center;gap:10px;}
+  h2 .n{width:22px;height:22px;border-radius:7px;background:var(--jade6);color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+  h3{font-size:17px;font-weight:700;margin:26px 0 10px;}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:18px;padding:22px;box-shadow:0 1px 2px rgba(28,35,32,0.04);}
+  .grid{display:grid;gap:14px;}
+  .g2{grid-template-columns:1fr 1fr;}
+  .g3{grid-template-columns:1fr 1fr 1fr;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:start;padding:8px 10px;border-bottom:1px solid var(--hair);vertical-align:top;}
+  th{font-size:11px;letter-spacing:0.6px;text-transform:uppercase;color:var(--ink3);font-weight:700;}
+  td.mono,.mono{font-family:var(--mono);font-size:12px;}
+  .lead{font-weight:700;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:3px 9px;border-radius:9999px;background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .pill.amber{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .pill.red{background:rgba(239,68,68,0.12);color:#b91c1c;}
+  .pill.blue{background:rgba(47,125,209,0.12);color:#1f5fa6;}
+  .pill.violet{background:rgba(139,92,246,0.14);color:#6d3fd6;}
+  .pill.slate{background:rgba(90,107,123,0.14);color:#46535f;}
+  .note{font-size:13px;color:var(--ink2);line-height:1.55;}
+  .specrow{font-size:13px;display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px solid var(--hair);}
+  .specrow:last-child{border-bottom:none;}
+  .specrow .k{color:var(--ink2);}
+  .specrow .v{font-family:var(--mono);font-size:12px;text-align:end;}
+  ul{margin:8px 0 0;padding-inline-start:20px;}
+  li{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:5px;}
+  .sw{display:flex;align-items:center;gap:11px;padding:7px 0;border-bottom:1px solid var(--hair);font-size:13px;}
+  .sw:last-child{border-bottom:none;}
+  .chip{width:28px;height:28px;border-radius:8px;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);}
+  .nm{font-weight:600;}
+  .hex{font-family:var(--mono);color:var(--ink2);font-size:12px;margin-inline-start:auto;}
+  .darkstrip{background:#0E1512;border-radius:14px;padding:14px 16px;}
+  .darkstrip .sw{border-color:rgba(255,255,255,0.08);color:#ECF1EE;}
+  .darkstrip .hex{color:#9DB0A8;}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:6px;background:rgba(28,35,32,0.06);color:var(--ink2);}
+  .tag.add{background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .tag.chg{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .tag.fix{background:rgba(239,68,68,0.10);color:#b91c1c;}
+  .tag.dec{background:rgba(47,125,209,0.12);color:#1f5fa6;}
+  .tree{font-family:var(--mono);font-size:12.5px;line-height:1.85;color:var(--ink);white-space:pre;overflow-x:auto;}
+  .tree .c{color:var(--ink3);}
+  .tree .v{color:var(--jade6);}
+  .decision{margin:18px 0 0;padding:20px 22px;border-radius:18px;background:linear-gradient(140deg,#0F6E56,#0B5544);color:#fff;box-shadow:0 12px 28px rgba(15,110,86,0.22);}
+  .decision .dk{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,0.7);}
+  .decision h3{margin:5px 0 0;font-size:18px;font-weight:800;letter-spacing:-0.3px;color:#fff;}
+  .decision p{font-size:13.5px;line-height:1.55;color:rgba(255,255,255,0.9);margin:8px 0 0;}
+  .decision .rec{display:inline-block;margin-top:12px;background:rgba(255,255,255,0.16);border-radius:10px;padding:8px 13px;font-size:12.5px;font-weight:700;}
+  @media print{.wrap{padding:0;}.card,.decision{break-inside:avoid;}}
+  @media(max-width:760px){.g2,.g3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>UDJ — Grades Spec</h1>
+  <p class="sub">Implementation reference for the polished <strong>Notes / الدرجات</strong> screen (relevé) and its two sheets — <strong>GradeCalculatorSheet</strong> and <strong>GPAHistorySheet</strong> — in the <strong>Soft Elevated</strong> language. The GPA becomes a <strong>jade hero card</strong> (Présence parity); subjects become Soft Elevated cards. Values are the source of truth — wire them as tokens, don't hardcode. Supports light, dark and RTL. Targeted at the 15+ off-grid literals, 10+ hardcoded hex, and the divider/banner token bugs from the investigation — not a rewrite.</p>
+
+  <!-- 0 · DECISIONS -->
+  <h2><span class="n">0</span> Key decisions</h2>
+  <div class="decision">
+    <div class="dk">Decision 1 · GPA header</div>
+    <h3>Jade full-bleed header → jade gradient HERO CARD inside the scroll.</h3>
+    <p>Adopt the <strong>Présence hero</strong> treatment: the same 150° jade→jade700 gradient card (rHero 22, brand glow) now holds the GPA, mention badge and credits, sitting on the app <span class="mono">bg</span> with normal side padding. This kills the status-bar bleed and the four fragile fixed header heights (305/235/195/138) — the card sizes to its content — and makes Notes visually rhyme with Présence (the app's other "headline metric" surface).</p>
+    <span class="rec">Hero card. One intrinsic height across all states.</span>
+  </div>
+  <div class="decision" style="margin-top:12px;">
+    <div class="dk">Decision 2 · Subject cards</div>
+    <h3>Soft Elevated (surface + cardShadow), drop the borders.</h3>
+    <p>Same as every other card in the app: <span class="mono">surface · rTile 18 · cardShadow</span>, no 1px border, no off-token radius 14. The 4 metrics move into a recessed <span class="mono">surface2</span> strip so the card reads as one object.</p>
+    <span class="rec">surface + cardShadow + rTile 18.</span>
+  </div>
+  <div class="decision" style="margin-top:12px;">
+    <div class="dk">Decision 3 · The 4-column grid</div>
+    <h3>Keep the four metrics, drop the divider grid.</h3>
+    <p><strong>CC · CF · COEF · NF</strong> stay (students expect them), but the heavy vertical/horizontal rules — which currently mis-use <span class="mono">textSecondary</span> as a divider colour — are removed. Four equal flex cells in one <span class="mono">surface2</span> strip, separated by space (optional 1px <span class="mono">hair</span> hairlines at 60% height). <strong>NF</strong> is the result, so it carries the level colour. A real full-width progress bar (NF/20) replaces the 3px / hardcoded-298 bar.</p>
+    <span class="rec">4 cells, no rule-grid, NF emphasised, % progress bar.</span>
+  </div>
+  <div class="decision" style="margin-top:12px;">
+    <div class="dk">Decision 4 · Mention badge in dark mode</div>
+    <h3>On the gradient: white@18% pill + level dot. Off-gradient: tokenised mention map.</h3>
+    <p>Because the hero gradient is <strong>identical in dark mode</strong> (brand anchor, per Présence), the badge is <span class="mono">#fff@18%</span> bg + white text + a small level dot — so there are <strong>no per-mention dark colours to maintain</strong>. The hardcoded light-only <span class="mono">colorMap</span> is replaced by <span class="mono">mentionColor(score)</span> → theme tokens (§7) for any place a mention shows on a light surface.</p>
+    <span class="rec">white@18% on hero · mentionColor() token map elsewhere.</span>
+  </div>
+
+  <!-- 1 · LAYOUT TREE -->
+  <h2><span class="n">1</span> Layout tree (render order)</h2>
+  <div class="card">
+<div class="tree">GradesScreen  <span class="c">// fixed status bar + PINNED header (title + calc + semester tabs) + scrolling list + floating nav</span>
+├─ StatusBar                <span class="c">44 tall · token barStyle (NOT hardcoded — header is bg now, not jade)</span>
+├─ Header  <span class="c">(non-scrolling · casts cardShadow when list scrolls under it)</span>
+│   ├─ Title "Notes"         <span class="c">24 (FR) / 26 (AR) · 800</span>
+│   └─ CalcButton            <span class="c">38×38 circle · surface · cardShadow · calc glyph → GradeCalculatorSheet</span>
+├─ SemesterControl           <span class="v">segmented · 2 segments · jade active · RTL-mirrors</span>
+└─ ScrollBody  <span class="c">(paddingInline 16 · paddingTop 14 · paddingBottom 92 clears floating nav)</span>
+    ├─ GpaHeroCard           <span class="v">jade gradient · label + GPA(mono) + mention badge + credits bar · tap → GPAHistorySheet</span>
+    ├─ SectionLabel "Par matière"
+    └─ SubjectList           <span class="c">column · gap 12</span>
+        └─ SubjectCard ×n    <span class="c">name + status pill · CC/CF/COEF/NF strip · progress bar · at-risk hint</span>
+
+GradeCalculatorSheet  <span class="c">// overlay · scrim · slide-up</span>
+├─ GrabHandle · Title + subtitle
+├─ SubjectPicker  <span class="c">surface2 dropdown → option sheet (BOTH directions, not forward-only)</span>
+├─ CurrentRow "Note CC actuelle" <span class="c">surface2 inset · label + jade value /20</span>
+├─ TargetInput "Note finale visée"
+├─ ResultBlock  <span class="c">computed required exam note (appears after Calculer)</span>
+└─ PrimaryBtn "Calculer"
+
+GPAHistorySheet  <span class="c">// overlay · scrim · slide-up</span>
+├─ GrabHandle · Title "Évolution de la moyenne" + subtitle
+├─ Chart           <span class="v">responsive width (measured) · line + points + admission threshold + band + current pill</span>
+└─ CurrentBlock    <span class="c">"Moyenne actuelle" label + GPA(jade) + /20 + hint</span></div>
+  </div>
+  <p class="note" style="margin-top:12px;"><strong>Pinned vs scroll:</strong> title + calc + semester control are <em>pinned</em>; the hero + subject cards scroll under them (header gains <span class="mono">cardShadow</span> on scroll, like Home/Schedule). Switching semester re-filters the cached relevé and updates both the hero and the list. One vertical scroll, no nested regions.</p>
+
+  <!-- 2 · MEASURED VALUES -->
+  <h2><span class="n">2</span> Measured values</h2>
+
+  <h3>Pinned header + semester control</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Status bar</td><td>height / style</td><td class="mono">44 · token barStyle</td><td><span class="tag fix">fix</span> header no longer jade → don't force light-content</td></tr>
+      <tr><td class="lead">Header</td><td>padding</td><td class="mono">2 / 20 / 12 / 20</td><td>bg · flex space-between align center</td></tr>
+      <tr><td></td><td>title</td><td class="mono">24 (FR) / 26 (AR) · 800 · -0.5 track</td><td>text1</td></tr>
+      <tr><td></td><td>calc button</td><td class="mono">38×38 · radius 9999</td><td>surface + cardShadow · glyph 19 text1</td></tr>
+      <tr><td class="lead">Semester control</td><td>box / mt</td><td class="mono">segmented · h 38 · radius 12 · mt 4</td><td>track sunken · 3 pad · margin-inline 20</td></tr>
+      <tr><td></td><td>segment</td><td class="mono">flex:1 · radius 9 · 13.5/600(700 active)</td><td>active bg jade · #fff · else text2</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;"><span class="tag chg">chg</span> The current white underline-tab bar becomes a <strong>segmented control</strong> (jade active fill) — clearer as a 2-way filter and trivially RTL-mirrored. (Underline tabs are an acceptable alternative; if kept, tokenise the active colour to jade and the rail to hair.)</p>
+  </div>
+
+  <h3>GpaHeroCard (Présence parity)</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Card</td><td>radius / pad / mt</td><td class="mono">22 (rHero) · 20 · 14</td><td>position relative · overflow hidden</td></tr>
+      <tr><td></td><td>background</td><td class="mono">linear 150° jade→jade700</td><td>#1D9E75 → #0B5544</td></tr>
+      <tr><td></td><td>shadow</td><td class="mono">0 12px 28px rgba(15,110,86,.30)</td><td>brand glow</td></tr>
+      <tr><td class="lead">Label</td><td>type</td><td class="mono">12.5 / 700 / 0.4 track / UPPER</td><td>#fff@78% · "Moyenne générale · Semestre 1"</td></tr>
+      <tr><td class="lead">GPA value</td><td>type / mt</td><td class="mono">DM Mono 42 / 500 · mt 6</td><td><span class="tag chg">chg</span> was 52 · #fff · "12.28"</td></tr>
+      <tr><td></td><td>"/20" suffix</td><td class="mono">DM Mono 17 / 400</td><td>#fff@70% · inline after value</td></tr>
+      <tr><td class="lead">Mention badge</td><td>bg / radius / pad</td><td class="mono">#fff@18% · full · 5/11</td><td><span class="tag fix">fix</span> was hardcoded colorMap · 13/700 #fff</td></tr>
+      <tr><td></td><td>level dot</td><td class="mono">6×6 round · mention band colour</td><td>on-gradient literal (§7)</td></tr>
+      <tr><td class="lead">Credits</td><td>label / mt</td><td class="mono">13 / 400 · mt 14</td><td>#fff@85% · "Crédits : 24/32"</td></tr>
+      <tr><td></td><td>credits bar</td><td class="mono">h 4 · radius full · mt 7</td><td>track #fff@25% · fill #fff = 24/32</td></tr>
+      <tr><td class="lead">History affordance</td><td>glyph / pos</td><td class="mono">chart 16 · top 18 · inset-inline-end 18</td><td>#fff@70% · whole card tappable</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">The hero is the canonical GPA surface — the Home "GPA" stat tile and this hero must read the same figure (<span class="mono">12.28</span> → "12.3" rounded on Home). Tapping anywhere on the hero opens GPAHistorySheet. Gradient is <strong>unchanged in dark mode</strong>.</p>
+  </div>
+
+  <h3>SubjectCard (×n)</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Card</td><td>bg / radius / shadow</td><td class="mono">surface · 18 (rTile) · cardShadow</td><td><span class="tag fix">fix</span> was radius 14 + border</td></tr>
+      <tr><td></td><td>padding / list gap</td><td class="mono">16 · gap 12</td><td><span class="tag fix">fix</span> margin 15 → padInline 16 (grid)</td></tr>
+      <tr><td class="lead">Top row</td><td>layout</td><td class="mono">flex · space-between · align center · gap 10</td><td>—</td></tr>
+      <tr><td></td><td>name</td><td class="mono">16 / 700</td><td>text1 · flex · 2-line clamp</td></tr>
+      <tr><td></td><td>status pill</td><td class="mono">statusBg · full · 5/12 · <strong>hug-width</strong></td><td><span class="tag fix">fix</span> was 65×21 fixed · 13/700</td></tr>
+      <tr><td class="lead">Metric strip</td><td>bg / radius / pad / mt</td><td class="mono">surface2 · 12 (rMd) · 12/8 · mt 12</td><td>flex · 4 equal cells</td></tr>
+      <tr><td></td><td>cell label</td><td class="mono">11 / 700 / 0.4 / UPPER</td><td>text3 · "CC · CF · COEF · NF"</td></tr>
+      <tr><td></td><td>cell value</td><td class="mono">DM Mono 16 / 500 · mt 3</td><td>text1 · NF = level colour</td></tr>
+      <tr><td></td><td>cell divider</td><td class="mono">1px hair · 60% height (optional)</td><td><span class="tag fix">fix</span> was textSecondary</td></tr>
+      <tr><td class="lead">Progress bar</td><td>h / radius / mt</td><td class="mono">6 · full · 12</td><td><span class="tag fix">fix</span> was 3px + hardcoded 298 width</td></tr>
+      <tr><td></td><td>track / fill</td><td class="mono">sunken · width = NF/20·100%</td><td>fill = level colour</td></tr>
+      <tr><td class="lead">At-risk hint</td><td>layout / mt</td><td class="mono">flex · gap 6 · mt 9 (only if at risk)</td><td><span class="tag fix">fix</span> was offlineBg orange banner</td></tr>
+      <tr><td></td><td>icon / text</td><td class="mono">alert 13 + 12.5/600</td><td>danger · "Sous la moyenne"</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;"><strong>One level token drives the card:</strong> NF value colour, progress fill, status pill and at-risk hint all come from the same <span class="mono">level</span> (validated / borderline / at-risk) — never mix. The recessed <span class="mono">surface2</span> metric strip + space (not rules) makes the four numbers scan cleanly without the divider-colour bug.</p>
+  </div>
+
+  <h3>Status pill + level map</h3>
+  <div class="card"><table>
+    <thead><tr><th>Level</th><th>Condition</th><th>Pill</th><th>fg / bg</th><th>NF + bar</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Validé</td><td class="mono">NF ≥ 10</td><td><span class="pill">Validé</span></td><td class="mono">jadeText / jadeFaint</td><td>jade</td></tr>
+      <tr><td class="lead">Limite</td><td class="mono">8 ≤ NF &lt; 10</td><td><span class="pill amber">Limite</span></td><td class="mono">amber / amberBg</td><td>amber</td></tr>
+      <tr><td class="lead">À Risque</td><td class="mono">NF &lt; 8 (or eliminatory)</td><td><span class="pill red">À Risque</span></td><td class="mono">danger / dangerBg</td><td>danger</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">Two-state (Validé / À Risque) is the current build; the <strong>Limite</strong> amber tier is recommended so a 8–10 NF reads as "compensable, watch out" rather than failing outright. Drop if the academic rule is strictly pass/fail at 10.</p>
+  </div>
+
+  <h3>GradeCalculatorSheet</h3>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Shell &amp; fields</h3>
+      <div class="specrow"><span class="k">Sheet top radius</span><span class="v">24 (r2xl) · slide-up</span></div>
+      <div class="specrow"><span class="k">Grab handle</span><span class="v">38×5 · hair2</span></div>
+      <div class="specrow"><span class="k">Handle colour</span><span class="v"><span class="tag fix">fix</span> was '#E5E5E5'</span></div>
+      <div class="specrow"><span class="k">Title / subtitle</span><span class="v">17/700 · 13/text2</span></div>
+      <div class="specrow"><span class="k">Section label</span><span class="v">12.5/700 UPPER · text3</span></div>
+      <div class="specrow"><span class="k">Subject picker</span><span class="v">surface2 · rMd 12 · 1px hair · 50 tall</span></div>
+      <div class="specrow"><span class="k">Picker chevron</span><span class="v">chevron 16 · text3 · opens option sheet</span></div>
+      <div class="specrow"><span class="k">Current row</span><span class="v">surface2 · rMd 12 · pad 14/16</span></div>
+      <div class="specrow"><span class="k">Current value</span><span class="v">DM Mono 17/600 jade + "/20" text3</span></div>
+      <div class="specrow"><span class="k">Target input</span><span class="v">surface2 · rMd 12 · 1px hair (focus jade)</span></div>
+      <div class="specrow"><span class="k">Calculer</span><span class="v">50 tall · rBtn 14 · jade</span></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">GPAHistorySheet</h3>
+      <div class="specrow"><span class="k">Sheet / handle</span><span class="v">r2xl · 38×5 hair2 <span class="tag fix">fix</span> '#E5E5E5'</span></div>
+      <div class="specrow"><span class="k">Title</span><span class="v">"Évolution de la moyenne" 17/700</span></div>
+      <div class="specrow"><span class="k">Subtitle</span><span class="v">"Progression par semestre" 13/text2</span></div>
+      <div class="specrow"><span class="k">Chart width</span><span class="v"><span class="tag fix">fix</span> measure container (onLayout), not CHART_W=300</span></div>
+      <div class="specrow"><span class="k">Chart aspect</span><span class="v"><span class="tag fix">fix</span> viewBox + meet, not preserveAspectRatio="none"</span></div>
+      <div class="specrow"><span class="k">Axis / grid</span><span class="v">DM Mono 12 text3 · grid 1px hair</span></div>
+      <div class="specrow"><span class="k">Line / points</span><span class="v">jade 2.5 dashed · 6 dot · current filled</span></div>
+      <div class="specrow"><span class="k">Admission band</span><span class="v">jadeFaint fill · threshold 10 dashed</span></div>
+      <div class="specrow"><span class="k">Current pill</span><span class="v">jade · #fff · "12.3" at last point</span></div>
+      <div class="specrow"><span class="k">Moyenne actuelle</span><span class="v">label 12.5/700 text3 · 36/800 jade + "/20"</span></div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:12px;">Both sheets use the shared <strong>Sheet</strong> + <strong>SheetBtn</strong> (r2xl, 38×5 hair2 handle, scrim). Calculator subject selector becomes a real picker (tap → option sheet / dropdown) — <span class="tag fix">fix</span> the forward-only cycle. The history chart must size to the sheet width and keep its aspect (no horizontal stretch on tablets/foldables).</p>
+
+  <!-- 3 · COMPONENT INVENTORY -->
+  <h2><span class="n">3</span> Component inventory</h2>
+  <div class="card"><table>
+    <thead><tr><th>Component</th><th>Suggested file</th><th>Props</th><th>Renders</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">GradesScreen</td><td class="mono">grades/GradesScreen</td><td class="mono">nav, openOverlay</td><td>pinned header + semester control + hero + list</td></tr>
+      <tr><td class="lead">GpaHeroCard</td><td class="mono">grades/GpaHeroCard</td><td class="mono">gpa, mention, credits, semester, onPress</td><td>gradient · GPA · badge · credits bar</td></tr>
+      <tr><td class="lead">SemesterControl</td><td class="mono">grades/SemesterControl</td><td class="mono">value, onChange</td><td>2-segment control</td></tr>
+      <tr><td class="lead">SubjectCard</td><td class="mono">grades/SubjectCard</td><td class="mono">name, cc, cf, coef, nf, level</td><td>name + pill + 4 metrics + bar + hint</td></tr>
+      <tr><td class="lead">MetricStrip</td><td class="mono">grades/MetricStrip</td><td class="mono">cells[], level</td><td>surface2 strip · 4 label/value cells</td></tr>
+      <tr><td class="lead">StatusPill*</td><td class="mono">ui/StatusPill</td><td class="mono">level, label</td><td>shared — hug-width tokenised pill</td></tr>
+      <tr><td class="lead">GradeCalculatorSheet</td><td class="mono">grades/GradeCalculatorSheet</td><td class="mono">subjects, onClose</td><td>picker + current + target + result</td></tr>
+      <tr><td class="lead">GPAHistorySheet</td><td class="mono">grades/GPAHistorySheet</td><td class="mono">points[], current, onClose</td><td>responsive chart + current block</td></tr>
+      <tr><td class="lead">mentionColor*</td><td class="mono">theme/mentionColor(score)</td><td class="mono">score 0–20</td><td>shared — §7 mention → {fg,bg,dot}</td></tr>
+      <tr><td class="lead">Sheet* · SheetBtn* · Segmented*</td><td class="mono">ui/*</td><td class="mono">—</td><td>shared — scrim+slide-up · button · segmented</td></tr>
+      <tr><td class="lead">NavBar* · SkeletonBox* · OfflineBanner* · ErrorBlock*</td><td class="mono">ui/*</td><td class="mono">—</td><td>shared — nav + states (§4)</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">* reuse, don't fork. Net-new: <strong>GpaHeroCard, SemesterControl, SubjectCard, MetricStrip, GradeCalculatorSheet, GPAHistorySheet</strong> + the <span class="mono">mentionColor</span> map. The GpaHeroCard can share the Présence hero's gradient/shadow constants. New CatIcon glyph: <span class="mono">calc</span> (calculator).</p>
+  </div>
+
+  <!-- 4 · STATES -->
+  <h2><span class="n">4</span> States</h2>
+  <div class="card"><table>
+    <thead><tr><th>State</th><th>Treatment</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Loaded</td><td>As specified — hero + N subject cards for the selected semester.</td></tr>
+      <tr><td class="lead">Loading / skeleton</td><td>Header + semester control render immediately. Hero → a <span class="mono">skeletonBase</span> block at the hero footprint (radius 22, ~140 tall). 3–4 SubjectCard skeletons (radius 18, ~130 tall). <span class="tag fix">fix</span> skeleton tint must be <span class="mono">skeletonBase</span> — <strong>not</strong> <span class="mono">mentionBien</span>. Existing shimmer (800ms / ~1600ms).</td></tr>
+      <tr><td class="lead">Empty <span class="tag">no grades</span></td><td>Hero shows GPA <span class="mono">—</span> + badge "Non calculée". List replaced by a centred block: 64 round jadeFaint circle + <span class="mono">grad</span> icon, title "Aucune note publiée" 16/700, body "Les notes de ce semestre apparaîtront ici." 14/text2.</td></tr>
+      <tr><td class="lead">Error</td><td>Shared ErrorBlock: 72 round examBg circle + icon, title 16/700, body 14/text2 (~220 wide, centred), retry 168×48. <span class="tag fix">fix</span> error icon radius 216 → 9999.</td></tr>
+      <tr><td class="lead">Offline <span class="tag">cached</span></td><td>Shared OfflineBanner above the hero: bg offlineBg, 1px warningBorder, 8×8 offline dot, 12/offlineText. Cached relevé renders; semester switch + calculator still work (all client-side).</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- 5 · INTERACTIONS -->
+  <h2><span class="n">5</span> Interactions</h2>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Action</th><th>Target ≥44</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Calc button</td><td>Open GradeCalculatorSheet</td><td>38 + 8 hitSlop ✓</td></tr>
+      <tr><td class="lead">GpaHeroCard</td><td>Open GPAHistorySheet</td><td>card ✓</td></tr>
+      <tr><td class="lead">Semester control</td><td>Switch S1/S2 → re-filter hero + list</td><td>38 ✓</td></tr>
+      <tr><td class="lead">SubjectCard</td><td><span class="tag dec">decide</span> Static, OR tap → subject detail (eval breakdown). Current: static.</td><td>card ✓</td></tr>
+      <tr><td class="lead">Subject picker (calc)</td><td>Open option sheet — pick any subject (both directions)</td><td>50 ✓</td></tr>
+      <tr><td class="lead">Target input</td><td>Numeric keyboard; validates 0–20</td><td>50 ✓</td></tr>
+      <tr><td class="lead">Calculer</td><td>Compute required exam note → ResultBlock (or "impossible" if &gt;20)</td><td>50 ✓</td></tr>
+      <tr><td class="lead">Scrim / handle</td><td>Dismiss either sheet</td><td>full / 38 ✓</td></tr>
+      <tr><td class="lead">NavBar tabs</td><td>Switch root tab</td><td>46 ✓</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">Calculer result: show the required exam note as a value + a one-line verdict ("Il vous faut 9.5/20 à l'examen" / "Objectif déjà atteint" / "Objectif inatteignable"). Keep it inside the sheet, above Calculer, in a tokenised level colour.</p>
+  </div>
+
+  <!-- 6 · DIFFERENCES -->
+  <h2><span class="n">6</span> Differences vs current build</h2>
+  <div class="card">
+    <ul>
+      <li><span class="tag chg">chg</span> <strong>Full-bleed jade header → jade gradient hero card</strong> inside the scroll (Présence parity). Removes the status-bar bleed and the 4 fixed header heights (305/235/195/138) — the card sizes to content.</li>
+      <li><span class="tag chg">chg</span> <strong>GPA 52 → 42</strong> DM Mono white; adds a quiet "/20" suffix.</li>
+      <li><span class="tag fix">fix</span> <strong>Mention badge de-hardcoded.</strong> Was a light-only <span class="mono">colorMap</span> of hex values → on the hero it's <span class="mono">#fff@18%</span> + white + a level dot (theme-proof); <span class="mono">mentionColor()</span> token map (§7) covers any light-surface use. Solves dark mode.</li>
+      <li><span class="tag chg">chg</span> <strong>Underline tabs → segmented control</strong> (jade active, RTL-mirrors).</li>
+      <li><span class="tag chg">chg</span> <strong>Subject cards Soft Elevated</strong> (surface + cardShadow + rTile 18). <span class="tag fix">fix</span> radius 14 → 18, marginHorizontal 15 → padInline 16.</li>
+      <li><span class="tag fix">fix</span> <strong>Grid dividers</strong> used <span class="mono">textSecondary</span> (both H and V rules) → removed; 4 cells in a <span class="mono">surface2</span> strip, optional 1px <span class="mono">hair</span>.</li>
+      <li><span class="tag fix">fix</span> <strong>Progress bar</strong> 3px + hardcoded 298px width → 6px, width = NF/20·100% (flex), level colour. Accurate on any screen.</li>
+      <li><span class="tag fix">fix</span> <strong>At-risk banner</strong> used <span class="mono">offlineBg</span> (orange) → danger token throughout (pill + bar + hint).</li>
+      <li><span class="tag fix">fix</span> <strong>Status pill 65×21 fixed → hug-width</strong> tokenised.</li>
+      <li><span class="tag fix">fix</span> <strong>Sheet handles</strong> '#E5E5E5' → hair2. <strong>Chart</strong> CHART_W=300 + preserveAspectRatio="none" → measured width + meet. <strong>Calculator picker</strong> forward-only → both directions.</li>
+      <li><span class="tag fix">fix</span> <strong>getMention French-only → localised</strong> (Arabic mention lookup, §9). Error icon radius 216 → 9999. Skeleton tint mentionBien → skeletonBase.</li>
+      <li><span class="tag fix">fix</span> 15+ off-grid literals → 4px grid; 10+ hardcoded hex → tokens.</li>
+      <li><span class="tag">keep</span> The four metrics (CC/CF/COEF/NF), semester filtering, calculator concept, history-chart concept, credits figure.</li>
+    </ul>
+  </div>
+
+  <!-- 7 · DARK + RTL + MENTION -->
+  <h2><span class="n">7</span> Dark mode, RTL &amp; mention map</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Dark mode</h3>
+      <ul>
+        <li><strong>Hero gradient unchanged</strong> — jade is the brand anchor; mention badge stays #fff@18%/white, so no per-mention dark colours are needed.</li>
+        <li>Header = bg (#0E1512); scroll shadow → 1px hair border. Status-bar barStyle token-driven (header is no longer jade).</li>
+        <li>Cards = surface (#17211D) + dark cardShadow; metric strip = surface2; progress track = sunken; hairlines = hair.</li>
+        <li>Status pills + NF + bar use lifted tokens: jade #2BB989, amber #F0A84B, danger #FF6B6B.</li>
+        <li>Segmented track = sunken; active = jade. Chart grid = hair, line = jade lifted, band = jadeFaint.</li>
+      </ul>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">RTL (Arabic)</h3>
+      <ul>
+        <li>Root <span class="mono">direction: rtl</span> — title right-aligns; calc button to the left; segmented mirrors (S1 right, S2 left).</li>
+        <li>Hero label/credits right-align; <strong>GPA stays LTR</strong> ("12.28", DM Mono); credits use Arabic-Indic ("٢٤/٣٢"); history affordance flips corner.</li>
+        <li>Metric cells reorder right→left (CC on the right); <strong>values stay LTR</strong> DM Mono; labels mirror.</li>
+        <li>Status pill + at-risk hint mirror to the leading edge; progress fill uses <span class="mono">inset-inline-start</span>.</li>
+        <li>Mention text Arabic (§9); both sheets mirror; chart axis mirrors (S1 on right), numerals LTR. Font → Noto Naskh Arabic.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px;"><h3 style="margin-top:0;">mentionColor(score) — token map <span class="tag add" style="margin-inline-start:6px;">new · replaces hardcoded colorMap</span></h3><table>
+    <thead><tr><th>Score</th><th>Mention (FR / AR)</th><th>fg / bg token</th><th>Dot (on hero)</th><th>Light</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">≥ 16</td><td>Très Bien · Excellent / جيد جداً · ممتاز</td><td class="mono">jadeText / jadeFaint</td><td class="mono">#7DF3C4 mint</td><td><span class="pill">Très Bien</span></td></tr>
+      <tr><td class="mono">14–15.99</td><td>Bien / جيد</td><td class="mono">blue / blueBg</td><td class="mono">#9CC7F5</td><td><span class="pill blue">Bien</span></td></tr>
+      <tr><td class="mono">12–13.99</td><td>Assez Bien / مستحسن</td><td class="mono">amber / amberBg</td><td class="mono">#FFD27D</td><td><span class="pill amber">Assez Bien</span></td></tr>
+      <tr><td class="mono">10–11.99</td><td>Passable / مقبول</td><td class="mono">slate / slateBg</td><td class="mono">#C7D2DB</td><td><span class="pill slate">Passable</span></td></tr>
+      <tr><td class="mono">&lt; 10</td><td>Insuffisant / غير كافٍ</td><td class="mono">danger / dangerBg</td><td class="mono">#FFB4B4</td><td><span class="pill red">Insuffisant</span></td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">On the jade hero the badge bg/fg are always white@18%/white; <span class="mono">mentionColor()</span> supplies only the <strong>dot</strong> there (on-gradient literal). On any light surface (e.g. the history sheet "moyenne actuelle"), use the full fg/bg pair. Dot colours are literals because they sit on jade in both themes.</p>
+  </div>
+
+  <!-- 8 · COLORS -->
+  <h2><span class="n">8</span> Color tokens used</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Light</h3><div id="light"></div></div>
+    <div class="card darkstrip"><h3 style="margin-top:0;color:#ECF1EE;">Dark</h3><div id="dark"></div></div>
+  </div>
+  <p class="note" style="margin-top:14px;">No new theme primitives — Notes reuses existing tokens plus the <span class="mono">mentionColor</span> map (§7), which itself maps to jade/blue/amber/slate/danger. On-gradient whites (badge bg #fff@18%, credits track #fff@25%, mention dots) are literals, not tokenised — they sit on jade in both themes. Keep the hero gradient identical in dark mode.</p>
+
+  <!-- 9 · REFERENCE DATA -->
+  <h2><span class="n">9</span> Reference data (FR / AR)</h2>
+  <div class="card"><table>
+    <thead><tr><th>Subject (FR)</th><th>CC</th><th>CF</th><th>COEF</th><th>NF</th><th>Level</th></tr></thead>
+    <tbody>
+      <tr><td>Algorithmique avancée<br><span class="note">الخوارزميات المتقدمة</span></td><td class="mono">14.00</td><td class="mono">15.50</td><td class="mono">4</td><td class="mono">14.90</td><td><span class="pill">Validé</span></td></tr>
+      <tr><td>Bases de données<br><span class="note">قواعد البيانات</span></td><td class="mono">12.00</td><td class="mono">13.00</td><td class="mono">3</td><td class="mono">12.60</td><td><span class="pill">Validé</span></td></tr>
+      <tr><td>Mathématiques générales L2<br><span class="note">الرياضيات العامة س٢</span></td><td class="mono">13.00</td><td class="mono">15.00</td><td class="mono">4</td><td class="mono">14.20</td><td><span class="pill">Validé</span></td></tr>
+      <tr><td>Physique quantique<br><span class="note">الفيزياء الكمية</span></td><td class="mono">8.00</td><td class="mono">7.00</td><td class="mono">3</td><td class="mono">7.40</td><td><span class="pill red">À Risque</span></td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">Hero: GPA <strong>12.28 / 20</strong> · mention "Assez Bien / مستحسن" (amber band) · "Crédits : 24/32 · ٢٤/٣٢". Calculator example: matière "Algorithmique avancée", Note CC actuelle 14.00, cible 12.00. History: current 12.3, admission threshold 10. All placeholders — wire to the cached relevé; nothing hardcoded in components, mentions via <span class="mono">getMention(score, locale)</span>.</p>
+  </div>
+</div>
+<script>
+  const light=[['surface','#FFFFFF'],['surface2','#F4F7F5'],['sunken','#ECEFEC'],['bg','#F2F5F3'],['text1','#1C2320'],['text2','#6B7B74'],['text3','#9EADA7'],['hair','rgba(28,35,32,0.07)'],['hair2','rgba(28,35,32,0.11)'],['jade','#1D9E75'],['jade700','#0B5544'],['jadeText','#0F6E56'],['jadeFaint','rgba(29,158,117,0.10)'],['blue','#2F7DD1'],['blueBg','rgba(47,125,209,0.12)'],['amber','#E08A1E'],['amberBg','rgba(224,138,30,0.12)'],['slate','#5A6B7B'],['slateBg','rgba(90,107,123,0.12)'],['danger','#EF4444'],['dangerBg','rgba(239,68,68,0.10)']];
+  const dark=[['surface','#17211D'],['surface2','#1E2A25'],['sunken','#0A0F0D'],['bg','#0E1512'],['text1','#ECF1EE'],['text2','#9DB0A8'],['text3','#6E847B'],['hair','rgba(255,255,255,0.08)'],['hair2','rgba(255,255,255,0.13)'],['jade','#2BB989'],['jade700','#0B5544'],['jadeText','#5FD3A6'],['jadeFaint','rgba(43,185,137,0.16)'],['blue','#5AA0E6'],['blueBg','rgba(90,160,230,0.18)'],['amber','#F0A84B'],['amberBg','rgba(240,168,75,0.16)'],['slate','#9DB0BE'],['slateBg','rgba(157,176,190,0.16)'],['danger','#FF6B6B'],['dangerBg','rgba(255,107,107,0.15)']];
+  const swatch=(arr,el)=>{el.innerHTML=arr.map(([n,v])=>`<div class="sw"><span class="chip" style="background:${v}"></span><span class="nm">${n}</span><span class="hex">${v}</span></div>`).join('');};
+  swatch(light,document.getElementById('light'));
+  swatch(dark,document.getElementById('dark'));
+</script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>UDJ — Storage Detail Implementation Spec</title>
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" rx="22" fill="#0F6E56"/>
+    <circle cx="50" cy="50" r="26" fill="none" stroke="#ffffff55" stroke-width="9"/>
+    <path d="M50 24 a26 26 0 0 1 22 39" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+  </svg>
+</template>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#F2F5F3; --surface:#fff; --ink:#1C2320; --ink2:#6B7B74; --ink3:#9EADA7;
+    --hair:rgba(28,35,32,0.10); --jade:#1D9E75; --jade6:#0F6E56; --amber:#E08A1E; --danger:#EF4444;
+    --sans:'Plus Jakarta Sans',sans-serif; --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1000px;margin:0 auto;padding:56px 32px 100px;}
+  h1{font-size:34px;font-weight:800;letter-spacing:-0.8px;margin:0;}
+  .crumbs{font-size:12.5px;color:var(--ink3);font-family:var(--mono);margin-bottom:14px;}
+  .sub{color:var(--ink2);font-size:15px;margin-top:8px;max-width:64ch;line-height:1.55;}
+  h2{font-size:13px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--jade6);margin:54px 0 18px;display:flex;align-items:center;gap:10px;}
+  h2 .n{width:22px;height:22px;border-radius:7px;background:var(--jade6);color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+  h3{font-size:17px;font-weight:700;margin:26px 0 10px;}
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:18px;padding:22px;box-shadow:0 1px 2px rgba(28,35,32,0.04);}
+  .grid{display:grid;gap:14px;}
+  .g2{grid-template-columns:1fr 1fr;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:start;padding:8px 10px;border-bottom:1px solid var(--hair);vertical-align:top;}
+  th{font-size:11px;letter-spacing:0.6px;text-transform:uppercase;color:var(--ink3);font-weight:700;}
+  td.mono,.mono{font-family:var(--mono);font-size:12px;}
+  .lead{font-weight:700;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;padding:3px 9px;border-radius:9999px;background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .pill.red{background:rgba(239,68,68,0.12);color:#b91c1c;}
+  .note{font-size:13px;color:var(--ink2);line-height:1.55;}
+  .specrow{font-size:13px;display:flex;justify-content:space-between;gap:16px;padding:7px 0;border-bottom:1px solid var(--hair);}
+  .specrow:last-child{border-bottom:none;}
+  .specrow .k{color:var(--ink2);}
+  .specrow .v{font-family:var(--mono);font-size:12px;text-align:end;}
+  ul{margin:8px 0 0;padding-inline-start:20px;}
+  li{font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:5px;}
+  .sw{display:flex;align-items:center;gap:11px;padding:7px 0;border-bottom:1px solid var(--hair);font-size:13px;}
+  .sw:last-child{border-bottom:none;}
+  .chip{width:28px;height:28px;border-radius:8px;flex-shrink:0;border:1px solid rgba(0,0,0,0.06);}
+  .nm{font-weight:600;}
+  .hex{font-family:var(--mono);color:var(--ink2);font-size:12px;margin-inline-start:auto;}
+  .darkstrip{background:#0E1512;border-radius:14px;padding:14px 16px;}
+  .darkstrip .sw{border-color:rgba(255,255,255,0.08);color:#ECF1EE;}
+  .darkstrip .hex{color:#9DB0A8;}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:6px;background:rgba(28,35,32,0.06);color:var(--ink2);}
+  .tag.add{background:rgba(29,158,117,0.12);color:var(--jade6);}
+  .tag.chg{background:rgba(224,138,30,0.14);color:#9a5b06;}
+  .tree{font-family:var(--mono);font-size:12.5px;line-height:1.85;color:var(--ink);white-space:pre;overflow-x:auto;}
+  .tree .c{color:var(--ink3);}
+  .tree .v{color:var(--jade6);}
+  @media print{.wrap{padding:0;}.card{break-inside:avoid;}}
+  @media(max-width:720px){.g2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="crumbs">Profil › Paramètres › Stockage hors-ligne &nbsp;·&nbsp; /storage-detail</div>
+  <h1>UDJ — Storage Detail Spec</h1>
+  <p class="sub">Implementation reference for the polished <strong>Stockage hors-ligne / التخزين دون اتصال</strong> screen, in the <strong>Soft Elevated</strong> language. Reached from Settings → <em>Stockage hors-ligne</em> (and the Profile <em>Documents</em> quick-action). A usage-breakdown screen with a total ring, per-category rows, and a destructive clear action. Values are the source of truth; wire as tokens. Supports light, dark, RTL.</p>
+
+  <!-- 1 · LAYOUT TREE -->
+  <h2><span class="n">1</span> Layout tree (render order)</h2>
+  <div class="card">
+<div class="tree">StorageScreen  <span class="c">// Scaffold: status bar + compact header, single vertical scroll</span>
+├─ StatusBar              <span class="c">44 tall</span>
+├─ Header                 <span class="c">BackButton + "Stockage hors-ligne" 20/800</span>
+└─ ScrollBody  <span class="c">(top:96 → bottom, paddingBottom 92)</span>
+    ├─ TotalCard          <span class="v">surface card · ring + total + note</span>
+    │   ├─ Ring 132       <span class="c">jade fill at 62%, hair2 track</span>
+    │   │   └─ Center     <span class="c">"12.4" mono 22 + "MB" 12</span>
+    │   └─ Column         <span class="c">storageTotal 15/700 + storageNote 13</span>
+    ├─ TileGroup "Gérer le cache"
+    │   ├─ TileRow Cours      <span class="c">cal · blue · 4.8 MB</span>
+    │   ├─ TileRow Présence   <span class="c">sync · amber · 1.7 MB</span>
+    │   ├─ TileRow Actualités <span class="c">news · danger · 2.4 MB</span>
+    │   ├─ TileRow Notes      <span class="c">doc · violet · 3.1 MB</span>
+    │   └─ TileRow Profil&QR  <span class="c">user · jade · 0.4 MB</span>
+    └─ ClearButton        <span class="v">full-width tonal-danger "Vider le cache"</span></div>
+  </div>
+  <p class="note" style="margin-top:12px;"><strong>One vertical scroll.</strong> Total card on top, category breakdown in a single tile group, destructive clear action at the bottom (outside the group). Category values are mono and sum to the ring total.</p>
+
+  <!-- 2 · MEASURED VALUES -->
+  <h2><span class="n">2</span> Measured values</h2>
+
+  <h3>Scaffold &amp; header (shared)</h3>
+  <div class="card">
+    <div class="specrow"><span class="k">Status bar height</span><span class="v">44</span></div>
+    <div class="specrow"><span class="k">Header padding</span><span class="v">2 / 14 / 8 / 14</span></div>
+    <div class="specrow"><span class="k">Back button</span><span class="v">38×38 · radius 9999 · surface + cardShadow</span></div>
+    <div class="specrow"><span class="k">Title</span><span class="v">20 / 800 / -0.6 track · text1</span></div>
+    <div class="specrow"><span class="k">Scroll body top / padBottom</span><span class="v">96 / 92</span></div>
+  </div>
+
+  <h3>Total card + ring</h3>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Property</th><th>Value</th><th>Token / note</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Card</td><td>margin / padding</td><td class="mono">4/16/8/16 · 20/18</td><td>—</td></tr>
+      <tr><td></td><td>radius / bg</td><td class="mono">20 · surface</td><td>shadow cardShadow</td></tr>
+      <tr><td></td><td>layout</td><td class="mono">flex align center, gap 18</td><td>ring + column</td></tr>
+      <tr><td class="lead">Ring</td><td>size / stroke</td><td class="mono">132 · 11</td><td>r = (size-16)/2 = 58</td></tr>
+      <tr><td></td><td>track / fill</td><td class="mono">hair2 · jade</td><td>fill = 0.62 · circumference</td></tr>
+      <tr><td></td><td>cap / rotate</td><td class="mono">round · -90°</td><td>—</td></tr>
+      <tr><td class="lead">Ring center</td><td>value "12.4"</td><td class="mono">DM Mono 22 / 500</td><td>text1</td></tr>
+      <tr><td></td><td>unit "MB"</td><td class="mono">12 / 400</td><td>text3</td></tr>
+      <tr><td class="lead">Right column</td><td>title</td><td class="mono">15 / 700</td><td>text1 ("Total mis en cache")</td></tr>
+      <tr><td></td><td>note</td><td class="mono">13 / 400 · lh 1.45, mt 6</td><td>text2</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>TileGroup + TileRow (category breakdown)</h3>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">TileGroup</h3>
+      <div class="specrow"><span class="k">Margin</span><span class="v">0 / 16 / 14 / 16</span></div>
+      <div class="specrow"><span class="k">Title "Gérer le cache"</span><span class="v">12.5 / 700 / 0.3 / UPPER · text3</span></div>
+      <div class="specrow"><span class="k">Card</span><span class="v">surface · radius 18 · padInline 4</span></div>
+    </div>
+    <div class="card"><h3 style="margin-top:0;">TileRow</h3>
+      <div class="specrow"><span class="k">Min height</span><span class="v">58</span></div>
+      <div class="specrow"><span class="k">Padding / gap</span><span class="v">left 14 / right 16 · gap 13</span></div>
+      <div class="specrow"><span class="k">Icon chip</span><span class="v">34×34 · radius 11</span></div>
+      <div class="specrow"><span class="k">Label</span><span class="v">15 / 600 · text1</span></div>
+      <div class="specrow"><span class="k">Value (size)</span><span class="v">DM Mono 14 / 500 · text2</span></div>
+      <div class="specrow"><span class="k">Divider</span><span class="v">1px hair · none on last</span></div>
+    </div>
+  </div>
+
+  <h3>Category rows</h3>
+  <div class="card"><table>
+    <thead><tr><th>Row (FR / AR)</th><th>Icon</th><th>Tint</th><th>Size</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Cours / المقررات</td><td class="mono">cal</td><td class="mono" style="color:#2F7DD1">blue</td><td class="mono">4.8 MB</td></tr>
+      <tr><td class="lead">Présence / الحضور</td><td class="mono">sync</td><td class="mono" style="color:#9a5b06">amber</td><td class="mono">1.7 MB</td></tr>
+      <tr><td class="lead">Actualités / الأخبار</td><td class="mono">news</td><td class="mono" style="color:#b91c1c">danger</td><td class="mono">2.4 MB</td></tr>
+      <tr><td class="lead">Notes / الدرجات</td><td class="mono">doc</td><td class="mono" style="color:#8B5CF6">violet</td><td class="mono">3.1 MB</td></tr>
+      <tr><td class="lead">Profil &amp; QR / الملف والرمز</td><td class="mono">user</td><td><span class="pill">jade</span></td><td class="mono">0.4 MB</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">Sum = 12.4 MB → must equal the ring total. Wire both from the same data source so they never diverge.</p>
+  </div>
+
+  <h3>Clear-cache button (destructive, tonal)</h3>
+  <div class="card">
+    <div class="specrow"><span class="k">Container margin</span><span class="v">2 / 16 / 0 / 16</span></div>
+    <div class="specrow"><span class="k">Size</span><span class="v">full-width · 50 tall · radius 14</span></div>
+    <div class="specrow"><span class="k">Background</span><span class="v">dangerBg (tonal, not solid)</span></div>
+    <div class="specrow"><span class="k">Border</span><span class="v">1px dangerBg</span></div>
+    <div class="specrow"><span class="k">Label</span><span class="v">15 / 700 · danger</span></div>
+    <div class="specrow"><span class="k">Action</span><span class="v">opens ClearCacheConfirm sheet</span></div>
+  </div>
+  <p class="note" style="margin-top:10px;">This is a <strong>tonal</strong> destructive button (danger text on a faint danger fill), distinct from the <strong>solid</strong> danger button inside the confirm sheet. Don't make this one solid red — the irreversible action lives behind the confirm.</p>
+
+  <!-- 3 · COLORS -->
+  <h2><span class="n">3</span> Color tokens used</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Light</h3><div id="light"></div></div>
+    <div class="card darkstrip"><h3 style="margin-top:0;color:#ECF1EE;">Dark</h3><div id="dark"></div></div>
+  </div>
+  <p class="note" style="margin-top:14px;">Ring track uses <span class="mono">hair2</span> so the unfilled arc stays visible in both themes. Fill is <span class="mono">jade</span> (lifts to #2BB989 in dark). Category accents follow the standard chip palette.</p>
+
+  <!-- 4 · COMPONENT INVENTORY -->
+  <h2><span class="n">4</span> Component inventory</h2>
+  <div class="card"><table>
+    <thead><tr><th>Component</th><th>Suggested file</th><th>Props</th><th>Renders</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">StorageScreen</td><td class="mono">storage/StorageScreen</td><td class="mono">nav</td><td>Scaffold + total card + categories + clear btn</td></tr>
+      <tr><td class="lead">Ring</td><td class="mono">storage/Ring</td><td class="mono">pct, color, size=132</td><td>2-circle SVG (track + fill)</td></tr>
+      <tr><td class="lead">TotalCard</td><td class="mono">storage/TotalCard</td><td class="mono">used, unit, note</td><td>ring + total + note row</td></tr>
+      <tr><td class="lead">TileGroup*</td><td class="mono">ui/TileGroup</td><td class="mono">title, children</td><td>shared</td></tr>
+      <tr><td class="lead">TileRow*</td><td class="mono">ui/TileRow</td><td class="mono">icon, tint, tintBg, label, value, mono, last</td><td>shared</td></tr>
+      <tr><td class="lead">ClearCacheConfirm*</td><td class="mono">settings/ClearCacheConfirm</td><td class="mono">onClose</td><td>shared — confirm sheet (solid danger)</td></tr>
+      <tr><td class="lead">Scaffold*</td><td class="mono">ui/Scaffold</td><td class="mono">title, onBack, big</td><td>shared</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">* reuse. Net-new: <strong>Ring</strong> (note: same idea as Présence HeroRing but token-colored on a light card, not white-on-jade — keep them as two variants or one component with a <span class="mono">variant</span> prop) and <strong>TotalCard</strong>.</p>
+  </div>
+
+  <!-- 5 · STATES -->
+  <h2><span class="n">5</span> States</h2>
+  <div class="card"><table>
+    <thead><tr><th>State</th><th>Treatment</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Loaded</td><td>As specified — total card + 5 category rows + clear button.</td></tr>
+      <tr><td class="lead">Loading / skeleton</td><td>Total card → 132 round skeleton + two bars; 5 row skeletons (chip + label + value bar). Clear button hidden until loaded. SkeletonBox shimmer.</td></tr>
+      <tr><td class="lead">Empty <span class="tag">nothing cached</span></td><td>Ring shows <span class="mono">0</span> MB (track-only). Category group replaced by a centered empty block: 64 round jadeFaint circle + storage icon, title 16/700, body 14/text2 ("Aucune donnée hors-ligne. Le contenu se mettra en cache à l'usage."). Clear button hidden.</td></tr>
+      <tr><td class="lead">Clearing <span class="tag">in progress</span></td><td>After confirm: clear button → disabled with inline spinner + "Suppression…"; on done, screen transitions to Empty.</td></tr>
+      <tr><td class="lead">Error</td><td>Shared error block (72 circle + icon, title/body, retry 168×48) if usage fetch fails.</td></tr>
+      <tr><td class="lead">Offline <span class="tag">expected</span></td><td>This screen is inherently about offline data, so it works offline by design. If currently offline, optionally show the shared OfflineBanner; the "Dernière synchro." value (from Settings) contextualizes freshness. Cached sizes render normally.</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- 6 · INTERACTIONS -->
+  <h2><span class="n">6</span> Interactions</h2>
+  <div class="card"><table>
+    <thead><tr><th>Element</th><th>Action</th><th>Target ≥44</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Back button</td><td>Pop to Settings</td><td>38 + 8 hitSlop → ✓</td></tr>
+      <tr><td class="lead">Category rows</td><td>Static by default. <span class="tag chg">decide</span> Optional tap → per-category breakdown or a row-level "Vider" swipe action.</td><td>row ✓</td></tr>
+      <tr><td class="lead">Vider le cache</td><td>Opens ClearCacheConfirm sheet → confirm runs clear → Empty state</td><td>50 ✓</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">No filter tabs. The only destructive path is gated behind the confirm sheet — never clear on a single tap.</p>
+  </div>
+
+  <!-- 7 · DIFFERENCES -->
+  <h2><span class="n">7</span> Differences vs current build</h2>
+  <div class="card"><ul>
+    <li><span class="tag add">add</span> Visual <strong>usage ring</strong> (62% of allotment) — the current build shows only a number; the ring makes proportion legible.</li>
+    <li><span class="tag chg">chg</span> Category icon circle fixed: current build uses <span class="mono">radius 9</span> (off-grid, between rSm/rMd) → standard 34×34 chip at radius 11.</li>
+    <li><span class="tag chg">chg</span> Total value uses DM Mono (was sans); aligns numeric display with the rest of the app.</li>
+    <li><span class="tag chg">chg</span> Clear action is tonal-danger and routed through the confirm sheet (was a bare destructive button).</li>
+    <li><span class="tag chg">chg</span> Grouped elevated card replaces full-bleed rows; header uses shared Scaffold; status bar token-driven.</li>
+    <li><span class="tag">keep</span> Reuses TileGroup, TileRow, ClearCacheConfirm, Scaffold.</li>
+  </ul></div>
+
+  <!-- 8 · DARK + RTL -->
+  <h2><span class="n">8</span> Dark mode &amp; RTL</h2>
+  <div class="grid g2">
+    <div class="card"><h3 style="margin-top:0;">Dark mode</h3><ul>
+      <li>Total card → surface #17211D; ring track hair2 (#fff@13%) keeps the unfilled arc visible.</li>
+      <li>Ring fill jade→#2BB989; mono total uses text1 #ECF1EE.</li>
+      <li>Clear button: danger→#FF6B6B on dangerBg@15%.</li>
+      <li>Category accents lift per the dark chip palette.</li>
+    </ul></div>
+    <div class="card"><h3 style="margin-top:0;">RTL (Arabic)</h3><ul>
+      <li>Root <span class="mono">direction: rtl</span>; back button mirrors; chips trailing, sizes leading.</li>
+      <li>Ring numerals stay LTR ("12.4 MB"); category sizes stay Latin DM Mono.</li>
+      <li>Copy from <span class="mono">t('storage.*')</span>; category labels translated (المقررات، الحضور…).</li>
+      <li>Clear button full-width — mirrors cleanly. Verify dark+AR together.</li>
+    </ul></div>
+  </div>
+
+  <!-- 9 · DATA -->
+  <h2><span class="n">9</span> Reference data (FR / AR)</h2>
+  <div class="card"><table>
+    <thead><tr><th>Item</th><th>FR</th><th>AR</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Total</td><td class="mono">12.4 MB (62%)</td><td class="mono">12.4 MB</td></tr>
+      <tr><td class="lead">Total label</td><td>Total mis en cache</td><td>الإجمالي المخزن</td></tr>
+      <tr><td class="lead">Note</td><td>Les données sont mises en cache pour un accès hors-ligne.</td><td>يتم تخزين البيانات للوصول دون اتصال.</td></tr>
+      <tr><td class="lead">Section</td><td>Gérer le cache</td><td>إدارة التخزين</td></tr>
+      <tr><td class="lead">Categories</td><td>Cours · Présence · Actualités · Notes · Profil &amp; QR</td><td>المقررات · الحضور · الأخبار · الدرجات · الملف والرمز</td></tr>
+      <tr><td class="lead">Clear</td><td>Vider le cache</td><td>مسح الذاكرة المؤقتة</td></tr>
+    </tbody>
+  </table>
+  <p class="note" style="margin-top:10px;">Placeholder values — wire to real cache metrics, nothing hardcoded in components.</p>
+  </div>
+</div>
+<script>
+  const light=[['surface','#FFFFFF'],['bg','#F2F5F3'],['text1','#1C2320'],['text2','#6B7B74'],['text3','#9EADA7'],['hair2','rgba(28,35,32,0.11)'],['jade','#1D9E75'],['jadeFaint','rgba(29,158,117,0.10)'],['blue','#2F7DD1'],['amber','#E08A1E'],['danger','#EF4444'],['dangerBg','rgba(239,68,68,0.10)'],['exam','#8B5CF6']];
+  const dark=[['surface','#17211D'],['bg','#0E1512'],['text1','#ECF1EE'],['text2','#9DB0A8'],['text3','#6E847B'],['hair2','rgba(255,255,255,0.13)'],['jade','#2BB989'],['jadeFaint','rgba(43,185,137,0.16)'],['blue','#5AA0E6'],['amber','#F0A84B'],['danger','#FF6B6B'],['dangerBg','rgba(255,107,107,0.15)'],['exam','#A98BF0']];
+  const swatch=(arr,el)=>{el.innerHTML=arr.map(([n,v])=>`<div class="sw"><span class="chip" style="background:${v}"></span><span class="nm">${n}</span><span class="hex">${v}</span></div>`).join('');};
+  swatch(light,document.getElementById('light'));swatch(dark,document.getElementById('dark'));
+</script>
+</body>
+</html>

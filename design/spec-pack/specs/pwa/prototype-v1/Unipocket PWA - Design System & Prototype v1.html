@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr" data-theme="light">
+<head>
+<meta charset="utf-8"/>
+<template id="__bundler_thumbnail" data-bg-color="#0F6E56">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#0F6E56"/><path d="M32 28v22c0 5.2 3.2 10 7.4 12.4a17 17 0 0 0 18.4 0C62 60 65 55.2 65 50V28" stroke="#fff" stroke-width="8" stroke-linecap="round" fill="none"/></svg>
+</template>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Unipocket PWA — Prototype v1 (Login · Dashboard · Schedule)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --font-sans:'Plus Jakarta Sans',sans-serif;--font-ar:'Noto Naskh Arabic',serif;--font-mono:'DM Mono',monospace;
+  --sidebar-w:240px;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--r-2xl:24px;
+  --shadow-card:0 2px 10px rgba(30,35,31,.06);--shadow-lg:0 12px 32px rgba(30,35,31,.12);--shadow-panel:0 0 0 1px rgba(30,35,31,.04),-12px 0 32px rgba(30,35,31,.10);
+}
+html[data-theme="light"]{
+  --bg:#F7F4EE;--surface:#FFFFFF;--surface2:#F8F5EF;--sunken:#EFEAE0;
+  --ink:#1E231F;--ink2:#6C7267;--ink3:#9CA396;--hair:rgba(30,35,31,.10);--hair2:rgba(30,35,31,.16);
+  --jade:#1D9E75;--jade-hover:#0F6E56;--jade-text:#0F6E56;--jade-faint:rgba(29,158,117,.10);
+  --danger:#EF4444;--danger-bg:rgba(239,68,68,.10);--warning:#F59E0B;--warning-bg:rgba(245,158,11,.14);
+  --info:#3B82F6;--info-bg:rgba(59,130,246,.12);--exam:#8B5CF6;--exam-bg:rgba(139,92,246,.12);
+}
+html[data-theme="dark"]{
+  --bg:#15201A;--surface:#1C2721;--surface2:#22302A;--sunken:#0F1713;
+  --ink:#EDF2ED;--ink2:#9FB0A6;--ink3:#71887C;--hair:rgba(255,255,255,.08);--hair2:rgba(255,255,255,.14);
+  --jade:#2BB989;--jade-hover:#3FCB9A;--jade-text:#5FD3A6;--jade-faint:rgba(43,185,137,.16);
+  --danger:#FF6B6B;--danger-bg:rgba(255,107,107,.15);--warning:#F0A84B;--warning-bg:rgba(240,168,75,.16);
+  --info:#5AA0E6;--info-bg:rgba(90,160,230,.18);--exam:#A98BF0;--exam-bg:rgba(169,139,240,.18);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-sans);-webkit-font-smoothing:antialiased;min-height:100vh}
+html[dir="rtl"] body{font-family:var(--font-ar)}
+.mono{font-family:var(--font-mono);direction:ltr;unicode-bidi:isolate}
+a{color:var(--jade-text)}
+a:hover{color:var(--jade-hover)}
+button{font-family:inherit;cursor:pointer}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--jade-faint);border-radius:9px}
+::-webkit-scrollbar-thumb:hover{background:var(--jade)}
+:focus-visible{outline:2px solid var(--jade);outline-offset:2px;border-radius:4px}
+
+/* ---------- prototype control rail ---------- */
+.ctl-rail{position:fixed;bottom:14px;inset-inline-end:14px;z-index:500;display:flex;align-items:center;gap:6px;background:color-mix(in oklab,var(--surface) 88%,transparent);backdrop-filter:blur(12px);border:1px solid var(--hair);border-radius:9999px;padding:6px;box-shadow:var(--shadow-card)}
+.ctl-rail-body{display:none;align-items:center;gap:6px}
+.ctl-rail.open .ctl-rail-body{display:flex}
+.ctl-toggle{width:34px;height:34px;border-radius:9999px;border:none;background:transparent;color:var(--ink2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ctl-toggle:hover{background:var(--surface2);color:var(--ink)}
+.ctl-toggle svg{width:16px;height:16px}
+.ctl-btn{display:flex;align-items:center;gap:6px;height:34px;padding:0 12px;border-radius:9999px;border:none;background:transparent;color:var(--ink2);font-size:12.5px;font-weight:600}
+.ctl-btn:hover{background:var(--surface2);color:var(--ink)}
+.ctl-btn.on{background:var(--jade);color:#fff}
+.ctl-btn svg{width:15px;height:15px;flex-shrink:0}
+.ctl-sep{width:1px;height:20px;background:var(--hair)}
+
+/* ---------- toasts ---------- */
+.toast-stack{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:900;display:flex;flex-direction:column;gap:8px;align-items:center}
+.toast{background:var(--ink);color:var(--bg);font-size:13.5px;font-weight:600;padding:11px 18px;border-radius:9999px;box-shadow:var(--shadow-lg);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* ---------- login ---------- */
+#screen-login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{width:100%;max-width:420px;background:var(--surface);border-radius:var(--r-2xl);box-shadow:var(--shadow-lg);overflow:hidden}
+.login-hero{background:linear-gradient(155deg,var(--jade),var(--jade-hover));padding:40px 32px 30px;text-align:center;color:#fff;position:relative;overflow:hidden}
+.login-hero .blob{position:absolute;border-radius:50%;background:rgba(255,255,255,.07)}
+.login-hero svg.logo{position:relative}
+.login-hero .bn{position:relative;font-weight:800;font-size:20px;letter-spacing:-.3px;margin-top:14px;white-space:nowrap}
+.login-hero .tg{position:relative;font-size:13.5px;color:rgba(255,255,255,.82);margin-top:5px}
+.login-body{padding:28px 28px 30px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13.5px;font-weight:600;margin-bottom:7px}
+.field input{width:100%;height:50px;border-radius:var(--r-md);padding:0 14px;font-size:14.5px;font-family:var(--font-sans);color:var(--ink);border:1.5px solid var(--hair2);background:var(--surface);transition:.15s}
+html[dir=rtl] .field input{font-family:var(--font-ar)}
+.field input#login-id{font-family:var(--font-mono);direction:ltr}
+.field input:focus{border-color:var(--jade);box-shadow:0 0 0 3px var(--jade-faint)}
+.field.pw input{background:var(--jade-faint);border-color:transparent}
+.field.err input{background:var(--danger-bg);border-color:var(--danger)}
+.row-between{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;font-size:13px}
+.remember{display:flex;align-items:center;gap:7px;color:var(--ink2)}
+.remember input{accent-color:var(--jade)}
+.errcard{display:flex;gap:10px;background:var(--danger-bg);border:1px solid var(--danger);border-radius:var(--r-md);padding:12px 14px;margin-bottom:16px;font-size:12.5px;color:var(--ink2)}
+.errcard strong{display:block;color:var(--danger);font-size:13.5px;margin-bottom:2px}
+.errcard.info{background:var(--info-bg);border-color:var(--info)}
+.errcard.info strong{color:var(--info)}
+.errcard .ic{width:26px;height:26px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--info)}
+.errcard .ic svg{width:13px;height:13px}
+.lang-chip{position:absolute;top:14px;inset-inline-start:14px;display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.16);border:none;border-radius:9999px;padding:5px 10px;color:#fff;font-size:11px;font-weight:700;z-index:2}
+.lang-chip svg{width:13px;height:13px}
+.offline-row{display:flex;gap:10px;align-items:flex-start;background:var(--jade-faint);border-radius:var(--r-md);padding:11px 12px;margin-bottom:16px}
+.offline-row .ic{width:30px;height:30px;border-radius:var(--r-sm);background:var(--surface);color:var(--jade-text);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.offline-row .ic svg{width:15px;height:15px}
+.offline-row .tx{flex:1;min-width:0}
+.offline-row .tx .l{font-size:13px;font-weight:700;margin-bottom:3px;line-height:1.3}
+.offline-row .tx .h{font-size:11.5px;color:var(--ink2);line-height:1.4}
+.offline-switch{width:38px;height:22px;border-radius:9999px;background:var(--sunken);position:relative;border:none;flex-shrink:0;margin-top:1px;transition:background .1s}
+.offline-switch::after{content:'';position:absolute;top:2.5px;inset-inline-start:2.5px;width:17px;height:17px;border-radius:50%;background:#fff;transition:inset-inline-start .1s cubic-bezier(0,0,.2,1);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.offline-switch.on{background:var(--jade)}
+.offline-switch.on::after{inset-inline-start:18.5px}
+.m-btn-wait{background:var(--sunken) !important;color:var(--ink3) !important;box-shadow:none !important;font-family:var(--font-mono)}
+.btn-primary{width:100%;height:52px;border-radius:var(--r-md);border:none;background:var(--jade);color:#fff;font-size:15px;font-weight:700;box-shadow:0 8px 20px rgba(15,110,86,.25)}
+.btn-primary:hover{background:var(--jade-hover)}
+.hint{text-align:center;font-size:12.5px;color:var(--ink3);margin-top:16px}
+.hint button{background:none;border:none;color:var(--jade-text);font-weight:600;font-size:12.5px;padding:0}
+
+/* ---------- shell ---------- */
+#app-shell{display:none;min-height:100vh}
+#app-shell.active{display:flex}
+.sidebar{display:none;flex-direction:column;width:var(--sidebar-w);flex-shrink:0;background:var(--surface);border-inline-end:1px solid var(--hair);height:100vh;position:sticky;top:0;transition:width .18s ease}
+@media(min-width:640px){.sidebar{display:flex}}
+body.tablet .sidebar{width:72px !important}
+.sidebar-head{display:flex;align-items:center;gap:10px;padding:18px 16px;flex-shrink:0}
+.sidebar-head .mark{width:34px;height:34px;border-radius:10px;background:var(--jade);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sidebar-head .mark svg{width:18px;height:18px;fill:#fff}
+.sidebar-head .brand{font-weight:800;font-size:15px;letter-spacing:-.2px;white-space:nowrap;overflow:hidden}
+.sidebar.collapsed .brand,body.tablet .brand{display:none}
+.sidebar-nav{flex:1;overflow-y:auto;padding:6px 12px}
+.nav-item{display:flex;align-items:center;gap:12px;height:44px;padding:0 12px;border-radius:var(--r-md);color:var(--ink2);font-size:14px;font-weight:600;margin-bottom:2px;border:none;background:transparent;width:100%;text-align:start}
+.nav-item svg{width:19px;height:19px;flex-shrink:0}
+.nav-item:hover{background:var(--surface2);color:var(--ink)}
+.nav-item.active{background:var(--jade-faint);color:var(--jade-text)}
+.nav-item .lbl{white-space:nowrap;overflow:hidden}
+.sidebar.collapsed .nav-item,body.tablet .nav-item{justify-content:center;padding:0}
+.sidebar.collapsed .lbl,body.tablet .sidebar .lbl{display:none}
+.sidebar-foot{padding:12px;border-top:1px solid var(--hair);flex-shrink:0}
+.collapse-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:38px;border-radius:var(--r-md);border:none;background:var(--surface2);color:var(--ink2);font-size:12px;font-weight:600}
+.collapse-btn:hover{color:var(--ink)}
+.collapse-btn svg{width:14px;height:14px;transition:transform .18s}
+.sidebar.collapsed .collapse-btn svg{transform:rotate(180deg)}
+.sidebar.collapsed .collapse-btn .lbl,body.tablet .collapse-btn{display:none}
+.sidebar.collapsed{width:72px}
+body.tablet .sidebar-foot{padding:12px 8px}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 24px;border-bottom:1px solid var(--hair);position:sticky;top:0;background:color-mix(in oklab,var(--bg) 88%,transparent);backdrop-filter:blur(10px);z-index:20}
+@media(min-width:640px){.topbar{padding:18px 32px}}
+@media(min-width:1024px){.topbar{padding:20px 48px}}
+.page-title{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.icon-btn{position:relative;width:38px;height:38px;border-radius:9999px;border:none;background:var(--surface2);color:var(--ink2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.icon-btn:hover{background:var(--jade-faint);color:var(--jade-text)}
+.icon-btn svg{width:18px;height:18px}
+.badge-dot{position:absolute;top:6px;inset-inline-end:6px;width:8px;height:8px;border-radius:50%;background:var(--danger);border:1.5px solid var(--surface2)}
+.avatar-btn{display:flex;align-items:center;gap:8px;border:none;background:transparent;padding:2px}
+.avatar{width:36px;height:36px;border-radius:9999px;background:var(--jade-faint);color:var(--jade-text);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.avatar-btn svg{width:13px;height:13px;color:var(--ink3)}
+.dropdown{position:absolute;top:calc(100% + 8px);inset-inline-end:0;min-width:220px;background:var(--surface);border:1px solid var(--hair);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);padding:8px;display:none;z-index:50}
+.dropdown.open{display:block}
+.dd-item{display:flex;align-items:center;gap:10px;width:100%;height:40px;padding:0 10px;border:none;background:none;border-radius:var(--r-sm);font-size:13.5px;font-weight:600;color:var(--ink);text-align:start}
+.dd-item:hover{background:var(--surface2)}
+.dd-item svg{width:16px;height:16px;color:var(--ink3)}
+.dd-sep{height:1px;background:var(--hair);margin:6px 4px}
+.notif-panel{position:absolute;top:calc(100% + 8px);inset-inline-end:0;width:320px;background:var(--surface);border:1px solid var(--hair);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);display:none;z-index:50;overflow:hidden}
+.notif-panel.open{display:block}
+.notif-panel h4{margin:0;padding:14px 16px 10px;font-size:13px;font-weight:700}
+.notif-row{display:flex;gap:10px;padding:10px 16px;border-top:1px solid var(--hair)}
+.notif-row .chip{width:32px;height:32px;border-radius:var(--r-sm);background:var(--jade-faint);color:var(--jade-text);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.notif-row .chip svg{width:15px;height:15px}
+.notif-row .t{font-size:13px;font-weight:600;line-height:1.35}
+.notif-row .d{font-size:11.5px;color:var(--ink3);margin-top:2px;font-family:var(--font-mono)}
+
+.content{flex:1;padding:24px;padding-bottom:88px}
+@media(min-width:640px){.content{padding:32px;padding-bottom:32px}}
+@media(min-width:1024px){.content{padding:48px;max-width:1200px;margin:0 auto;width:100%}}
+.view{display:none}
+.view.active{display:block}
+
+.offline-banner{display:flex;align-items:center;gap:8px;background:var(--warning-bg);border:1px solid var(--warning);border-radius:var(--r-md);padding:10px 14px;font-size:13px;color:var(--ink2);margin-bottom:20px}
+.offline-banner .dot{width:7px;height:7px;border-radius:50%;background:var(--warning);flex-shrink:0}
+
+.bottom-tabbar{display:flex;position:fixed;bottom:0;left:0;right:0;height:64px;background:var(--surface);border-top:1px solid var(--hair);z-index:100}
+@media(min-width:640px){.bottom-tabbar{display:none}}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(--ink3);font-size:10.5px;font-weight:600}
+.tab-item svg{width:21px;height:21px}
+.tab-item.active{color:var(--jade)}
+
+/* ---------- cards / grid ---------- */
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-card)}
+.grid-cards{display:grid;grid-template-columns:1fr;gap:16px;align-items:start}
+@media(min-width:640px){.grid-cards{grid-template-columns:1fr 1fr}}
+@media(min-width:1024px){.grid-cards{grid-template-columns:1fr 1fr 1fr}}
+.span-2{grid-column:span 1}
+@media(min-width:640px) and (max-width:1023px){.dash-notif-card{grid-column:1/-1}}
+@media(min-width:640px){.span-all{grid-column:1/-1}}
+.card h3{margin:0 0 14px;font-size:14px;font-weight:700}
+.card .see-all{font-size:12.5px;font-weight:600;color:var(--jade-text);background:none;border:none;float:inline-end}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.card-head h3{margin:0}
+
+.welcome h1{font-size:24px;font-weight:800;letter-spacing:-.4px;margin:0}
+.welcome h1 span{color:var(--jade-text)}
+.welcome p{margin:5px 0 0;color:var(--ink2);font-size:14px}
+@media(min-width:1024px){.welcome h1{font-size:28px}}
+
+.mini-class{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-top:1px solid var(--hair)}
+.mini-class:first-of-type{border-top:none;padding-top:0}
+.mini-class .rail{width:4px;flex-shrink:0;border-radius:4px;height:38px}
+.mini-class .body{flex:1;min-width:0}
+.mini-class .t{font-size:13.5px;font-weight:700;line-height:1.3}
+.mini-class .s{font-size:12px;color:var(--ink2);margin-top:2px}
+.mini-class .time{margin-inline-start:auto;font-family:var(--font-mono);font-size:12px;color:var(--ink2);flex-shrink:0;text-align:end;line-height:1.5}
+.countdown{display:inline-flex;align-items:center;gap:6px;background:var(--jade-faint);color:var(--jade-text);font-size:12px;font-weight:700;padding:5px 11px;border-radius:9999px;margin-bottom:14px}
+
+.gpa-value{font-size:34px;font-weight:800;letter-spacing:-.6px}
+.gpa-row{display:flex;align-items:flex-end;justify-content:space-between}
+.gpa-sub{color:var(--ink2);font-size:12.5px;margin-top:2px}
+.sparkline{flex-shrink:0}
+
+.gauge-wrap{display:flex;align-items:center;gap:16px}
+.gauge{position:relative;width:88px;height:88px;border-radius:50%;flex-shrink:0}
+.gauge .hole{position:absolute;inset:9px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;flex-direction:column}
+.gauge .hole b{font-size:18px;font-weight:800}
+.gauge .hole small{font-size:9.5px;color:var(--ink3);font-weight:600}
+.attend-note{font-size:12.5px;color:var(--ink2);line-height:1.5}
+.attend-note strong{color:var(--warning)}
+
+.news-card{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--hair)}
+.news-card:first-of-type{border-top:none;padding-top:0}
+.news-thumb{width:52px;height:52px;border-radius:var(--r-md);flex-shrink:0;background:repeating-linear-gradient(45deg,var(--surface2),var(--surface2) 6px,var(--sunken) 6px,var(--sunken) 12px)}
+.news-card .t{font-size:13.5px;font-weight:600;line-height:1.35}
+.news-pill{display:inline-block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:2px 8px;border-radius:9999px;background:var(--exam-bg);color:var(--exam);margin-top:5px}
+
+.quicklinks{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:640px){.quicklinks{grid-template-columns:repeat(3,1fr)}}
+.qlink{display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:var(--r-lg);border:1px solid var(--hair);background:var(--surface);font-size:13px;font-weight:700;color:var(--ink);text-align:start}
+.qlink:hover{border-color:var(--jade);background:var(--jade-faint);color:var(--jade-text)}
+.qlink .qi{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qlink svg{width:18px;height:18px}
+.qlink .qt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.qlink .qt small{font-size:11px;font-weight:600;color:var(--ink2)}
+
+/* ---------- schedule ---------- */
+.sched-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.segmented{display:flex;background:var(--surface2);border-radius:9999px;padding:3px;gap:2px}
+.seg-btn{border:none;background:none;height:34px;padding:0 16px;border-radius:9999px;font-size:13px;font-weight:700;color:var(--ink2)}
+.seg-btn.active{background:var(--surface);color:var(--jade-text);box-shadow:var(--shadow-card)}
+.weeknav{display:flex;align-items:center;gap:6px}
+.weeknav .lbl{font-size:13.5px;font-weight:700;min-width:150px;text-align:center}
+.wn-btn{width:34px;height:34px;border-radius:9999px;border:none;background:var(--surface2);color:var(--ink2);display:flex;align-items:center;justify-content:center}
+.wn-btn:hover{background:var(--jade-faint);color:var(--jade-text)}
+.wn-btn svg{width:16px;height:16px}
+.btn-ghost{height:34px;padding:0 14px;border-radius:9999px;border:1px solid var(--hair2);background:var(--surface);color:var(--ink2);font-size:12.5px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+.btn-ghost:hover{border-color:var(--jade);color:var(--jade-text)}
+.btn-ghost svg{width:14px;height:14px}
+
+#week-view{overflow-x:auto}
+.week-grid{display:grid;grid-template-columns:52px repeat(7,minmax(120px,1fr));min-width:900px}
+.wg-head{padding:8px 4px;text-align:center;font-size:11.5px;font-weight:700;color:var(--ink2);border-bottom:1px solid var(--hair)}
+.wg-head.today{color:var(--jade-text)}
+.wg-head b{display:block;font-size:15px;font-family:var(--font-mono);margin-top:2px}
+.wg-gutter{font-family:var(--font-mono);font-size:11px;color:var(--ink3);text-align:end;padding-inline-end:8px;position:relative;top:-6px}
+.wg-body{position:relative;border-inline-start:1px solid var(--hair)}
+.wg-slot{border-top:1px solid var(--hair)}
+.wg-slot:first-child{border-top:none}
+.course-block{position:absolute;left:3px;right:3px;border-radius:8px;padding:6px 8px;overflow:hidden;background:var(--surface);border:1px solid var(--hair);box-shadow:var(--shadow-card);cursor:pointer;border-inline-start:3px solid var(--jade)}
+.course-block:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px)}
+.course-block .t{font-size:12px;font-weight:700;line-height:1.25}
+.course-block .r{font-size:10.5px;color:var(--ink2);margin-top:2px}
+
+#day-view{display:none}
+.tl-row{display:flex;gap:12px;margin-bottom:14px}
+.tl-gutter{width:52px;flex-shrink:0;text-align:end;font-family:var(--font-mono);font-size:12.5px;color:var(--ink2);padding-top:14px}
+.tl-connector{width:14px;flex-shrink:0;display:flex;flex-direction:column;align-items:center}
+.tl-dot{width:11px;height:11px;border-radius:50%;margin-top:15px;flex-shrink:0;background:var(--jade)}
+.tl-line{flex:1;width:2px;background:var(--hair);margin-top:4px}
+.tl-card{flex:1;background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:13px 16px;position:relative;border-inline-start:4px solid var(--jade);cursor:pointer}
+.tl-card:hover{box-shadow:var(--shadow-lg)}
+.tl-card .t{font-size:15px;font-weight:700}
+.tl-card .s{font-size:13px;color:var(--ink2);margin-top:2px}
+.tl-meta{display:flex;gap:8px;margin-top:9px}
+.pill-soft{background:var(--surface2);border-radius:9999px;padding:4px 10px;font-size:11.5px;font-weight:600;color:var(--ink2);font-family:var(--font-mono)}
+.pill-status{border-radius:9999px;padding:4px 10px;font-size:11.5px;font-weight:700}
+.pill-status.upcoming{background:var(--info-bg);color:var(--info)}
+.pill-status.now{background:var(--jade-faint);color:var(--jade-text)}
+.pill-status.done{background:var(--surface2);color:var(--ink3)}
+.gap-row{padding-inline-start:80px;font-size:12.5px;color:var(--ink3);margin:-4px 0 14px}
+
+/* ---------- detail panel ---------- */
+.scrim{position:fixed;inset:0;background:rgba(20,25,22,.4);z-index:200;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.open{opacity:1;pointer-events:auto}
+.detail-panel{position:fixed;top:0;bottom:0;inset-inline-end:0;width:100%;max-width:400px;background:var(--surface);z-index:201;box-shadow:var(--shadow-panel);transform:translateX(100%);transition:transform .25s ease;display:flex;flex-direction:column}
+html[dir=rtl] .detail-panel{transform:translateX(-100%)}
+html[dir] .detail-panel.open{transform:translateX(0)}
+@media(max-width:639px){.detail-panel{top:auto;max-width:none;height:auto;max-height:88vh;border-radius:22px 22px 0 0;transform:translateY(100%)}
+.detail-panel.open{transform:translateY(0)}}
+.dp-head{padding:20px 22px 16px;border-bottom:1px solid var(--hair);flex-shrink:0}
+.dp-close{width:34px;height:34px;border-radius:9999px;border:none;background:var(--surface2);color:var(--ink2);float:inline-end}
+.dp-dot{width:10px;height:10px;border-radius:50%;background:var(--jade);margin-bottom:8px}
+.dp-head h2{margin:0;font-size:20px;font-weight:800}
+.dp-head p{margin:3px 0 0;color:var(--ink2);font-size:13.5px}
+.dp-body{padding:18px 22px;overflow-y:auto;flex:1}
+.dp-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--hair);font-size:13.5px}
+.dp-row:last-child{border-bottom:none}
+.dp-row .k{color:var(--ink2)}
+.dp-row .v{font-weight:600}
+.dp-section-lbl{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin:18px 0 8px}
+.dp-note{width:100%;min-height:80px;border-radius:var(--r-md);border:1px solid var(--hair);background:var(--surface2);padding:12px 14px;font-family:inherit;font-size:13.5px;color:var(--ink);resize:vertical}
+.dp-note:focus{border-color:var(--jade)}
+.dp-foot{padding:16px 22px;border-top:1px solid var(--hair);flex-shrink:0}
+.btn-save{width:100%;height:46px;border-radius:var(--r-md);border:none;background:var(--jade);color:#fff;font-weight:700;font-size:14px}
+.btn-save:hover{background:var(--jade-hover)}
+
+/* ---------- tables ---------- */
+.data-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.data-table th{text-align:start;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--ink3);padding:10px 12px;border-bottom:1px solid var(--hair);cursor:pointer;white-space:nowrap}
+.data-table th:hover{color:var(--jade-text)}
+.data-table th.num,.data-table td.num{text-align:end;font-family:var(--font-mono)}
+.data-table td{padding:12px 12px;border-bottom:1px solid var(--hair)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--surface2)}
+@media(max-width:639px){.data-table{display:none}}
+.mobile-cards{display:none;flex-direction:column;gap:10px}
+@media(max-width:639px){.mobile-cards{display:flex}}
+.mobile-cards .mc{background:var(--surface2);border-radius:var(--r-md);padding:12px 14px}
+.mobile-cards .mc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-weight:700;font-size:13.5px;gap:8px}
+.mobile-cards .mc-row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink2);padding:3px 0}
+.pill-status.validated,.pill-status.approved{background:var(--jade-faint);color:var(--jade-text)}
+.pill-status.failed,.pill-status.rejected,.pill-status.unjustified{background:var(--danger-bg);color:var(--danger)}
+.pill-status.pending{background:var(--warning-bg);color:var(--warning)}
+
+/* ---------- grades toolbar / calculator ---------- */
+.grades-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.calc-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--hair)}
+.calc-row:first-child{border-top:none}
+.calc-row .lbl{flex:1;font-size:13px;font-weight:600}
+.calc-row input{width:64px;height:36px;border-radius:8px;border:1.5px solid var(--hair2);background:var(--surface2);text-align:center;font-family:var(--font-mono);font-size:13.5px;color:var(--ink)}
+.calc-result{margin-top:16px;padding:14px;border-radius:var(--r-md);background:var(--jade-faint);text-align:center}
+.calc-result .v{font-size:26px;font-weight:800;color:var(--jade-text)}
+
+/* ---------- attendance / upload ---------- */
+.date-tile{width:46px;text-align:center;border-radius:8px;background:var(--surface2);padding:7px 0;flex-shrink:0}
+.date-tile b{display:block;font-size:15px;font-family:var(--font-mono)}
+.date-tile small{font-size:9px;color:var(--ink3);font-weight:700;text-transform:uppercase}
+.absence-row{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--hair);cursor:pointer}
+.absence-row:first-child{border-top:none;padding-top:0}
+.absence-row:hover{background:var(--surface2);border-radius:var(--r-md)}
+.dropzone{border:1.5px dashed var(--hair2);border-radius:var(--r-lg);padding:26px 16px;text-align:center;color:var(--ink2);font-size:12.5px;cursor:pointer}
+.dropzone:hover{border-color:var(--jade);background:var(--jade-faint)}
+.dropzone svg{width:26px;height:26px;margin-bottom:8px;color:var(--ink3)}
+.chip-set{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.quick-chip{height:30px;padding:0 12px;border-radius:9999px;border:1px solid var(--hair2);background:var(--surface);font-size:12px;font-weight:600;color:var(--ink2)}
+.quick-chip.sel{background:var(--jade-faint);border-color:transparent;color:var(--jade-text)}
+.progress-track{height:6px;border-radius:9999px;background:var(--sunken);overflow:hidden;margin-top:12px}
+.progress-fill{height:100%;background:var(--jade);width:0%;transition:width .3s}
+.doc-chip{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:var(--r-md);background:var(--surface2);font-size:13px;font-weight:600}
+.doc-chip svg{width:18px;height:18px;color:var(--ink2);flex-shrink:0}
+
+/* ---------- news ---------- */
+.news-toolbar{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;margin-bottom:16px}
+.chip-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.chip-filter{height:32px;padding:0 14px;border-radius:9999px;border:1px solid var(--hair2);background:var(--surface);font-size:12.5px;font-weight:700;color:var(--ink2);flex-shrink:0;white-space:nowrap}
+.chip-filter.active{background:var(--jade-faint);color:var(--jade-text);border-color:transparent}
+.search-wrap{position:relative;flex-shrink:0}
+.search-wrap svg{position:absolute;top:50%;inset-inline-start:12px;transform:translateY(-50%);width:15px;height:15px;color:var(--ink3)}
+.search-wrap input{height:38px;border-radius:9999px;border:1px solid var(--hair2);background:var(--surface);padding-inline-start:36px;padding-inline-end:14px;font-size:13px;width:220px;color:var(--ink)}
+.article-hero{position:relative;border-radius:var(--r-lg);overflow:hidden;margin-bottom:20px;background:var(--surface);border:1px solid var(--hair);box-shadow:var(--shadow-card);cursor:pointer}
+.article-hero .img{height:240px;background:repeating-linear-gradient(45deg,var(--surface2),var(--surface2) 8px,var(--sunken) 8px,var(--sunken) 16px)}
+.article-hero .body{padding:18px 22px}
+.article-hero h2{margin:8px 0 6px;font-size:20px;font-weight:800;letter-spacing:-.2px}
+.news-grid{display:grid;grid-template-columns:1fr;gap:16px}
+@media(min-width:640px){.news-grid{grid-template-columns:1fr 1fr}}
+.article-card{position:relative;background:var(--surface);border:1px solid var(--hair);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-card);cursor:pointer}
+.article-card .img{height:140px;background:repeating-linear-gradient(45deg,var(--surface2),var(--surface2) 8px,var(--sunken) 8px,var(--sunken) 16px)}
+.article-card .body{padding:14px 16px}
+.article-card .t{font-size:14px;font-weight:700;line-height:1.35;margin-bottom:6px}
+.article-meta{display:flex;gap:10px;font-size:11px;color:var(--ink3);font-family:var(--font-mono)}
+.bookmark-btn{position:absolute;top:10px;inset-inline-end:10px;width:32px;height:32px;border-radius:9999px;background:color-mix(in oklab,var(--surface) 85%,transparent);backdrop-filter:blur(4px);color:var(--ink2);display:flex;align-items:center;justify-content:center;border:none}
+.bookmark-btn svg{width:15px;height:15px}
+.bookmark-btn.on{color:var(--jade-text)}
+.reader-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:16px}
+.reader-back{display:inline-flex;align-items:center;gap:6px;border:none;background:var(--surface2);color:var(--ink2);height:36px;padding:0 14px;border-radius:9999px;font-size:12.5px;font-weight:700}
+.reader-back:hover{color:var(--ink)}
+.reader-actions{display:flex;gap:8px}
+.reader-hero-img{height:260px;border-radius:var(--r-lg);background:repeating-linear-gradient(45deg,var(--surface2),var(--surface2) 8px,var(--sunken) 8px,var(--sunken) 16px);margin-bottom:20px}
+.reader-body h1{font-size:24px;font-weight:800;letter-spacing:-.3px;margin:0 0 8px}
+.reader-body .meta{color:var(--ink2);font-size:13px;margin-bottom:20px;display:flex;gap:10px;align-items:center}
+.reader-body p{font-size:15px;line-height:1.7;color:var(--ink);max-width:640px}
+.related-lbl{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin:28px 0 12px}
+
+/* ---------- profile ---------- */
+.profile-hero{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.profile-hero .avatar{width:60px;height:60px;font-size:19px}
+.profile-hero h2{margin:0;font-size:18px;font-weight:800}
+.profile-hero p{margin:4px 0 0;color:var(--ink2);font-size:13px}
+.settings-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid var(--hair);gap:12px}
+.settings-row:first-child{border-top:none;padding-top:0}
+.settings-row .lbl{font-size:13.5px;font-weight:600}
+.settings-row .sub{font-size:11.5px;color:var(--ink3);margin-top:5px;line-height:1.3}
+.settings-row .lbl{line-height:1.3}
+.toggle-switch{width:42px;height:24px;border-radius:9999px;background:var(--sunken);position:relative;border:none;flex-shrink:0}
+.toggle-switch::after{content:'';position:absolute;top:3px;inset-inline-start:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-switch.on{background:var(--jade)}
+.toggle-switch.on::after{inset-inline-start:21px}
+.radio-pills{display:flex;gap:6px;flex-wrap:wrap}
+.radio-pill{height:32px;padding:0 13px;border-radius:9999px;border:1px solid var(--hair2);background:var(--surface);font-size:12px;font-weight:700;color:var(--ink2)}
+.radio-pill.active{background:var(--jade-faint);color:var(--jade-text);border-color:transparent}
+.btn-outline{height:44px;border-radius:var(--r-md);border:1.5px solid var(--hair2);background:var(--surface);color:var(--ink);font-weight:700;font-size:13.5px;width:100%}
+.btn-outline:hover{border-color:var(--jade);color:var(--jade-text)}
+.btn-danger-outline{height:44px;border-radius:var(--r-md);border:1.5px solid var(--danger);background:var(--danger-bg);color:var(--danger);font-weight:700;font-size:13.5px;width:100%}
+
+/* ---------- jade hero (GPA / Présence) ---------- */
+.hero-jade{position:relative;overflow:hidden;border-radius:22px;padding:22px;color:#fff;background:linear-gradient(150deg,var(--jade),var(--jade-hover));box-shadow:0 14px 30px rgba(15,110,86,.30)}
+.hero-jade .depth-circle{position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.07);top:-48px;inset-inline-end:-48px;pointer-events:none}
+.hj-label{position:relative;font-size:12.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:rgba(255,255,255,.78)}
+.hj-value{position:relative;font-family:var(--font-mono);font-size:42px;font-weight:500;margin-top:6px;line-height:1}
+.hj-value .suf{font-size:17px;font-weight:400;color:rgba(255,255,255,.7)}
+.mention-badge{position:relative;display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.18);border-radius:9999px;padding:5px 12px;font-size:13px;font-weight:700;margin-top:10px;cursor:pointer}
+.mention-badge .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.hj-credits{position:relative;font-size:13px;color:rgba(255,255,255,.85);margin-top:16px}
+.hj-credits-track{position:relative;height:4px;border-radius:9999px;background:rgba(255,255,255,.25);margin-top:8px;overflow:hidden}
+.hj-credits-fill{height:100%;background:#fff}
+.hero-ring-wrap{position:relative;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.hero-ring{flex-shrink:0}
+.hero-ring text{font-family:var(--font-mono);font-size:22px;font-weight:500;fill:#fff}
+.hj-status-pill{position:relative;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border-radius:9999px;padding:5px 11px;font-size:12.5px;font-weight:700;margin-top:8px;white-space:nowrap}
+.hj-status-pill .dot{width:6px;height:6px;border-radius:50%;background:#7DF3C4;flex-shrink:0}
+.hj-summary{position:relative;font-size:13px;color:rgba(255,255,255,.85);margin-top:10px;max-width:220px}
+
+/* ---------- soft-elevated subject cards ---------- */
+.subject-card{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:16px}
+.subject-card .sc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.subject-card .sc-name{font-size:15px;font-weight:700;line-height:1.3}
+.metric-strip{display:flex;background:var(--surface2);border-radius:var(--r-md);padding:10px 6px;margin-top:12px;gap:4px}
+.metric-cell{flex:1;text-align:center}
+.metric-cell .lbl{font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--ink3)}
+.metric-cell .val{font-family:var(--font-mono);font-size:15px;font-weight:500;margin-top:3px;color:var(--ink)}
+.sc-progress{height:6px;border-radius:9999px;background:var(--sunken);margin-top:12px;overflow:hidden}
+.sc-progress .fill{height:100%;border-radius:9999px}
+.at-risk-hint{display:flex;align-items:center;gap:6px;margin-top:9px;font-size:12.5px;font-weight:600}
+.at-risk-hint svg{width:13px;height:13px;flex-shrink:0}
+.lvl-validated{color:var(--jade-text)}
+.lvl-limite{color:#9a5b06}
+html[data-theme=dark] .lvl-limite{color:var(--warning)}
+.lvl-risque{color:var(--danger)}
+.bg-lvl-validated{background:var(--jade)}
+.bg-lvl-limite{background:var(--warning)}
+.bg-lvl-risque{background:var(--danger)}
+.pill-lvl-validated{background:var(--jade-faint);color:var(--jade-text)}
+.pill-lvl-limite{background:var(--warning-bg);color:#9a5b06}
+html[data-theme=dark] .pill-lvl-limite{color:var(--warning)}
+.pill-lvl-risque{background:var(--danger-bg);color:var(--danger)}
+.hug-pill{display:inline-flex;align-items:center;font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;padding:4px 10px;border-radius:9999px;flex-shrink:0}
+
+/* ---------- calculator ---------- */
+.calc-select{width:100%;height:46px;border-radius:var(--r-md);border:1.5px solid var(--hair2);background:var(--surface2);padding:0 12px;font-size:14px;color:var(--ink);margin-bottom:4px}
+.calc-current-row{background:var(--surface2);border-radius:var(--r-md);padding:12px 14px;font-family:var(--font-mono);font-size:18px;font-weight:600;color:var(--jade-text)}
+.calc-current-row .suf{font-size:13px;color:var(--ink3);font-weight:400;margin-inline-start:4px;font-family:var(--font-sans)}
+.calc-target-input{width:100%;height:46px;border-radius:var(--r-md);border:1.5px solid var(--hair2);background:var(--surface2);padding:0 12px;font-family:var(--font-mono);font-size:15px;color:var(--ink)}
+.calc-target-input:focus{border-color:var(--jade)}
+
+/* ---------- attendance subject list ---------- */
+.attend-subject{padding:13px 0;border-top:1px solid var(--hair)}
+.attend-subject:first-child{border-top:none;padding-top:0}
+.attend-subject .as-top{display:flex;align-items:flex-start;gap:9px}
+.as-dot{width:9px;height:9px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.as-name{font-size:14px;font-weight:600;flex:1}
+.as-sessions{font-size:11.5px;color:var(--ink3);margin-top:1px}
+.as-pct{font-family:var(--font-mono);font-size:16px;font-weight:500;flex-shrink:0}
+.as-bar{height:6px;border-radius:9999px;background:var(--hair2);margin-top:9px;overflow:hidden}
+.as-bar .fill{height:100%;border-radius:9999px}
+.as-proj{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px}
+.as-proj svg{width:12px;height:12px;flex-shrink:0}
+.ctx-card{background:var(--surface2);border-radius:var(--r-md);padding:11px 12px;display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.ctx-card .date-tile{margin:0}
+
+/* ---------- tile groups (profile) ---------- */
+.tile-group-lbl{font-size:11.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--ink3);margin:0 0 8px 2px}
+.tile-group{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:0 4px}
+.tile-row{display:flex;align-items:center;gap:13px;min-height:58px;padding:10px 12px 10px 10px;border-top:1px solid var(--hair)}
+.tile-row:first-child{border-top:none}
+.tile-icon{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tile-icon svg{width:17px;height:17px}
+.tile-row .tr-label{font-size:14.5px;font-weight:600;flex:1}
+.tile-row .tr-value{font-size:13.5px;color:var(--ink2);flex-shrink:0;text-align:end;white-space:nowrap}
+.tile-row.nav{cursor:pointer}
+.tile-row.nav:hover{background:var(--surface2)}
+.tr-chevron{width:15px;height:15px;color:var(--ink3);flex-shrink:0}
+html[dir=rtl] .tr-chevron{transform:scaleX(-1)}
+.identity-block{display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px 0 20px}
+.identity-avatar{width:84px;height:84px;border-radius:9999px;background:var(--jade-faint);color:var(--jade-text);font-size:30px;font-weight:700;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--surface),0 0 0 5px var(--jade-faint)}
+.identity-block h2{margin:14px 0 0;font-size:19px;font-weight:700}
+.identity-block .mono{margin-top:4px;color:var(--ink2);font-size:13px}
+
+/* ---------- news v2 ---------- */
+.article-hero-card{position:relative;border-radius:var(--r-lg);overflow:hidden;margin-bottom:20px;box-shadow:var(--shadow-card);cursor:pointer}
+.article-hero-card .img{height:230px;background:repeating-linear-gradient(45deg,var(--surface2),var(--surface2) 8px,var(--sunken) 8px,var(--sunken) 16px);position:relative}
+.article-hero-card .scrim{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,15,12,.68),transparent 62%)}
+.article-hero-card .cat-flag{position:absolute;top:12px;inset-inline-start:12px;display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:9999px}
+.article-hero-card .cat-flag.urgent{background:rgba(239,68,68,.85);color:#fff}
+.article-hero-card .cat-flag .dot{width:7px;height:7px;border-radius:50%;background:#fff}
+.article-hero-card .hero-txt{position:absolute;left:0;right:0;bottom:0;padding:16px 20px;color:#fff}
+.article-hero-card .hero-txt h2{margin:8px 0 0;font-size:19px;font-weight:800;line-height:1.3}
+.article-hero-card .hero-txt .meta{font-size:12.5px;color:rgba(255,255,255,.8);margin-top:7px}
+.cat-pill{display:inline-flex;align-items:center;font-size:11px;font-weight:700;padding:4px 10px;border-radius:9999px}
+.cat-officiel{background:var(--jade-faint);color:var(--jade-text)}
+.cat-evenement{background:var(--info-bg);color:var(--info)}
+.cat-academique{background:var(--warning-bg);color:#9a5b06}
+html[data-theme=dark] .cat-academique{color:var(--warning)}
+.article-card2{position:relative;display:flex;gap:12px;background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--shadow-card);padding:14px;cursor:pointer}
+.article-card2 .thumb{width:56px;height:56px;border-radius:var(--r-md);flex-shrink:0;background:repeating-linear-gradient(45deg,var(--surface2),var(--surface2) 6px,var(--sunken) 6px,var(--sunken) 12px)}
+.article-card2 .ac-right{flex:1;min-width:0}
+.article-card2 .ac-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.article-card2 .ac-time{font-size:12px;color:var(--ink3);display:flex;align-items:center;gap:5px;flex-shrink:0}
+.article-card2 .ac-time .unread-dot{width:7px;height:7px;border-radius:50%;background:var(--jade);flex-shrink:0}
+.article-card2 .ac-title{font-size:14.5px;font-weight:700;line-height:1.35;margin-top:6px}
+.article-card2 .ac-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.article-card2 .ac-bottom .rt{font-size:12px;color:var(--ink3)}
+.bookmark-inline{border:none;background:none;color:var(--ink3);display:flex;padding:4px;flex-shrink:0}
+.bookmark-inline.on{color:var(--jade-text)}
+.bookmark-inline svg{width:17px;height:17px}
+.reader-source-pill{display:inline-flex;background:rgba(255,255,255,.85);color:#1E231F;font-size:12px;font-weight:700;padding:4px 10px;border-radius:9999px;margin-bottom:10px}
+.news-grid.mode-list{display:flex;flex-direction:column;gap:8px}
+.article-row{display:flex;align-items:center;gap:12px;padding:13px 15px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--hair);cursor:pointer}
+.article-row:hover{background:var(--surface2)}
+.article-row .ar-title{flex:1;min-width:0;font-size:13.5px;font-weight:600}
+.article-row .ar-meta{font-size:11.5px;color:var(--ink3);flex-shrink:0;white-space:nowrap}
+.news-grid.mode-magazine{grid-template-columns:1fr}
+@media(min-width:640px){.news-grid.mode-magazine{grid-template-columns:1fr 1fr}}
+.article-card-mag{background:var(--surface);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-card);cursor:pointer}
+.article-card-mag .img{height:190px;background:repeating-linear-gradient(45deg,var(--surface2),var(--surface2) 8px,var(--sunken) 8px,var(--sunken) 16px)}
+.article-card-mag .body{padding:16px}
+.article-card-mag h3{margin:8px 0 6px;font-size:16px;font-weight:800;line-height:1.3}
+.article-card-mag .meta{font-size:12px;color:var(--ink3)}
+</style>
+</head>
+<body>
+
+<div class="ctl-rail" id="ctl-rail">
+  <button class="ctl-toggle" id="ctl-toggle" title="Réglages prototype"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+  <div class="ctl-rail-body">
+  <button class="ctl-btn" id="btn-theme" title="Theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span id="theme-lbl">Clair</span></button>
+  <button class="ctl-btn" id="btn-lang">FR / AR</button>
+  <div class="ctl-sep"></div>
+  <button class="ctl-btn" id="btn-offline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 9a15 15 0 0 1 20 0M6 13a9 9 0 0 1 12 0M10 17a4 4 0 0 1 4 0"/><line x1="2" y1="2" x2="22" y2="22"/></svg><span data-fr="Hors ligne" data-ar="غير متصل">Hors ligne</span></button>
+  </div>
+</div>
+
+<div class="toast-stack" id="toast-stack"></div>
+
+<!-- ============ LOGIN ============ -->
+<div id="screen-login">
+  <div class="login-card">
+    <div class="login-hero">
+      <button class="lang-chip" id="btn-login-lang" onclick="document.getElementById('btn-lang').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 4 6 4 9s-1.5 6.5-4 9c-2.5-2.5-4-6-4-9s1.5-6.5 4-9z"/></svg><span id="login-lang-code">FR</span></button>
+      <div class="blob" style="width:180px;height:180px;top:-70px;inset-inline-start:-40px"></div>
+      <div class="blob" style="width:160px;height:160px;top:-50px;inset-inline-end:-50px"></div>
+      <img class="logo" src="assets/unipocket-icon-foreground.png" alt="Unipocket" style="width:64px;height:64px;position:relative"/>
+      <div class="bn" data-fr="Université de Djibouti" data-ar="جامعة جيبوتي">Université de Djibouti</div>
+      <div class="tg" data-fr="Connectez-vous à votre espace étudiant" data-ar="سجّل الدخول إلى فضائك الطلابي">Connectez-vous à votre espace étudiant</div>
+    </div>
+    <div class="login-body">
+      <div id="login-error" class="errcard" style="display:none">
+        <div><strong data-fr="Identifiants incorrects" data-ar="بيانات الدخول غير صحيحة">Identifiants incorrects</strong><span data-fr="Vérifiez votre numéro étudiant et votre mot de passe. Il vous reste 3 tentatives." data-ar="تحقق من رقمك الجامعي وكلمة المرور. لديك 3 محاولات متبقية.">Vérifiez votre numéro étudiant et votre mot de passe. Il vous reste 3 tentatives.</span></div>
+      </div>
+      <div id="login-error-rate" class="errcard info" style="display:none">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.5a16 16 0 0 1 20 0"/><path d="M5.5 12.5a11 11 0 0 1 13 0"/><path d="M9 16.5a5.5 5.5 0 0 1 6 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg></div>
+        <div><strong data-fr="Réseau très sollicité" data-ar="الشبكة مزدحمة حالياً">Réseau très sollicité</strong><span data-fr="Trop de connexions depuis ce réseau. Ce n'est pas lié à vos identifiants." data-ar="عدد كبير من محاولات الدخول من هذه الشبكة. لا علاقة لبيانات دخولك بالأمر.">Trop de connexions depuis ce réseau. Ce n'est pas lié à vos identifiants.</span></div>
+      </div>
+      <div class="field" id="field-id">
+        <label data-fr="Numéro étudiant" data-ar="الرقم الجامعي">Numéro étudiant</label>
+        <input id="login-id" type="text" placeholder="UDJ-2024-0451" value="UDJ-2024-0451"/>
+      </div>
+      <div class="field pw" id="field-pw">
+        <label data-fr="Mot de passe" data-ar="كلمة المرور">Mot de passe</label>
+        <input id="login-pw" type="password" placeholder="••••••••" value="password"/>
+      </div>
+      <div class="offline-row">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6z"/></svg></div>
+        <div class="tx">
+          <div class="l" data-fr="Garder mes données hors ligne sur cet appareil" data-ar="الاحتفاظ ببياناتي دون اتصال على هذا الجهاز">Garder mes données hors ligne sur cet appareil</div>
+          <div class="h" id="offline-hint-off" data-fr="Recommandé sur un poste partagé (salle info, bibliothèque)" data-ar="يُنصح به عند استخدام جهاز مشترك (قاعة الحاسوب، المكتبة)">Recommandé sur un poste partagé (salle info, bibliothèque)</div>
+          <div class="h" id="offline-hint-on" style="display:none" data-fr="Notes, horaires et présence dispo hors ligne — effacés à la déconnexion" data-ar="الدرجات والجدول والحضور متاحة دون اتصال — تُحذف عند تسجيل الخروج">Notes, horaires et présence dispo hors ligne — effacés à la déconnexion</div>
+        </div>
+        <button class="offline-switch" id="offline-switch" aria-label="offline"></button>
+      </div>
+      <div class="row-between">
+        <a href="#" data-fr="Mot de passe oublié" data-ar="نسيت كلمة المرور">Mot de passe oublié</a>
+      </div>
+      <button class="btn-primary" id="btn-login" data-fr="Se connecter" data-ar="تسجيل الدخول">Se connecter</button>
+      <div class="hint"><span data-fr="Démo — " data-ar="عرض — ">Démo — </span><button id="btn-sim-error" data-fr="simuler une erreur" data-ar="محاكاة خطأ">simuler une erreur</button><span> · </span><button id="btn-sim-rate" data-fr="simuler limite réseau" data-ar="محاكاة حدّ الشبكة">simuler limite réseau</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="mark" style="background:transparent"><img src="assets/unipocket-icon.png" alt="Unipocket" style="width:34px;height:34px;border-radius:10px"/></div>
+      <div class="brand">Unipocket</div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="dashboard" data-fr-lbl="Tableau de bord" data-ar-lbl="لوحة التحكم">
+        <svg viewBox="0 0 24 24"><g transform="translate(3.556 2.5) scale(1.05556)"><path fill="currentColor" d="M2 15.5H5V10.5C5 10.2167 5.096 9.97933 5.288 9.788C5.48 9.59667 5.71733 9.50067 6 9.5H10C10.2833 9.5 10.521 9.596 10.713 9.788C10.905 9.98 11.0007 10.2173 11 10.5V15.5H14V6.5L8 2L2 6.5V15.5ZM0 15.5V6.5C0 6.18333 0.0709998 5.88333 0.213 5.6C0.355 5.31667 0.550667 5.08333 0.8 4.9L6.8 0.4C7.15 0.133333 7.55 0 8 0C8.45 0 8.85 0.133333 9.2 0.4L15.2 4.9C15.45 5.08333 15.646 5.31667 15.788 5.6C15.93 5.88333 16.0007 6.18333 16 6.5V15.5C16 16.05 15.804 16.521 15.412 16.913C15.02 17.305 14.5493 17.5007 14 17.5H10C9.71667 17.5 9.47933 17.404 9.288 17.212C9.09667 17.02 9.00067 16.7827 9 16.5V11.5H7V16.5C7 16.7833 6.904 17.021 6.712 17.213C6.52 17.405 6.28267 17.5007 6 17.5H2C1.45 17.5 0.979333 17.3043 0.588 16.913C0.196666 16.5217 0.000666667 16.0507 0 15.5Z"></path></g></svg>
+        <span class="lbl" data-fr="Tableau de bord" data-ar="لوحة التحكم">Tableau de bord</span>
+      </button>
+      <button class="nav-item" data-view="schedule" data-fr-lbl="Emploi du temps" data-ar-lbl="جدول الحصص">
+        <svg viewBox="0 0 24 24"><g transform="translate(2.25 2.25) scale(0.975)"><path fill="currentColor" d="M17 2H15V1C15 0.734784 14.8946 0.48043 14.7071 0.292893C14.5196 0.105357 14.2652 0 14 0C13.7348 0 13.4804 0.105357 13.2929 0.292893C13.1054 0.48043 13 0.734784 13 1V2H7V1C7 0.734784 6.89464 0.48043 6.70711 0.292893C6.51957 0.105357 6.26522 0 6 0C5.73478 0 5.48043 0.105357 5.29289 0.292893C5.10536 0.48043 5 0.734784 5 1V2H3C2.20435 2 1.44129 2.31607 0.87868 2.87868C0.316071 3.44129 0 4.20435 0 5V17C0 17.7956 0.316071 18.5587 0.87868 19.1213C1.44129 19.6839 2.20435 20 3 20H17C17.7956 20 18.5587 19.6839 19.1213 19.1213C19.6839 18.5587 20 17.7956 20 17V5C20 4.20435 19.6839 3.44129 19.1213 2.87868C18.5587 2.31607 17.7956 2 17 2ZM18 17C18 17.2652 17.8946 17.5196 17.7071 17.7071C17.5196 17.8946 17.2652 18 17 18H3C2.73478 18 2.48043 17.8946 2.29289 17.7071C2.10536 17.5196 2 17.2652 2 17V10H18V17ZM18 8H2V5C2 4.73478 2.10536 4.48043 2.29289 4.29289C2.48043 4.10536 2.73478 4 3 4H5V5C5 5.26522 5.10536 5.51957 5.29289 5.70711C5.48043 5.89464 5.73478 6 6 6C6.26522 6 6.51957 5.89464 6.70711 5.70711C6.89464 5.51957 7 5.26522 7 5V4H13V5C13 5.26522 13.1054 5.51957 13.2929 5.70711C13.4804 5.89464 13.7348 6 14 6C14.2652 6 14.5196 5.89464 14.7071 5.70711C14.8946 5.51957 15 5.26522 15 5V4H17C17.2652 4 17.5196 4.10536 17.7071 4.29289C17.8946 4.48043 18 4.73478 18 5V8Z"></path></g></svg>
+        <span class="lbl" data-fr="Emploi du temps" data-ar="جدول الحصص">Emploi du temps</span>
+      </button>
+      <button class="nav-item" data-view="grades">
+        <svg viewBox="0 0 24 24"><g transform="translate(2.25 5.5) scale(1.08333)"><path fill="currentColor" d="M1 12C0.71667 12 0.479337 11.904 0.288004 11.712C0.0966702 11.52 0.000670115 11.2827 3.44827e-06 11C-0.000663218 10.7173 0.0953369 10.48 0.288004 10.288C0.48067 10.096 0.718003 10 1 10H11C11.2833 10 11.521 10.096 11.713 10.288C11.905 10.48 12.0007 10.7173 12 11C11.9993 11.2827 11.9033 11.5203 11.712 11.713C11.5207 11.9057 11.2833 12.0013 11 12H1ZM1 7C0.71667 7 0.479337 6.904 0.288004 6.712C0.0966702 6.52 0.000670115 6.28267 3.44827e-06 6C-0.000663218 5.71733 0.0953369 5.48 0.288004 5.288C0.48067 5.096 0.718003 5 1 5H17C17.2833 5 17.521 5.096 17.713 5.288C17.905 5.48 18.0007 5.71733 18 6C17.9993 6.28267 17.9033 6.52033 17.712 6.713C17.5207 6.90567 17.2833 7.00133 17 7H1ZM1 2C0.71667 2 0.479337 1.904 0.288004 1.712C0.0966702 1.52 0.000670115 1.28267 3.44827e-06 1C-0.000663218 0.717333 0.0953369 0.48 0.288004 0.288C0.48067 0.0960001 0.718003 0 1 0H17C17.2833 0 17.521 0.0960001 17.713 0.288C17.905 0.48 18.0007 0.717333 18 1C17.9993 1.28267 17.9033 1.52033 17.712 1.713C17.5207 1.90567 17.2833 2.00133 17 2H1Z"></path></g></svg>
+        <span class="lbl" data-fr="Notes" data-ar="الدرجات">Notes</span>
+      </button>
+      <button class="nav-item" data-view="attendance">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        <span class="lbl" data-fr="Présence" data-ar="الحضور">Présence</span>
+      </button>
+      <button class="nav-item" data-view="news">
+        <svg viewBox="0 0 24 24"><g transform="translate(1.5 1.5)"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" d="M0.750168 17.9082V13.2572C0.750168 12.5472 0.750168 12.1932 0.881168 12.1532C1.01317 12.1132 1.21417 12.4192 1.61617 13.0302C3.00817 15.1442 5.35617 17.4922 7.47017 18.8842C8.08017 19.2862 8.38617 19.4872 8.34717 19.6192C8.30717 19.7492 7.95317 19.7492 7.24317 19.7492H2.59217C1.72417 19.7492 1.28917 19.7492 1.02017 19.4802C0.750168 19.2102 0.750168 18.7762 0.750168 17.9082ZM19.7502 2.59224V7.24324C19.7502 7.95324 19.7502 8.30724 19.6202 8.34724C19.4882 8.38624 19.2872 8.08124 18.8842 7.47024C17.4922 5.35624 15.1442 3.00824 13.0302 1.61624C12.4202 1.21424 12.1142 1.01324 12.1542 0.881244C12.1942 0.750244 12.5482 0.750244 13.2572 0.750244H17.9092C18.7772 0.750244 19.2112 0.750244 19.4812 1.02024C19.7512 1.29024 19.7502 1.72424 19.7502 2.59224ZM0.750168 2.65024V4.87624C0.750168 5.65324 0.750168 6.04124 0.895168 6.39024C1.03917 6.74024 1.31417 7.01424 1.86317 7.56324L12.9372 18.6372C13.4872 19.1872 13.7612 19.4612 14.1102 19.6052C14.4592 19.7492 14.8472 19.7502 15.6242 19.7502H17.8502C18.7462 19.7502 19.1932 19.7502 19.4722 19.4722C19.7502 19.1932 19.7502 18.7462 19.7502 17.8502V15.6242C19.7502 14.8472 19.7502 14.4592 19.6052 14.1102C19.4612 13.7602 19.1862 13.4862 18.6372 12.9372L7.56317 1.86324C7.01317 1.31324 6.73917 1.03924 6.39017 0.895244C6.04117 0.751244 5.65317 0.750244 4.87617 0.750244H2.65017C1.75417 0.750244 1.30617 0.750244 1.02817 1.02824C0.750168 1.30724 0.750168 1.75424 0.750168 2.65024Z"></path></g></svg>
+        <span class="lbl" data-fr="Actualités" data-ar="الأخبار">Actualités</span>
+      </button>
+      <button class="nav-item" data-view="profile">
+        <svg viewBox="0 0 24 24"><g transform="translate(1.5 1.5) scale(0.875)"><path fill="none" stroke="currentColor" stroke-width="1.714" stroke-linejoin="round" d="M4 18C4 16.9391 4.42143 15.9217 5.17157 15.1716C5.92172 14.4214 6.93913 14 8 14H16C17.0609 14 18.0783 14.4214 18.8284 15.1716C19.5786 15.9217 20 16.9391 20 18C20 18.5304 19.7893 19.0391 19.4142 19.4142C19.0391 19.7893 18.5304 20 18 20H6C5.46957 20 4.96086 19.7893 4.58579 19.4142C4.21071 19.0391 4 18.5304 4 18Z"></path><path fill="none" stroke="currentColor" stroke-width="1.714" stroke-linejoin="round" d="M12 10C13.6569 10 15 8.65685 15 7C15 5.34315 13.6569 4 12 4C10.3431 4 9 5.34315 9 7C9 8.65685 10.3431 10 12 10Z"></path></g></svg>
+        <span class="lbl" data-fr="Profil" data-ar="الملف الشخصي">Profil</span>
+      </button>
+    </nav>
+    <div class="sidebar-foot">
+      <button class="collapse-btn" id="btn-collapse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg><span class="lbl" data-fr="Réduire" data-ar="طي">Réduire</span></button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <h1 class="page-title" id="page-title" data-fr="Tableau de bord" data-ar="لوحة التحكم">Tableau de bord</h1>
+      <div class="topbar-right">
+        <div style="position:relative">
+          <button class="icon-btn" id="btn-bell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="badge-dot"></span></button>
+          <div class="notif-panel" id="notif-panel">
+            <h4 data-fr="Notifications" data-ar="الإشعارات">Notifications</h4>
+            <div class="notif-row"><div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5-9 5-9-5 9-5z"/></svg></div><div><div class="t" data-fr="Vos notes de Réseaux sont publiées" data-ar="تم نشر درجات مادة الشبكات">Vos notes de Réseaux sont publiées</div><div class="d">09:12</div></div></div>
+            <div class="notif-row"><div class="chip" style="background:var(--warning-bg);color:var(--warning)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div><div><div class="t" data-fr="Présence à 72 % — sous le seuil" data-ar="نسبة الحضور 72٪ — دون الحد الأدنى">Présence à 72 % — sous le seuil</div><div class="d">Hier</div></div></div>
+            <div class="notif-row"><div class="chip" style="background:var(--exam-bg);color:var(--exam)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></div><div><div class="t" data-fr="Calendrier des examens S2 publié" data-ar="تم نشر جدول امتحانات الفصل الثاني">Calendrier des examens S2 publié</div><div class="d">Lundi</div></div></div>
+          </div>
+        </div>
+        <div style="position:relative">
+          <button class="avatar-btn" id="btn-avatar"><div class="avatar">AM</div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="dropdown" id="avatar-dropdown">
+            <button class="dd-item" data-view-link="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg><span data-fr="Profil" data-ar="الملف الشخصي">Profil</span></button>
+            <button class="dd-item" data-view-link="profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span data-fr="Paramètres" data-ar="الإعدادات">Paramètres</span></button>
+            <div class="dd-sep"></div>
+            <button class="dd-item" id="btn-logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg><span data-fr="Se déconnecter" data-ar="تسجيل الخروج">Se déconnecter</span></button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="offline-banner" id="offline-banner" style="display:none"><span class="dot"></span><span data-fr="Vous êtes hors ligne. Données mises en cache affichées." data-ar="أنت غير متصل بالإنترنت. البيانات المعروضة مخزّنة مؤقتًا.">Vous êtes hors ligne. Données mises en cache affichées.</span></div>
+
+      <!-- DASHBOARD -->
+      <div class="view active" id="view-dashboard" data-screen-label="Dashboard">
+        <div class="welcome" style="margin-bottom:24px">
+          <h1 data-fr-tpl="Bonjour, <span>Amina</span>" data-ar-tpl="مرحباً، <span>أمينة</span>">Bonjour, <span>Amina</span></h1>
+          <p data-fr="Licence Informatique · Semestre 4" data-ar="إجازة في المعلوماتية · الفصل الرابع">Licence Informatique · Semestre 4</p>
+        </div>
+        <div class="grid-cards">
+          <div class="card span-2">
+            <div class="card-head"><h3 data-fr="Aujourd'hui · Mardi 10 juin" data-ar="اليوم · الثلاثاء 10 يونيو">Aujourd'hui · Mardi 10 juin</h3><button class="see-all" data-view-link="schedule" data-fr="Voir tout" data-ar="عرض الكل">Voir tout</button></div>
+            <div class="countdown"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span data-fr="Prochain cours dans 45 min" data-ar="الحصة القادمة خلال 45 دقيقة">Prochain cours dans 45 min</span></div>
+            <div class="mini-class"><div class="rail" style="background:#2E9E5B"></div><div class="body"><div class="t">Réseaux informatiques</div><div class="s">Labo Info 2</div></div><div class="time">08:00<br/>09:30</div></div>
+            <div class="mini-class"><div class="rail" style="background:#2F7DD1"></div><div class="body"><div class="t">Systèmes d'exploitation</div><div class="s">Amphi A1</div></div><div class="time">10:00<br/>11:30</div></div>
+            <div class="mini-class"><div class="rail" style="background:#E08A1E"></div><div class="body"><div class="t">Statistiques L2</div><div class="s">Salle B08</div></div><div class="time">13:00<br/>14:30</div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <div class="hero-jade" style="padding:18px">
+              <div class="depth-circle"></div>
+              <div class="hj-label" data-fr="Moyenne générale" data-ar="المعدل العام">Moyenne générale</div>
+              <div class="hj-value" style="font-size:32px">12.3<span class="suf">/20</span></div>
+              <div class="mention-badge" data-view-link="grades"><span class="dot" style="background:#FFD27D"></span><span data-fr="Assez Bien" data-ar="مستحسن">Assez Bien</span></div>
+            </div>
+            <div class="card" style="cursor:pointer;flex:1;padding:16px" data-view-link="attendance">
+              <h3 data-fr="Assiduité" data-ar="المواظبة">Assiduité</h3>
+              <div class="gauge-wrap">
+                <div class="gauge" style="background:conic-gradient(var(--warning) 0 87%, var(--sunken) 0 100%)"><div class="hole"><b>87%</b><small data-fr="TAUX" data-ar="النسبة">TAUX</small></div></div>
+                <p class="attend-note"><strong data-fr="Seuil : 75%" data-ar="الحد الأدنى: 75٪">Seuil : 75%</strong><br/><span data-fr="2 absences avant avertissement." data-ar="غيابان قبل التحذير.">2 absences avant avertissement.</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="card dash-notif-card" style="display:flex;flex-direction:column">
+            <div class="card-head"><h3 data-fr="Notifications" data-ar="الإشعارات">Notifications</h3><button class="see-all" id="dash-notif-all" data-fr="Tout voir" data-ar="عرض الكل">Tout voir</button></div>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <div class="notif-row" style="padding:10px 0"><div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5-9 5-9-5 9-5z"/></svg></div><div><div class="t" data-fr="Vos notes de Réseaux sont publiées" data-ar="تم نشر درجات مادة الشبكات">Vos notes de Réseaux sont publiées</div><div class="d">09:12</div></div></div>
+              <div class="notif-row" style="padding:10px 0"><div class="chip" style="background:var(--warning-bg);color:var(--warning)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div><div><div class="t" data-fr="Présence à 72 % — sous le seuil" data-ar="نسبة الحضور 72٪ — دون الحد الأدنى">Présence à 72 % — sous le seuil</div><div class="d">Hier</div></div></div>
+              <div class="notif-row" style="padding:10px 0"><div class="chip" style="background:var(--exam-bg);color:var(--exam)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></div><div><div class="t" data-fr="Calendrier des examens S2 publié" data-ar="تم نشر جدول امتحانات الفصل الثاني">Calendrier des examens S2 publié</div><div class="d">Lundi</div></div></div>
+            </div>
+          </div>
+          <div class="card span-all">
+            <h3 style="margin-bottom:12px" data-fr="Accès rapide" data-ar="روابط سريعة">Accès rapide</h3>
+            <div class="quicklinks">
+              <button class="qlink" data-view-link="attendance"><div class="qi" style="background:var(--warning-bg);color:#9a5b06"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15V3m0 0 4 4m-4-4-4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></div><div class="qt"><span data-fr="Justifier une absence" data-ar="تبرير غياب">Justifier une absence</span><small data-fr="1 en attente" data-ar="1 قيد الانتظار">1 en attente</small></div></button>
+              <button class="qlink" data-view-link="grades"><div class="qi" style="background:var(--info-bg);color:var(--info)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M8 12h1M12 12h1M16 12h1"/></svg></div><div class="qt"><span data-fr="Simuler ma moyenne" data-ar="محاكاة معدلي">Simuler ma moyenne</span><small data-fr="Calculatrice" data-ar="الحاسبة">Calculatrice</small></div></button>
+              <button class="qlink" data-view-link="schedule"><div class="qi" style="background:var(--jade-faint);color:var(--jade-text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div><div class="qt"><span data-fr="Imprimer mon planning" data-ar="طباعة الجدول">Imprimer mon planning</span><small data-fr="Semaine en cours" data-ar="هذا الأسبوع">Semaine en cours</small></div></button>
+            </div>
+          </div>
+          <div class="card span-all">
+            <div class="card-head"><h3 data-fr="Actualités récentes" data-ar="آخر الأخبار">Actualités récentes</h3><button class="see-all" data-view-link="news" data-fr="Voir tout" data-ar="عرض الكل">Voir tout</button></div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="article-card2" data-view-link="news"><div class="thumb"></div><div class="ac-right"><div class="ac-top"><span class="cat-pill cat-officiel" data-fr="Officiel" data-ar="رسمي">Officiel</span><span class="ac-time"><span class="unread-dot"></span>10 juin</span></div><div class="ac-title" data-fr="Calendrier des examens du semestre 2 publié" data-ar="تم نشر جدول امتحانات الفصل الثاني">Calendrier des examens du semestre 2 publié</div></div></div>
+              <div class="article-card2" data-view-link="news"><div class="thumb"></div><div class="ac-right"><div class="ac-top"><span class="cat-pill cat-evenement" data-fr="Événement" data-ar="فعالية">Événement</span><span class="ac-time">8 juin</span></div><div class="ac-title" data-fr="Journée portes ouvertes — Faculté des Sciences" data-ar="اليوم المفتوح — كلية العلوم">Journée portes ouvertes — Faculté des Sciences</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCHEDULE -->
+      <div class="view" id="view-schedule" data-screen-label="Schedule">
+        <div class="sched-toolbar">
+          <div class="segmented">
+            <button class="seg-btn" data-mode="day" data-fr="Jour" data-ar="يوم">Jour</button>
+            <button class="seg-btn active" data-mode="week" data-fr="Semaine" data-ar="أسبوع">Semaine</button>
+          </div>
+          <div class="weeknav">
+            <button class="wn-btn" id="wn-prev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <div class="lbl" data-fr="Semaine du 8 juin" data-ar="أسبوع 8 يونيو">Semaine du 8 juin</div>
+            <button class="wn-btn" id="wn-next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
+          </div>
+          <button class="btn-ghost" id="btn-print"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M6 14h12v7H6z"/></svg><span data-fr="Imprimer" data-ar="طباعة">Imprimer</span></button>
+        </div>
+        <div class="card" id="week-view"><div class="week-grid" id="week-grid"></div></div>
+        <div id="day-view"></div>
+      </div>
+
+      <!-- GRADES -->
+      <div class="view" id="view-grades" data-screen-label="Grades">
+        <div class="grades-head">
+          <div class="segmented" id="sem-tabs">
+            <button class="seg-btn active" data-sem="S1">S1</button>
+            <button class="seg-btn" data-sem="S2">S2</button>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-ghost" id="btn-calc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M8 12h1M12 12h1M16 12h1M8 16h1M12 16h1M16 16h1"/></svg><span data-fr="Calculatrice" data-ar="الحاسبة">Calculatrice</span></button>
+            <button class="btn-ghost" id="btn-export-pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15V3m0 0 4 4m-4-4-4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span data-fr="Exporter PDF" data-ar="تصدير PDF">Exporter PDF</span></button>
+          </div>
+        </div>
+        <div class="grid-cards" style="margin-bottom:20px">
+          <div class="hero-jade span-2" id="gpa-hero">
+            <div class="depth-circle"></div>
+            <div class="hj-label" id="gpa-hero-label">Moyenne générale · Semestre 1</div>
+            <div class="hj-value"><span id="grades-gpa">—</span><span class="suf">/20</span></div>
+            <div class="mention-badge"><span class="dot" id="gpa-mention-dot"></span><span id="gpa-mention-txt">—</span></div>
+            <div class="hj-credits" id="gpa-credits">Crédits : —</div>
+            <div class="hj-credits-track"><div class="hj-credits-fill" id="gpa-credits-fill" style="width:0%"></div></div>
+          </div>
+          <div class="card">
+            <h3 data-fr="Historique GPA" data-ar="سجل المعدل">Historique GPA</h3>
+            <svg width="100%" height="90" viewBox="0 0 320 90" preserveAspectRatio="none">
+              <polyline points="20,64 106,50 192,56 278,20" fill="none" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="20" cy="64" r="3.5" fill="#1D9E75"/><circle cx="106" cy="50" r="3.5" fill="#1D9E75"/><circle cx="192" cy="56" r="3.5" fill="#1D9E75"/><circle cx="278" cy="20" r="3.5" fill="#1D9E75"/>
+              <text x="20" y="82" font-size="10" text-anchor="middle" fill="currentColor" opacity=".5">S1</text><text x="106" y="82" font-size="10" text-anchor="middle" fill="currentColor" opacity=".5">S2</text><text x="192" y="82" font-size="10" text-anchor="middle" fill="currentColor" opacity=".5">S3</text><text x="278" y="82" font-size="10" text-anchor="middle" fill="currentColor" opacity=".5">S4</text>
+            </svg>
+          </div>
+        </div>
+        <div class="card">
+          <table class="data-table" id="grades-table">
+            <thead><tr>
+              <th data-sort="subject" data-fr="Matière" data-ar="المادة">Matière</th>
+              <th class="num" data-sort="cc">CC</th><th class="num" data-sort="cf">CF</th><th class="num" data-sort="nf">NF</th>
+              <th class="num" data-sort="coef" data-fr="Coef" data-ar="المعامل">Coef</th>
+              <th class="num" data-sort="credits" data-fr="Crédits" data-ar="الأرصدة">Crédits</th>
+              <th data-fr="Statut" data-ar="الحالة">Statut</th>
+            </tr></thead>
+            <tbody id="grades-tbody"></tbody>
+          </table>
+        </div>
+        <div class="mobile-cards" id="grades-cards" style="gap:14px;margin-top:16px"></div>
+      </div>
+
+      <!-- ATTENDANCE -->
+      <div class="view" id="view-attendance" data-screen-label="Attendance" data-attend-layout="b">
+        <style>
+        #view-attendance .attend-top{margin-bottom:20px}
+        #view-attendance[data-attend-layout="a"] .attend-top{display:grid;grid-template-columns:minmax(260px,320px) 1fr;gap:16px;align-items:stretch}
+        #view-attendance[data-attend-layout="b"] .attend-top{display:flex;flex-direction:column;gap:16px}
+        #view-attendance[data-attend-layout="b"] #pres-hero .hero-ring-wrap{justify-content:flex-start;gap:32px}
+        #view-attendance[data-attend-layout="b"] #pres-hero .hero-ring{transform:scale(1.15)}
+        #view-attendance[data-attend-layout="c"] .attend-top{display:flex;flex-direction:column;gap:16px}
+        #view-attendance[data-attend-layout="c"] #pres-hero{padding:14px 20px}
+        #view-attendance[data-attend-layout="c"] #pres-hero .hero-ring-wrap{gap:14px}
+        #view-attendance[data-attend-layout="c"] #pres-hero .hero-ring{transform:scale(0.6);margin:-19px}
+        #view-attendance[data-attend-layout="c"] #pres-hero .hj-label{display:none}
+        #view-attendance[data-attend-layout="c"] #pres-hero .hj-status-pill{margin-top:0;margin-inline-end:10px}
+        #view-attendance[data-attend-layout="c"] #pres-hero .hj-summary{margin-top:0;max-width:none}
+        #view-attendance[data-attend-layout="a"] .hj-breakdown{display:none !important}
+        #view-attendance[data-attend-layout="c"] .hj-breakdown{display:none !important}
+        </style>
+        <div class="attend-top">
+          <div class="hero-jade" id="pres-hero">
+            <div class="depth-circle"></div>
+            <div class="hero-ring-wrap">
+              <svg class="hero-ring" width="96" height="96" viewBox="0 0 96 96">
+                <circle cx="48" cy="48" r="40" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="8"/>
+                <circle id="pres-ring-fill" cx="48" cy="48" r="40" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" transform="rotate(-90 48 48)"/>
+                <text x="48" y="53" text-anchor="middle">87%</text>
+              </svg>
+              <div style="min-width:0">
+                <div class="hj-label" data-fr="Taux de présence" data-ar="نسبة الحضور">Taux de présence</div>
+                <div class="hj-status-pill"><span class="dot"></span><span data-fr="Régulier" data-ar="منتظم">Régulier</span></div>
+                <div class="hj-summary" data-fr="12 absences sur 90 séances" data-ar="12 من 90 جلسة">12 absences sur 90 séances</div>
+              </div>
+              <div class="hj-breakdown" id="pres-hero-breakdown" style="margin-inline-start:auto;display:flex;gap:20px;position:relative">
+                <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:22px;font-weight:600" id="pres-count-validated">0</div><div style="font-size:10.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.7)" data-fr="Validées" data-ar="جيدة">Validées</div></div>
+                <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:22px;font-weight:600" id="pres-count-limite">0</div><div style="font-size:10.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.7)" data-fr="Limite" data-ar="حدّي">Limite</div></div>
+                <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:22px;font-weight:600" id="pres-count-risque">0</div><div style="font-size:10.5px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:rgba(255,255,255,.7)" data-fr="À risque" data-ar="معرّض للخطر">À risque</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3 data-fr="Par matière" data-ar="حسب المادة">Par matière</h3>
+            <table class="data-table" id="attend-table">
+              <thead><tr>
+                <th data-fr="Matière" data-ar="المادة">Matière</th>
+                <th class="num" data-fr="Présences" data-ar="الحضور">Présences</th>
+                <th class="num" data-fr="Taux" data-ar="النسبة">Taux</th>
+                <th class="num" data-fr="Absences restantes" data-ar="الغيابات المتبقية">Absences restantes</th>
+              </tr></thead>
+              <tbody id="attend-tbody"></tbody>
+            </table>
+            <div class="mobile-cards" id="attend-cards" style="display:none"></div>
+            <div id="attend-subject-list" style="display:none"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <h3 data-fr="Mes absences" data-ar="غياباتي">Mes absences</h3>
+            <div class="segmented" id="absence-filter">
+              <button class="seg-btn active" data-filter="unjustified" data-fr="À justifier" data-ar="يتطلب تبريراً">À justifier</button>
+              <button class="seg-btn" data-filter="all" data-fr="Tout" data-ar="الكل">Tout</button>
+            </div>
+          </div>
+          <div id="absence-list"></div>
+        </div>
+      </div>
+
+      <!-- NEWS -->
+      <div class="view" id="view-news" data-screen-label="News">
+        <div class="news-toolbar">
+          <div class="chip-row" id="news-cats">
+            <button class="chip-filter active" data-cat="all" data-fr="Tout" data-ar="الكل">Tout</button>
+            <button class="chip-filter" data-cat="officiel" data-fr="Officiel" data-ar="رسمي">Officiel</button>
+            <button class="chip-filter" data-cat="evenement" data-fr="Événement" data-ar="فعالية">Événement</button>
+            <button class="chip-filter" data-cat="academique" data-fr="Académique" data-ar="أكاديمي">Académique</button>
+          </div>
+          <div class="search-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="news-search" data-fr-ph="Rechercher…" data-ar-ph="بحث…" placeholder="Rechercher…"/></div>
+        </div>
+        <div class="segmented" id="news-tabs" style="margin-bottom:18px">
+          <button class="seg-btn active" data-tab="all" data-fr="Tout" data-ar="الكل">Tout</button>
+          <button class="seg-btn" data-tab="saved" data-fr="Enregistrés" data-ar="المحفوظة">Enregistrés</button>
+        </div>
+        <div id="news-list-wrap">
+          <div id="news-hero-wrap"></div>
+          <div class="news-grid" id="news-grid"></div>
+        </div>
+        <div id="news-reader" style="display:none"></div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="view" id="view-profile" data-screen-label="Profile">
+        <style>@media(min-width:1024px){#view-profile .grid-cards{grid-template-columns:1fr 1fr}}</style>
+        <div class="identity-block">
+          <div class="identity-avatar">AM</div>
+          <h2>Amina Moussa</h2>
+          <div class="mono">UDJ-2024-0451</div>
+          <div class="hj-status-pill" style="background:var(--jade-faint);margin-top:10px"><span class="dot" style="background:var(--jade)"></span><span style="color:var(--jade-text)" data-fr="En ligne" data-ar="متّصل">En ligne</span></div>
+          <p style="color:var(--ink2);font-size:13px;margin-top:12px" data-fr="Licence Informatique · Faculté des Sciences · Semestre 4" data-ar="إجازة في المعلوماتية · كلية العلوم · الفصل الرابع">Licence Informatique · Faculté des Sciences · Semestre 4</p>
+        </div>
+        <div class="grid-cards">
+          <div class="tile-group span-all">
+            <div class="tile-group-lbl" style="margin:14px 0 8px 14px" data-fr="Informations" data-ar="المعلومات">Informations</div>
+            <div class="tile-row"><div class="tile-icon" style="background:var(--jade-faint);color:var(--jade-text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></div><div class="tr-label" data-fr="Filière" data-ar="الشعبة">Filière</div><div class="tr-value" data-fr="Licence Informatique" data-ar="إجازة في المعلوماتية">Licence Informatique</div></div>
+            <div class="tile-row"><div class="tile-icon" style="background:var(--info-bg);color:var(--info)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M12 12v4"/></svg></div><div class="tr-label" data-fr="Faculté" data-ar="الكلية">Faculté</div><div class="tr-value" data-fr="Faculté des Sciences" data-ar="كلية العلوم">Faculté des Sciences</div></div>
+            <div class="tile-row"><div class="tile-icon" style="background:var(--warning-bg);color:#9a5b06"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div><div class="tr-label" data-fr="Semestre" data-ar="الفصل">Semestre</div><div class="tr-value mono">S4</div></div>
+            <div class="tile-row"><div class="tile-icon" style="background:var(--exam-bg);color:var(--exam)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div><div class="tr-label" data-fr="E-mail" data-ar="البريد الإلكتروني">E-mail</div><div class="tr-value mono">amina.moussa@univ.dj</div></div>
+          </div>
+          <div class="card">
+            <h3 data-fr="Préférences" data-ar="التفضيلات">Préférences</h3>
+            <div class="settings-row"><div class="lbl" data-fr="Langue" data-ar="اللغة">Langue</div><div class="radio-pills"><button class="radio-pill" id="prof-lang-fr">FR</button><button class="radio-pill" id="prof-lang-ar">AR</button></div></div>
+            <div class="settings-row"><div class="lbl" data-fr="Thème" data-ar="المظهر">Thème</div><div class="radio-pills"><button class="radio-pill" data-theme-opt="light" data-fr="Clair" data-ar="فاتح">Clair</button><button class="radio-pill" data-theme-opt="dark" data-fr="Sombre" data-ar="داكن">Sombre</button></div></div>
+          </div>
+          <div class="card">
+            <h3 data-fr="Notifications" data-ar="الإشعارات">Notifications</h3>
+            <div class="settings-row"><div class="lbl" data-fr="Notes publiées" data-ar="نشر الدرجات">Notes publiées</div><button class="toggle-switch on" data-notif="grades"></button></div>
+            <div class="settings-row"><div class="lbl" data-fr="Changements d'horaire" data-ar="تغييرات الجدول">Changements d'horaire</div><button class="toggle-switch on" data-notif="schedule"></button></div>
+            <div class="settings-row"><div class="lbl" data-fr="Alertes de présence" data-ar="تنبيهات الحضور">Alertes de présence</div><button class="toggle-switch" data-notif="attendance"></button></div>
+          </div>
+          <div class="card span-all">
+            <div style="display:grid;grid-template-columns:1fr;gap:24px;max-width:520px">
+              <div>
+                <h3 data-fr="Sécurité" data-ar="الأمان">Sécurité</h3>
+                <div class="field"><label data-fr="Mot de passe actuel" data-ar="كلمة المرور الحالية">Mot de passe actuel</label><input type="password"/></div>
+                <div class="field"><label data-fr="Nouveau mot de passe" data-ar="كلمة المرور الجديدة">Nouveau mot de passe</label><input type="password"/></div>
+                <div class="field" style="margin-bottom:18px"><label data-fr="Confirmer" data-ar="تأكيد">Confirmer</label><input type="password"/></div>
+                <button class="btn-primary" id="btn-change-pw" data-fr="Mettre à jour" data-ar="تحديث">Mettre à jour</button>
+              </div>
+              <div>
+                <h3 data-fr="Compte" data-ar="الحساب">Compte</h3>
+                <div class="tile-group">
+                  <div class="tile-row nav" id="btn-download-data"><div class="tile-icon" style="background:var(--info-bg);color:var(--info)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15V3m0 0 4 4m-4-4-4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg></div><div class="tr-label" data-fr="Télécharger mes données" data-ar="تحميل بياناتي">Télécharger mes données</div><svg class="tr-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+                  <div class="tile-row nav" id="btn-logout-profile"><div class="tile-icon" style="background:var(--danger-bg);color:var(--danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></div><div class="tr-label" style="color:var(--danger)" data-fr="Se déconnecter" data-ar="تسجيل الخروج">Se déconnecter</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="tile-group span-all">
+            <div class="tile-group-lbl" style="margin:14px 0 8px 14px" data-fr="Stockage hors ligne" data-ar="التخزين دون اتصال">Stockage hors ligne</div>
+            <div class="tile-row"><div class="tile-icon" style="background:var(--jade-faint);color:var(--jade-text)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div><div class="tr-label" data-fr="Emploi du temps" data-ar="الجدول">Emploi du temps</div><div class="tr-value mono">0.6 MB</div></div>
+            <div class="tile-row"><div class="tile-icon" style="background:var(--info-bg);color:var(--info)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h12l4 4v12H4z"/><path d="M8 12h8M8 16h5"/></svg></div><div class="tr-label" data-fr="Notes" data-ar="الدرجات">Notes</div><div class="tr-value mono">3.1 MB</div></div>
+            <div class="tile-row"><div class="tile-icon" style="background:var(--warning-bg);color:#9a5b06"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div><div class="tr-label" data-fr="Présence" data-ar="الحضور">Présence</div><div class="tr-value mono">1.7 MB</div></div>
+            <div class="tile-row"><div class="tile-icon" style="background:var(--exam-bg);color:var(--exam)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 13h8M8 17h5"/></svg></div><div class="tr-label" data-fr="Actualités" data-ar="الأخبار">Actualités</div><div class="tr-value mono">2.4 MB</div></div>
+            <div class="settings-row" style="margin:2px 10px 2px 10px;gap:16px"><div style="flex:1;min-width:0"><div class="lbl" data-fr="Dernière synchronisation" data-ar="آخر مزامنة">Dernière synchronisation</div><div class="sub mono" id="last-sync" style="white-space:nowrap">21/08/2026 09:41</div></div><button class="btn-ghost" id="btn-clear-cache" style="flex-shrink:0" data-fr="Vider le cache" data-ar="مسح المخزن المؤقت">Vider le cache</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-tabbar">
+    <button class="tab-item active" data-view="dashboard"><svg viewBox="0 0 24 24"><g transform="translate(3.556 2.5) scale(1.05556)"><path fill="currentColor" d="M2 15.5H5V10.5C5 10.2167 5.096 9.97933 5.288 9.788C5.48 9.59667 5.71733 9.50067 6 9.5H10C10.2833 9.5 10.521 9.596 10.713 9.788C10.905 9.98 11.0007 10.2173 11 10.5V15.5H14V6.5L8 2L2 6.5V15.5ZM0 15.5V6.5C0 6.18333 0.0709998 5.88333 0.213 5.6C0.355 5.31667 0.550667 5.08333 0.8 4.9L6.8 0.4C7.15 0.133333 7.55 0 8 0C8.45 0 8.85 0.133333 9.2 0.4L15.2 4.9C15.45 5.08333 15.646 5.31667 15.788 5.6C15.93 5.88333 16.0007 6.18333 16 6.5V15.5C16 16.05 15.804 16.521 15.412 16.913C15.02 17.305 14.5493 17.5007 14 17.5H10C9.71667 17.5 9.47933 17.404 9.288 17.212C9.09667 17.02 9.00067 16.7827 9 16.5V11.5H7V16.5C7 16.7833 6.904 17.021 6.712 17.213C6.52 17.405 6.28267 17.5007 6 17.5H2C1.45 17.5 0.979333 17.3043 0.588 16.913C0.196666 16.5217 0.000666667 16.0507 0 15.5Z"></path></g></svg><span data-fr="Accueil" data-ar="الرئيسية">Accueil</span></button>
+    <button class="tab-item" data-view="schedule"><svg viewBox="0 0 24 24"><g transform="translate(2.25 2.25) scale(0.975)"><path fill="currentColor" d="M17 2H15V1C15 0.734784 14.8946 0.48043 14.7071 0.292893C14.5196 0.105357 14.2652 0 14 0C13.7348 0 13.4804 0.105357 13.2929 0.292893C13.1054 0.48043 13 0.734784 13 1V2H7V1C7 0.734784 6.89464 0.48043 6.70711 0.292893C6.51957 0.105357 6.26522 0 6 0C5.73478 0 5.48043 0.105357 5.29289 0.292893C5.10536 0.48043 5 0.734784 5 1V2H3C2.20435 2 1.44129 2.31607 0.87868 2.87868C0.316071 3.44129 0 4.20435 0 5V17C0 17.7956 0.316071 18.5587 0.87868 19.1213C1.44129 19.6839 2.20435 20 3 20H17C17.7956 20 18.5587 19.6839 19.1213 19.1213C19.6839 18.5587 20 17.7956 20 17V5C20 4.20435 19.6839 3.44129 19.1213 2.87868C18.5587 2.31607 17.7956 2 17 2ZM18 17C18 17.2652 17.8946 17.5196 17.7071 17.7071C17.5196 17.8946 17.2652 18 17 18H3C2.73478 18 2.48043 17.8946 2.29289 17.7071C2.10536 17.5196 2 17.2652 2 17V10H18V17ZM18 8H2V5C2 4.73478 2.10536 4.48043 2.29289 4.29289C2.48043 4.10536 2.73478 4 3 4H5V5C5 5.26522 5.10536 5.51957 5.29289 5.70711C5.48043 5.89464 5.73478 6 6 6C6.26522 6 6.51957 5.89464 6.70711 5.70711C6.89464 5.51957 7 5.26522 7 5V4H13V5C13 5.26522 13.1054 5.51957 13.2929 5.70711C13.4804 5.89464 13.7348 6 14 6C14.2652 6 14.5196 5.89464 14.7071 5.70711C14.8946 5.51957 15 5.26522 15 5V4H17C17.2652 4 17.5196 4.10536 17.7071 4.29289C17.8946 4.48043 18 4.73478 18 5V8Z"></path></g></svg><span data-fr="Agenda" data-ar="الجدول">Agenda</span></button>
+    <button class="tab-item" data-view="grades"><svg viewBox="0 0 24 24"><g transform="translate(2.25 5.5) scale(1.08333)"><path fill="currentColor" d="M1 12C0.71667 12 0.479337 11.904 0.288004 11.712C0.0966702 11.52 0.000670115 11.2827 3.44827e-06 11C-0.000663218 10.7173 0.0953369 10.48 0.288004 10.288C0.48067 10.096 0.718003 10 1 10H11C11.2833 10 11.521 10.096 11.713 10.288C11.905 10.48 12.0007 10.7173 12 11C11.9993 11.2827 11.9033 11.5203 11.712 11.713C11.5207 11.9057 11.2833 12.0013 11 12H1ZM1 7C0.71667 7 0.479337 6.904 0.288004 6.712C0.0966702 6.52 0.000670115 6.28267 3.44827e-06 6C-0.000663218 5.71733 0.0953369 5.48 0.288004 5.288C0.48067 5.096 0.718003 5 1 5H17C17.2833 5 17.521 5.096 17.713 5.288C17.905 5.48 18.0007 5.71733 18 6C17.9993 6.28267 17.9033 6.52033 17.712 6.713C17.5207 6.90567 17.2833 7.00133 17 7H1ZM1 2C0.71667 2 0.479337 1.904 0.288004 1.712C0.0966702 1.52 0.000670115 1.28267 3.44827e-06 1C-0.000663218 0.717333 0.0953369 0.48 0.288004 0.288C0.48067 0.0960001 0.718003 0 1 0H17C17.2833 0 17.521 0.0960001 17.713 0.288C17.905 0.48 18.0007 0.717333 18 1C17.9993 1.28267 17.9033 1.52033 17.712 1.713C17.5207 1.90567 17.2833 2.00133 17 2H1Z"></path></g></svg><span data-fr="Notes" data-ar="الدرجات">Notes</span></button>
+    <button class="tab-item" data-view="news"><svg viewBox="0 0 24 24"><g transform="translate(1.5 1.5)"><path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" d="M0.750168 17.9082V13.2572C0.750168 12.5472 0.750168 12.1932 0.881168 12.1532C1.01317 12.1132 1.21417 12.4192 1.61617 13.0302C3.00817 15.1442 5.35617 17.4922 7.47017 18.8842C8.08017 19.2862 8.38617 19.4872 8.34717 19.6192C8.30717 19.7492 7.95317 19.7492 7.24317 19.7492H2.59217C1.72417 19.7492 1.28917 19.7492 1.02017 19.4802C0.750168 19.2102 0.750168 18.7762 0.750168 17.9082ZM19.7502 2.59224V7.24324C19.7502 7.95324 19.7502 8.30724 19.6202 8.34724C19.4882 8.38624 19.2872 8.08124 18.8842 7.47024C17.4922 5.35624 15.1442 3.00824 13.0302 1.61624C12.4202 1.21424 12.1142 1.01324 12.1542 0.881244C12.1942 0.750244 12.5482 0.750244 13.2572 0.750244H17.9092C18.7772 0.750244 19.2112 0.750244 19.4812 1.02024C19.7512 1.29024 19.7502 1.72424 19.7502 2.59224ZM0.750168 2.65024V4.87624C0.750168 5.65324 0.750168 6.04124 0.895168 6.39024C1.03917 6.74024 1.31417 7.01424 1.86317 7.56324L12.9372 18.6372C13.4872 19.1872 13.7612 19.4612 14.1102 19.6052C14.4592 19.7492 14.8472 19.7502 15.6242 19.7502H17.8502C18.7462 19.7502 19.1932 19.7502 19.4722 19.4722C19.7502 19.1932 19.7502 18.7462 19.7502 17.8502V15.6242C19.7502 14.8472 19.7502 14.4592 19.6052 14.1102C19.4612 13.7602 19.1862 13.4862 18.6372 12.9372L7.56317 1.86324C7.01317 1.31324 6.73917 1.03924 6.39017 0.895244C6.04117 0.751244 5.65317 0.750244 4.87617 0.750244H2.65017C1.75417 0.750244 1.30617 0.750244 1.02817 1.02824C0.750168 1.30724 0.750168 1.75424 0.750168 2.65024Z"></path></g></svg><span data-fr="Actualités" data-ar="الأخبار">Actualités</span></button>
+    <button class="tab-item" data-view="profile"><svg viewBox="0 0 24 24"><g transform="translate(1.5 1.5) scale(0.875)"><path fill="none" stroke="currentColor" stroke-width="1.714" stroke-linejoin="round" d="M4 18C4 16.9391 4.42143 15.9217 5.17157 15.1716C5.92172 14.4214 6.93913 14 8 14H16C17.0609 14 18.0783 14.4214 18.8284 15.1716C19.5786 15.9217 20 16.9391 20 18C20 18.5304 19.7893 19.0391 19.4142 19.4142C19.0391 19.7893 18.5304 20 18 20H6C5.46957 20 4.96086 19.7893 4.58579 19.4142C4.21071 19.0391 4 18.5304 4 18Z"></path><path fill="none" stroke="currentColor" stroke-width="1.714" stroke-linejoin="round" d="M12 10C13.6569 10 15 8.65685 15 7C15 5.34315 13.6569 4 12 4C10.3431 4 9 5.34315 9 7C9 8.65685 10.3431 10 12 10Z"></path></g></svg><span data-fr="Profil" data-ar="الملف الشخصي">Profil</span></button>
+  </nav>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="detail-panel" id="detail-panel">
+  <div class="dp-head"><button class="dp-close" id="dp-close">✕</button><div class="dp-dot" id="dp-dot"></div><h2 id="dp-title">—</h2><p id="dp-prof">—</p></div>
+  <div class="dp-body">
+    <div class="dp-row"><span class="k" data-fr="Salle" data-ar="القاعة">Salle</span><span class="v" id="dp-room">—</span></div>
+    <div class="dp-row"><span class="k" data-fr="Horaire" data-ar="التوقيت">Horaire</span><span class="v mono" id="dp-time">—</span></div>
+    <div class="dp-row"><span class="k" data-fr="Code matière" data-ar="رمز المادة">Code matière</span><span class="v mono" id="dp-code">—</span></div>
+    <div class="dp-row"><span class="k" data-fr="Coefficient" data-ar="المعامل">Coefficient</span><span class="v" id="dp-coef">—</span></div>
+    <div class="dp-row"><span class="k" data-fr="Statut" data-ar="الحالة">Statut</span><span class="v"><span class="pill-status" id="dp-status">—</span></span></div>
+    <div class="dp-section-lbl" data-fr="Notes personnelles" data-ar="ملاحظات شخصية">Notes personnelles</div>
+    <textarea class="dp-note" id="dp-note" data-fr-ph="Ajouter une note pour ce cours…" data-ar-ph="أضف ملاحظة لهذه الحصة…" placeholder="Ajouter une note pour ce cours…"></textarea>
+  </div>
+  <div class="dp-foot"><button class="btn-save" id="dp-save" data-fr="Enregistrer" data-ar="حفظ">Enregistrer</button></div>
+</div>
+
+<div class="detail-panel" id="calc-panel">
+  <div class="dp-head"><button class="dp-close" id="calc-close">✕</button><h2 data-fr="Calculatrice de notes" data-ar="حاسبة الدرجات">Calculatrice de notes</h2><p data-fr="Simulez votre moyenne du semestre" data-ar="احسب معدلك الفصلي">Simulez votre moyenne du semestre</p></div>
+  <div class="dp-body">
+    <div class="dp-section-lbl" data-fr="Matière" data-ar="المادة">Matière</div>
+    <select id="calc-subject" class="calc-select"></select>
+    <div class="dp-section-lbl" data-fr="Note CC actuelle" data-ar="المراقبة الحالية">Note CC actuelle</div>
+    <div class="calc-current-row"><span id="calc-current-val">—</span><span class="suf">/20</span></div>
+    <div class="dp-section-lbl" data-fr="Note finale visée" data-ar="المعدل المستهدف">Note finale visée</div>
+    <input type="number" id="calc-target" min="0" max="20" step="0.5" value="10" class="calc-target-input"/>
+    <button class="btn-primary" id="calc-run" style="margin-top:16px" data-fr="Calculer" data-ar="حساب">Calculer</button>
+    <div class="calc-result" id="calc-result-block" style="display:none;margin-top:16px">
+      <div class="v" id="calc-result-val">—</div>
+      <div id="calc-result-verdict" style="font-size:12px;margin-top:4px"></div>
+    </div>
+  </div>
+</div>
+
+<div class="detail-panel" id="justify-panel">
+  <div class="dp-head"><button class="dp-close" id="justify-close">✕</button><h2 id="justify-title">—</h2><p id="justify-sub">—</p></div>
+  <div class="dp-body" id="justify-body"></div>
+  <div class="dp-foot"><button class="btn-save" id="justify-foot-btn" data-fr="Envoyer" data-ar="إرسال">Envoyer</button></div>
+</div>
+
+<script>
+const COURSES=[
+ {day:0,start:'08:00',end:'09:00',title:'Anglais technique',room:'B08',prof:'Mme. Fatouma Idriss',code:'ANG201',coef:2,color:'#6366F1',status:'upcoming'},
+ {day:0,start:'10:00',end:'12:00',title:'Bases de données',room:'Labo Info 1',prof:'Dr. Samira Aden',code:'INF210',coef:3,color:'#2E9E5B',status:'upcoming'},
+ {day:1,start:'08:00',end:'09:30',title:'Mathématiques générales L2',room:'A05',prof:'Dr. Ali Farah',code:'MAT204',coef:4,color:'#2F7DD1',status:'upcoming'},
+ {day:1,start:'13:00',end:'14:30',title:'Physique quantique',room:'D04',prof:'Dr. Houssein Robleh',code:'PHY301',coef:3,color:'#E08A1E',status:'upcoming'},
+ {day:2,start:'09:00',end:'11:00',title:'Algorithmique avancée',room:'C12',prof:'Dr. Samira Aden',code:'INF303',coef:4,color:'#8B5CF6',status:'upcoming'},
+ {day:3,start:'08:00',end:'10:00',title:'Bases de données',room:'Labo Info 1',prof:'Dr. Samira Aden',code:'INF210',coef:3,color:'#2E9E5B',status:'done'},
+ {day:3,start:'10:30',end:'12:00',title:'Mathématiques générales L2',room:'A05',prof:'Dr. Ali Farah',code:'MAT204',coef:4,color:'#2F7DD1',status:'done'},
+ {day:3,start:'14:00',end:'15:30',title:'Physique quantique',room:'D04',prof:'Dr. Houssein Robleh',code:'PHY301',coef:3,color:'#E08A1E',status:'upcoming'},
+ {day:4,start:'08:00',end:'09:30',title:'Réseaux informatiques',room:'Labo Info 2',prof:'Dr. Omar Hassan',code:'INF303',coef:3,color:'#2E9E5B',status:'now'},
+ {day:4,start:'10:00',end:'11:30',title:"Systèmes d'exploitation",room:'Amphi A1',prof:'Dr. Omar Hassan',code:'INF215',coef:3,color:'#2F7DD1',status:'upcoming'},
+ {day:4,start:'13:00',end:'14:30',title:'Statistiques L2',room:'B08',prof:'Mme. Kadra Waberi',code:'STA202',coef:2,color:'#E08A1E',status:'upcoming'},
+];
+const DAYNAMES_FR=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+const DAYNAMES_AR=['أحد','اثن','ثلا','أرب','خمي','جمع','سبت'];
+const DAYNUM=['8','9','10','11','12','13','14'];
+const TODAY=4;
+let lang='fr', theme='light', collapsed=false, offline=false, sidebarOnce=false;
+
+function TR(o){return (o&&typeof o==='object')?(lang==='ar'?o.ar:o.fr):o;}
+const STATUS_LBL={validated:{fr:'Validé',ar:'ناجح'},limite:{fr:'Limite',ar:'حدّي'},risque:{fr:'À Risque',ar:'معرّض'}};
+const MENTIONS=[{min:16,fr:'Très Bien',ar:'جيد جداً',dot:'#7DF3C4'},{min:14,fr:'Bien',ar:'جيد',dot:'#9CC7F5'},{min:12,fr:'Assez Bien',ar:'مستحسن',dot:'#FFD27D'},{min:10,fr:'Passable',ar:'مقبول',dot:'#C7D2DB'},{min:0,fr:'Insuffisant',ar:'ضعيف',dot:'#FFB4B4'}];
+function level(nf){return nf>=10?'validated':(nf>=8?'limite':'risque');}
+function mentionFor(score){return MENTIONS.find(m=>score>=m.min);}
+function attendLevel(rate){return rate>=90?'validated':(rate>=75?'limite':'risque');}
+const ABS_STATUS_LBL={unjustified:{fr:'À justifier',ar:'يتطلب تبريراً'},pending:{fr:'En attente',ar:'قيد المراجعة'},approved:{fr:'Approuvée',ar:'مقبولة'},rejected:{fr:'Rejetée',ar:'مرفوضة'}};
+const CAT_LBL={officiel:{fr:'Officiel',ar:'رسمي'},evenement:{fr:'Événement',ar:'فعالية'},academique:{fr:'Académique',ar:'أكاديمي'}};
+const GRADES={
+ S1:[
+  {subject:{fr:'Algorithmique',ar:'الخوارزميات'},cc:14,cf:12,nf:12.8,coef:4,credits:6},
+  {subject:{fr:'Mathématiques L2',ar:'الرياضيات - المستوى الثاني'},cc:9,cf:8,nf:8.3,coef:4,credits:6},
+  {subject:{fr:'Anglais technique',ar:'الإنجليزية التقنية'},cc:15,cf:14,nf:14.3,coef:2,credits:3},
+  {subject:{fr:"Systèmes d'exploitation",ar:'نظم التشغيل'},cc:11,cf:13,nf:12.4,coef:3,credits:4},
+  {subject:{fr:'Bases de données',ar:'قواعد البيانات'},cc:16,cf:15,nf:15.3,coef:3,credits:4}
+ ],
+ S2:[
+  {subject:{fr:'Réseaux informatiques',ar:'الشبكات المعلوماتية'},cc:13,cf:12,nf:12.3,coef:3,credits:4},
+  {subject:{fr:'Statistiques L2',ar:'الإحصاء - المستوى الثاني'},cc:10,cf:9,nf:9.3,coef:2,credits:3},
+  {subject:{fr:'Physique quantique',ar:'الفيزياء الكمية'},cc:12,cf:11,nf:11.3,coef:3,credits:4},
+  {subject:{fr:'Algorithmique avancée',ar:'الخوارزميات المتقدمة'},cc:14,cf:13,nf:13.3,coef:4,credits:6}
+ ]
+};
+const ATTEND=[
+ {subject:{fr:'Réseaux informatiques',ar:'الشبكات المعلوماتية'},attended:11,total:12,rate:92},
+ {subject:{fr:'Bases de données',ar:'قواعد البيانات'},attended:9,total:14,rate:64},
+ {subject:{fr:"Systèmes d'exploitation",ar:'نظم التشغيل'},attended:13,total:14,rate:93},
+ {subject:{fr:'Statistiques L2',ar:'الإحصاء - المستوى الثاني'},attended:10,total:12,rate:83},
+ {subject:{fr:'Physique quantique',ar:'الفيزياء الكمية'},attended:12,total:13,rate:92}
+];
+const ABSENCES=[
+ {id:1,date:'12',month:{fr:'Juin',ar:'يونيو'},subject:{fr:'Bases de données',ar:'قواعد البيانات'},status:'unjustified'},
+ {id:2,date:'05',month:{fr:'Juin',ar:'يونيو'},subject:{fr:'Statistiques L2',ar:'الإحصاء - المستوى الثاني'},status:'pending',doc:'certificat_medical.pdf',note:{fr:'Consultation médicale.',ar:'استشارة طبية.'}},
+ {id:3,date:'28',month:{fr:'Mai',ar:'مايو'},subject:{fr:'Bases de données',ar:'قواعد البيانات'},status:'approved',doc:'certificat_medical.pdf',note:{fr:'Grippe.',ar:'إنفلونزا.'}},
+ {id:4,date:'20',month:{fr:'Mai',ar:'مايو'},subject:{fr:"Systèmes d'exploitation",ar:'نظم التشغيل'},status:'rejected',doc:'justificatif.pdf',note:{fr:'Panne de véhicule.',ar:'عطل في السيارة.'},reason:{fr:'Document illisible — veuillez le soumettre à nouveau.',ar:'الوثيقة غير واضحة — يرجى إعادة تقديمها.'}}
+];
+const ARTICLES=[
+ {id:1,cat:'officiel',hero:true,date:'10 juin',read:'2 min',title:{fr:'Calendrier des examens du semestre 2 publié',ar:'تم نشر جدول امتحانات الفصل الثاني'},body:{fr:"Le calendrier officiel des examens du second semestre est désormais disponible sur votre espace étudiant. Les convocations individuelles seront envoyées une semaine avant chaque épreuve. Merci de vérifier vos salles d'affectation avant le jour J.",ar:'الجدول الرسمي لامتحانات الفصل الثاني متوفر الآن على فضائك الطلابي. سترسل الاستدعاءات الفردية أسبوعاً قبل كل امتحان. يرجى التحقق من قاعة الامتحان قبل الموعد.'}},
+ {id:2,cat:'evenement',date:'8 juin',read:'3 min',title:{fr:'Journée portes ouvertes — Faculté des Sciences',ar:'اليوم المفتوح — كلية العلوم'},body:{fr:"La Faculté des Sciences ouvre ses portes aux lycéens et familles pour découvrir les filières, laboratoires et projets étudiants. Ateliers et visites guidées toute la journée.",ar:'تفتح كلية العلوم أبوابها للطلاب والعائلات لاكتشاف الشعب والمخابر والمشاريع الطلابية. ورشات وزيارات مرشدة طوال اليوم.'}},
+ {id:3,cat:'academique',date:'3 juin',read:'2 min',title:{fr:'Nouvelle bibliothèque numérique disponible',ar:'مكتبة رقمية جديدة متوفرة'},body:{fr:"L'université lance une bibliothèque numérique donnant accès à des milliers d'ouvrages et revues scientifiques, accessible avec votre compte étudiant.",ar:'أطلقت الجامعة مكتبة رقمية تتيح آلاف الكتب والمجلات العلمية، يمكن الوصول إليها بحساب الطالب.'}},
+ {id:4,cat:'officiel',date:'29 mai',read:'1 min',title:{fr:'Inscriptions administratives S2 — dates limites',ar:'التسجيلات الإدارية للفصل الثاني — الموعد النهائي'},body:{fr:"Les inscriptions administratives pour le second semestre doivent être finalisées avant le 15 juillet auprès du service de la scolarité.",ar:'يجب إنهاء التسجيلات الإدارية للفصل الثاني قبل 15 يوليو لدى مصلحة شؤون الطلبة.'}}
+];
+let currentSem='S1', absenceFilter='unjustified', newsFilter='all', newsTab='all', newsViewMode='magazine', savedIds=new Set();
+
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+
+function toast(msg){
+  const el=document.createElement('div');el.className='toast';el.textContent=msg;
+  $('#toast-stack').appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('show'));
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),200)},2200);
+}
+
+function applyLang(){
+  document.documentElement.lang=lang==='ar'?'ar':'fr';
+  document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  $$('[data-fr]').forEach(el=>{ if(el.dataset.ar!==undefined) el.textContent = lang==='ar'?el.dataset.ar:el.dataset.fr; });
+  if($('#login-lang-code')) $('#login-lang-code').textContent=lang.toUpperCase();
+  $$('[data-fr-ph]').forEach(el=>{ el.placeholder = lang==='ar'?el.dataset.arPh:el.dataset.frPh; });
+  $$('[data-fr-tpl]').forEach(el=>{ el.innerHTML = lang==='ar'?el.dataset.arTpl:el.dataset.frTpl; });
+  buildSchedule();
+  if(typeof renderGrades==='function'){renderGrades();renderAttendance();renderNews();syncProfileControls();}
+}
+$('#btn-lang').onclick=()=>{lang=lang==='fr'?'ar':'fr';applyLang();toast(lang==='ar'?'العربية مفعّلة':'Français activé');};
+
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme',theme);
+  $('#theme-lbl').textContent = theme==='light' ? (lang==='ar'?'فاتح':'Clair') : (lang==='ar'?'داكن':'Sombre');
+  $('#btn-theme').classList.toggle('on',theme==='dark');
+}
+$('#btn-theme').onclick=()=>{theme=theme==='light'?'dark':'light';applyTheme();};
+
+$('#btn-offline').onclick=function(){
+  offline=!offline;this.classList.toggle('on',offline);
+  $('#offline-banner').style.display=offline?'flex':'none';
+  toast(offline?(lang==='ar'?'وضع عدم الاتصال مفعّل':'Mode hors ligne activé'):(lang==='ar'?'الاتصال مستعاد':'Connexion rétablie'));
+};
+
+/* ---- login ---- */
+$('#btn-login').onclick=()=>{
+  $('#screen-login').style.display='none';
+  $('#app-shell').classList.add('active');
+};
+$('#btn-sim-error').onclick=(e)=>{
+  e.preventDefault();
+  $('#login-error-rate').style.display='none';
+  $('#login-error').style.display='flex';
+  $('#field-id').classList.add('err');$('#field-pw').classList.add('err');
+};
+$('#btn-sim-rate').onclick=(e)=>{
+  e.preventDefault();
+  $('#login-error').style.display='none';
+  $('#field-id').classList.remove('err');$('#field-pw').classList.remove('err');
+  $('#login-error-rate').style.display='flex';
+  const btn=$('#btn-login');
+  btn.disabled=true;btn.classList.add('m-btn-wait');
+  let s=47;
+  btn.textContent=TR({fr:'R\u00e9essayer dans '+s+' s',ar:'\u0623\u0639\u062f \u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629 \u0628\u0639\u062f '+s+' \u062b'});
+  const iv=setInterval(()=>{
+    s--;
+    if(s<=0){clearInterval(iv);btn.disabled=false;btn.classList.remove('m-btn-wait');applyLang();return;}
+    btn.textContent=TR({fr:'R\u00e9essayer dans '+s+' s',ar:'\u0623\u0639\u062f \u0627\u0644\u0645\u062d\u0627\u0648\u0644\u0629 \u0628\u0639\u062f '+s+' \u062b'});
+  },1000);
+};
+$('#offline-switch').onclick=()=>{
+  const on=$('#offline-switch').classList.toggle('on');
+  $('#offline-hint-off').style.display=on?'none':'block';
+  $('#offline-hint-on').style.display=on?'block':'none';
+};
+$('#btn-logout').onclick=()=>{
+  $('#app-shell').classList.remove('active');
+  $('#screen-login').style.display='flex';
+  $('#login-error').style.display='none';
+  $('#field-id').classList.remove('err');$('#field-pw').classList.remove('err');
+  $('#avatar-dropdown').classList.remove('open');
+};
+
+/* ---- shell nav / dropdowns ---- */
+function setView(v){
+  $$('.view').forEach(el=>el.classList.remove('active'));
+  $('#view-'+v).classList.add('active');
+  $$('.nav-item[data-view],.tab-item[data-view]').forEach(el=>el.classList.toggle('active',el.dataset.view===v));
+  const titles={dashboard:{fr:'Tableau de bord',ar:'لوحة التحكم'},schedule:{fr:'Emploi du temps',ar:'جدول الحصص'},grades:{fr:'Notes',ar:'الدرجات'},attendance:{fr:'Présence',ar:'الحضور'},news:{fr:'Actualités',ar:'الأخبار'},profile:{fr:'Profil',ar:'الملف الشخصي'}};
+  $('#page-title').textContent=titles[v][lang];
+  $('#avatar-dropdown').classList.remove('open');$('#notif-panel').classList.remove('open');
+}
+$$('[data-view]').forEach(el=>el.addEventListener('click',()=>setView(el.dataset.view)));
+$$('[data-view-link]').forEach(el=>el.addEventListener('click',()=>setView(el.dataset.viewLink)));
+$$('[data-disabled]').forEach(el=>el.addEventListener('click',()=>toast(lang==='ar'?'قريباً في الإصدار القادم':'Bientôt disponible — prochaine passe')));
+$$('[data-toast]').forEach(el=>el.addEventListener('click',()=>toast(lang==='ar'?'قريباً في الإصدار القادم':el.dataset.toast)));
+
+$('#ctl-toggle').onclick=(e)=>{e.stopPropagation();$('#ctl-rail').classList.toggle('open');};
+document.addEventListener('click',(e)=>{if(!e.target.closest('#ctl-rail'))$('#ctl-rail').classList.remove('open');});
+$('#dash-notif-all').onclick=()=>{$('#btn-bell').click();};
+$('#btn-collapse').onclick=()=>{collapsed=!collapsed;$('#sidebar').classList.toggle('collapsed',collapsed);};
+$('#btn-bell').onclick=(e)=>{e.stopPropagation();$('#notif-panel').classList.toggle('open');$('#avatar-dropdown').classList.remove('open');};
+$('#btn-avatar').onclick=(e)=>{e.stopPropagation();$('#avatar-dropdown').classList.toggle('open');$('#notif-panel').classList.remove('open');};
+document.addEventListener('click',()=>{$('#notif-panel').classList.remove('open');$('#avatar-dropdown').classList.remove('open');});
+
+function checkTablet(){document.body.classList.toggle('tablet', window.innerWidth>=640 && window.innerWidth<1024);}
+window.addEventListener('resize',checkTablet);checkTablet();
+
+/* ---- schedule ---- */
+$$('.seg-btn').forEach(b=>b.addEventListener('click',()=>{
+  $$('.seg-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  const mode=b.dataset.mode;
+  $('#week-view').style.display=mode==='week'?'block':'none';
+  $('#day-view').style.display=mode==='day'?'block':'none';
+}));
+
+function statusLabel(s){
+  const map={upcoming:{fr:'À venir',ar:'قادم'},now:{fr:'En cours',ar:'جارية'},done:{fr:'Terminé',ar:'انتهت'}};
+  return map[s][lang];
+}
+function timeToRow(t){const [h,m]=t.split(':').map(Number);return (h-8)*2+(m===30?1:0)+1;}
+
+function buildWeekGrid(){
+  const grid=$('#week-grid');grid.innerHTML='';
+  grid.appendChild(document.createElement('div'));
+  const names=lang==='ar'?DAYNAMES_AR:DAYNAMES_FR;
+  for(let d=0;d<7;d++){
+    const h=document.createElement('div');h.className='wg-head'+(d===TODAY?' today':'');
+    h.innerHTML=names[d]+'<b>'+DAYNUM[d]+'</b>';grid.appendChild(h);
+  }
+  const gutter=document.createElement('div');
+  gutter.style.gridColumn='1';gutter.style.gridRow='2/span 20';gutter.style.position='relative';
+  for(let i=0;i<10;i++){const t=document.createElement('div');t.className='wg-gutter';t.style.position='absolute';t.style.top=(i*56)+'px';t.textContent=(8+i)+':00';gutter.appendChild(t);}
+  grid.appendChild(gutter);
+  for(let d=0;d<7;d++){
+    const body=document.createElement('div');body.className='wg-body';body.style.gridColumn=String(d+2);body.style.gridRow='2/span 20';body.style.height='560px';
+    for(let i=0;i<20;i++){const s=document.createElement('div');s.className='wg-slot';s.style.height='28px';body.appendChild(s);}
+    COURSES.filter(c=>c.day===d).forEach(c=>{
+      const top=(timeToRow(c.start)-1)*28, h=(timeToRow(c.end)-timeToRow(c.start))*28-4;
+      const b=document.createElement('div');b.className='course-block';b.style.top=top+'px';b.style.height=h+'px';b.style.borderInlineStartColor=c.color;
+      b.innerHTML='<div class="t">'+c.title+'</div><div class="r">'+c.room+'</div>';
+      b.onclick=()=>openDetail(c);
+      body.appendChild(b);
+    });
+    grid.appendChild(body);
+  }
+}
+function buildDayView(){
+  const el=$('#day-view');el.innerHTML='';
+  const list=COURSES.filter(c=>c.day===TODAY).sort((a,b)=>a.start.localeCompare(b.start));
+  list.forEach((c,i)=>{
+    const row=document.createElement('div');row.className='tl-row';
+    row.innerHTML='<div class="tl-gutter mono">'+c.start+'</div><div class="tl-connector"><div class="tl-dot" style="background:'+c.color+'"></div><div class="tl-line"></div></div>'+
+    '<div class="tl-card" style="border-inline-start-color:'+c.color+'"><div class="t">'+c.title+'</div><div class="s">'+c.prof+' · '+c.room+'</div>'+
+    '<div class="tl-meta"><span class="pill-soft mono">'+c.start+' – '+c.end+'</span><span class="pill-status '+c.status+'">'+statusLabel(c.status)+'</span></div></div>';
+    row.querySelector('.tl-card').onclick=()=>openDetail(c);
+    el.appendChild(row);
+  });
+}
+function buildSchedule(){buildWeekGrid();buildDayView();}
+buildSchedule();
+
+/* ---- generic overlay panels ---- */
+function openPanel(el){$('#scrim').classList.add('open');el.classList.add('open');}
+function closeAllPanels(){$('#scrim').classList.remove('open');$$('.detail-panel').forEach(p=>p.classList.remove('open'));}
+$('#scrim').onclick=closeAllPanels;
+$('#calc-close').onclick=closeAllPanels;
+$('#justify-close').onclick=closeAllPanels;
+
+/* ---- course detail panel ---- */
+function openDetail(c){
+  $('#dp-dot').style.background=c.color;
+  $('#dp-title').textContent=c.title;
+  $('#dp-prof').textContent=c.prof;
+  $('#dp-room').textContent=c.room;
+  $('#dp-time').textContent=c.start+' – '+c.end;
+  $('#dp-code').textContent=c.code;
+  $('#dp-coef').textContent=c.coef;
+  $('#dp-status').className='pill-status '+c.status;
+  $('#dp-status').textContent=statusLabel(c.status);
+  $('#dp-note').value='';
+  openPanel($('#detail-panel'));
+}
+$('#dp-close').onclick=closeAllPanels;
+$('#dp-save').onclick=()=>{closeAllPanels();toast(lang==='ar'?'تم حفظ الملاحظة':'Note enregistrée');};
+
+$('#btn-print').onclick=()=>window.print();
+
+/* ---- grades ---- */
+function renderGrades(){
+  const rows=GRADES[currentSem];
+  const gpa=(rows.reduce((s,r)=>s+r.nf*r.coef,0)/rows.reduce((s,r)=>s+r.coef,0));
+  $('#grades-gpa').textContent=gpa.toFixed(2);
+  $('#gpa-hero-label').textContent=TR({fr:'Moyenne générale · '+currentSem,ar:'المعدل العام · '+currentSem});
+  const m=mentionFor(gpa);
+  $('#gpa-mention-dot').style.background=m.dot;
+  $('#gpa-mention-txt').textContent=TR({fr:m.fr,ar:m.ar});
+  const totalCredits=rows.reduce((s,r)=>s+r.credits,0);
+  const earnedCredits=rows.filter(r=>level(r.nf)!=='risque').reduce((s,r)=>s+r.credits,0);
+  $('#gpa-credits').textContent=TR({fr:'Crédits : ',ar:'الأرصدة : '})+earnedCredits+'/'+totalCredits;
+  $('#gpa-credits-fill').style.width=(earnedCredits/totalCredits*100)+'%';
+  const tbody=$('#grades-tbody');tbody.innerHTML='';
+  const cards=$('#grades-cards');cards.innerHTML='';
+  rows.forEach(r=>{
+    const lvl=level(r.nf);
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+TR(r.subject)+'</td><td class="num mono">'+r.cc+'</td><td class="num mono">'+r.cf+'</td><td class="num mono lvl-'+lvl+'">'+r.nf+'</td><td class="num mono">'+r.coef+'</td><td class="num mono">'+r.credits+'</td><td><span class="hug-pill pill-lvl-'+lvl+'">'+TR(STATUS_LBL[lvl])+'</span></td>';
+    tbody.appendChild(tr);
+    const sc=document.createElement('div');sc.className='subject-card';
+    sc.innerHTML='<div class="sc-top"><div class="sc-name">'+TR(r.subject)+'</div><span class="hug-pill pill-lvl-'+lvl+'">'+TR(STATUS_LBL[lvl])+'</span></div>'+
+    '<div class="metric-strip"><div class="metric-cell"><div class="lbl">CC</div><div class="val">'+r.cc+'</div></div><div class="metric-cell"><div class="lbl">CF</div><div class="val">'+r.cf+'</div></div><div class="metric-cell"><div class="lbl">COEF</div><div class="val">'+r.coef+'</div></div><div class="metric-cell"><div class="lbl">NF</div><div class="val lvl-'+lvl+'">'+r.nf+'</div></div></div>'+
+    '<div class="sc-progress"><div class="fill bg-lvl-'+lvl+'" style="width:'+Math.min(100,r.nf/20*100)+'%"></div></div>'+
+    (lvl!=='validated'?'<div class="at-risk-hint lvl-'+lvl+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 2.7 17a2 2 0 0 0 1.7 3h15.2a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg><span>'+TR({fr:'Sous la moyenne',ar:'دون المعدل'})+'</span></div>':'');
+    cards.appendChild(sc);
+  });
+}
+$$('#sem-tabs .seg-btn').forEach(b=>b.addEventListener('click',()=>{$$('#sem-tabs .seg-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');currentSem=b.dataset.sem;renderGrades();}));
+$$('#grades-table th[data-sort]').forEach(th=>th.addEventListener('click',()=>{
+  const key=th.dataset.sort, dir=th.dataset.dir==='desc'?1:-1;
+  GRADES[currentSem].sort((a,b)=>{const av=key==='subject'?TR(a.subject):a[key],bv=key==='subject'?TR(b.subject):b[key];return av<bv?dir:av>bv?-dir:0;});
+  th.dataset.dir=th.dataset.dir==='desc'?'asc':'desc';
+  renderGrades();
+}));
+$('#btn-export-pdf').onclick=()=>toast(TR({fr:'Relevé PDF généré',ar:'تم إنشاء كشف PDF'}));
+function renderCalc(){
+  const sel=$('#calc-subject');
+  sel.innerHTML=GRADES[currentSem].map((r,i)=>'<option value="'+i+'">'+TR(r.subject)+'</option>').join('');
+  sel.onchange=updateCalcCurrent;
+  updateCalcCurrent();
+  $('#calc-result-block').style.display='none';
+}
+function updateCalcCurrent(){
+  const r=GRADES[currentSem][$('#calc-subject').value||0];
+  $('#calc-current-val').textContent=r.cc.toFixed(2);
+  $('#calc-target').value=10;
+}
+$('#calc-run').onclick=()=>{
+  const r=GRADES[currentSem][$('#calc-subject').value||0];
+  const target=parseFloat($('#calc-target').value)||0;
+  const requiredCF=target*2-r.cc;
+  $('#calc-result-block').style.display='block';
+  const vEl=$('#calc-result-verdict');
+  if(requiredCF>20){$('#calc-result-val').textContent='—';vEl.textContent=TR({fr:'Objectif inatteignable',ar:'الهدف لا يمكن بلوقه'});vEl.style.color='var(--danger)';}
+  else if(requiredCF<=0){$('#calc-result-val').textContent='✓';vEl.textContent=TR({fr:'Objectif déjà atteint',ar:'الهدف محقّق فعلاً'});vEl.style.color='var(--jade-text)';}
+  else{$('#calc-result-val').textContent=requiredCF.toFixed(1)+'/20';vEl.textContent=TR({fr:'Note requise à l\u2019examen final',ar:'الدرجة المطلوبة في الامتحان النهائي'});vEl.style.color='var(--ink2)';}
+};
+$('#btn-calc').onclick=()=>{renderCalc();openPanel($('#calc-panel'));};
+
+/* ---- attendance ---- */
+function renderAttendance(){
+  const totalSessions=ATTEND.reduce((s,a)=>s+a.total,0), totalAttended=ATTEND.reduce((s,a)=>s+a.attended,0);
+  const overall=Math.round(totalAttended/totalSessions*100);
+  const circumference=2*Math.PI*40;
+  $('#pres-ring-fill').style.strokeDasharray=circumference;
+  $('#pres-ring-fill').style.strokeDashoffset=circumference*(1-overall/100);
+  $('#pres-hero').querySelector('text').textContent=overall+'%';
+  $('#pres-hero').querySelector('.hj-summary').textContent=TR({fr:(totalSessions-totalAttended)+' absences sur '+totalSessions+' séances',ar:(totalSessions-totalAttended)+' من '+totalSessions+' جلسة'});
+  const lvlCounts={validated:0,limite:0,risque:0};
+  ATTEND.forEach(a=>lvlCounts[attendLevel(a.rate)]++);
+  $('#pres-count-validated').textContent=lvlCounts.validated;
+  $('#pres-count-limite').textContent=lvlCounts.limite;
+  $('#pres-count-risque').textContent=lvlCounts.risque;
+  const tbody=$('#attend-tbody');tbody.innerHTML='';
+  const subjList=$('#attend-subject-list');subjList.innerHTML='';
+  ATTEND.forEach(a=>{
+    const lvl=attendLevel(a.rate);
+    const remaining=Math.max(0,Math.floor(a.total*0.25)-(a.total-a.attended));
+    const tr=document.createElement('tr');
+    tr.innerHTML='<td>'+TR(a.subject)+'</td><td class="num mono">'+a.attended+'/'+a.total+'</td><td class="num mono lvl-'+lvl+'">'+a.rate+'%</td><td class="num mono">'+remaining+'</td>';
+    tbody.appendChild(tr);
+    const row=document.createElement('div');row.className='attend-subject';
+    const projTxt=lvl==='risque'?TR({fr:'Limite atteinte',ar:'وصل للحد'}):(remaining+' '+TR({fr:'absences possibles',ar:'من الفرافات المتبقية'}));
+    row.innerHTML='<div class="as-top"><div class="as-dot bg-lvl-'+lvl+'"></div><div style="flex:1"><div class="as-name">'+TR(a.subject)+'</div><div class="as-sessions">'+a.attended+'/'+a.total+' '+TR({fr:'séances',ar:'جلسات'})+'</div></div><div class="as-pct lvl-'+lvl+'">'+a.rate+'%</div></div>'+
+    '<div class="as-bar"><div class="fill bg-lvl-'+lvl+'" style="width:'+a.rate+'%"></div></div>'+
+    '<div class="as-proj lvl-'+lvl+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg><span>'+projTxt+'</span></div>';
+    subjList.appendChild(row);
+  });
+  renderAbsences();
+}
+function renderAbsences(){
+  const list=$('#absence-list');list.innerHTML='';
+  const filtered=absenceFilter==='all'?ABSENCES:ABSENCES.filter(a=>a.status==='unjustified');
+  if(!filtered.length){list.innerHTML='<p style="color:var(--ink3);font-size:13px;text-align:center;padding:20px 0">'+TR({fr:'Aucune absence à justifier.',ar:'لا توجد غيابات تحتاج تبريراً.'})+'</p>';return;}
+  filtered.forEach(a=>{
+    const row=document.createElement('div');row.className='absence-row';
+    row.innerHTML='<div class="date-tile"><b>'+a.date+'</b><small>'+TR(a.month)+'</small></div><div style="flex:1;font-weight:700;font-size:13.5px">'+TR(a.subject)+'</div><span class="pill-status '+a.status+'">'+TR(ABS_STATUS_LBL[a.status])+'</span>';
+    row.onclick=()=>openJustify(a);
+    list.appendChild(row);
+  });
+}
+$$('#absence-filter .seg-btn').forEach(b=>b.addEventListener('click',()=>{$$('#absence-filter .seg-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');absenceFilter=b.dataset.filter;renderAbsences();}));
+function openJustify(a){
+  $('#justify-title').textContent=TR(a.subject);
+  $('#justify-sub').textContent=a.date+' '+TR(a.month);
+  const dzHtml='<div class="dropzone" id="dz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15V3m0 0 4 4m-4-4-4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><div>'+TR({fr:'Glissez un fichier ou cliquez pour parcourir',ar:'اسحب ملفاً أو انقر للتصفح'})+'</div></div>';
+  let html='';
+  if(a.status==='unjustified'){
+    html=dzHtml+'<div class="chip-set"><button class="quick-chip">'+TR({fr:'Certificat médical',ar:'شهادة طبية'})+'</button><button class="quick-chip">'+TR({fr:'Raison familiale',ar:'سبب عائلي'})+'</button><button class="quick-chip">'+TR({fr:'Démarche administrative',ar:'إجراء إداري'})+'</button></div><div class="dp-section-lbl">'+TR({fr:'Note',ar:'ملاحظة'})+'</div><textarea class="dp-note" placeholder="'+TR({fr:'Précisez le motif…',ar:'وضّح السبب…'})+'"></textarea><div class="progress-track" id="upload-progress" style="display:none"><div class="progress-fill" id="upload-fill"></div></div>';
+  } else if(a.status==='pending'){
+    html='<div class="doc-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3v5h5"/><path d="M6 3h8l5 5v13H6z"/></svg><span>'+a.doc+'</span></div><div class="dp-section-lbl">'+TR({fr:'Note',ar:'ملاحظة'})+'</div><p style="font-size:13.5px;color:var(--ink2)">'+TR(a.note)+'</p><p style="font-size:12.5px;color:var(--ink3);margin-top:14px">'+TR({fr:'Votre justificatif est en cours de traitement par la scolarité.',ar:'طلبك قيد المراجعة من قِبل مصلحة شؤون الطلبة.'})+'</p>';
+  } else if(a.status==='approved'){
+    html='<div class="doc-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 3v5h5"/><path d="M6 3h8l5 5v13H6z"/></svg><span>'+a.doc+'</span></div><div class="dp-section-lbl">'+TR({fr:'Note',ar:'ملاحظة'})+'</div><p style="font-size:13.5px;color:var(--ink2)">'+TR(a.note)+'</p><div class="errcard" style="background:var(--jade-faint);border-color:var(--jade);margin-top:16px"><div><strong style="color:var(--jade-text)">'+TR({fr:'Absence justifiée',ar:'تم تبرير الغياب'})+'</strong></div></div>';
+  } else if(a.status==='rejected'){
+    html='<div class="errcard"><div><strong>'+TR({fr:'Justificatif rejeté',ar:'تم رفض المبرر'})+'</strong><span>'+TR(a.reason)+'</span></div></div><div class="dp-section-lbl">'+TR({fr:'Nouveau justificatif',ar:'وثيقة جديدة'})+'</div>'+dzHtml+'<textarea class="dp-note" placeholder="'+TR({fr:'Précisez le motif…',ar:'وضّح السبب…'})+'"></textarea>';
+  }
+  $('#justify-body').innerHTML=html;
+  const dz=$('#dz');
+  if(dz)dz.onclick=()=>{const bar=$('#upload-progress');if(bar)bar.style.display='block';let p=0;const fill=$('#upload-fill');const iv=setInterval(()=>{p+=20;if(fill)fill.style.width=p+'%';if(p>=100){clearInterval(iv);toast(TR({fr:'Fichier ajouté',ar:'تم إضافة الملف'}));}},150);};
+  $$('.quick-chip').forEach(c=>c.onclick=()=>c.classList.toggle('sel'));
+  $('#justify-foot-btn').style.display=(a.status==='pending'||a.status==='approved')?'none':'flex';
+  $('#justify-foot-btn').onclick=()=>{closeAllPanels();toast(TR({fr:'Justificatif envoyé',ar:'تم إرسال المبرر'}));};
+  openPanel($('#justify-panel'));
+}
+
+/* ---- news ---- */
+function renderNews(){
+  const heroWrap=$('#news-hero-wrap'), grid=$('#news-grid');
+  let list=ARTICLES.filter(a=>newsTab==='saved'?savedIds.has(a.id):true).filter(a=>newsFilter==='all'||a.cat===newsFilter);
+  const q=($('#news-search').value||'').trim().toLowerCase();
+  if(q)list=list.filter(a=>TR(a.title).toLowerCase().includes(q));
+  heroWrap.innerHTML='';grid.innerHTML='';
+  grid.className='news-grid mode-'+newsViewMode;
+  if(!list.length){grid.innerHTML='<p style="color:var(--ink3);font-size:13px;text-align:center;padding:30px 0;grid-column:1/-1">'+TR({fr:'Aucun article.',ar:'لا توجد مقالات.'})+'</p>';return;}
+  const hero=(newsTab==='all'&&!q&&newsFilter==='all'&&newsViewMode==='grid')?list.find(a=>a.hero):null;
+  const rest=hero?list.filter(a=>a.id!==hero.id):list;
+  if(hero){
+    const isUrgent=hero.id===1;
+    heroWrap.innerHTML='<div class="article-hero-card"><div class="img"><div class="scrim"></div><div class="cat-flag '+(isUrgent?'urgent':'')+'"'+(isUrgent?'':' style="background:var(--surface);color:var(--ink2)"')+'><span class="dot"'+(isUrgent?'':' style="background:var(--ink2)"')+'></span><span>'+(isUrgent?TR({fr:'Urgent',ar:'عاجل'}):TR(CAT_LBL[hero.cat]))+'</span></div><div class="hero-txt"><span class="cat-pill cat-'+hero.cat+'">'+TR(CAT_LBL[hero.cat])+'</span><h2>'+TR(hero.title)+'</h2><div class="meta">'+hero.date+' · '+hero.read+'</div></div></div></div>';
+    heroWrap.querySelector('.article-hero-card').onclick=()=>openReader(hero);
+  }
+  if(newsViewMode==='list'){
+    rest.forEach(a=>{
+      const row=document.createElement('div');row.className='article-row';
+      row.innerHTML='<span class="as-dot bg-lvl-'+(a.cat==='officiel'?'validated':a.cat==='evenement'?'limite':'risque')+'" style="width:8px;height:8px;flex-shrink:0"></span><span class="ar-title">'+TR(a.title)+'</span><span class="cat-pill cat-'+a.cat+'">'+TR(CAT_LBL[a.cat])+'</span><span class="ar-meta">'+a.date+' · '+a.read+'</span><button class="bookmark-inline '+(savedIds.has(a.id)?'on':'')+'"><svg viewBox="0 0 24 24" fill="'+(savedIds.has(a.id)?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg></button>';
+      row.addEventListener('click',(e)=>{if(!e.target.closest('.bookmark-inline'))openReader(a);});
+      row.querySelector('.bookmark-inline').onclick=(e)=>{e.stopPropagation();toggleSave(a.id);};
+      grid.appendChild(row);
+    });
+  } else if(newsViewMode==='magazine'){
+    rest.forEach(a=>{
+      const card=document.createElement('div');card.className='article-card-mag';
+      card.innerHTML='<div class="img"></div><div class="body"><span class="cat-pill cat-'+a.cat+'">'+TR(CAT_LBL[a.cat])+'</span><h3>'+TR(a.title)+'</h3><div class="meta">'+a.date+' · '+a.read+'</div></div>';
+      card.onclick=()=>openReader(a);
+      grid.appendChild(card);
+    });
+  } else {
+  rest.forEach(a=>{
+    const card=document.createElement('div');card.className='article-card2';
+    card.innerHTML='<div class="thumb"></div><div class="ac-right"><div class="ac-top"><span class="cat-pill cat-'+a.cat+'">'+TR(CAT_LBL[a.cat])+'</span><span class="ac-time"><span class="unread-dot"></span>'+a.date+'</span></div><div class="ac-title">'+TR(a.title)+'</div><div class="ac-bottom"><span class="rt">'+a.read+'</span><button class="bookmark-inline '+(savedIds.has(a.id)?'on':'')+'"><svg viewBox="0 0 24 24" fill="'+(savedIds.has(a.id)?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg></button></div></div>';
+    card.querySelector('.ac-right').addEventListener('click',(e)=>{if(!e.target.closest('.bookmark-inline'))openReader(a);});
+    card.querySelector('.bookmark-inline').onclick=(e)=>{e.stopPropagation();toggleSave(a.id);};
+    grid.appendChild(card);
+  });
+  }
+}
+function toggleSave(id){if(savedIds.has(id))savedIds.delete(id);else savedIds.add(id);renderNews();}
+function openReader(a){
+  $('#news-list-wrap').style.display='none';
+  const r=$('#news-reader');r.style.display='block';
+  const related=ARTICLES.filter(x=>x.id!==a.id).slice(0,2);
+  r.innerHTML='<div class="reader-top"><button class="reader-back" id="reader-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>'+TR({fr:'Retour',ar:'رجوع'})+'</button><div class="reader-actions"><button class="icon-btn" id="reader-bookmark"><svg viewBox="0 0 24 24" fill="'+(savedIds.has(a.id)?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg></button><button class="icon-btn" id="reader-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-3.8M8.6 13.4l6.8 3.8"/></svg></button></div></div><div class="reader-hero-img" style="display:flex;align-items:flex-end;padding:16px"><span class="reader-source-pill">UDJ · Université de Djibouti</span></div><div class="reader-body"><span class="cat-pill cat-'+a.cat+'">'+TR(CAT_LBL[a.cat])+'</span><h1>'+TR(a.title)+'</h1><div class="meta">'+a.date+' · '+a.read+'</div><p>'+TR(a.body)+'</p></div><div class="related-lbl">'+TR({fr:'Articles similaires',ar:'مقالات ذات صلة'})+'</div><div class="news-grid">'+related.map(x=>'<div class="article-card2" data-id="'+x.id+'"><div class="thumb"></div><div class="ac-right"><span class="cat-pill cat-'+x.cat+'">'+TR(CAT_LBL[x.cat])+'</span><div class="ac-title">'+TR(x.title)+'</div><div class="ac-bottom"><span class="rt">'+x.date+' · '+x.read+'</span></div></div></div>').join('')+'</div>';
+  $('#reader-back').onclick=()=>{r.style.display='none';$('#news-list-wrap').style.display='block';};
+  $('#reader-bookmark').onclick=()=>{toggleSave(a.id);openReader(a);};
+  $('#reader-share').onclick=()=>toast(TR({fr:'Lien copié',ar:'تم نسخ الرابط'}));
+  r.querySelectorAll('.news-grid .article-card2').forEach(c=>{c.onclick=()=>{const id=parseInt(c.dataset.id);openReader(ARTICLES.find(x=>x.id===id));};});
+}
+$$('#news-cats .chip-filter').forEach(c=>c.addEventListener('click',()=>{$$('#news-cats .chip-filter').forEach(x=>x.classList.remove('active'));c.classList.add('active');newsFilter=c.dataset.cat;renderNews();}));
+$$('#news-tabs .seg-btn').forEach(b=>b.addEventListener('click',()=>{$$('#news-tabs .seg-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');newsTab=b.dataset.tab;$('#news-list-wrap').style.display='block';$('#news-reader').style.display='none';renderNews();}));
+$('#news-search').addEventListener('input',renderNews);
+
+/* ---- profile ---- */
+function nowStamp(){const d=new Date();return d.toLocaleDateString('fr-FR')+' '+d.toTimeString().slice(0,5);}
+function syncProfileControls(){
+  $$('#view-profile [data-theme-opt]').forEach(b=>b.classList.toggle('active',b.dataset.themeOpt===theme));
+  $('#prof-lang-fr').classList.toggle('active',lang==='fr');
+  $('#prof-lang-ar').classList.toggle('active',lang==='ar');
+}
+$$('#view-profile [data-theme-opt]').forEach(b=>b.addEventListener('click',()=>{theme=b.dataset.themeOpt;applyTheme();syncProfileControls();}));
+$('#prof-lang-fr').onclick=()=>{lang='fr';applyLang();};
+$('#prof-lang-ar').onclick=()=>{lang='ar';applyLang();};
+$$('#view-profile .toggle-switch').forEach(t=>t.addEventListener('click',()=>t.classList.toggle('on')));
+$('#btn-change-pw').onclick=()=>toast(TR({fr:'Mot de passe mis à jour',ar:'تم تحديث كلمة المرور'}));
+$('#btn-download-data').onclick=()=>toast(TR({fr:'Export en préparation…',ar:'التصدير قيد التحضير…'}));
+$('#btn-logout-profile').onclick=()=>$('#btn-logout').click();
+$('#btn-clear-cache').onclick=()=>{$('#last-sync').textContent=nowStamp();toast(TR({fr:'Cache vidé',ar:'تم مسح المخزن المؤقت'}));};
+
+renderGrades();renderAttendance();renderNews();syncProfileControls();
+applyTheme();applyLang();
+</script>
+</body>
+</html>
