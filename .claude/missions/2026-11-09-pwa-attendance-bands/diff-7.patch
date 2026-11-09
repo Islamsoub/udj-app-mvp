@@ -1,0 +1,509 @@
+diff --git a/pwa/components/attendance/Hero.tsx b/pwa/components/attendance/Hero.tsx
+index 98b1a82..82b63a1 100644
+--- a/pwa/components/attendance/Hero.tsx
++++ b/pwa/components/attendance/Hero.tsx
+@@ -4,10 +4,44 @@ import { Interpolated } from '@/components/dashboard/Interpolated';
+ import type { AttendanceOverall } from '@/lib/api-types';
+ import { fmtPercent, percentText } from '@/lib/bidi';
+ import { useI18n } from '@/lib/i18n';
++import type { TranslationKey } from '@/lib/i18n-types';
+ import { WarningIcon } from './icons';
+ import { PresenceRing } from './PresenceRing';
+ import styles from './attendance.module.css';
+ 
++/**
++ * The line under the figure, per ROUND2-CLOSEOUT §4 "Hero line": which sentence,
++ * and in which tone. Read off the SERVER's `band` and `absencesLeft` only — the
++ * PWA never compares the percentage against the threshold.
++ *
++ * Term over is `absencesLeft === null`, and it is checked first: §4's term-over
++ * rows apply whatever the band, so a term-over `near` reads `ended_ok` in the
++ * neutral tone (Flag 4, open: the ring keeps the near stroke beside it).
++ */
++type HeroTone = 'neutral' | 'warning' | 'danger';
++
++function heroLine(overall: AttendanceOverall): { key: TranslationKey; tone: HeroTone } {
++  if (overall.absencesLeft === null) {
++    return overall.band === 'below'
++      ? { key: 'attendance.hero.ended_below', tone: 'danger' }
++      : { key: 'attendance.hero.ended_ok', tone: 'neutral' };
++  }
++  switch (overall.band) {
++    case 'below':
++      return { key: 'attendance.hero.below', tone: 'danger' };
++    case 'near':
++      return { key: 'attendance.hero.near', tone: 'warning' };
++    case 'ok':
++      return { key: 'attendance.hero.threshold', tone: 'neutral' };
++  }
++}
++
++const TONE_CLASS: Record<HeroTone, string> = {
++  neutral: '',
++  warning: styles.heroThresholdNear,
++  danger: styles.heroThresholdBelow,
++};
++
+ /**
+  * The hero stat: the semester's presence percentage, the gauge, and what the
+  * percentage is measured against.
+@@ -15,8 +49,12 @@ import styles from './attendance.module.css';
+  * THE THRESHOLD IS STATED HERE, not only implied by a colour on the subject
+  * rows. A student who is at 92% needs to know where the line is before the number
+  * means anything, and §10 forbids colour as the only signal anyway — so the
+- * requirement is a sentence, and being under it adds an icon and a word on top
+- * of the tint rather than instead of it.
++ * requirement is a sentence, and every non-ok state words its own sentence and
++ * adds an icon on top of the colour rather than instead of it.
++ *
++ * The overall `absencesLeft` is NOT shown (§4): it is a pooled figure, and one
++ * absence counts against one subject, so it can read "8 left" while a subject
++ * has none. The subject rows carry the number instead.
+  *
+  * The caller does not mount this without a percentage: §5's fill "animates from
+  * 0% to its target value", and a gauge pinned at zero reads as "you attended
+@@ -29,17 +67,19 @@ export function Hero({
+ }: {
+   overall: AttendanceOverall;
+   percentage: number;
+-  /** From the response; see model.ts for why there is no local default. */
++  /** From the response; see model.ts for why there is no local default.
++   *  Displayed only — the state comes from `overall.band`. */
+   threshold: number;
+ }) {
+   const { t } = useI18n();
+ 
+-  const below = percentage < threshold;
++  const line = heroLine(overall);
+ 
+   return (
+     <section className={styles.hero}>
+       <PresenceRing
+         percentage={percentage}
++        band={overall.band}
+         label={t('attendance.hero.ring_label', { value: percentText(percentage) })}
+       />
+ 
+@@ -66,15 +106,13 @@ export function Hero({
+         </p>
+ 
+         {/*
+-          The requirement, always shown — and when it is not met, said in words
+-          with an icon beside them (§10) rather than left to the tint alone.
++          The requirement, always shown in every state's sentence — and when the
++          band is not ok, said in words with an icon beside them (§10) rather
++          than left to the colour alone.
+         */}
+-        <p className={`${styles.heroThreshold} ${below ? styles.heroThresholdBelow : ''}`}>
+-          {below && <WarningIcon className={styles.heroThresholdIcon} />}
+-          <Interpolated
+-            template={t(below ? 'attendance.hero.below' : 'attendance.hero.threshold')}
+-            values={{ threshold: fmtPercent(threshold) }}
+-          />
++        <p className={`${styles.heroThreshold} ${TONE_CLASS[line.tone]}`}>
++          {line.tone !== 'neutral' && <WarningIcon className={styles.heroThresholdIcon} />}
++          <Interpolated template={t(line.key)} values={{ threshold: fmtPercent(threshold) }} />
+         </p>
+ 
+         {/*
+diff --git a/pwa/components/attendance/PresenceRing.tsx b/pwa/components/attendance/PresenceRing.tsx
+index 410da8e..063f712 100644
+--- a/pwa/components/attendance/PresenceRing.tsx
++++ b/pwa/components/attendance/PresenceRing.tsx
+@@ -2,6 +2,7 @@
+ 
+ import { useState } from 'react';
+ import { takeOnce } from '@/components/dashboard/session-flags';
++import type { AttendanceBand } from '@/lib/api-types';
+ import styles from './attendance.module.css';
+ 
+ const SIZE = 132;
+@@ -42,7 +43,26 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+  * hero moment would never happen. Hence a local component with its own key, and
+  * a note rather than a quiet fourth fork.
+  */
+-export function PresenceRing({ percentage, label }: { percentage: number; label: string }) {
++/**
++ * The stroke follows the server's overall band (ROUND2-CLOSEOUT §4, with §3's
++ * three colours) and is never derived from the percentage here. Track and
++ * aria-label are band-independent: the Hero's sentence says the band in words.
++ */
++const STROKE_CLASS: Record<AttendanceBand, string> = {
++  ok: '',
++  near: styles.ringValueNear,
++  below: styles.ringValueBelow,
++};
++
++export function PresenceRing({
++  percentage,
++  band,
++  label,
++}: {
++  percentage: number;
++  band: AttendanceBand;
++  label: string;
++}) {
+   const [filling] = useState(() => takeOnce('attendance_presence_ring'));
+ 
+   const clamped = Math.max(0, Math.min(100, percentage));
+@@ -69,7 +89,7 @@ export function PresenceRing({ percentage, label }: { percentage: number; label:
+         strokeWidth={STROKE}
+       />
+       <circle
+-        className={`${styles.ringValue} ${filling ? styles.ringFilling : ''}`}
++        className={`${styles.ringValue} ${STROKE_CLASS[band]} ${filling ? styles.ringFilling : ''}`}
+         cx={SIZE / 2}
+         cy={SIZE / 2}
+         r={RADIUS}
+diff --git a/pwa/components/attendance/SubjectBreakdown.tsx b/pwa/components/attendance/SubjectBreakdown.tsx
+index b4283ef..35f5f74 100644
+--- a/pwa/components/attendance/SubjectBreakdown.tsx
++++ b/pwa/components/attendance/SubjectBreakdown.tsx
+@@ -4,10 +4,48 @@ import { Interpolated } from '@/components/dashboard/Interpolated';
+ import type { AttendanceSubject } from '@/lib/api-types';
+ import { fmtPercent } from '@/lib/bidi';
+ import { useI18n } from '@/lib/i18n';
++import type { TranslationKey } from '@/lib/i18n-types';
+ import { WarningIcon } from './icons';
+ import { sortSubjects } from './model';
+ import styles from './attendance.module.css';
+ 
++type RowTone = 'ok' | 'near' | 'below';
++
++type RowFlag =
++  | { kind: 'near'; n: number }
++  | { kind: 'text'; key: TranslationKey };
++
++/**
++ * One subject's row state, per ROUND2-CLOSEOUT §4: the tone (border, bar fill,
++ * figure) and the flag beside the session count.
++ *
++ * Term over (`absencesLeft === null`) is checked first, because §4's term-over
++ * rows apply whatever the band. A term-over `below` keeps the below treatment
++ * with the term-over sentence; a term-over `near` gets no flag and no near tone,
++ * since "n absences left" means nothing once the term has ended.
++ */
++function subjectRow(entry: AttendanceSubject): { tone: RowTone; flag: RowFlag | null } {
++  if (entry.absencesLeft === null) {
++    return entry.band === 'below'
++      ? { tone: 'below', flag: { kind: 'text', key: 'attendance.subjects.ended_below' } }
++      : { tone: 'ok', flag: null };
++  }
++  switch (entry.band) {
++    case 'below':
++      return { tone: 'below', flag: { kind: 'text', key: 'attendance.subjects.below' } };
++    case 'near':
++      return { tone: 'near', flag: { kind: 'near', n: entry.absencesLeft } };
++    case 'ok':
++      return { tone: 'ok', flag: null };
++  }
++}
++
++const ROW_CLASS: Record<RowTone, string> = {
++  ok: '',
++  near: styles.subjectNear,
++  below: styles.subjectBelow,
++};
++
+ /**
+  * Attendance per subject, worst first.
+  *
+@@ -16,10 +54,18 @@ import styles from './attendance.module.css';
+  * reading of eight numbers, and the threshold is drawn as a line ACROSS every
+  * bar at the same place so "below the line" is literally visible.
+  *
++ * EACH ROW'S STATE IS THE SERVER'S `band` AND `absencesLeft` for that subject
++ * (ROUND2-CLOSEOUT §4, "Subject rows" and "Row treatment"); the percentage is
++ * never compared against the threshold here. The threshold is still displayed:
++ * in the section note and as the tick on every bar.
++ *
+  * §10: "Status colors ... are never the only signal — always paired with a label
+- * or icon." A subject under the threshold therefore gets three independent
+- * markers: the warning tint, the triangle glyph, and the words "Sous le seuil".
+- * Any one of them alone carries it.
++ * or icon." A `near` or `below` row therefore carries three independent markers:
++ * the border, bar and figure colour, the triangle glyph, and a sentence —
++ * "Encore 2 absences avant la limite", "Limite d'absences dépassée", or, once
++ * the term is over, "Semestre terminé sous le seuil". Any one of them alone
++ * carries it. The rows carry no background tint: §4's treatment table has no
++ * background column (Flag 8, Design to confirm).
+  *
+  * NOT a native <meter>. Its bar is drawn by the UA with no reliable way to place
+  * the threshold marker inside it, and its `low`/`optimum` shading is a colour
+@@ -31,10 +77,11 @@ export function SubjectBreakdown({
+   threshold,
+ }: {
+   subjects: AttendanceSubject[];
+-  /** From the response; see model.ts for why there is no local default. */
++  /** From the response; see model.ts for why there is no local default.
++   *  Displayed only — each row's state comes from its own `band`. */
+   threshold: number;
+ }) {
+-  const { t, lang } = useI18n();
++  const { t, plural, lang } = useI18n();
+ 
+   const ordered = sortSubjects(subjects, lang);
+ 
+@@ -56,13 +103,10 @@ export function SubjectBreakdown({
+         {ordered.map((entry) => {
+           const name = lang === 'ar' ? entry.subject.nameAr : entry.subject.nameFr;
+           const value = Math.round(entry.percentage);
+-          const below = entry.percentage < threshold;
++          const row = subjectRow(entry);
+ 
+           return (
+-            <li
+-              key={entry.subject.id}
+-              className={`${styles.subject} ${below ? styles.subjectBelow : ''}`}
+-            >
++            <li key={entry.subject.id} className={`${styles.subject} ${ROW_CLASS[row.tone]}`}>
+               <div className={styles.subjectHead}>
+                 <p className={styles.subjectName}>
+                   {name}
+@@ -70,7 +114,7 @@ export function SubjectBreakdown({
+                   <span className={`${styles.subjectCode} num`}>{entry.subject.code}</span>
+                 </p>
+ 
+-                <p className={`${styles.subjectValue} ${below ? styles.subjectValueBelow : ''} num`}>
++                <p className={`${styles.subjectValue} num`}>
+                   {fmtPercent(value)}
+                 </p>
+               </div>
+@@ -108,10 +152,21 @@ export function SubjectBreakdown({
+                   />
+                 </span>
+ 
+-                {below && (
+-                  <span className={styles.subjectFlag}>
++                {row.flag !== null && (
++                  <span
++                    className={`${styles.subjectFlag} ${row.tone === 'below' ? styles.subjectFlagBelow : ''}`}
++                  >
+                     <WarningIcon className={styles.subjectFlagIcon} />
+-                    {t('attendance.subjects.below')}
++                    {row.flag.kind === 'near' ? (
++                      // {{n}} goes through .num, Western digits in both
++                      // languages; the zero/one/two forms carry no placeholder.
++                      <Interpolated
++                        template={plural('attendance.subjects.near', row.flag.n)}
++                        values={{ n: row.flag.n }}
++                      />
++                    ) : (
++                      t(row.flag.key)
++                    )}
+                   </span>
+                 )}
+               </p>
+diff --git a/pwa/components/attendance/attendance.module.css b/pwa/components/attendance/attendance.module.css
+index c7ac099..d7af66f 100644
+--- a/pwa/components/attendance/attendance.module.css
++++ b/pwa/components/attendance/attendance.module.css
+@@ -100,18 +100,24 @@
+   color: var(--ink2);
+ }
+ 
+-/* Under the line. The tint is ONE of three signals — the triangle beside it and
+-   the wording itself carry the same meaning (§10).
+-   Text on the card surface, so --warning-ink: --warning is 2.15:1 on it in
+-   light. The triangle follows it through currentColor on purpose — unlike the
+-   danger and info icons, --warning cannot reach even the 3:1 a graphic needs
+-   on a light surface, so this icon is not split back to the hue. The same
+-   holds for .subjectFlag. */
+-.heroThresholdBelow {
++/* The overall band, ROUND2-CLOSEOUT §4 "Hero line". The colour is ONE of three
++   signals — the triangle beside it and the sentence itself carry the same
++   meaning (§10). ok and term-over-ok keep .heroThreshold's --ink2 and no icon.
++   Text on the card --surface, so the -ink tokens, never the hues: --warning is
++   2.15:1 on it in light. The triangle follows the text through currentColor, as
++   §4 asks. Measured on --surface: --warning-ink 6.39 light / 8.36 dark,
++   --danger-ink 6.54 light / 7.59 dark. */
++.heroThresholdNear {
+   color: var(--warning-ink);
+   font-weight: 700;
+ }
+ 
++/* below, and term-over below. */
++.heroThresholdBelow {
++  color: var(--danger-ink);
++  font-weight: 700;
++}
++
+ .heroThresholdIcon {
+   flex-shrink: 0;
+   width: 16px;
+@@ -165,6 +171,21 @@
+   stroke-dashoffset: var(--ring-offset);
+ }
+ 
++/*
++ * The stroke follows overall.band (ROUND2-CLOSEOUT §4, with §3/A3's colours):
++ * ok --jade above, near --warning-ink, below --danger. A graphic, so 3:1 is the
++ * bar. Measured on --surface: --jade 3.39 light / 6.17 dark, --warning-ink
++ * 6.39 light / 8.36 dark, --danger 3.76 light / 5.56 dark. --warning is not
++ * used: 2.15:1 on --surface in light.
++ */
++.ringValueNear {
++  stroke: var(--warning-ink);
++}
++
++.ringValueBelow {
++  stroke: var(--danger);
++}
++
+ .ringFilling {
+   animation: ringFill var(--dur-slow) var(--ease-in-out);
+ }
+@@ -217,13 +238,28 @@
+ }
+ 
+ /*
+- * Below the threshold. A tinted surface AND a warning border — but never on its
+- * own: the row carries the triangle glyph and the words "Sous le seuil" as well,
+- * because §10 forbids colour as the only signal.
++ * The subject's own band, ROUND2-CLOSEOUT §4 "Row treatment": border, bar fill
++ * and figure. Never on its own — the row also carries the triangle glyph and a
++ * sentence (.subjectFlag), because §10 forbids colour as the only signal.
++ *
++ * No background tint: §4's table has no background column, so --warning-bg is
++ * no longer used here (Flag 8, Design to confirm). --warning is not used either
++ * (A3: 2.15:1 on --surface in light).
++ *
++ * near: all three in --warning-ink, which is text-safe on the card and holds as
++ * a graphic on the track — 6.39 light / 8.36 dark on --surface, 5.33 light /
++ * 9.88 dark against the --sunken track (§4 quotes the 5.33).
++ *
++ * below (and term-over below): border and fill in the --danger hue, a graphic at
++ * 3.76 light / 5.56 dark on --surface and 3.14 light / 6.57 dark on --sunken; the
++ * figure is text, so it takes --danger-ink, 6.54 light / 7.59 dark on --surface.
+  */
++.subjectNear {
++  border-color: var(--warning-ink);
++}
++
+ .subjectBelow {
+-  border-color: var(--warning);
+-  background: var(--warning-bg);
++  border-color: var(--danger);
+ }
+ 
+ .subjectHead {
+@@ -260,10 +296,14 @@
+   color: var(--ink);
+ }
+ 
+-.subjectValueBelow {
++.subjectNear .subjectValue {
+   color: var(--warning-ink);
+ }
+ 
++.subjectBelow .subjectValue {
++  color: var(--danger-ink);
++}
++
+ /* ── Bars ──────────────────────────────────────────────────────────────────── */
+ 
+ /*
+@@ -295,8 +335,13 @@
+   background: var(--jade);
+ }
+ 
++/* Fill colours per band; the ratios are with .subjectNear / .subjectBelow. */
++.subjectNear .barFill {
++  background: var(--warning-ink);
++}
++
+ .subjectBelow .barFill {
+-  background: var(--warning);
++  background: var(--danger);
+ }
+ 
+ /*
+@@ -340,6 +385,9 @@
+   color: var(--ink2);
+ }
+ 
++/* The row's sentence and its triangle, which follows the text through
++   currentColor (§4). Text on the card --surface: --warning-ink for near (6.39
++   light / 8.36 dark), --danger-ink for below and term-over below (6.54 / 7.59). */
+ .subjectFlag {
+   display: inline-flex;
+   align-items: center;
+@@ -348,6 +396,10 @@
+   font-weight: 700;
+ }
+ 
++.subjectFlagBelow {
++  color: var(--danger-ink);
++}
++
+ .subjectFlagIcon {
+   flex-shrink: 0;
+   width: 14px;
+diff --git a/pwa/locales/ar.json b/pwa/locales/ar.json
+index c752767..7c62554 100644
+--- a/pwa/locales/ar.json
++++ b/pwa/locales/ar.json
+@@ -254,7 +254,10 @@
+       "ring_label": "نسبة الحضور: {{value}}",
+       "sessions": "حضرت {{present}} حصة من أصل {{total}}",
+       "threshold": "الحد الأدنى المطلوب: {{threshold}}",
+-      "below": "أقل من الحد الأدنى المطلوب {{threshold}}",
++      "near": "الحد الأدنى المطلوب: {{threshold}} · هامش ضيق",
++      "below": "لم يعد بلوغ الحد الأدنى المطلوب {{threshold}} ممكنًا هذا الفصل",
++      "ended_below": "انتهى الفصل دون بلوغ الحد الأدنى المطلوب {{threshold}}",
++      "ended_ok": "انتهى الفصل · الحد الأدنى المطلوب: {{threshold}}",
+       "absences": "الغيابات: {{count}}",
+       "justified": "منها مبرَّرة: {{count}}",
+       "partial": "حصص جزئية: {{count}}"
+@@ -263,7 +266,16 @@
+       "title": "حسب المادة",
+       "note": "الحد الأدنى المطلوب للحضور هو {{threshold}}.",
+       "sessions": "حضرت {{present}} حصة من أصل {{total}}",
+-      "below": "أقل من الحد الأدنى",
++      "near": {
++        "zero": "لا يُسمح بأي غياب إضافي",
++        "one": "يتبقّى غياب واحد قبل بلوغ الحد",
++        "two": "يتبقّى غيابان قبل بلوغ الحد",
++        "few": "يتبقّى {{n}} غيابات قبل بلوغ الحد",
++        "many": "يتبقّى {{n}} غيابًا قبل بلوغ الحد",
++        "other": "يتبقّى {{n}} غياب قبل بلوغ الحد"
++      },
++      "below": "تم تجاوز حد الغياب",
++      "ended_below": "انتهى الفصل دون بلوغ الحد الأدنى",
+       "bar_label": "نسبة الحضور في {{subject}}"
+     },
+     "absences": {
+diff --git a/pwa/locales/fr.json b/pwa/locales/fr.json
+index 178ceff..0cfbac2 100644
+--- a/pwa/locales/fr.json
++++ b/pwa/locales/fr.json
+@@ -254,7 +254,10 @@
+       "ring_label": "Présence : {{value}}",
+       "sessions": "{{present}} séances suivies sur {{total}}",
+       "threshold": "Seuil requis : {{threshold}}",
+-      "below": "Sous le seuil requis de {{threshold}}",
++      "near": "Seuil requis : {{threshold}} · marge faible",
++      "below": "Seuil requis de {{threshold}} hors d'atteinte ce semestre",
++      "ended_below": "Semestre terminé sous le seuil requis de {{threshold}}",
++      "ended_ok": "Semestre terminé · seuil requis : {{threshold}}",
+       "absences": "Absences : {{count}}",
+       "justified": "Dont justifiées : {{count}}",
+       "partial": "Séances partielles : {{count}}"
+@@ -263,7 +266,16 @@
+       "title": "Par matière",
+       "note": "Le seuil de présence requis est de {{threshold}}.",
+       "sessions": "{{present}} séances suivies sur {{total}}",
+-      "below": "Sous le seuil",
++      "near": {
++        "zero": "Plus aucune absence possible",
++        "one": "Encore 1 absence avant la limite",
++        "two": "Encore 2 absences avant la limite",
++        "few": "Encore {{n}} absences avant la limite",
++        "many": "Encore {{n}} absences avant la limite",
++        "other": "Encore {{n}} absences avant la limite"
++      },
++      "below": "Limite d'absences dépassée",
++      "ended_below": "Semestre terminé sous le seuil",
+       "bar_label": "Présence en {{subject}}"
+     },
+     "absences": {

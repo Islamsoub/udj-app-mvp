@@ -519,3 +519,281 @@ exit 0
 
 ### Could not do
 - Open the PR (`gh` missing).
+
+
+## Milestone 7: Attendance page reads the band (2026-11-09)
+
+**Branch:** `feature/pwa-attendance-page-band`, cut from origin/develop at 9a11de0. Commit e09d37d has been pushed to origin. Built in parallel with milestone 6; it touches none of 6's files or locale subtrees.
+
+**PR: not opened** (`gh` is not available). Open it by hand against `develop`: https://github.com/Islamsoub/udj-app-mvp/compare/develop...feature/pwa-attendance-page-band?expand=1
+- The description's first line should be "No change to backend/prisma/schema.prisma."
+
+### What was done
+- **Hero.tsx.** The local `below` boolean is gone. A private `heroLine(overall)` returns `{ key, tone }` from `overall.band` / `overall.absencesLeft` only:
+  - term over (`absencesLeft === null`) is checked first: `ended_below` (danger) if the band is `below`, otherwise `ended_ok` (neutral);
+  - otherwise `ok` → `attendance.hero.threshold` (neutral), `near` → `attendance.hero.near` (warning), `below` → `attendance.hero.below` (danger).
+  - `WarningIcon` is shown for every non-neutral tone, in the text's colour (currentColor). `overall.absencesLeft` is never shown (§4). `threshold` stays a prop, displayed only.
+- **PresenceRing.tsx.** A new `band: AttendanceBand` prop; the Hero passes `overall.band`. The stroke is `--jade` / `--warning-ink` / `--danger`. Track and `aria-label` are unchanged.
+- **SubjectBreakdown.tsx.** The local `below` boolean is gone. A private `subjectRow(entry)` returns `{ tone, flag }`:
+  - term over first: `below` gives the below tone with `attendance.subjects.ended_below`; any other band gives no flag and no tone;
+  - `near` → `plural('attendance.subjects.near', absencesLeft)`, rendered with `Interpolated`, so `{{n}}` is `.num`;
+  - `below` → `attendance.subjects.below`; `ok` → no flag.
+  - Every flag keeps `WarningIcon` in the text's colour. The §10 doc comment at the top was rewritten: it no longer mentions "Sous le seuil" or the tint. `threshold` is still used for the note and `--bar-threshold`.
+- **attendance.module.css.**
+  - `.heroThresholdNear` is `--warning-ink`. `.heroThresholdBelow` is now `--danger-ink`; before, it was the only below class and used `--warning-ink`.
+  - `.ringValueNear` / `.ringValueBelow`.
+  - `.subjectNear` (border, fill and figure all `--warning-ink`) and `.subjectBelow` (border and fill `--danger`, figure `--danger-ink`). `.subjectValueBelow` was removed, because the figure colour now hangs off the row class.
+  - `.subjectFlagBelow` is `--danger-ink`.
+  - `--warning` and `--warning-bg` are no longer used on these rows. No token was added and globals.css was not touched.
+  - The comments carry the measured ratios. I recomputed them with WCAG 2.x from the globals.css hex values, and they agree with §3/§4 wherever §3/§4 quote one:
+
+    | Token | Light, on `--surface` | Dark, on `--surface` | Light, on `--sunken` | Dark, on `--sunken` |
+    |---|---|---|---|---|
+    | `--jade` | 3.39 | 6.17 | | |
+    | `--warning-ink` | 6.39 | 8.36 | 5.33 | 9.88 |
+    | `--danger` | 3.76 | 5.56 | 3.14 | 6.57 |
+    | `--danger-ink` | 6.54 | 7.59 | | |
+    | `--warning` | 2.15 | | | |
+- **Locales.** Only `attendance.hero` and `attendance.subjects` change, in both files:
+  - hero: `near`, `ended_below` and `ended_ok` are new, `below` is rewritten, and `threshold` is unchanged;
+  - subjects: `near` is new (a plural object with exactly the six keys), `below` is rewritten, and `ended_below` is new.
+  - The strings were not retyped. A script parsed §4's two tables and wrote them.
+
+### Verification
+**Locales against §4, by script.** Check 1 compares each JSON value with its parsed §4 cell. Check 2, which is independent of the parser, finds each value as a raw `| value |` substring of §4. Both FR and AR gave:
+```
+MATCH attendance.hero.{threshold,near,below,ended_below,ended_ok}
+MATCH attendance.subjects.near.{zero,one,two,few,many,other}  (keys exactly the six, in order)
+MATCH attendance.subjects.{below,ended_below}
+substring checks: all True
+ALL MATCH
+```
+- `git diff` on the locale files shows hunks only inside `attendance.hero` and `attendance.subjects`.
+- The JSON round-trip (`json.dumps(indent=2, ensure_ascii=False)`) was confirmed byte-identical before writing, so there is no formatting churn.
+
+**PluralKey.** A temporary `pwa/lib/__m7_pluralkey_check.ts`, deleted and never committed, compiled under `tsc --noEmit` with exit 0:
+- `Equals<PluralKey, 'dashboard.attendance.near' | 'attendance.subjects.near'>` is `true`. On develop that is milestone 5's key plus exactly `'attendance.subjects.near'`.
+- The five new or rewritten plain keys are `TranslationKey`s.
+- `@ts-expect-error` holds for `'attendance.subjects.near'` and `'attendance.subjects.near.zero'` as `TranslationKey`.
+
+Negative control: asserting `Equals<PluralKey, 'dashboard.attendance.near'>` fails (`Type 'true' is not assignable to type 'false'`). When milestone 6 merges, `dashboard.attendance.others` joins the union; that is expected.
+
+**Grep gate.** `grep -rnE "percentage\s*<|<\s*threshold" pwa/components pwa/lib` returns nothing (exit 1).
+
+`npm run typecheck` (pwa/):
+```
+> unipocket-pwa@1.0.0 typecheck
+> tsc --noEmit
+
+exit 0
+```
+
+`npm run build` (pwa/):
+```
+  Creating an optimized production build ...
+✓ Compiled successfully in 6.4s
+  Running TypeScript ...
+  Finished TypeScript in 4.9s ...
+  Collecting page data using 3 workers ...
+✓ Generating static pages using 3 workers (12/12) in 288ms
+  Finalizing page optimization ...
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/refresh
+├ ƒ /api/backend/[...path]
+├ ƒ /attendance
+├ ƒ /grades
+├ ƒ /login
+├ ƒ /news
+├ ƒ /profile
+└ ƒ /schedule
+ƒ  (Dynamic)  server-rendered on demand
+
+exit 0
+```
+
+### Flagged
+- No copy was invented. Every §4 row mapped onto a key, so no placeholder was needed.
+- **Flag 8 (row tint), Design to confirm.** The rows now carry no background tint, because §4's treatment table has no background column. Near rows are signalled by border, fill and figure in `--warning-ink`; below rows by a `--danger` border and fill with a `--danger-ink` figure. Every non-ok row also carries the icon and a sentence.
+- **Flag 4 (term over, overall band `near`), Design to confirm.** On this page, following §4 literally:
+  - the Hero line is `ended_ok`, "Semestre terminé · seuil requis : 75%", in `--ink2` with no icon;
+  - the PresenceRing stroke beside it is `--warning-ink`, because the ring follows `overall.band`.
+- **Term-over subject rows.** These are my reading of §4: "Row treatment" is keyed by band, and "Subject rows" by term-over state.
+  - A term-over `below` subject keeps the below row treatment (danger border and fill, `--danger-ink` figure) and the `ended_below` sentence.
+  - A term-over `near` subject gets the ok treatment, with no flag and no near tone, as the mission says.
+- **`.heroThresholdBelow` changed colour.** It was `--warning-ink` and is now `--danger-ink`, per §4. This is the hero's below state, not a new class.
+
+### Could not do
+- **Screenshots.** Agents have no PWA login, so this run could not render the attendance page. These states are a human check before merge, using a stubbed `/student/attendance` response that is reverted afterwards: subjects in each band, `near` at n = 0, 1, 2 and 5, and a term-over page with one subject below; each in light and dark, FR and AR. No stub was made or committed.
+- Open the PR (`gh` is not available).
+
+
+## Milestone 6: Dashboard card shows the band (2026-11-09)
+
+**Branch:** `feature/pwa-attendance-dashboard-band`, cut from origin/develop at 9a11de0. Commit 3cd4a06 has been pushed to origin.
+
+**PR: not opened** (`gh` is not available). Open it by hand against `develop`: https://github.com/Islamsoub/udj-app-mvp/compare/develop...feature/pwa-attendance-dashboard-band?expand=1
+- The description's first line should be "No change to backend/prisma/schema.prisma."
+- The rest can be copied from the commit message.
+
+### What was done
+Five files, all inside milestone 6's declared paths.
+- **pwa/components/dashboard/AttendanceCard.tsx.**
+  - The line under the ring comes from `attendanceLine(data.subjects, lang)`. `null` (no subjects) shows the existing empty state, and so do a null `overall` or a null `percentage`, as before.
+  - `near` uses `plural('dashboard.attendance.near', n)`. `ok`, `below`, `ended_below` and `ended_ok` use `t()`.
+  - Rendering uses `fmtPhrase`, not `Interpolated`: `{{subject}}` sits in a `<bdi>` with no `.num`. `{{n}}` and `{{k}}` are `<span class="num">` inside their own `<bdi>`, with Western digits.
+  - **Suffix (§5).** It is rendered as `" · "` followed by `plural('dashboard.attendance.others', others)`, and only for `near`, `below` and `ended-below` when `others > 0`. It sits inside the line's own `<span>`, after the sentence (so after the subject's `<bdi>`), and inherits the line's colour. " · " is a named component constant, `SUFFIX_SEPARATOR`.
+  - **Seuil label.** `<strong>` containing `Interpolated(t('dashboard.attendance.threshold'), { threshold: fmtPercent(data.attendanceThreshold) })`. The colour follows `overall.band`. The threshold is displayed only and never compared.
+  - **Layout.** The ring is on one side. Beside it is a column: the existing sessions sentence, then one `<p>` that holds the Seuil `<strong>` with the line below it as a block `<span>`. This follows the prototype's `.attend-note` markup (`dashboard.html`). The prototype has no sessions sentence; the shipped card has one and keeps it on top. Design to confirm the order.
+- **pwa/components/dashboard/Ring.tsx.** A new required `band: AttendanceBand` prop maps to `.ringValueOk` / `.ringValueNear` / `.ringValueBelow`. The track, the `aria-label`, the fill animation and the label inside the ring are unchanged.
+- **pwa/components/dashboard/dashboard.module.css.**
+  - `.ringValue` loses its fixed `--jade` stroke. Three band classes (`--jade` / `--warning-ink` / `--danger`) replace it, with a comment carrying §3's measured figures (3.39/6.17, 6.39/8.36, 3.76/5.56) and why `--warning` (2.15) is not used.
+  - Also added: `.attendanceText`, `.attendanceThreshold{Ok,Near,Below}` (`--jade-text` / `--warning-ink` / `--danger-ink`), `.attendanceLine{Ok,Near,Below}` (`--ink2` / `--warning-ink` / `--danger-ink`; near and below are weight 600, as in the prototype), and `.attendanceOthers` (nowrap, as in the prototype).
+  - No new tokens, and globals.css is untouched. Logical properties only, with no `[dir="rtl"]`.
+- **pwa/locales/fr.json, pwa/locales/ar.json.** These change only under `dashboard.attendance`:
+  - new `threshold`;
+  - `others` reshaped from a string into the six-form plural object.
+
+  Nothing else changed.
+
+### Verification
+**Copy vs the close-out, by script.** The script parsed §3's Seuil template row and §5's suffix table from `design/spec-pack/ROUND2-CLOSEOUT.md`, then compared each against the JSON:
+```
+threshold fr MATCH 'Seuil : {{threshold}}'
+others fr zero  MATCH mission (FR "—" -> other form) '+ {{k}} autres matières'
+others fr one   MATCH §5 '+ 1 autre matière'
+others fr two   MATCH mission (FR "—" -> other form) '+ {{k}} autres matières'
+others fr few   MATCH mission (FR "—" -> other form) '+ {{k}} autres matières'
+others fr many  MATCH §5 '+ {{k}} autres matières'
+others fr other MATCH §5 '+ {{k}} autres matières'
+threshold ar MATCH 'الحد الأدنى: {{threshold}}'
+others ar zero  MATCH §5 '+ {{k}} مادة أخرى'
+others ar one   MATCH §5 '+ مادة أخرى'
+others ar two   MATCH §5 '+ مادتان أخريان'
+others ar few   MATCH §5 '+ {{k}} مواد أخرى'
+others ar many  MATCH §5 '+ {{k}} مادة أخرى'
+others ar other MATCH §5 '+ {{k}} مادة أخرى'
+ALL MATCH
+```
+(The script removed the AR zero cell's "(never rendered)" annotation before comparing. §5 already writes `{{k}}` with double braces.)
+
+**PluralKey.** A temporary `pwa/lib/__m6_pluralkey_check.ts` was compiled under the project's `tsc --noEmit` (exit 0) and then deleted; it was never committed.
+- `Equals<PluralKey, 'dashboard.attendance.near' | 'dashboard.attendance.others'>` is `true`.
+- `'dashboard.attendance.threshold'` is a `TranslationKey`.
+- `@ts-expect-error` holds for `TranslationKey = 'dashboard.attendance.others'` and `'…others.one'`.
+
+Negative control: `Equals<PluralKey, 'dashboard.attendance.near'> = true` fails with TS2322.
+
+**Contrast, re-measured** (WCAG, on `--surface`, light #FFFFFF / dark #1C2721):
+- `--warning-ink`: 6.39 / 8.36
+- `--danger-ink`: 6.54 / 7.59
+- `--jade`: 3.39 (light)
+- `--danger`: 3.76 (light)
+
+These match §3. `--jade-text` 6.20 / 8.34 and `--ink2` 5.49 / 6.78 were measured for the new comments.
+
+**Line states (string-level substitute for screenshots).** This ran the real `attendanceLine` (model.ts) and `pluralCategory` (i18n-shared.ts), plus both locale files, under Node 22 `--experimental-strip-types`. It used a harness that mirrors `LineText`'s composition. `⟨…⟩` marks a fmtPhrase `<bdi>` and `[..]` a `.num` span.
+```
+--- fr
+ok                          ok          --ink2        Toutes les matières au-dessus du seuil
+near n=0                    near        --warning-ink ⟨Statistiques L2⟩ : plus aucune absence possible
+near n=1                    near        --warning-ink ⟨Statistiques L2⟩ : encore 1 absence avant la limite
+near n=2                    near        --warning-ink ⟨Statistiques L2⟩ : encore ⟨[2]⟩ absences avant la limite
+near n=5                    near        --warning-ink ⟨Statistiques L2⟩ : encore ⟨[5]⟩ absences avant la limite
+near n=11                   near        --warning-ink ⟨Statistiques L2⟩ : encore ⟨[11]⟩ absences avant la limite
+below k=0                   below       --danger-ink  ⟨Statistiques L2⟩ : limite d'absences dépassée
+below k=1                   below       --danger-ink  ⟨Chimie⟩ : limite d'absences dépassée · + 1 autre matière
+below k=2                   below       --danger-ink  ⟨Chimie⟩ : limite d'absences dépassée · + ⟨[2]⟩ autres matières
+below k=3                   below       --danger-ink  ⟨Chimie⟩ : limite d'absences dépassée · + ⟨[3]⟩ autres matières
+near k=1                    near        --warning-ink ⟨Statistiques L2⟩ : encore 1 absence avant la limite · + 1 autre matière
+ended-below k=0             ended-below --danger-ink  ⟨Statistiques L2⟩ : semestre terminé sous le seuil
+ended-below k=1             ended-below --danger-ink  ⟨Chimie⟩ : semestre terminé sous le seuil · + 1 autre matière
+ended-ok                    ended-ok    --ink2        Semestre terminé — toutes les matières au-dessus du seuil
+ended, worst near (Flag 4)  ended-ok    --ink2        Semestre terminé — toutes les matières au-dessus du seuil
+no subjects                 EMPTY STATE
+--- ar
+ok                          ok          --ink2        جميع المواد فوق الحد الأدنى
+near n=0                    near        --warning-ink ⟨الإحصاء L2⟩: لا يُسمح بأي غياب إضافي
+near n=1                    near        --warning-ink ⟨الإحصاء L2⟩: يتبقّى غياب واحد قبل بلوغ الحد
+near n=2                    near        --warning-ink ⟨الإحصاء L2⟩: يتبقّى غيابان قبل بلوغ الحد
+near n=5                    near        --warning-ink ⟨الإحصاء L2⟩: يتبقّى ⟨[5]⟩ غيابات قبل بلوغ الحد
+near n=11                   near        --warning-ink ⟨الإحصاء L2⟩: يتبقّى ⟨[11]⟩ غيابًا قبل بلوغ الحد
+below k=0                   below       --danger-ink  ⟨الإحصاء L2⟩: تم تجاوز حد الغياب
+below k=1                   below       --danger-ink  ⟨الكيمياء⟩: تم تجاوز حد الغياب · + مادة أخرى
+below k=2                   below       --danger-ink  ⟨الفيزياء⟩: تم تجاوز حد الغياب · + مادتان أخريان
+below k=3                   below       --danger-ink  ⟨الإعلام⟩: تم تجاوز حد الغياب · + ⟨[3]⟩ مواد أخرى
+near k=1                    near        --warning-ink ⟨الإحصاء L2⟩: يتبقّى غياب واحد قبل بلوغ الحد · + مادة أخرى
+ended-below k=0             ended-below --danger-ink  ⟨الإحصاء L2⟩: انتهى الفصل دون بلوغ الحد الأدنى
+ended-below k=1             ended-below --danger-ink  ⟨الإحصاء L2⟩: انتهى الفصل دون بلوغ الحد الأدنى · + مادة أخرى
+ended-ok                    ended-ok    --ink2        انتهى الفصل — جميع المواد فوق الحد الأدنى
+ended, worst near (Flag 4)  ended-ok    --ink2        انتهى الفصل — جميع المواد فوق الحد الأدنى
+no subjects                 EMPTY STATE
+```
+- French n = 2 selects `other` through Intl, so Design's literal-"2" `two` row is never used. The output is identical anyway.
+- The named subject changes between rows (Chimie, الفيزياء) because of §3's name tie-break among equal below subjects. That is expected.
+
+`grep -nE "percentage\s*<|<\s*threshold" ` over the three changed component files returns nothing.
+
+`npm run typecheck` (pwa/):
+```
+> unipocket-pwa@1.0.0 typecheck
+> tsc --noEmit
+```
+(no errors, exit 0)
+
+`npm run build` (pwa/):
+```
+  Creating an optimized production build ...
+✓ Compiled successfully in 7.3s
+  Running TypeScript ...
+  Finished TypeScript in 5.4s ...
+  Collecting page data using 3 workers ...
+✓ Generating static pages using 3 workers (12/12) in 257ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/refresh
+├ ƒ /api/backend/[...path]
+├ ƒ /attendance
+├ ƒ /grades
+├ ƒ /login
+├ ƒ /news
+├ ƒ /profile
+└ ƒ /schedule
+
+ƒ  (Dynamic)  server-rendered on demand
+```
+(exit 0)
+
+### Flag 4: what the card looks like (term over, overall band `near`)
+The tables were followed literally:
+- the line reads `ended_ok` ("Semestre terminé — toutes les matières au-dessus du seuil" / "انتهى الفصل — جميع المواد فوق الحد الأدنى") in `--ink2`, regular weight;
+- the Seuil label above it is `--warning-ink` and bold;
+- the ring stroke is `--warning-ink`.
+
+So an amber ring and label sit beside a neutral sentence saying everything is fine. The same mixed card occurs whenever the worst subject has ended in `near`, because `attendanceLine` maps every non-below term-over candidate to `ended-ok`. Design to confirm.
+
+### Flagged
+- **No copy was invented.** Every new string matches §3 / §5, and the French "—" cells carry the `other` form as the mission directs.
+- **Flag 4** (above): the mixed card, as recorded.
+- **Order inside the card.** The sessions sentence comes first, then the Seuil label, then the line. The prototype has no sessions sentence; Design to confirm.
+- **Weight.** The near and below lines are 600 and the Seuil label is 700, following the prototype's `app.css`. §3 specifies colour only.
+- **Line colour vs overall band can differ** even outside term-over. The prototype's own `?att=below` preview has overall `ok` and line `below`, so the Seuil and ring are jade while the line is danger. This is §3 as written, not a bug.
+- The PR was not opened because `gh` is missing.
+
+### Could not do
+- **Screenshots.** No PWA login is available to agents, so the card could not be rendered in a browser. No TSX transpiler is installed outside Next, so a server render harness was not possible either. Nothing was stubbed in the repo.
+
+  The string-level harness above covers the copy, the plural selection, the suffix rule and the tone per state. A human with a test account still owes these screenshots before merge, using a stubbed response that is then reverted:
+  - `ok`, `near` (n = 0, 1, 2, 5), `below`, `below` with k = 1 and k = 2, both term-over states;
+  - each in light and dark, FR and AR.
+
+  The check should also confirm the Arabic subject name renders in the Arabic face (not `.num`) and that " · + مادة أخرى" stays at the sentence end in RTL.
+- Open the PR.

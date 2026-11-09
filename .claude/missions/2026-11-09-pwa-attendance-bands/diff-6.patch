@@ -1,0 +1,398 @@
+diff --git a/pwa/components/dashboard/AttendanceCard.tsx b/pwa/components/dashboard/AttendanceCard.tsx
+index 90f6ab0..56a5598 100644
+--- a/pwa/components/dashboard/AttendanceCard.tsx
++++ b/pwa/components/dashboard/AttendanceCard.tsx
+@@ -1,9 +1,12 @@
+ 'use client';
+ 
++import type { ReactNode } from 'react';
++import { attendanceLine, type AttendanceLine } from '@/components/attendance/model';
+ import { getAttendance } from '@/lib/api-client';
+-import type { AttendanceResponse } from '@/lib/api-types';
+-import { percentText } from '@/lib/bidi';
+-import { useI18n } from '@/lib/i18n';
++import type { AttendanceBand, AttendanceResponse } from '@/lib/api-types';
++import { fmtPercent, fmtPhrase, percentText } from '@/lib/bidi';
++import { useI18n, type I18nValue } from '@/lib/i18n';
++import type { Lang } from '@/lib/i18n-shared';
+ import { Card, CardStates, EmptyState } from './Card';
+ import { Interpolated } from './Interpolated';
+ import { AttendanceIcon } from './icons';
+@@ -11,17 +14,49 @@ import { Ring } from './Ring';
+ import { useCardData } from './useCardData';
+ import styles from './dashboard.module.css';
+ 
++/** The Seuil label's colour, from the server's overall band (§3, A2). */
++const THRESHOLD_TONE: Record<AttendanceBand, string> = {
++  ok: styles.attendanceThresholdOk,
++  near: styles.attendanceThresholdNear,
++  below: styles.attendanceThresholdBelow,
++};
++
++/** The line's colour, from the line's own state (§3's Colour column). */
++const LINE_TONE: Record<AttendanceLine['kind'], string> = {
++  ok: styles.attendanceLineOk,
++  'ended-ok': styles.attendanceLineOk,
++  near: styles.attendanceLineNear,
++  below: styles.attendanceLineBelow,
++  'ended-below': styles.attendanceLineBelow,
++};
++
++/**
++ * " · " joins the sentence and §5's suffix. It is punctuation, not copy, and is
++ * written as §5's example writes it.
++ */
++const SUFFIX_SEPARATOR = ' · ';
++
++/** A count inside a sentence: Latin face, Western digits, in both languages. */
++function num(value: number): ReactNode {
++  return <span className="num">{value}</span>;
++}
++
+ /**
+- * Assiduité, with the §5 gauge.
++ * Assiduité, with the §5 gauge, the Seuil label and the line under the ring
++ * (ROUND2-CLOSEOUT §3 and §5).
+  *
+  * `overall` is null when no semester is marked current, and `percentage` is
+  * separately null when no session lengths could be resolved. Either way there is
+  * no figure to draw, so the ring is skipped entirely rather than rendered at
+  * zero — an empty gauge reads as "you attended nothing", which is a different
+  * and much worse claim than "nothing has been recorded".
++ *
++ * Every verdict on this card is the server's `band`. The threshold is shown,
++ * never compared against: the response has already passed
++ * checkAttendanceContract inside getAttendance, so `band` is always present.
+  */
+ export function AttendanceCard({ index, animate, online }: { index: number; animate: boolean; online: boolean }) {
+-  const { t } = useI18n();
++  const { t, plural, lang } = useI18n();
+   const state = useCardData<AttendanceResponse>(() => getAttendance(), online);
+ 
+   return (
+@@ -46,8 +81,11 @@ export function AttendanceCard({ index, animate, online }: { index: number; anim
+       >
+         {(data) => {
+           const overall = data.overall;
++          // null only for an empty subject list: §3 has no row for it, and "ok"
++          // would claim something about subjects that do not exist.
++          const line = attendanceLine(data.subjects, lang);
+ 
+-          if (overall === null || overall.percentage === null) {
++          if (overall === null || overall.percentage === null || line === null) {
+             return <EmptyState body={t('dashboard.attendance.empty')} />;
+           }
+ 
+@@ -57,17 +95,31 @@ export function AttendanceCard({ index, animate, online }: { index: number; anim
+             <div className={styles.heroRow}>
+               <Ring
+                 percentage={percentage}
++                band={overall.band}
+                 label={t('dashboard.attendance.title') + ' ' + percentText(percentage)}
+               />
+-              <p className={styles.stateText}>
+-                {/* Interpolated, not t(...) with params: the two counts have to
+-                    land on the Latin face without taking the Arabic words with
+-                    them. */}
+-                <Interpolated
+-                  template={t('dashboard.attendance.sessions')}
+-                  values={{ present: overall.present, total: overall.total }}
+-                />
+-              </p>
++              <div className={styles.attendanceText}>
++                <p className={styles.stateText}>
++                  {/* Interpolated, not t(...) with params: the two counts have to
++                      land on the Latin face without taking the Arabic words with
++                      them. */}
++                  <Interpolated
++                    template={t('dashboard.attendance.sessions')}
++                    values={{ present: overall.present, total: overall.total }}
++                  />
++                </p>
++                <p className={styles.stateText}>
++                  <strong className={`${styles.attendanceThreshold} ${THRESHOLD_TONE[overall.band]}`}>
++                    <Interpolated
++                      template={t('dashboard.attendance.threshold')}
++                      values={{ threshold: fmtPercent(data.attendanceThreshold) }}
++                    />
++                  </strong>
++                  <span className={`${styles.attendanceLine} ${LINE_TONE[line.kind]}`}>
++                    <LineText line={line} lang={lang} t={t} plural={plural} />
++                  </span>
++                </p>
++              </div>
+             </div>
+           );
+         }}
+@@ -75,3 +127,60 @@ export function AttendanceCard({ index, animate, online }: { index: number; anim
+     </Card>
+   );
+ }
++
++/**
++ * §3's sentence for one line state, then §5's suffix.
++ *
++ * fmtPhrase, not Interpolated: {{subject}} must sit in a <bdi> without being
++ * forced onto the Latin face — an Arabic subject name in `.num` would render in
++ * a font with no Arabic glyphs. The counts {{n}} and {{k}} are `.num` inside
++ * their own <bdi>.
++ *
++ * The suffix goes at the end of the sentence, after " · ", inside the
++ * sentence's element and in its colour; for near, below and term-over-below
++ * only, and never at k = 0 (§5).
++ */
++function LineText({
++  line,
++  lang,
++  t,
++  plural,
++}: {
++  line: AttendanceLine;
++  lang: Lang;
++  t: I18nValue['t'];
++  plural: I18nValue['plural'];
++}) {
++  switch (line.kind) {
++    case 'ok':
++      return <>{t('dashboard.attendance.ok')}</>;
++    case 'ended-ok':
++      return <>{t('dashboard.attendance.ended_ok')}</>;
++    case 'near':
++    case 'below':
++    case 'ended-below': {
++      const subject = lang === 'ar' ? line.subject.subject.nameAr : line.subject.subject.nameFr;
++      const sentence =
++        line.kind === 'near'
++          ? fmtPhrase(plural('dashboard.attendance.near', line.n), { subject, n: num(line.n) })
++          : fmtPhrase(
++              t(line.kind === 'below' ? 'dashboard.attendance.below' : 'dashboard.attendance.ended_below'),
++              { subject }
++            );
++
++      return (
++        <>
++          {sentence}
++          {line.others > 0 && (
++            <>
++              {SUFFIX_SEPARATOR}
++              <span className={styles.attendanceOthers}>
++                {fmtPhrase(plural('dashboard.attendance.others', line.others), { k: num(line.others) })}
++              </span>
++            </>
++          )}
++        </>
++      );
++    }
++  }
++}
+diff --git a/pwa/components/dashboard/Ring.tsx b/pwa/components/dashboard/Ring.tsx
+index da13ec7..d4f3071 100644
+--- a/pwa/components/dashboard/Ring.tsx
++++ b/pwa/components/dashboard/Ring.tsx
+@@ -1,6 +1,7 @@
+ 'use client';
+ 
+ import { useState } from 'react';
++import type { AttendanceBand } from '@/lib/api-types';
+ import { percentText } from '@/lib/bidi';
+ import { takeOnce } from './session-flags';
+ import styles from './dashboard.module.css';
+@@ -22,8 +23,26 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+  * is claimed when this component first renders WITH a value — not when the
+  * dashboard mounts. The card spends its first 400ms as a skeleton, and burning
+  * the flag then would mean the ring never animates at all.
++ *
++ * The stroke follows the server's overall `band` (ROUND2-CLOSEOUT §3, A3),
++ * never a comparison of `percentage` with the threshold. The colour only
++ * repeats what the card's words already say; it is never the sole signal.
+  */
+-export function Ring({ percentage, label }: { percentage: number; label: string }) {
++const STROKE_CLASS: Record<AttendanceBand, string> = {
++  ok: styles.ringValueOk,
++  near: styles.ringValueNear,
++  below: styles.ringValueBelow,
++};
++
++export function Ring({
++  percentage,
++  band,
++  label,
++}: {
++  percentage: number;
++  band: AttendanceBand;
++  label: string;
++}) {
+   const [filling] = useState(() => takeOnce('dashboard_ring_attendance'));
+ 
+   const clamped = Math.max(0, Math.min(100, percentage));
+@@ -44,7 +63,7 @@ export function Ring({ percentage, label }: { percentage: number; label: string
+     >
+       <circle className={styles.ringTrack} cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} strokeWidth={STROKE} />
+       <circle
+-        className={`${styles.ringValue} ${filling ? styles.ringFilling : ''}`}
++        className={`${styles.ringValue} ${STROKE_CLASS[band]} ${filling ? styles.ringFilling : ''}`}
+         cx={SIZE / 2}
+         cy={SIZE / 2}
+         r={RADIUS}
+diff --git a/pwa/components/dashboard/dashboard.module.css b/pwa/components/dashboard/dashboard.module.css
+index 1060714..3d2b77c 100644
+--- a/pwa/components/dashboard/dashboard.module.css
++++ b/pwa/components/dashboard/dashboard.module.css
+@@ -431,12 +431,31 @@
+  */
+ .ringValue {
+   fill: none;
+-  stroke: var(--jade);
+   stroke-linecap: round;
+   stroke-dasharray: var(--ring-circumference);
+   stroke-dashoffset: var(--ring-offset);
+ }
+ 
++/*
++ * ROUND2-CLOSEOUT §3 (A3): the stroke follows the server's overall band.
++ * Measured on --surface, light / dark:
++ *   ok     --jade         3.39 : 1 / 6.17 : 1
++ *   near   --warning-ink  6.39 : 1 / 8.36 : 1
++ *   below  --danger       3.76 : 1 / 5.56 : 1
++ * --warning (#F59E0B) is not used: 2.15 : 1, under the 3 : 1 a graphic needs.
++ */
++.ringValueOk {
++  stroke: var(--jade);
++}
++
++.ringValueNear {
++  stroke: var(--warning-ink);
++}
++
++.ringValueBelow {
++  stroke: var(--danger);
++}
++
+ .ringFilling {
+   animation: ringFill var(--dur-slow) var(--ease-in-out);
+ }
+@@ -447,6 +466,68 @@
+   }
+ }
+ 
++/*
++ * The text beside the ring: the sessions sentence, then the Seuil label and the
++ * line under it (ROUND2-CLOSEOUT §3). min-width: 0 lets a long subject name
++ * wrap instead of pushing the column past the card.
++ */
++.attendanceText {
++  display: flex;
++  flex-direction: column;
++  gap: 4px;
++  min-width: 0;
++}
++
++/*
++ * The Seuil label follows the overall band (§3, A2). On --surface, light /
++ * dark: --jade-text 6.20 / 8.34, --warning-ink 6.39 / 8.36, --danger-ink
++ * 6.54 / 7.59 (--jade-text measured for this rule; the other two are §3's).
++ */
++.attendanceThreshold {
++  font-weight: 700;
++}
++
++.attendanceThresholdOk {
++  color: var(--jade-text);
++}
++
++.attendanceThresholdNear {
++  color: var(--warning-ink);
++}
++
++.attendanceThresholdBelow {
++  color: var(--danger-ink);
++}
++
++/*
++ * The line under the ring (§3). Its words carry the state on their own (§10:
++ * colour is never the only signal); the colour repeats it. --ink2 (5.49 / 6.78
++ * on --surface) for ok and term-over-ok, --warning-ink for near, --danger-ink
++ * for below and term-over-below — the same measured inks as the Seuil label.
++ */
++.attendanceLine {
++  display: block;
++}
++
++.attendanceLineOk {
++  color: var(--ink2);
++}
++
++.attendanceLineNear {
++  color: var(--warning-ink);
++  font-weight: 600;
++}
++
++.attendanceLineBelow {
++  color: var(--danger-ink);
++  font-weight: 600;
++}
++
++/* §5's "+ {k}" suffix stays on one line; it inherits the sentence's colour. */
++.attendanceOthers {
++  white-space: nowrap;
++}
++
+ /* Counter-rotated so the label reads horizontally inside the rotated SVG. */
+ .ringLabel {
+   font-size: 17px;
+diff --git a/pwa/locales/ar.json b/pwa/locales/ar.json
+index c752767..acaefdd 100644
+--- a/pwa/locales/ar.json
++++ b/pwa/locales/ar.json
+@@ -94,6 +94,7 @@
+       "title": "الحضور",
+       "empty": "لا توجد حصص مسجّلة حالياً.",
+       "sessions": "حضرت {{present}} حصة من أصل {{total}}",
++      "threshold": "الحد الأدنى: {{threshold}}",
+       "ok": "جميع المواد فوق الحد الأدنى",
+       "near": {
+         "zero": "{{subject}}: لا يُسمح بأي غياب إضافي",
+@@ -106,7 +107,14 @@
+       "below": "{{subject}}: تم تجاوز حد الغياب",
+       "ended_below": "{{subject}}: انتهى الفصل دون بلوغ الحد الأدنى",
+       "ended_ok": "انتهى الفصل — جميع المواد فوق الحد الأدنى",
+-      "others": "+ {{k}} أخرى"
++      "others": {
++        "zero": "+ {{k}} مادة أخرى",
++        "one": "+ مادة أخرى",
++        "two": "+ مادتان أخريان",
++        "few": "+ {{k}} مواد أخرى",
++        "many": "+ {{k}} مادة أخرى",
++        "other": "+ {{k}} مادة أخرى"
++      }
+     },
+     "notifications": {
+       "title": "الإشعارات",
+diff --git a/pwa/locales/fr.json b/pwa/locales/fr.json
+index 178ceff..5a317d8 100644
+--- a/pwa/locales/fr.json
++++ b/pwa/locales/fr.json
+@@ -94,6 +94,7 @@
+       "title": "Assiduité",
+       "empty": "Aucune séance enregistrée pour le moment.",
+       "sessions": "{{present}} séances suivies sur {{total}}",
++      "threshold": "Seuil : {{threshold}}",
+       "ok": "Toutes les matières au-dessus du seuil",
+       "near": {
+         "zero": "{{subject}} : plus aucune absence possible",
+@@ -106,7 +107,14 @@
+       "below": "{{subject}} : limite d'absences dépassée",
+       "ended_below": "{{subject}} : semestre terminé sous le seuil",
+       "ended_ok": "Semestre terminé — toutes les matières au-dessus du seuil",
+-      "others": "+ {{k}} autre(s)"
++      "others": {
++        "zero": "+ {{k}} autres matières",
++        "one": "+ 1 autre matière",
++        "two": "+ {{k}} autres matières",
++        "few": "+ {{k}} autres matières",
++        "many": "+ {{k}} autres matières",
++        "other": "+ {{k}} autres matières"
++      }
+     },
+     "notifications": {
+       "title": "Notifications",
