@@ -68,3 +68,43 @@ export function dirFor(lang: Lang): Dir {
 export function resolveLang(value: unknown): Lang {
   return isLang(value) ? value : DEFAULT_LANG;
 }
+
+/**
+ * The six CLDR plural categories. A plural message in the locale files is an
+ * object with exactly these keys, in BOTH files — see PluralForms in
+ * lib/i18n-types.ts for why French carries rows it never selects.
+ */
+export const PLURAL_CATEGORIES = ['zero', 'one', 'two', 'few', 'many', 'other'] as const;
+export type PluralCategory = (typeof PLURAL_CATEGORIES)[number];
+
+/**
+ * One Intl.PluralRules per language, built on first use. Construction is the
+ * expensive part (it loads locale data); select() is cheap.
+ */
+const pluralRules: Partial<Record<Lang, Intl.PluralRules>> = {};
+
+function rulesFor(lang: Lang): Intl.PluralRules {
+  let rules = pluralRules[lang];
+  if (!rules) {
+    rules = new Intl.PluralRules(lang);
+    pluralRules[lang] = rules;
+  }
+  return rules;
+}
+
+/**
+ * Picks the plural category for `n` in `lang`.
+ *
+ * `n === 0` is `zero` in every language, ahead of Intl. Design writes the zero
+ * row as a distinct sentence ("plus aucune absence possible"), and French Intl
+ * files 0 under `one` — Intl alone could never reach that row in French. For
+ * Arabic, Intl already says `zero` at 0, so the override changes nothing there.
+ *
+ * Every other n goes to Intl.PluralRules, which knows Arabic's few (3–10,
+ * 103–110…) and many (11–99, 111–199…) ranges. Pure: no React, no DOM, so it is
+ * safe on the server and testable under Node.
+ */
+export function pluralCategory(lang: Lang, n: number): PluralCategory {
+  if (n === 0) return 'zero';
+  return rulesFor(lang).select(n) as PluralCategory;
+}
