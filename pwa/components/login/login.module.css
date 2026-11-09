@@ -48,9 +48,12 @@
 }
 
 /* Lighter circles behind the mark, white 4%. With white text these are the
-   WORST case, not a help: in light the start circle over the start stop is
-   4.23:1, below AA, so no text may sit there other than the chip on its own
-   pill. Any change to their colour, opacity or position must re-measure
+   WORST case, not a help. --hero-bg's angle is physical, so its start stop is
+   always the top-left corner, while these circles use logical insets and swap
+   sides in Arabic: the top-left corner is under .blobStart in French and under
+   .blobEnd in Arabic. In light that corner is 4.23:1, below AA, so no text may
+   sit there in either direction (the chip, on its own pill, sits there in
+   French only). Any change to their colour, opacity or position must re-measure
    --hero-ink, --hero-mark and --hero-chip against the blend (globals.css). */
 .blob {
   position: absolute;
@@ -148,8 +151,9 @@
   padding: 5px 10px;
   border: none;
   border-radius: 9999px;
-  /* Sits inside the start circle, so its text is measured over pill + circle
-     + hero together — see --hero-chip. */
+  /* Sits inside the start circle — top-left in French, over the gradient's
+     start stop; top-right in Arabic, further along it — so its text is
+     measured over pill + circle + hero together. See --hero-chip. */
   background: var(--hero-chip);
   color: var(--hero-ink);
   font-family: inherit;

@@ -33,8 +33,10 @@
  * gradient hero — light #168666 → #0F6E56, dark #0F5E48 → #0A3D2E, both at
  * 155deg — with white ink, a white mark and the jade-900 chip wash
  * (rgba(10, 61, 46, .40) / .50 on hover). The decorative circles are white 4%.
- * The light worst case is 4.23:1, white on the start stop under the start
- * circle; it is below AA and accepted, in a corner where no text may sit.
+ * The gradient angle is physical: its start stop is always the top-left
+ * corner, in Arabic too, though the circles swap sides. The light worst case is
+ * 4.23:1, white on the start stop under whichever circle covers the top-left
+ * corner; it is below AA and accepted, in a corner where no text may sit.
  */
 
 :root {
@@ -81,8 +83,9 @@
   /* Text and marks on a solid jade surface. 4.71:1 on --jade. */
   --on-jade: #1E231F;
   /* The login hero's background. 4.53:1 for white on the start stop, 6.20:1 on
-     the end; 4.23:1 under the 4% start circle — below AA, accepted, and no text
-     may sit in that corner. */
+     the end; 4.23:1 in the top-left corner (the start stop, physical in both
+     directions) under a 4% circle — below AA, accepted, and no text may sit in
+     that corner. */
   --hero-bg: linear-gradient(155deg, #168666, #0F6E56);
   /* All text on the hero, and the chip's focus ring. 4.53:1 at worst for text;
      the ring, non-text, 4.23:1 over the circle. */
@@ -90,7 +93,8 @@
   /* The logo mark on the hero. 4.23:1 at worst. */
   --hero-mark: var(--hero-ink);
   /* The language chip's pill: darkens, so white text gains contrast. 6.35:1
-     at rest, 7.09:1 on hover, over the start stop and circle. */
+     at rest, 7.09:1 on hover, over the start stop and circle (top-left, FR);
+     6.80–6.90:1 / 7.50–7.60:1 top-right in AR. */
   --hero-chip: rgba(10, 61, 46, .40);
   --hero-chip-hover: rgba(10, 61, 46, .50);
 
@@ -138,7 +142,8 @@
   /* A jade gradient, darker than light's, so the hero stays quieter than the
      jade submit button (2.82:1 against the hero's lightest point). White text:
      7.73:1 on the start stop, 12.21:1 on the end, 7.05:1 under the 4% circle.
-     Chip text 8.84:1 at rest, 9.23:1 on hover, over the circle. */
+     Chip text 8.84:1 at rest, 9.23:1 on hover, over the circle (top-left, FR);
+     9.62–9.76:1 / 10.03–10.17:1 top-right in AR. */
   --hero-bg: linear-gradient(155deg, #0F5E48, #0A3D2E);
   --hero-ink: #FFFFFF;
   --hero-mark: var(--hero-ink);

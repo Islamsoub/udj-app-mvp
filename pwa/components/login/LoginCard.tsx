@@ -23,9 +23,10 @@ export function LoginCard() {
             than inlined so it stays sharp at any size and on any pixel density.
 
             Drawn as a MASK coloured --hero-mark, the way the shell draws it,
-            not as an <img>: the file's paths are white, which suits the light
-            hero but not the dark one, where the mark is jade. The file itself
-            is shared with the native app and stays untouched.
+            not as an <img>: the file's paths are white, which is what both
+            themes use today, but the token keeps the colour decided in
+            globals.css alone. The file itself is shared with the native app
+            and stays untouched.
 
             aria-hidden — decorative. The hero's <h1> underneath names the
             university and the document title carries "Unipocket", so the mark

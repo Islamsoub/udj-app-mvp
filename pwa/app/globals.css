@@ -185,17 +185,20 @@
   --on-jade: #1E231F;
 
   /* The login hero's background. A jade gradient (Round 2 close-out,
-     2026-11-09), from #168666 at the start corner to --jade-text's #0F6E56.
-     Used only as `background:` on the login .hero, so a gradient is safe; the
-     dashboard grade card has its own --hero-start / --hero-end. Never --jade
-     (white on it is 3.39:1) and never --jade-hover, which is for hover states.
+     2026-11-09), from #168666 to --jade-text's #0F6E56. The angle is physical,
+     not logical: the start stop is ALWAYS the top-left corner, in Arabic too.
+     Used only as `background:` on the login .hero, so a gradient is safe.
+     Never --jade (white on it is 3.39:1) and never --jade-hover, which is for
+     hover states.
      Contrast for white, WCAG 2.x, sRGB, blends composited in 8-bit: 4.53:1 on
      the start stop, 6.20:1 on the end stop. The worst case is 4.23:1 — white on
-     the start stop under the 4% decorative circle (.blob) — which is BELOW AA.
-     That is accepted (user decision, 2026-11-09) on one condition: no text may
-     sit in that corner. Text outside the circles never drops below 4.53:1; the
-     only text inside the start circle is the language chip, on its own pill
-     (see --hero-chip). The hero is NOT AA at every pixel. */
+     the start stop, in the top-left corner, under the 4% decorative circle
+     that covers it (.blobStart in French, .blobEnd in Arabic — the circles use
+     logical insets and swap sides) — which is BELOW AA. That is accepted (user
+     decision, 2026-11-09) on one condition: no text may sit in the top-left
+     corner. Text outside the circles never drops below 4.53:1; the only text
+     inside a circle is the language chip, on its own pill (see --hero-chip).
+     The hero is NOT AA at every pixel. */
   --hero-bg: linear-gradient(155deg, #168666, #0F6E56);
   /* Every piece of text on the hero — title, subtitle, language chip — and the
      chip's focus ring. Solid, never white at reduced opacity. 4.53:1 at worst
@@ -209,9 +212,11 @@
      lightest point of the hero. */
   --hero-mark: var(--hero-ink);
   /* The language chip's pill. A jade-900 wash that DARKENS the hero, so the
-     white label gains contrast where it sits — inside the start circle, the
-     lightest part of the hero. Measured over the start stop plus the 4%
-     circle: 6.35:1 at rest, 7.09:1 on hover. */
+     white label gains contrast under a circle. Measured over the hero's
+     lightest point (start stop plus the 4% circle), which bounds it anywhere:
+     6.35:1 at rest, 7.09:1 on hover. That is where it sits in French (top-left).
+     In Arabic it sits top-right, 35–42% along the gradient: 6.80–6.90:1 at
+     rest, 7.50–7.60:1 on hover (375px phone to 420px card). */
   --hero-chip: rgba(10, 61, 46, .40);
   --hero-chip-hover: rgba(10, 61, 46, .50);
 
@@ -269,12 +274,14 @@
      stop, 12.21:1 on the end stop, 7.05:1 at the worst point — the start stop
      under the 4% decorative circle. */
   --hero-bg: linear-gradient(155deg, #0F5E48, #0A3D2E);
-  /* White, as in light: the hero is jade in both themes. 7.05:1 at worst. */
+  /* White, as in light: the hero is jade in both themes. 7.05:1 at worst, in
+     the top-left corner — the start stop is physical, as in light. */
   --hero-ink: #FFFFFF;
   /* White, the same as the ink. 7.05:1 at worst. */
   --hero-mark: var(--hero-ink);
   /* The same jade-900 wash as light. Measured over the start stop plus the 4%
-     circle: 8.84:1 at rest, 9.23:1 on hover. */
+     circle: 8.84:1 at rest, 9.23:1 on hover. Top-right in Arabic: 9.62–9.76:1
+     at rest, 10.03–10.17:1 on hover. */
   --hero-chip: rgba(10, 61, 46, .40);
   --hero-chip-hover: rgba(10, 61, 46, .50);
 
