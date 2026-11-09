@@ -94,6 +94,7 @@
       "title": "Assiduité",
       "empty": "Aucune séance enregistrée pour le moment.",
       "sessions": "{{present}} séances suivies sur {{total}}",
+      "threshold": "Seuil : {{threshold}}",
       "ok": "Toutes les matières au-dessus du seuil",
       "near": {
         "zero": "{{subject}} : plus aucune absence possible",
@@ -106,7 +107,14 @@
       "below": "{{subject}} : limite d'absences dépassée",
       "ended_below": "{{subject}} : semestre terminé sous le seuil",
       "ended_ok": "Semestre terminé — toutes les matières au-dessus du seuil",
-      "others": "+ {{k}} autre(s)"
+      "others": {
+        "zero": "+ {{k}} autres matières",
+        "one": "+ 1 autre matière",
+        "two": "+ {{k}} autres matières",
+        "few": "+ {{k}} autres matières",
+        "many": "+ {{k}} autres matières",
+        "other": "+ {{k}} autres matières"
+      }
     },
     "notifications": {
       "title": "Notifications",

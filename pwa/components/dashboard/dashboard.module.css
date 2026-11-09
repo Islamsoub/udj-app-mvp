@@ -431,10 +431,29 @@
  */
 .ringValue {
   fill: none;
-  stroke: var(--jade);
   stroke-linecap: round;
   stroke-dasharray: var(--ring-circumference);
   stroke-dashoffset: var(--ring-offset);
+}
+
+/*
+ * ROUND2-CLOSEOUT §3 (A3): the stroke follows the server's overall band.
+ * Measured on --surface, light / dark:
+ *   ok     --jade         3.39 : 1 / 6.17 : 1
+ *   near   --warning-ink  6.39 : 1 / 8.36 : 1
+ *   below  --danger       3.76 : 1 / 5.56 : 1
+ * --warning (#F59E0B) is not used: 2.15 : 1, under the 3 : 1 a graphic needs.
+ */
+.ringValueOk {
+  stroke: var(--jade);
+}
+
+.ringValueNear {
+  stroke: var(--warning-ink);
+}
+
+.ringValueBelow {
+  stroke: var(--danger);
 }
 
 .ringFilling {
@@ -445,6 +464,68 @@
   from {
     stroke-dashoffset: var(--ring-circumference);
   }
+}
+
+/*
+ * The text beside the ring: the sessions sentence, then the Seuil label and the
+ * line under it (ROUND2-CLOSEOUT §3). min-width: 0 lets a long subject name
+ * wrap instead of pushing the column past the card.
+ */
+.attendanceText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/*
+ * The Seuil label follows the overall band (§3, A2). On --surface, light /
+ * dark: --jade-text 6.20 / 8.34, --warning-ink 6.39 / 8.36, --danger-ink
+ * 6.54 / 7.59 (--jade-text measured for this rule; the other two are §3's).
+ */
+.attendanceThreshold {
+  font-weight: 700;
+}
+
+.attendanceThresholdOk {
+  color: var(--jade-text);
+}
+
+.attendanceThresholdNear {
+  color: var(--warning-ink);
+}
+
+.attendanceThresholdBelow {
+  color: var(--danger-ink);
+}
+
+/*
+ * The line under the ring (§3). Its words carry the state on their own (§10:
+ * colour is never the only signal); the colour repeats it. --ink2 (5.49 / 6.78
+ * on --surface) for ok and term-over-ok, --warning-ink for near, --danger-ink
+ * for below and term-over-below — the same measured inks as the Seuil label.
+ */
+.attendanceLine {
+  display: block;
+}
+
+.attendanceLineOk {
+  color: var(--ink2);
+}
+
+.attendanceLineNear {
+  color: var(--warning-ink);
+  font-weight: 600;
+}
+
+.attendanceLineBelow {
+  color: var(--danger-ink);
+  font-weight: 600;
+}
+
+/* §5's "+ {k}" suffix stays on one line; it inherits the sentence's colour. */
+.attendanceOthers {
+  white-space: nowrap;
 }
 
 /* Counter-rotated so the label reads horizontally inside the rotated SVG. */
