@@ -1,6 +1,6 @@
 # Unipocket — design bundle index
 
-Built 2026-11-09. Dates are each file's last-modified date in the design project.
+Built 2026-11-09; updated the same day for the Round 2 close-out (third pass). Dates are each file's last-modified date in the design project.
 
 ## How to read this
 
@@ -13,9 +13,9 @@ Status values:
 - **REVIEW**: an audit or critique. It describes problems; it is not a spec.
 - **INPUT**: material you supplied (build screenshots, logos, notes).
 
-Order of precedence: Round 2 Spec, then the screen spec, then the prototype, then the screenshots. When two sources disagree, the newer date wins.
+Order of precedence: `ROUND2-CLOSEOUT.md`, then Round 2 Spec, then the screen spec, then the prototype, then the screenshots. When two sources disagree, the newer date wins.
 
-**Known gap.** Round 2 changed component rules but none of the source CSS was updated: `login-screen.css`, `app.css` and `prototype-v1` still have the old values. `tokens/pwa/*` does include Round 2. Every screenshot named `__pre-round2` shows the old gradient and old "Seuil" styling.
+**Round 2 in source (2026-11-09).** Round 2 and its close-out are applied to the PWA login and dashboard source: `login-screen.html`/`.css` and `dashboard.html` + `app.css`. That covers the login hero gradient (light `#168666→#0F6E56`, dark `#0F5E48→#0A3D2E`), white on-hero text, the jade-900 chip wash, 4% circles, `--on-jade` button labels, the server-band attendance sentence, the shipped `--warning-ink`/`--danger-ink` tokens, the code's offline switch and the shipped `--ink2`/`--ink3`. **`ROUND2-CLOSEOUT.md`** (root) is the latest word on the attendance copy for the dashboard card AND the attendance page. The pre-Round-2 source is in `archive/pwa/pre-round2-source/`. `prototype-v1` was not updated: its login and dashboard are superseded.
 
 There are three products, each with its own token set:
 - **PWA**: the web app at `/`.
@@ -28,8 +28,8 @@ There are three products, each with its own token set:
 
 | File | What | Date | Status |
 |---|---|---|---|
-| `tokens/pwa/tokens.css` | PWA light + dark custom properties. Taken verbatim from `app.css`, plus the Round 2 additions (`--warning-text`, `--danger-text`, `--hero-start/end`) | 2026-10-27 | CURRENT |
-| `tokens/pwa/tokens.json` | Same values as JSON, plus on-hero colours and the band→colour map | 2026-10-27 | CURRENT |
+| `tokens/pwa/tokens.css` | PWA light + dark custom properties, rebuilt from `pwa/app/globals.css` on `develop` (token blocks verbatim). Not from `design/pwa-tokens.css`, which is older | 2026-11-09 | CURRENT |
+| `tokens/pwa/tokens.json` | Same values as JSON, plus the band→colour map and the switch geometry | 2026-11-09 | CURRENT |
 | `tokens/mobile/tokens.json` | Mobile LIGHT/DARK palettes and the 12 course colours, extracted from `app/udj-core.jsx`. Font sizes get × 0.92 | 2026-06-12 | CURRENT |
 | `archive/pwa/login/tokens-login-only/tokens.css` | Login-package tokens. Its label says "light + dark" but it **only contains light** | 2026-10-27 | SUPERSEDED by `tokens/pwa/tokens.css` |
 | `archive/pwa/login/tokens-login-only/tokens.json` | Login-package tokens from before Round 2: old gradient, tagline .82, chip 16% white, no warning or exam tokens | 2026-10-27 | SUPERSEDED by `tokens/pwa/tokens.json` |
@@ -59,10 +59,11 @@ PWA and mobile palettes differ on purpose (for example, bg `#F7F4EE` vs `#F2F5F3
 ### Login
 | File | What | Date | Status |
 |---|---|---|---|
-| `specs/pwa/login/Login Screen Spec.html` | Login implementation spec. Offline hint reads "Déconseillé" | 2026-10-27 | CURRENT\* [R2-hero-gradient, R2-on-green-text] |
-| `specs/pwa/login/source/login-screen.html` + `.css` | Login source HTML/CSS | 2026-10-27 | CURRENT\* (same overrides) |
+| `specs/pwa/login/Login Screen Spec.html` | Login implementation spec. Offline hint reads "Déconseillé". The document text still describes the pre-Round-2 hero | 2026-10-27 | CURRENT\* [R2-hero-gradient, R2-on-green-text] |
+| `specs/pwa/login/source/login-screen.html` + `.css` | Login source HTML/CSS, Round 2 close-out applied; offline switch matches the code | 2026-11-09 | CURRENT\* [login-prototype-code-wins] |
 | `specs/pwa/login/icons/`, `assets/` | globe, shield, wifi, gear (demo only); U assets | 2026-10-27 | CURRENT |
-| `screenshots/pwa-login/0[1-5]-*__pre-round2.png` | light-default, error-credentials, error-rate-limit, dark-offline-on, arabic-rtl | 2026-10-27 | CURRENT for layout and copy; gradient and chip are pre-Round 2 |
+| `screenshots/pwa-login/{light,dark}-{fr,ar}.png`, `light-fr-error-credentials.png`, `light-fr-error-rate-limit.png`, `light-fr-offline.png` | Reference renders at Round 2 | 2026-11-09 | CURRENT. 1440×900 CSS px, DPR 1, same for every file; demo controls and the "Démo" hint are hidden |
+| `archive/pwa/pre-round2-renders/pwa-login/*__pre-round2.png` | Renders from before Round 2 | 2026-10-27 | SUPERSEDED |
 | `archive/pwa/login/Login Screen Spec-print.html` | Print copy, older than the spec. **Still says "Recommandé"** | 2026-10-27 (earlier) | SUPERSEDED |
 | `archive/pwa/login/Unipocket PWA - Login Options.html` | Offline, language and network-error options. "Recommandé" | 2026-09-17 | EXPLORATION / SUPERSEDED [login-offline-hint] |
 | `archive/pwa/login/Unipocket PWA - Login Additions Spec.html` | First spec of the offline toggle. "Recommandé" | 2026-09-17 | SUPERSEDED [login-offline-hint] |
@@ -71,13 +72,15 @@ PWA and mobile palettes differ on purpose (for example, bg `#F7F4EE` vs `#F2F5F3
 ### Dashboard (+ Round 2: attendance, print, contrast, notifications, bell)
 | File | What | Date | Status |
 |---|---|---|---|
-| `specs/pwa/dashboard/Round 2 Spec.html` | Round 2: attendance bands (server-computed), schedule print, tagline contrast, notification template, bell states | 2026-10-27 (latest) | CURRENT. Overrides the Dashboard Spec and login CSS |
-| `specs/pwa/dashboard/Dashboard Spec.html` | Dashboard spec: breakpoints, tokens, type, icons, copy, hardening | 2026-10-27 | CURRENT\* [R2-band, R2-text-colours, R2-hero-gradient, R2-on-green-text, R2-notif-template, R2-bell, R2-print] |
-| `specs/pwa/dashboard/dashboard.html` + `css/app.css`, `css/hardening.css`, `css/fonts.css`, `fonts/` | Dashboard source | 2026-10-27 | CURRENT\* (same overrides) |
+| `ROUND2-CLOSEOUT.md` (bundle root) | Round 2 close-out: login hero tokens and contrast, dashboard attendance line, Seuil label, ring colours, '+ {k}' suffix, attendance page copy (Hero, subject rows, ring) | 2026-11-09 | CURRENT. Wins over Round 2 Spec where they differ |
+| `specs/pwa/dashboard/Round 2 Spec.html` | Round 2: attendance bands (server-computed), schedule print, tagline contrast, notification template, bell states. §1 revised to agree with the close-out | 2026-11-09 | CURRENT. Overrides the Dashboard Spec and login CSS |
+| `specs/pwa/dashboard/Dashboard Spec.html` | Dashboard spec: breakpoints, tokens, type, icons, copy, hardening | 2026-10-27 | CURRENT\* [R2-band, R2-text-colours, R2-hero-gradient, R2-on-green-text, R2-notif-template, R2-bell, R2-print, R2-seuil-label, R2-near-ring, pwa-ink-values] |
+| `specs/pwa/dashboard/dashboard.html` + `css/app.css`, `css/hardening.css`, `css/fonts.css`, `fonts/` | Dashboard source, Round 2 close-out applied (band sentence, Seuil label '75%', near ring `--warning-ink`, `?att=ok|near|below|ended|multi`) | 2026-11-09 | CURRENT. The bell popover markup in `dashboard.html` is still the old one; `bell-states.html` is the spec [R2-bell] |
 | `specs/pwa/dashboard/bell-states.html` | Bell popover, states 1–8. Accepts `?theme=dark` and `?lang=ar`. Its CSS block is the source to copy | 2026-10-27 | CURRENT |
 | `specs/pwa/dashboard/schedule-print.html` | A4 landscape print sheet. Accepts `?only=fr|ar|empty`. Its print CSS block is the source to copy | 2026-10-27 | CURRENT |
 | `specs/pwa/dashboard/icons/` (= `assets/icons/pwa/`) | 18 icons: nav, bell, menu, notification, quick tiles | 2026-10-27 | CURRENT |
-| `screenshots/pwa-dashboard/0[1-5]-*__pre-round2.png` | Renders of `dashboard.html`: light-fr expanded and collapsed, dark-fr, dark-ar, bell open | rendered 2026-11-09 | CURRENT for layout; band colours, gradient and bell are pre-Round 2 |
+| `screenshots/pwa-dashboard/{light,dark}-{fr,ar}.png` (sidebar expanded), `light-fr-collapsed.png` | Reference renders at Round 2 | 2026-11-09 | CURRENT. 1440×900 CSS px, DPR 1, same for every file. Bell popover closed |
+| `archive/pwa/pre-round2-renders/pwa-dashboard/*__pre-round2.png` | Renders from before Round 2 | 2026-11-09 | SUPERSEDED |
 | `screenshots/pwa-dashboard/user-reference-*.png` | Your two screenshots at about 1.35× DPR | input | INPUT |
 | `screenshots/pwa-bell/states-1-8__light-fr.png` | Render of `bell-states.html` | 2026-11-09 | CURRENT |
 | `screenshots/pwa-schedule-print/sheets__fr-ar-empty.png` | Render of `schedule-print.html`. The preview width crops it, so open the HTML to see the full sheet | 2026-11-09 | CURRENT |
@@ -86,7 +89,7 @@ PWA and mobile palettes differ on purpose (for example, bg `#F7F4EE` vs `#F2F5F3
 ### Other PWA screens (Schedule, Grades, Attendance, News, Profile)
 | File | What | Date | Status |
 |---|---|---|---|
-| `specs/pwa/prototype-v1/Unipocket PWA - Design System & Prototype v1.html` | Single-file prototype of the whole PWA. It is the **only source** for Schedule, Grades, Attendance, News and Profile | 2026-09-17 | CURRENT\* for those screens. Its Login is SUPERSEDED [login-offline-hint, R2-hero-gradient]. Its Dashboard is SUPERSEDED by `specs/pwa/dashboard/` |
+| `specs/pwa/prototype-v1/Unipocket PWA - Design System & Prototype v1.html` | Single-file prototype of the whole PWA. It is the **only source** for Schedule, Grades, News and Profile, and for the Attendance layout. Attendance band copy, colours and ring: `ROUND2-CLOSEOUT.md` §4 | 2026-09-17 | CURRENT\* for those screens [R2-attendance-page, pwa-ink-values, login-switch]. Its Login is SUPERSEDED [login-offline-hint, R2-hero-gradient]. Its Dashboard is SUPERSEDED by `specs/pwa/dashboard/` |
 | `specs/pwa/foundations/Unipocket PWA - Design & Interaction Spec.html` | Motion durations, button states, offline banner, interaction rules | 2026-08-26 | CURRENT (foundation; newer screen specs take precedence) |
 | `archive/pwa/prototype/Unipocket PWA - Standalone.html` | Prototype v1 as first bundled | 2026-08-26 | SUPERSEDED by prototype-v1 |
 | `archive/pwa/review/Unipocket PWA - Design Review.html` (+ standalone copy dated 2026-09-25) | Critique of the built PWA: offline hint, Arabic numerals, and more | 2026-10-01 | REVIEW. Findings for login and dashboard are resolved in the Oct 27 specs; the others are unverified |

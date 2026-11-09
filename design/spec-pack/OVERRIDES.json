@@ -1,19 +1,197 @@
 {
-  "$readme": "Rules in CURRENT files that a later revision replaces. A diff check must apply these before flagging code. 'file' is relative to the bundle root. Newest wins.",
+  "$readme": "Rules in CURRENT files that a later revision replaces. A diff check must apply these before flagging code. 'file' is relative to the bundle root. Newest wins. Updated 2026-11-09 for ROUND2-CLOSEOUT.md (third pass).",
   "overrides": [
-    {"id":"R2-band","file":"specs/pwa/dashboard/Dashboard Spec.html","section":"§3 tokens (--warning row), §8 copy (Attendance)","stale":"'Seuil : 75%' text in --warning #F59E0B; sentence '2 absences avant avertissement.'; any client-side % cut-off","current":"Server computes band ok|near|below (T, M=10, W=2, bestCase rule). Ring = overall band; sentence = worst subject ('{subject} : limite d'absences dépassée' / '{subject} : encore {n} absence(s) avant le seuil' / 'Toutes les matières au-dessus du seuil'). Text in --warning-text / --danger-text / --ink2.","by":"specs/pwa/dashboard/Round 2 Spec.html §1","appliesTo":["pwa","mobile"],"note":"Round 2 states phone and web must not disagree, so this also overrides any band/threshold logic in mobile Présence / Home specs and app/udj-presence.jsx."},
-    {"id":"R2-text-colours","file":"specs/pwa/dashboard/css/app.css","stale":"#F59E0B or #EF4444 used as text colour","current":"--warning-text #9A5B06 / #F0A84B, --danger-text #C62828 / #FF6B6B; #F59E0B and #EF4444 are fills and strokes only","by":"Round 2 Spec §1"},
-    {"id":"R2-hero-gradient","file":["specs/pwa/login/source/login-screen.css .login-hero","specs/pwa/dashboard/css/app.css .login-hero, .hero-jade","specs/pwa/prototype-v1 .login-hero"],"stale":"linear-gradient(155deg|150deg, var(--jade), var(--jade-hover)) — #1D9E75→#0F6E56 light, #2BB989→#3FCB9A dark","current":"linear-gradient(155deg, #168666, #0F6E56) login; 150deg on GPA card; same in BOTH themes","by":"Round 2 Spec §3"},
-    {"id":"R2-on-green-text","file":["specs/pwa/login/source/login-screen.css","specs/pwa/dashboard/css/app.css"],"stale":".tg rgba(255,255,255,.82); .lang-chip bg rgba(255,255,255,.16); .hj-label rgba(255,255,255,.78); .hj-value .suf rgba(255,255,255,.7); .mention-badge bg rgba(255,255,255,.18)","current":"tagline, GPA label and '/20' suffix #FFFFFF; language chip and mention badge bg rgba(0,0,0,.16); blobs/depth circle stay rgba(255,255,255,.07)","by":"Round 2 Spec §3"},
-    {"id":"R2-notif-template","file":"specs/pwa/dashboard/Dashboard Spec.html §8","stale":"'Présence à 72 % — sous le seuil'","current":"attendance.subject_below_threshold: '{subject} : limite d'absences dépassée — présence {rate} %, seuil {threshold} %' (rate truncated, U+202F before %); attendance.subject_near_threshold: '{subject} : encore {n} absence(s) avant la limite'. Sent on band transitions only.","by":"Round 2 Spec §4"},
-    {"id":"R2-bell","file":"specs/pwa/dashboard/Dashboard Spec.html (bell popover)","stale":"bell popover without read/unread treatment, 'Tout marquer comme lu', or six-state contract","current":"specs/pwa/dashboard/bell-states.html states 1–8","by":"Round 2 Spec §5"},
-    {"id":"R2-print","file":"specs/pwa/dashboard/Dashboard Spec.html ('Imprimer mon planning' tile)","stale":"tile target undefined","current":"prints current week directly; schedule-print.html sheet","by":"Round 2 Spec §2"},
-    {"id":"login-offline-hint","file":"archive/* (Login Options, Login Additions Spec, Login Screen Spec-print, PWA prototype-v1)","stale":"'Recommandé sur un poste partagé (salle info, bibliothèque)' / 'يُنصح به…'","current":"'Déconseillé sur un poste partagé (salle info, bibliothèque)' / 'لا يُنصح به عند استخدام جهاز مشترك…'","by":"specs/pwa/login/source/login-screen.html (2026-10-27)","note":"specs/pwa/prototype-v1 is CURRENT for other screens but still contains the old hint; ignore its login screen."},
-    {"id":"brand-mark","file":["archive/brand/Logo-with-mortarboard.svg","archive/brand/assets-icons-pre-handoff/*","archive/mobile/login-mortarboard/*","archive/mobile/early-canvases/FinalScreens.jsx (splash)"],"stale":"mortarboard over outlined U; splash on #0F6E56 with cap logo","current":"U-only mark everywhere incl. mobile login and splash: assets/brand/unipocket-u-mark.svg. Mobile login hero 64×69 white. Splash: white U centred on flat #0A3D2E. Launcher icons assets/app-icon/","by":"Decision of 2026-10-27 (Round 1 answer); specs/mobile/login/UDJ - Login Spec.html updated 2026-11-09","note":"RESOLVED."},
-    {"id":"mobile-nav-icon-size","file":"specs/mobile/navbar/UDJ - Navbar Spec.html","stale":"tab icon render box 25","current":"28 (×1.12); pill, dot, bar unchanged","by":"specs/mobile/navbar/handoff-navbar-icons.md (2026-06-12)"},
-    {"id":"mobile-schedule-gutter","file":"specs/mobile/schedule/UDJ - Schedule Spec.html (TimelineRow, GapRow, skeleton)","stale":"52px time gutter left of the card","current":"no gutter; [Connector 24][Card]; time range pill inside the card","by":"specs/mobile/schedule/handoff-schedule-card-option4.md (2026-06-12)"},
-    {"id":"mobile-presence-absences","file":"specs/mobile/presence/UDJ - Présence Spec.html (upload / 'Justificatifs' row)","stale":"'Justificatifs' upload row","current":"'Mes absences' section + JustifySheet","by":"specs/mobile/presence/UDJ - Mes Absences Spec.html (2026-06-21)"},
-    {"id":"admin-uxupdate","file":"specs/admin/Unipocket Admin Portal - Implementation Spec.html §1–29","stale":"page specs touched by §30","current":"§30 UX Architecture Update — Change Set (July 2026)","by":"same file §30"},
-    {"id":"admin-audit-v3","file":"archive/admin/Admin Portal - Design Audit*.html","stale":"typography and layout sections","current":"specs/admin/audits/Admin Portal - Rendered Audit v3.html","by":"v3 (2026-08-07)"}
+    {
+      "id": "R2-band",
+      "file": "specs/pwa/dashboard/Dashboard Spec.html (document text only; dashboard.html source updated 2026-11-09)",
+      "section": "§3 tokens (--warning row), §8 copy (Attendance)",
+      "stale": "'Seuil : 75%' text in --warning #F59E0B; sentence '2 absences avant avertissement.'; any client-side % cut-off",
+      "current": "Server computes band ok|near|below and absencesLeft (T, M=10, W=2, bestCase rule). Ring = overall band. Sentence = worst subject, chosen by band (below, near, ok), then fewest absencesLeft (null last), then lowest rate, then name. Strings, plural forms, term-over rows and the ' · + {k}' suffix: ROUND2-CLOSEOUT.md §3 and §5. Text colours --warning-ink / --danger-ink / --ink2.",
+      "by": "ROUND2-CLOSEOUT.md §3, §5 (Round 2 Spec.html §1 now agrees)",
+      "appliesTo": [
+        "pwa",
+        "mobile"
+      ],
+      "note": "Round 2 states phone and web must not disagree, so this also overrides any band/threshold logic in mobile Présence / Home specs and app/udj-presence.jsx."
+    },
+    {
+      "id": "R2-text-colours",
+      "file": [
+        "specs/pwa/prototype-v1",
+        "specs/pwa/dashboard/Dashboard Spec.html (document text)"
+      ],
+      "stale": "#F59E0B or #EF4444 used as text colour; any '--warning-text' / '--danger-text' token (#9A5B06, #C62828, #F0A84B, #FF6B6B as text)",
+      "current": "--warning-ink #8A5200 / #F2B35E, --danger-ink #B3261E / #FF9B8F (shipped names, pwa/app/globals.css). #F59E0B and #EF4444 are fills and strokes only.",
+      "by": "ROUND2-CLOSEOUT.md; tokens/pwa/tokens.css"
+    },
+    {
+      "id": "R2-hero-gradient",
+      "file": [
+        "specs/pwa/login/Login Screen Spec.html (document text)",
+        "specs/pwa/dashboard/Dashboard Spec.html §3 (document text)",
+        "specs/pwa/prototype-v1 .login-hero"
+      ],
+      "stale": "linear-gradient(155deg|150deg, var(--jade), var(--jade-hover)); dark login hero var(--surface2); 'same in BOTH themes' for the login hero",
+      "current": "Login hero: light linear-gradient(155deg, #168666, #0F6E56), dark linear-gradient(155deg, #0F5E48, #0A3D2E), white text and mark in both (--hero-bg/--hero-ink/--hero-mark). GPA card: linear-gradient(150deg, #168666, #0F6E56) in both themes.",
+      "by": "ROUND2-CLOSEOUT.md §1"
+    },
+    {
+      "id": "R2-on-green-text",
+      "file": [
+        "specs/pwa/login/Login Screen Spec.html (document text)",
+        "specs/pwa/dashboard/Dashboard Spec.html (document text)",
+        "specs/pwa/prototype-v1"
+      ],
+      "stale": ".tg rgba(255,255,255,.82); .lang-chip bg rgba(255,255,255,.16); .hj-label rgba(255,255,255,.78); .hj-value .suf rgba(255,255,255,.7); .mention-badge bg rgba(255,255,255,.18)",
+      "current": "Tagline, GPA label and '/20' suffix #FFFFFF. Login language chip --hero-chip rgba(10,61,46,.40), hover .50 (both themes). Mention badge rgba(0,0,0,.16). Login hero circles rgba(255,255,255,.04); GPA depth circle stays .07.",
+      "by": "ROUND2-CLOSEOUT.md §1"
+    },
+    {
+      "id": "R2-notif-template",
+      "file": "specs/pwa/dashboard/Dashboard Spec.html §8 (document text; dashboard.html updated 2026-11-09)",
+      "stale": "'Présence à 72 % — sous le seuil'",
+      "current": "attendance.subject_below_threshold: '{subject} : limite d'absences dépassée — présence {rate} %, seuil {threshold} %' (rate truncated, U+202F before %); attendance.subject_near_threshold: '{subject} : encore {n} absence(s) avant la limite'. Sent on band transitions only.",
+      "by": "Round 2 Spec §4",
+      "note": "Server text keeps U+202F before %; the PWA's own figures use percentText ('75%', no space)."
+    },
+    {
+      "id": "R2-bell",
+      "file": [
+        "specs/pwa/dashboard/Dashboard Spec.html (bell popover)",
+        "specs/pwa/dashboard/dashboard.html #notif-panel"
+      ],
+      "stale": "bell popover without read/unread treatment, 'Tout marquer comme lu', or six-state contract",
+      "current": "specs/pwa/dashboard/bell-states.html states 1–8",
+      "by": "Round 2 Spec §5"
+    },
+    {
+      "id": "R2-print",
+      "file": "specs/pwa/dashboard/Dashboard Spec.html ('Imprimer mon planning' tile)",
+      "stale": "tile target undefined",
+      "current": "prints current week directly; schedule-print.html sheet",
+      "by": "Round 2 Spec §2"
+    },
+    {
+      "id": "R2-spec-vs-closeout",
+      "file": "specs/pwa/dashboard/Round 2 Spec.html §1",
+      "stale": "near sentence '…avant le seuil'; tie-break by lowest rate; ring stroke --warning for near; 'Seuil : {T} %'",
+      "current": "Fixed in the file on 2026-11-09. If any copy still differs, ROUND2-CLOSEOUT.md wins.",
+      "by": "ROUND2-CLOSEOUT.md"
+    },
+    {
+      "id": "R2-near-ring",
+      "file": [
+        "specs/pwa/dashboard/Round 2 Spec.html (before 2026-11-09)",
+        "specs/pwa/dashboard/dashboard.html (before 2026-11-09)"
+      ],
+      "stale": "near ring stroke --warning #F59E0B (2.15:1)",
+      "current": "near ring stroke --warning-ink: 6.39:1 light, 8.36:1 dark on --surface. Same for near bar fill and row border on the attendance page.",
+      "by": "ROUND2-CLOSEOUT.md §3 (A3), §4"
+    },
+    {
+      "id": "R2-seuil-label",
+      "file": [
+        "specs/pwa/dashboard/dashboard.html (before 2026-11-09)",
+        "specs/pwa/dashboard/Dashboard Spec.html §8"
+      ],
+      "stale": "'Seuil : 75 %' / 'الحد الأدنى: 75٪'",
+      "current": "dashboard.attendance.threshold 'Seuil : {{threshold}}' / 'الحد الأدنى: {{threshold}}', value from fmtPercent → '75%' in both languages",
+      "by": "ROUND2-CLOSEOUT.md §3 (A2)"
+    },
+    {
+      "id": "R2-attendance-page",
+      "file": [
+        "specs/pwa/prototype-v1 (Attendance screen)",
+        "app/udj-presence.jsx (native, PROVISIONAL strings)"
+      ],
+      "stale": "two states driven by percentage < threshold: 'Sous le seuil requis de {{threshold}}', 'Sous le seuil'",
+      "current": "Hero, subject rows and PresenceRing driven by server band + absencesLeft; strings and colours in ROUND2-CLOSEOUT.md §4",
+      "by": "ROUND2-CLOSEOUT.md §4 (A1)"
+    },
+    {
+      "id": "login-switch",
+      "file": [
+        "specs/pwa/login/source/login-screen.html/.css (before 2026-11-09)",
+        "specs/pwa/prototype-v1 .offline-switch",
+        "archive/pwa/login/*"
+      ],
+      "stale": "white 17px knob on a --sunken track",
+      "current": "38×22 track: off = 2px inset --ink2 ring with a 16px --ink2 knob; on = --jade track with a 22px --on-jade knob, flush. Source: pwa/components/login/login.module.css .switch",
+      "by": "code (B5); prototype updated 2026-11-09"
+    },
+    {
+      "id": "login-prototype-code-wins",
+      "file": "specs/pwa/login/source/login-screen.html/.css",
+      "stale": "password field --jade-faint fill; rate-limit button label all --ink3 + DM Mono; 64px logo image",
+      "current": "pwa/components/login/login.module.css: password field same as ID field; .submitWaiting --ink2, digits only in DM Mono; 92px masked mark. Not changed in the prototype; do not flag the build.",
+      "by": "ROUND2-CLOSEOUT.md §6"
+    },
+    {
+      "id": "pwa-ink-values",
+      "file": [
+        "tokens/pwa/tokens.* (before 2026-11-09)",
+        "design/pwa-tokens.css",
+        "specs/pwa/prototype-v1"
+      ],
+      "stale": "--ink2 #6C7267, --ink3 #9CA396 (light)",
+      "current": "--ink2 #656B60 (4.58:1 on --sunken), --ink3 #80867A (non-text only)",
+      "by": "pwa/app/globals.css; tokens/pwa/tokens.css rebuilt 2026-11-09"
+    },
+    {
+      "id": "login-offline-hint",
+      "file": "archive/* (Login Options, Login Additions Spec, Login Screen Spec-print, PWA prototype-v1)",
+      "stale": "'Recommandé sur un poste partagé (salle info, bibliothèque)' / 'يُنصح به…'",
+      "current": "'Déconseillé sur un poste partagé (salle info, bibliothèque)' / 'لا يُنصح به عند استخدام جهاز مشترك…'",
+      "by": "specs/pwa/login/source/login-screen.html (2026-10-27)",
+      "note": "specs/pwa/prototype-v1 is CURRENT for other screens but still contains the old hint; ignore its login screen."
+    },
+    {
+      "id": "brand-mark",
+      "file": [
+        "archive/brand/Logo-with-mortarboard.svg",
+        "archive/brand/assets-icons-pre-handoff/*",
+        "archive/mobile/login-mortarboard/*",
+        "archive/mobile/early-canvases/FinalScreens.jsx (splash)"
+      ],
+      "stale": "mortarboard over outlined U; splash on #0F6E56 with cap logo",
+      "current": "U-only mark everywhere incl. mobile login and splash: assets/brand/unipocket-u-mark.svg. Mobile login hero 64×69 white. Splash: white U centred on flat #0A3D2E. Launcher icons assets/app-icon/",
+      "by": "Decision of 2026-10-27 (Round 1 answer); specs/mobile/login/UDJ - Login Spec.html updated 2026-11-09",
+      "note": "RESOLVED."
+    },
+    {
+      "id": "mobile-nav-icon-size",
+      "file": "specs/mobile/navbar/UDJ - Navbar Spec.html",
+      "stale": "tab icon render box 25",
+      "current": "28 (×1.12); pill, dot, bar unchanged",
+      "by": "specs/mobile/navbar/handoff-navbar-icons.md (2026-06-12)"
+    },
+    {
+      "id": "mobile-schedule-gutter",
+      "file": "specs/mobile/schedule/UDJ - Schedule Spec.html (TimelineRow, GapRow, skeleton)",
+      "stale": "52px time gutter left of the card",
+      "current": "no gutter; [Connector 24][Card]; time range pill inside the card",
+      "by": "specs/mobile/schedule/handoff-schedule-card-option4.md (2026-06-12)"
+    },
+    {
+      "id": "mobile-presence-absences",
+      "file": "specs/mobile/presence/UDJ - Présence Spec.html (upload / 'Justificatifs' row)",
+      "stale": "'Justificatifs' upload row",
+      "current": "'Mes absences' section + JustifySheet",
+      "by": "specs/mobile/presence/UDJ - Mes Absences Spec.html (2026-06-21)"
+    },
+    {
+      "id": "admin-uxupdate",
+      "file": "specs/admin/Unipocket Admin Portal - Implementation Spec.html §1–29",
+      "stale": "page specs touched by §30",
+      "current": "§30 UX Architecture Update — Change Set (July 2026)",
+      "by": "same file §30"
+    },
+    {
+      "id": "admin-audit-v3",
+      "file": "archive/admin/Admin Portal - Design Audit*.html",
+      "stale": "typography and layout sections",
+      "current": "specs/admin/audits/Admin Portal - Rendered Audit v3.html",
+      "by": "v3 (2026-08-07)"
+    }
   ]
 }

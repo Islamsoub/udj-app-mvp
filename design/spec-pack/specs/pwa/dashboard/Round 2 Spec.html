@@ -37,7 +37,7 @@ td:first-child{font-weight:600}
 <doc-page margin="0.6in">
 <div class="meta"><span>UNIPOCKET PWA</span><span>ROUND 2</span><span>ATTENDANCE · PRINT · CONTRAST · NOTIF TEMPLATE · BELL</span></div>
 <h1>Round 2 — answers &amp; specs</h1>
-<p class="sub">Five points. Each ends in a decision you can build from. The reference files are in this package: <code>schedule-print.html</code> and <code>bell-states.html</code>.</p>
+<p class="sub">Revised 2026-11-09: §1 now agrees with <code>ROUND2-CLOSEOUT.md</code>, which wins where they differ. Five points. Each ends in a decision you can build from. The reference files are in this package: <code>schedule-print.html</code> and <code>bell-states.html</code>.</p>
 
 <h2>1 · Attendance bands, relative to the server threshold</h2>
 <div class="dec"><b>Decision.</b> The server computes the band and the client only maps it to a colour. That is the only way phone and web cannot disagree. Neither client hard-codes a percentage.</div>
@@ -63,17 +63,18 @@ band = "below"  if bestCase < T          // perfect attendance from here can no 
 <div class="dec"><b>Both, with clear jobs.</b> Formal warnings are per subject, as the notification shows. The <b>ring</b> shows the <b>overall</b> rate and is coloured by the <b>overall</b> band, so the colour always describes the number next to it. The <b>sentence</b> under "Seuil" reports the <b>most at-risk subject</b>.</div>
 <table><thead><tr><th>Worst subject</th><th>Sentence (FR)</th><th>Sentence (AR)</th><th>Text colour</th></tr></thead><tbody>
 <tr><td>below</td><td>{subject} : limite d'absences dépassée</td><td dir="rtl">{subject}: تم تجاوز حد الغياب</td><td>danger-ink</td></tr>
-<tr><td>near</td><td>{subject} : encore {n} absence(s) avant le seuil</td><td dir="rtl">{subject}: {n} غياب متبقٍّ قبل الحد الأدنى</td><td>warning-ink</td></tr>
+<tr><td>near</td><td>{subject} : encore {n} absences avant la limite<br/>n = 1: « encore 1 absence avant la limite »; n = 0: « plus aucune absence possible »</td><td>Six plural forms (zero, one, two, few, many, other): <code>ROUND2-CLOSEOUT.md</code> §3</td><td>warning-ink</td></tr>
 <tr><td>ok (all)</td><td>Toutes les matières au-dessus du seuil</td><td dir="rtl">جميع المواد فوق الحد الأدنى</td><td>ink2</td></tr>
 </tbody></table>
-<p class="note">The "Seuil : {T} %" label always shows the live T, coloured by the overall band. If several subjects are in the worst band, show the lowest rate and append "+ {k} autre(s)". With the sample data (T = 75), the ring is 87%, green. If Statistiques L2 has used up its allowance, the sentence reads, in red: "Statistiques L2 : limite d'absences dépassée". It matches the notification.</p>
-<h3>Colours: text-safe values (measured)</h3>
-<table><thead><tr><th>Band</th><th>Ring stroke</th><th>Text, light</th><th>Text, dark</th></tr></thead><tbody>
-<tr><td>ok</td><td>--jade</td><td><span class="sw" style="background:#0F6E56"></span>#0F6E56 · 6.20 on white, 5.70 on surface2</td><td>#5FD3A6 · 8.34</td></tr>
-<tr><td>near</td><td>--warning</td><td><span class="sw" style="background:#8A5200"></span><b>#8A5200</b> · 6.39 on white, 5.74 on warning-bg</td><td>#F2B35E · 8.36</td></tr>
-<tr><td>below</td><td>--danger</td><td><span class="sw" style="background:#B3261E"></span><b>#B3261E</b> · 6.54 on white, 5.74 on danger-bg</td><td>#FF9B8F · 7.59</td></tr>
+<p class="note"><b>Which subject is named</b> (revised 2026-11-09, matches the close-out): sort by band, worst first (below, near, ok); then by fewest <code>absencesLeft</code>, <code>null</code> last; then by lowest rate; then by name, <code>localeCompare</code> in the display language. The first subject is named. If <i>k</i> more subjects share the worst band, append <b>" · + {k} autre(s) matière(s)"</b> at the end of the sentence; plural forms in <code>ROUND2-CLOSEOUT.md</code> §5. The term-over rows are in the close-out.</p>
+<p class="note"><b>The "Seuil" label</b> reads "Seuil : {T}" / "الحد الأدنى: {T}", with T written by <code>percentText</code> as "75%" (no space, Latin sign in both languages, in an LTR isolate). It is coloured by the overall band. With the sample data (T = 75), the ring is 87%, green. If Statistiques L2 has used up its allowance, the sentence reads, in red: "Statistiques L2 : limite d'absences dépassée". It matches the notification.</p>
+<h3>Colours (measured)</h3>
+<table><thead><tr><th>Band</th><th>Ring stroke, light / dark, on --surface</th><th>Text, light</th><th>Text, dark</th></tr></thead><tbody>
+<tr><td>ok</td><td>--jade · 3.39 / 6.17</td><td><span class="sw" style="background:#0F6E56"></span>--jade-text #0F6E56 · 6.20 on white, 5.70 on surface2</td><td>#5FD3A6 · 8.34</td></tr>
+<tr><td>near</td><td><b>--warning-ink</b> · 6.39 / 8.36</td><td><span class="sw" style="background:#8A5200"></span>--warning-ink #8A5200 · 6.39 on white, 5.74 on warning-bg</td><td>#F2B35E · 8.36</td></tr>
+<tr><td>below</td><td>--danger · 3.76 / 5.56</td><td><span class="sw" style="background:#B3261E"></span>--danger-ink #B3261E · 6.54 on white, 5.74 on danger-bg</td><td>#FF9B8F · 7.59</td></tr>
 </tbody></table>
-<p class="note">Use the existing tokens <code>--warning-ink</code> (#8A5200 / #F2B35E) and <code>--danger-ink</code> (#B3261E / #FF9B8F) from <code>pwa/app/globals.css</code>; do not add parallel tokens (revised 2026-11-09). #F59E0B (2.15) and #EF4444 (3.76) stay for fills and strokes only, never for text. The ring is not the only signal, because the number and the sentence carry the meaning, so its stroke may stay in the fill colours.</p>
+<p class="note">Use the existing tokens <code>--warning-ink</code> (#8A5200 / #F2B35E) and <code>--danger-ink</code> (#B3261E / #FF9B8F) from <code>pwa/app/globals.css</code>; do not add parallel tokens. The ring is a graphic, so WCAG 1.4.11 asks 3:1. <code>--warning</code> #F59E0B measures 2.15 on white and is not used for the near ring (revised 2026-11-09); the near stroke is <code>--warning-ink</code> in both themes. #F59E0B and #EF4444 are never text.</p>
 
 <h2>2 · Print — Emploi du temps (new work)</h2>
 <div class="fig"><div class="frame" style="width:700px;height:495px"><iframe src="schedule-print.html?only=fr" style="width:1123px;height:794px;transform:scale(.6234)"></iframe></div><div class="cap">A · FR, A4 landscape, full week</div></div>

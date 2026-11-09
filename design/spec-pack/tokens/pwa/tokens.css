@@ -1,32 +1,110 @@
-/* Unipocket PWA — design tokens (light + dark)
-   Lines 1–19 are verbatim from specs/pwa/dashboard/css/app.css (2026-10-27).
-   The block at the end adds the Round 2 tokens (specs/pwa/dashboard/Round 2 Spec.html, 2026-10-27).
-   Round 2 changes NO existing token value; it adds tokens and changes component rules (see OVERRIDES.json). */
-:root{
-  --font-sans:'Plus Jakarta Sans',sans-serif;--font-ar:'Noto Naskh Arabic',serif;--font-mono:'DM Mono',monospace;
-  --sidebar-w:240px;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:20px;--r-2xl:24px;
-  --shadow-card:0 2px 10px rgba(30,35,31,.06);--shadow-lg:0 12px 32px rgba(30,35,31,.12);--shadow-panel:0 0 0 1px rgba(30,35,31,.04),-12px 0 32px rgba(30,35,31,.10);
-}
-html[data-theme="light"]{
-  --bg:#F7F4EE;--surface:#FFFFFF;--surface2:#F8F5EF;--sunken:#EFEAE0;
-  --ink:#1E231F;--ink2:#6C7267;--ink3:#9CA396;--hair:rgba(30,35,31,.10);--hair2:rgba(30,35,31,.16);
-  --jade:#1D9E75;--jade-hover:#22B083;--jade-text:#0F6E56;--jade-faint:rgba(29,158,117,.10);
-  --danger:#EF4444;--danger-bg:rgba(239,68,68,.10);--warning:#F59E0B;--warning-bg:rgba(245,158,11,.14);
-  --info:#3B82F6;--info-bg:rgba(59,130,246,.12);--exam:#8B5CF6;--exam-bg:rgba(139,92,246,.12);
-}
-html[data-theme="dark"]{
-  --bg:#15201A;--surface:#1C2721;--surface2:#22302A;--sunken:#0F1713;
-  --ink:#EDF2ED;--ink2:#9FB0A6;--ink3:#71887C;--hair:rgba(255,255,255,.08);--hair2:rgba(255,255,255,.14);
-  --jade:#2BB989;--jade-hover:#3FCB9A;--jade-text:#5FD3A6;--jade-faint:rgba(43,185,137,.16);
-  --danger:#FF6B6B;--danger-bg:rgba(255,107,107,.15);--warning:#F0A84B;--warning-bg:rgba(240,168,75,.16);
-  --info:#5AA0E6;--info-bg:rgba(90,160,230,.18);--exam:#A98BF0;--exam-bg:rgba(169,139,240,.18);
+/* Unipocket PWA — design tokens (light + dark).
+   Rebuilt 2026-11-09 from pwa/app/globals.css on develop (Islamsoub/udj-app-mvp), the token blocks only:
+   :root, [data-theme="light"], [data-theme="dark"] and the motion :root. Values and names are verbatim;
+   comments are shortened. Do not rebuild this from design/pwa-tokens.css, which is older.
+   Not tokens, so not here: @font-face, the theme-switch crossfade, .num/.mono/.ratio. */
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-ar: 'Noto Naskh Arabic', 'Plus Jakarta Sans', 'Noto Naskh Arabic UI', 'Droid Arabic Naskh', 'Geeza Pro', 'Al Bayan', 'Traditional Arabic', 'Simplified Arabic', 'Segoe UI', serif;
+  --font-mono: 'DM Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, Consolas, monospace;
+  --sidebar-w: 240px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-2xl: 24px;
 }
 
-/* ---- Round 2 additions (§1 band text, §3 hero). Ink tokens are the shipped --warning-ink / --danger-ink (pwa/app/globals.css). Login-hero decorative circles: rgba(255,255,255,.04). ---- */
-html[data-theme="light"]{--hero-bg:linear-gradient(155deg,#168666,#0F6E56);--hero-ink:#FFFFFF;--hero-mark:#FFFFFF;--hero-chip:rgba(10,61,46,.40);--hero-chip-hover:rgba(10,61,46,.50);--warning-ink:#8A5200;--danger-ink:#B3261E;--on-jade:#1E231F;--hero-start:#168666;--hero-end:#0F6E56}
-html[data-theme="dark"]{--hero-bg:linear-gradient(155deg,#0F5E48,#0A3D2E);--hero-ink:#FFFFFF;--hero-mark:#FFFFFF;--hero-chip:rgba(10,61,46,.40);--hero-chip-hover:rgba(10,61,46,.50);--warning-ink:#F2B35E;--danger-ink:#FF9B8F;--on-jade:#0F1713;--hero-start:#168666;--hero-end:#0F6E56}
-/* --hero-* drive the LOGIN hero only (dark is darker, 2026-11-09). --hero-start/end drive the dashboard GPA card, same in both themes.
-   hero gradient, both themes: login 155deg, dashboard GPA card 150deg
-   .login-hero{background:linear-gradient(155deg,var(--hero-start),var(--hero-end))}
-   .hero-jade{background:linear-gradient(150deg,var(--hero-start),var(--hero-end))}
-   --warning (#F59E0B) and --danger (#EF4444) are fills/strokes only — text uses --warning-ink / --danger-ink. */
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #F7F4EE;
+  --surface: #FFFFFF;
+  --surface2: #F8F5EF;
+  --sunken: #EFEAE0;
+  --ink: #1E231F;
+  --ink2: #656B60;   /* informational secondary text; 4.58:1 on --sunken */
+  --ink3: #80867A;   /* non-text or exempt uses only; under AA for text */
+  --hair: rgba(30, 35, 31, .10);
+  --hair2: rgba(30, 35, 31, .16);
+  --jade: #1D9E75;
+  --jade-hover: #22B083;   /* a background, never text; --on-jade 5.78:1 on it */
+  --jade-text: #0F6E56;
+  --jade-faint: rgba(29, 158, 117, .10);
+  --on-jade: #1E231F;      /* text and marks on solid jade (buttons, switch knob); 4.71:1 on --jade */
+  --hero-bg: linear-gradient(155deg, #168666, #0F6E56);   /* login hero only; worst point 4.23:1 (top-left, under the 4% circle), no text there */
+  --hero-ink: #FFFFFF;
+  --hero-mark: var(--hero-ink);
+  --hero-chip: rgba(10, 61, 46, .40);         /* 6.35:1 at rest over the lightest point */
+  --hero-chip-hover: rgba(10, 61, 46, .50);   /* 7.09:1 */
+  --shadow-card: 0 2px 10px rgba(30, 35, 31, .06);
+  --shadow-lg: 0 12px 32px rgba(30, 35, 31, .12);
+  --shadow-panel: 0 0 0 1px rgba(30, 35, 31, .04), -12px 0 32px rgba(30, 35, 31, .10);
+  --scrim: rgba(30, 35, 31, .40);
+  --danger: #EF4444;
+  --danger-bg: rgba(239, 68, 68, .10);
+  --warning: #F59E0B;
+  --warning-bg: rgba(245, 158, 11, .14);
+  --info: #3B82F6;
+  --info-bg: rgba(59, 130, 246, .12);
+  --exam: #8B5CF6;
+  --exam-bg: rgba(139, 92, 246, .12);
+  --danger-ink: #B3261E;
+  --info-ink: #1D4ED8;
+  --warning-ink: #8A5200;
+  --exam-ink: #6D28D9;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #15201A;
+  --surface: #1C2721;
+  --surface2: #22302A;
+  --sunken: #0F1713;
+  --ink: #EDF2ED;
+  --ink2: #9FB0A6;
+  --ink3: #71887C;
+  --hair: rgba(255, 255, 255, .08);
+  --hair2: rgba(255, 255, 255, .14);
+  --jade: #2BB989;
+  --jade-hover: #3FCB9A;
+  --jade-text: #5FD3A6;
+  --jade-faint: rgba(43, 185, 137, .16);
+  --on-jade: #0F1713;      /* 7.29:1 on --jade */
+  --hero-bg: linear-gradient(155deg, #0F5E48, #0A3D2E);   /* worst point 7.05:1; submit #2BB989 is 2.82:1 against it */
+  --hero-ink: #FFFFFF;
+  --hero-mark: var(--hero-ink);
+  --hero-chip: rgba(10, 61, 46, .40);         /* 8.84:1 */
+  --hero-chip-hover: rgba(10, 61, 46, .50);   /* 9.23:1 */
+  --shadow-card: 0 0 0 1px rgba(255, 255, 255, .06), 0 2px 8px rgba(0, 0, 0, .40);
+  --shadow-lg: 0 0 0 1px rgba(255, 255, 255, .08), 0 16px 40px rgba(0, 0, 0, .55);
+  --shadow-panel: 0 0 0 1px rgba(255, 255, 255, .08), -16px 0 40px rgba(0, 0, 0, .60);
+  --scrim: rgba(0, 0, 0, .60);
+  --danger: #FF6B6B;
+  --danger-bg: rgba(255, 107, 107, .15);
+  --warning: #F0A84B;
+  --warning-bg: rgba(240, 168, 75, .16);
+  --info: #5AA0E6;
+  --info-bg: rgba(90, 160, 230, .18);
+  --exam: #A98BF0;
+  --exam-bg: rgba(169, 139, 240, .18);
+  --danger-ink: #FF9B8F;
+  --info-ink: #8AB4FF;
+  --warning-ink: #F2B35E;
+  --exam-ink: #C4B0FF;
+}
+
+:root {
+  --dur-instant: 100ms;
+  --dur-fast: 180ms;
+  --dur-base: 250ms;
+  --dur-slow: 450ms;
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --ease-in-out: cubic-bezier(.4, 0, .2, 1);
+}
+
+/* Spec-pack conventions that are NOT custom properties in globals.css (kept here as notes, not tokens):
+   - Dashboard GPA card: linear-gradient(150deg, #168666, #0F6E56), both themes, 7% white depth circle.
+     The prototype app.css names these stops --hero-start / --hero-end; globals.css does not.
+   - Login hero decorative circles: rgba(255, 255, 255, .04).
+   - Attendance band → colour: tokens.json "attendanceBand". */

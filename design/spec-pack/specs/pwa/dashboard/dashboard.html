@@ -101,7 +101,7 @@
               <h3 data-fr="Assiduité" data-ar="المواظبة">Assiduité</h3>
               <div class="gauge-wrap">
                 <div class="gauge" id="att-ring" style="background:conic-gradient(var(--jade) 0 87%, var(--sunken) 0 100%)"><div class="hole"><b>87%</b><small data-fr="TAUX" data-ar="النسبة">TAUX</small></div></div>
-                <p class="attend-note"><strong id="att-seuil" class="band-ok" data-fr="Seuil : 75 %" data-ar="الحد الأدنى: 75٪">Seuil : 75 %</strong><span id="att-line" class="worst band-below" data-fr="Statistiques L2 : limite d'absences dépassée" data-ar="الإحصاء L2: تم تجاوز حد الغياب">Statistiques L2 : limite d'absences dépassée</span></p>
+                <p class="attend-note"><strong id="att-seuil" class="band-ok"><span data-fr="Seuil : " data-ar="الحد الأدنى: ">Seuil : </span><bdi dir="ltr">75%</bdi></strong><span id="att-line" class="worst band-below" data-fr="Statistiques L2 : limite d'absences dépassée" data-ar="الإحصاء L2: تم تجاوز حد الغياب">Statistiques L2 : limite d'absences dépassée</span></p>
               </div>
             </div>
           </div>
@@ -162,13 +162,14 @@ const mqTablet=matchMedia('(min-width:640px) and (max-width:1023px)');
 function checkTablet(){document.body.classList.toggle('tablet',mqTablet.matches);}
 mqTablet.addEventListener('change',checkTablet);addEventListener('resize',checkTablet);addEventListener('load',checkTablet);
 
-/* Attendance card — server sends band + absencesLeft per subject and overall (Round 2 §1). ?att=ok|near|below|ended previews each state. */
-const ATT_RING={ok:'var(--jade)',near:'var(--warning)',below:'var(--danger)'};
+/* Attendance card — server sends band + absencesLeft per subject and overall (Round 2 §1). ?att=ok|near|below|ended|multi previews each state. multi = two subjects in the worst band: the suffix goes at the END of the sentence after ' · ' (amendment A4). */
+const ATT_RING={ok:'var(--jade)',near:'var(--warning-ink)',below:'var(--danger)'}; /* near: --warning-ink, 6.39:1 light / 8.36:1 dark on --surface (amendment A3) */
 const ATT={
  ok:{overall:'ok',line:'ok',fr:'Toutes les matières au-dessus du seuil',ar:'جميع المواد فوق الحد الأدنى'},
  near:{overall:'near',line:'near',fr:'Statistiques L2 : encore 2 absences avant la limite',ar:'الإحصاء L2: يتبقّى غيابان قبل بلوغ الحد'},
  below:{overall:'ok',line:'below',fr:"Statistiques L2 : limite d'absences dépassée",ar:'الإحصاء L2: تم تجاوز حد الغياب'},
- ended:{overall:'ok',line:'ended-below',fr:'Statistiques L2 : semestre terminé sous le seuil',ar:'الإحصاء L2: انتهى الفصل دون بلوغ الحد الأدنى'}
+ ended:{overall:'ok',line:'ended-below',fr:'Statistiques L2 : semestre terminé sous le seuil',ar:'الإحصاء L2: انتهى الفصل دون بلوغ الحد الأدنى'},
+ multi:{overall:'near',line:'below',fr:"Statistiques L2 : limite d'absences dépassée · + 1 autre matière",ar:'الإحصاء L2: تم تجاوز حد الغياب · + مادة أخرى'}
 };
 function applyAtt(k){const s=ATT[k]||ATT.below;const ln=$('#att-line'),se=$('#att-seuil');
  ln.dataset.fr=s.fr;ln.dataset.ar=s.ar;ln.className='worst band-'+(s.line==='ended-below'?'below':s.line);
