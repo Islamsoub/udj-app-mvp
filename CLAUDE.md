@@ -54,7 +54,35 @@ No quick fixes. Always diagnose to the root cause and devise proper solutions. N
 
 ---
 
-# UDJ App MVP — Project Rules
+# Repository map
+
+One repo, four deployables. Every rule below is scoped to one of them — check
+which before applying it.
+
+| Folder | What | Stack | CI job |
+|---|---|---|---|
+| `/` (app, components, hooks, services, stores, constants, locales) | Student mobile app | React Native + Expo, TypeScript | `check` |
+| `admin/` | Admin portal | Next.js 16 App Router, React 19, Tailwind 4 | `admin` |
+| `pwa/` | Student web app | Next.js 16 App Router, React 19, CSS Modules | none |
+| `backend/` | API | Express 5, Prisma 5, Postgres (Supabase) | `backend` |
+
+`admin/`, `pwa/` and `backend/` each install independently, with their own
+package.json and lockfile. Run npm inside the folder you are working in, never
+at the repo root for those three.
+
+`pwa/` has no CI job. .github/workflows/ci.yml typechecks the app, the backend
+and the admin portal only, so a change under pwa/ can merge without ever being
+compiled. Run `npm run typecheck` in pwa/ by hand until that is fixed.
+
+Design reference lives in `design/spec-pack/` — screen specs, tokens, assets
+and reference renders exported from Claude Design. See its INDEX.md.
+
+---
+
+# Mobile app (React Native / Expo) — rules
+
+Everything in this section applies to the Expo app at the repo root only. The
+admin portal, the PWA and the backend have their own sections below.
 
 ## Project overview
 Offline-first student mobile app for Universite de Djibouti.
@@ -327,3 +355,133 @@ Data collected: student profile, grades, attendance, FCM push token,
 course notes (local only). No location. Crash reporting via Sentry
 sends no PII (sendDefaultPii: false). Satisfies the Google Play
 privacy-policy-URL requirement for production submission.
+
+---
+
+# Admin portal (admin/) — rules
+
+Next.js 16 App Router, React 19, TypeScript strict, Tailwind CSS 4.
+Dev server: `npm run dev` in admin/, documented at http://localhost:3001.
+
+## French only
+No i18n layer, no locale files, no RTL. User-facing strings are written inline
+in French. Do not add i18next or translation keys here — that is a deliberate
+difference from the app and the PWA.
+
+## Styling
+- Tailwind utilities only. Every color, shadow and font utility resolves to a
+  CSS custom property declared in styles/globals.css — tailwind.config.ts maps
+  them. Never a raw hex in className.
+- lib/tokens.ts exports `C`, the same tokens as JS values. Use it only where a
+  color must be a JS value: Recharts fills, inline SVG strokes. For styling,
+  the Tailwind utility.
+- Off-grid values (13.5px, 9px radius) are intentional — verbatim measurements
+  from the reference prototype. Do not round them to the 8px grid.
+
+## Data
+- All server data goes through a hook in hooks/queries/. Never call useQuery or
+  axios directly in a page or component.
+- Those hooks wrap get/post/patch/del from lib/api.ts, which handles bearer
+  injection and single-flight silent refresh on 401. Never import axios
+  directly.
+- Mutations invalidate their query key and raise a toast via useToast.
+
+## Structure
+- components/ui/ — primitives, cva + cn()
+- components/shared/ — composed, reusable
+- components/shell/ — sidebar, topbar, menus
+- components/forms/, components/modals/, components/providers/
+- stores/ — zustand: auth, modal, scope, ui
+- lib/validations.ts — Zod schemas, used with react-hook-form
+
+## Domain
+Djibouti working week runs Sunday → Thursday. Grades are on /20.
+
+---
+
+# PWA (pwa/) — rules
+
+Next.js 16 App Router, React 19, TypeScript strict.
+
+## No dependencies
+package.json has exactly three runtime dependencies: next, react, react-dom.
+No axios, no TanStack Query, no Zustand, no i18next. i18n, theming, the API
+client and the offline cache are all hand-written in pwa/lib. This is
+deliberate — adding a runtime dependency here needs a reason, not a habit.
+
+## Styling
+- CSS Modules. One `<name>.module.css` per component folder. There are no
+  Tailwind utility classes in components; globals.css imports Tailwind for its
+  reset only.
+- Tokens are CSS custom properties in app/globals.css, under
+  [data-theme="light"] and [data-theme="dark"].
+- The PWA palette is NOT the mobile app palette and must not be harmonized with
+  it. --bg is #F7F4EE (warm) against the app's #F5F7F6, and text on jade is
+  dark ink (--on-jade #1E231F), not white — white was 3.39:1 and failed AA.
+- Most token comments carry a measured contrast ratio. Changing a color means
+  re-measuring and updating the comment in the same edit.
+- --ink3 is for non-text uses only. It is under AA and must not carry
+  information.
+
+## i18n and RTL
+- lib/i18n.tsx is 'use client'. Server code imports values from
+  lib/i18n-shared.ts instead — importing them from i18n.tsx fails at runtime.
+- Strings live in locales/fr.json and locales/ar.json. Both, always.
+- There is no [dir="rtl"] selector anywhere, and none should be added. Use
+  logical properties, and lib/bidi.tsx (fmtLtr, fmtRange) for any number, time
+  range, year range or percentage — without it the bidi algorithm reverses them
+  in Arabic.
+
+## Data
+- Components call lib/api-client.ts and nothing else. Never fetch the backend
+  directly.
+- Same-origin paths only. The catch-all at app/api/backend/[...path] and the
+  three app/api/auth routes are this app's own server; the browser never learns
+  the backend's address.
+- PWA_PROXY_SECRET is server-only. It is deliberately not NEXT_PUBLIC_ — Next
+  inlines every NEXT_PUBLIC_ value into the client bundle. Never import
+  api-config.ts from a client component.
+
+## Offline
+- lib/offline-cache.ts is a consent-gated IndexedDB copy of the student's own
+  data, hooked into api-client's apiFetch and nowhere else.
+- It holds an explicit allow-list of GET paths. A new cached endpoint must be
+  added there.
+- Every entry point catches. Failure is always silent — the worst outcome is
+  "there is no cache".
+- Bump SCHEMA_VERSION when the shape of any cached payload changes.
+- public/sw.js never intercepts /api, and personal data never enters Cache
+  Storage.
+
+---
+
+# Backend (backend/) — rules
+
+Express 5, TypeScript (commonjs), Prisma 5, PostgreSQL on Supabase.
+Deployed on Render, auto-deploying from `develop`.
+
+## Schema changes — read before touching schema.prisma
+prisma/migrations/ contains only 0_baseline. Every change since has been applied
+with `npx prisma db push`, not a migration. Because Render auto-deploys develop,
+the database must be updated BEFORE the merge, or production runs code that
+queries columns that do not exist.
+Any PR touching backend/prisma/schema.prisma says so in its description.
+
+## Environment
+utils/env.ts validates every variable with Zod at boot and calls process.exit(1)
+on failure. A new variable is added there, or the server will not start.
+NODE_ENV defaults to 'production' — a missing value fails closed.
+
+## Auth
+- Student routes: authMiddleware, Bearer token, sets req.studentId.
+- Admin routes: adminAuth, then rbac(...roles). rbac must run after adminAuth.
+- FACULTY_ADMIN gets req.adminScope = { facultyId }. Scope those queries with
+  facultyScopeWhere at the query level, not by filtering the response.
+
+## Routes
+/auth, /student, /news, /admin, plus /health and /public static files.
+Admin endpoints all live under /admin.
+
+## CORS
+origin comes from the ADMIN_CORS_ORIGIN allowlist, with credentials: true for
+the admin refresh cookie. Never '*'.
