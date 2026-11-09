@@ -1,0 +1,210 @@
+diff --git a/pwa/lib/i18n-shared.ts b/pwa/lib/i18n-shared.ts
+index d192efe..3ce7bab 100644
+--- a/pwa/lib/i18n-shared.ts
++++ b/pwa/lib/i18n-shared.ts
+@@ -68,3 +68,43 @@ export function dirFor(lang: Lang): Dir {
+ export function resolveLang(value: unknown): Lang {
+   return isLang(value) ? value : DEFAULT_LANG;
+ }
++
++/**
++ * The six CLDR plural categories. A plural message in the locale files is an
++ * object with exactly these keys, in BOTH files — see PluralForms in
++ * lib/i18n-types.ts for why French carries rows it never selects.
++ */
++export const PLURAL_CATEGORIES = ['zero', 'one', 'two', 'few', 'many', 'other'] as const;
++export type PluralCategory = (typeof PLURAL_CATEGORIES)[number];
++
++/**
++ * One Intl.PluralRules per language, built on first use. Construction is the
++ * expensive part (it loads locale data); select() is cheap.
++ */
++const pluralRules: Partial<Record<Lang, Intl.PluralRules>> = {};
++
++function rulesFor(lang: Lang): Intl.PluralRules {
++  let rules = pluralRules[lang];
++  if (!rules) {
++    rules = new Intl.PluralRules(lang);
++    pluralRules[lang] = rules;
++  }
++  return rules;
++}
++
++/**
++ * Picks the plural category for `n` in `lang`.
++ *
++ * `n === 0` is `zero` in every language, ahead of Intl. Design writes the zero
++ * row as a distinct sentence ("plus aucune absence possible"), and French Intl
++ * files 0 under `one` — Intl alone could never reach that row in French. For
++ * Arabic, Intl already says `zero` at 0, so the override changes nothing there.
++ *
++ * Every other n goes to Intl.PluralRules, which knows Arabic's few (3–10,
++ * 103–110…) and many (11–99, 111–199…) ranges. Pure: no React, no DOM, so it is
++ * safe on the server and testable under Node.
++ */
++export function pluralCategory(lang: Lang, n: number): PluralCategory {
++  if (n === 0) return 'zero';
++  return rulesFor(lang).select(n) as PluralCategory;
++}
+diff --git a/pwa/lib/i18n-types.ts b/pwa/lib/i18n-types.ts
+index 0c24109..e6793a1 100644
+--- a/pwa/lib/i18n-types.ts
++++ b/pwa/lib/i18n-types.ts
+@@ -1,5 +1,6 @@
+ import ar from '@/locales/ar.json';
+ import fr from '@/locales/fr.json';
++import type { PluralCategory } from '@/lib/i18n-shared';
+ 
+ /**
+  * Compile-time enforcement that the two locale files hold exactly the same keys.
+@@ -31,15 +32,60 @@ export const frMessages: typeof ar = fr;
+ export type TranslationTree = typeof fr;
+ 
+ /**
+- * Every leaf path in the tree, as a dotted string: 'login.title',
++ * A plural message: an object with exactly the six CLDR categories, all strings.
++ *
++ * All six, in BOTH locale files, even though French never reaches `two` or
++ * `few` (Intl gives one / many / other, `many` only for exact millions, plus
++ * the zero override in pluralCategory). The shape guard above
++ * compares fr and ar structurally in both directions, so Arabic's six keys force
++ * the same six in French. Keeping the guard strict is worth the unused rows.
++ */
++export type PluralForms = Record<PluralCategory, string>;
++
++/**
++ * True only for an object whose keys are exactly the six categories with string
++ * values. An object with the six plus anything else is NOT a plural message; it
++ * is an ordinary subtree, and its leaves stay reachable through t().
++ */
++type IsPluralForms<V> = V extends PluralForms
++  ? [Exclude<keyof V, PluralCategory>] extends [never]
++    ? true
++    : false
++  : false;
++
++/**
++ * Every string leaf path in the tree, as a dotted string: 'login.title',
+  * 'login.errors.locked'. Only leaves are valid — 'login.errors' is an object,
+  * not a string, and is correctly rejected.
++ *
++ * A plural message is neither a leaf nor descended into: t('x.near') and
++ * t('x.near.zero') both fail to compile. Plurals go through PluralKey.
+  */
+ type LeafPaths<T> = {
+-  [K in keyof T & string]: T[K] extends string ? K : `${K}.${LeafPaths<T[K]>}`;
++  [K in keyof T & string]: T[K] extends string
++    ? K
++    : IsPluralForms<T[K]> extends true
++      ? never
++      : `${K}.${LeafPaths<T[K]>}`;
++}[keyof T & string];
++
++/** Every dotted path whose value is a plural message, and nothing else. */
++type PluralPaths<T> = {
++  [K in keyof T & string]: T[K] extends string
++    ? never
++    : IsPluralForms<T[K]> extends true
++      ? K
++      : `${K}.${PluralPaths<T[K]>}`;
+ }[keyof T & string];
+ 
+ export type TranslationKey = LeafPaths<TranslationTree>;
+ 
++/**
++ * Keys accepted by the plural function, and only by it. Disjoint from
++ * TranslationKey by construction. `never` until a locale file holds a plural
++ * message.
++ */
++export type PluralKey = PluralPaths<TranslationTree>;
++
+ /** Values substituted into `{{placeholders}}`. */
+ export type TranslationParams = Record<string, string | number>;
+diff --git a/pwa/lib/i18n.tsx b/pwa/lib/i18n.tsx
+index 05b5d0b..be3ff41 100644
+--- a/pwa/lib/i18n.tsx
++++ b/pwa/lib/i18n.tsx
+@@ -12,6 +12,7 @@ import {
+ import {
+   arMessages,
+   frMessages,
++  type PluralKey,
+   type TranslationKey,
+   type TranslationParams,
+ } from '@/lib/i18n-types';
+@@ -30,6 +31,7 @@ import {
+   LANG_STORAGE_KEY,
+   dirFor,
+   isLang,
++  pluralCategory,
+   type Dir,
+   type Lang,
+ } from '@/lib/i18n-shared';
+@@ -67,6 +69,23 @@ function lookup(tree: unknown, key: string): string | null {
+   return typeof node === 'string' ? node : null;
+ }
+ 
++/**
++ * Walks a dotted path to a plural message and returns the template for one
++ * category. Null for a missing path, a non-object node, or a missing/non-string
++ * category — the PluralKey type plus the fr/ar shape check make that
++ * unreachable, but a bypassed guard still degrades to the key, not a crash.
++ */
++function lookupPlural(tree: unknown, key: string, category: string): string | null {
++  let node: unknown = tree;
++  for (const part of key.split('.')) {
++    if (typeof node !== 'object' || node === null) return null;
++    node = (node as Record<string, unknown>)[part];
++  }
++  if (typeof node !== 'object' || node === null) return null;
++  const template = (node as Record<string, unknown>)[category];
++  return typeof template === 'string' ? template : null;
++}
++
+ /**
+  * Replaces `{{name}}` with the matching param. An unmatched placeholder is left
+  * in place rather than blanked — a visible `{{minutes}}` in a screenshot is a
+@@ -84,6 +103,14 @@ export interface I18nValue {
+   dir: Dir;
+   setLang: (lang: Lang) => void;
+   t: (key: TranslationKey, params?: TranslationParams) => string;
++  /**
++   * The plural message at `key` for count `n`, as a RAW template: its
++   * `{{placeholders}}` are left intact, like t(key) with no params, so the
++   * caller renders it with fmtPhrase / Interpolated and keeps control of how
++   * each value is isolated and which face it takes. The category comes from
++   * pluralCategory (lib/i18n-shared.ts): 0 is `zero`, everything else Intl.
++   */
++  plural: (key: PluralKey, n: number) => string;
+ }
+ 
+ const I18nContext = createContext<I18nValue | null>(null);
+@@ -171,9 +198,26 @@ export function I18nProvider({ initialLang = DEFAULT_LANG, children }: I18nProvi
+     [lang]
+   );
+ 
++  const plural = useCallback(
++    (key: PluralKey, n: number): string => {
++      const category = pluralCategory(lang, n);
++      const template = lookupPlural(dictionaries[lang], key, category);
++
++      if (template === null) {
++        if (process.env.NODE_ENV !== 'production') {
++          console.warn(`[i18n] missing plural translation: ${lang}.${key}.${category}`);
++        }
++        return key;
++      }
++
++      return template;
++    },
++    [lang]
++  );
++
+   const value = useMemo<I18nValue>(
+-    () => ({ lang, dir: dirFor(lang), setLang, t }),
+-    [lang, setLang, t]
++    () => ({ lang, dir: dirFor(lang), setLang, t, plural }),
++    [lang, setLang, t, plural]
+   );
+ 
+   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;

@@ -1,0 +1,135 @@
+diff --git a/pwa/components/attendance/SubjectBreakdown.tsx b/pwa/components/attendance/SubjectBreakdown.tsx
+index f5fd0fc..b4283ef 100644
+--- a/pwa/components/attendance/SubjectBreakdown.tsx
++++ b/pwa/components/attendance/SubjectBreakdown.tsx
+@@ -36,7 +36,7 @@ export function SubjectBreakdown({
+ }) {
+   const { t, lang } = useI18n();
+ 
+-  const ordered = sortSubjects(subjects);
++  const ordered = sortSubjects(subjects, lang);
+ 
+   return (
+     <section className={styles.section}>
+diff --git a/pwa/components/attendance/model.ts b/pwa/components/attendance/model.ts
+index 522ebdc..8785cf8 100644
+--- a/pwa/components/attendance/model.ts
++++ b/pwa/components/attendance/model.ts
+@@ -1,4 +1,5 @@
+-import type { AbsenceRecord, AttendanceSubject } from '@/lib/api-types';
++import type { AbsenceRecord, AttendanceBand, AttendanceSubject } from '@/lib/api-types';
++import type { Lang } from '@/lib/i18n-shared';
+ 
+ /**
+  * The attendance rules — the threshold and the justification window — are NOT
+@@ -94,11 +95,104 @@ export function flattenAbsences(subjects: AttendanceSubject[]): FlatAbsence[] {
+   );
+ }
+ 
+-/** Subjects worst first, so a student who is at risk sees why without scrolling.
+- *  Ties break on the subject code, which keeps the order stable across renders
+- *  rather than leaving it to the sort's implementation. */
+-export function sortSubjects(subjects: AttendanceSubject[]): AttendanceSubject[] {
+-  return [...subjects].sort(
+-    (a, b) => a.percentage - b.percentage || a.subject.code.localeCompare(b.subject.code)
++/**
++ * Band rank, worst first. The order is ROUND2-CLOSEOUT §3's, not a severity the
++ * PWA infers: the band itself is the server's verdict.
++ */
++const BAND_RANK: Record<AttendanceBand, number> = { below: 0, near: 1, ok: 2 };
++
++/** The subject's name in the display language — the same pick SubjectBreakdown
++ *  renders, so the order a student sees matches the names they read. */
++function displayName(entry: AttendanceSubject, lang: Lang): string {
++  return lang === 'ar' ? entry.subject.nameAr : entry.subject.nameFr;
++}
++
++/**
++ * ROUND2-CLOSEOUT §3's ordering, the one definition of "worst subject":
++ *   1. band, worst first: below, near, ok;
++ *   2. fewest `absencesLeft`, null last (null is "term over", not 0);
++ *   3. lowest `percentage` (§3's "rate");
++ *   4. subject name in the display language, `localeCompare(b, lang)`.
++ *
++ * `percentage` is only compared with another subject's `percentage`, never with
++ * the threshold: whether a subject is in trouble is `band`, from the server.
++ *
++ * A fifth key, the subject code, only separates two subjects whose names are
++ * identical in the display language, so the order never depends on the order
++ * the server happened to send them in. It is not part of §3.
++ */
++function compareSubjects(a: AttendanceSubject, b: AttendanceSubject, lang: Lang): number {
++  const band = BAND_RANK[a.band] - BAND_RANK[b.band];
++  if (band !== 0) return band;
++
++  if (a.absencesLeft !== b.absencesLeft) {
++    if (a.absencesLeft === null) return 1;
++    if (b.absencesLeft === null) return -1;
++    return a.absencesLeft - b.absencesLeft;
++  }
++
++  const rate = a.percentage - b.percentage;
++  if (rate !== 0) return rate;
++
++  return (
++    displayName(a, lang).localeCompare(displayName(b, lang), lang) ||
++    a.subject.code.localeCompare(b.subject.code)
+   );
+ }
++
++/** Subjects worst first, by §3's order (see compareSubjects). Does not mutate
++ *  its input. Used by the attendance page and by attendanceLine below, so the
++ *  page's first row and the dashboard's named subject are always the same one. */
++export function sortSubjects(subjects: AttendanceSubject[], lang: Lang): AttendanceSubject[] {
++  return [...subjects].sort((a, b) => compareSubjects(a, b, lang));
++}
++
++/**
++ * Which row of §3's table the dashboard card's line under the ring shows.
++ * State only — no strings; the copy lives in the locale files.
++ *
++ * - `subject` is the worst subject after sortSubjects.
++ * - `n` is that subject's `absencesLeft` (non-null by construction).
++ * - `others` is how many OTHER subjects share its band; 0 means no "+ {k}".
++ */
++export type AttendanceLine =
++  | { kind: 'ok' }
++  | { kind: 'near'; subject: AttendanceSubject; n: number; others: number }
++  | { kind: 'below'; subject: AttendanceSubject; others: number }
++  | { kind: 'ended-below'; subject: AttendanceSubject; others: number }
++  | { kind: 'ended-ok' };
++
++/**
++ * Derives the line's state from §3's rules:
++ *   - the first subject after the sort is the candidate;
++ *   - if its `absencesLeft` is null the term is over, and the term-over rows
++ *     apply whatever the band: `ended-below` for `below`, else `ended-ok`;
++ *   - if the worst band is `ok`, the line is `ok` and names no subject;
++ *   - otherwise `near` or `below`, naming the candidate.
++ *
++ * Pure, and deliberately takes no threshold: every verdict here is `band`.
++ *
++ * Returns null for an empty list. §3 has no row for "no subjects", and `ok`
++ * ("Toutes les matières au-dessus du seuil") would claim something about
++ * subjects that do not exist; the caller shows its empty state instead.
++ */
++export function attendanceLine(subjects: AttendanceSubject[], lang: Lang): AttendanceLine | null {
++  const ordered = sortSubjects(subjects, lang);
++  const subject = ordered[0];
++  if (subject === undefined) return null;
++
++  const others = ordered.filter((s) => s.band === subject.band).length - 1;
++
++  if (subject.absencesLeft === null) {
++    return subject.band === 'below' ? { kind: 'ended-below', subject, others } : { kind: 'ended-ok' };
++  }
++
++  switch (subject.band) {
++    case 'ok':
++      return { kind: 'ok' };
++    case 'near':
++      return { kind: 'near', subject, n: subject.absencesLeft, others };
++    case 'below':
++      return { kind: 'below', subject, others };
++  }
++}

@@ -1,0 +1,206 @@
+diff --git a/pwa/components/attendance/Attendance.tsx b/pwa/components/attendance/Attendance.tsx
+index 5fa87f0..c56f3ff 100644
+--- a/pwa/components/attendance/Attendance.tsx
++++ b/pwa/components/attendance/Attendance.tsx
+@@ -11,9 +11,9 @@ import { StateLayers } from '@/components/grades/StateLayers';
+ import { useOnline } from '@/components/shell/useOnline';
+ import { getAttendance } from '@/lib/api-client';
+ import type { AttendanceResponse } from '@/lib/api-types';
++import { checkAttendanceContract } from '@/lib/attendance-contract';
+ import { useI18n } from '@/lib/i18n';
+ import { AttendanceView } from './AttendanceView';
+-import { checkAttendanceContract } from './model';
+ import { AttendanceSkeleton } from './skeletons';
+ import styles from './attendance.module.css';
+ 
+diff --git a/pwa/components/attendance/model.ts b/pwa/components/attendance/model.ts
+index d5d7a55..522ebdc 100644
+--- a/pwa/components/attendance/model.ts
++++ b/pwa/components/attendance/model.ts
+@@ -1,10 +1,11 @@
+-import type { AbsenceRecord, AttendanceResponse, AttendanceSubject } from '@/lib/api-types';
++import type { AbsenceRecord, AttendanceSubject } from '@/lib/api-types';
+ 
+ /**
+  * The attendance rules — the threshold and the justification window — are NOT
+  * defined here. Both are admin-editable on the server and arrive on every
+- * GET /student/attendance response; `checkAttendanceContract` below refuses a
+- * response that lacks them rather than substituting a local value.
++ * GET /student/attendance response; `checkAttendanceContract` in
++ * lib/attendance-contract.ts refuses a response that lacks them rather than
++ * substituting a local value. The same holds for `band` and `absencesLeft`.
+  */
+ 
+ /**
+@@ -63,37 +64,6 @@ export function needsAction(record: AbsenceRecord): boolean {
+   return (state === 'none' || state === 'rejected') && record.canSubmitJustification;
+ }
+ 
+-/**
+- * Throws when a response lacks the rules this screen is built on.
+- *
+- * NO LOCAL FALLBACK, deliberately. A default threshold here would be exactly the
+- * hardcoded 75 this replaced, silently disagreeing with the admin portal the day
+- * the setting moves; a missing `canSubmitJustification` read as falsy would mark
+- * every absence expired. A response without these fields means the PWA is
+- * talking to a backend older than 15ecfe7 — a deployment bug — so it is logged
+- * by name and the screen shows its error state rather than guessing.
+- */
+-export function checkAttendanceContract(data: AttendanceResponse): AttendanceResponse {
+-  const missing: string[] = [];
+-
+-  if (typeof data.attendanceThreshold !== 'number') missing.push('attendanceThreshold');
+-  if (typeof data.justificationDeadlineDays !== 'number') {
+-    missing.push('justificationDeadlineDays');
+-  }
+-  const recordsOk = data.subjects.every((entry) =>
+-    entry.absences.every((a) => typeof a.canSubmitJustification === 'boolean')
+-  );
+-  if (!recordsOk) missing.push('absences[].canSubmitJustification');
+-
+-  if (missing.length > 0) {
+-    const message = `GET /student/attendance is missing ${missing.join(', ')}`;
+-    console.error(`[attendance] ${message}`);
+-    throw new Error(message);
+-  }
+-
+-  return data;
+-}
+-
+ /** A record plus the subject it belongs to — the absence list is flat and
+  *  chronological, while the API nests absences under their subject. */
+ export interface FlatAbsence {
+diff --git a/pwa/lib/api-types.ts b/pwa/lib/api-types.ts
+index 7198a60..f80c5fa 100644
+--- a/pwa/lib/api-types.ts
++++ b/pwa/lib/api-types.ts
+@@ -163,6 +163,9 @@ export interface AllSemestersResponse {
+ 
+ // ── GET /student/attendance ───────────────────────────────────────────────────
+ 
++/** The server's attendance verdict, on the overall figure and on each subject. */
++export type AttendanceBand = 'ok' | 'near' | 'below';
++
+ export interface AbsenceRecord {
+   id: string;
+   date: string;
+@@ -190,6 +193,14 @@ export interface AttendanceSubject {
+   justified: number;
+   partial: number;
+   percentage: number;
++  /** Computed server-side (`ok` | `near` | `below`); never derived locally. */
++  band: AttendanceBand;
++  /**
++   * Sessions the student can still miss and finish at or above the threshold.
++   * NULLABLE: null is not 0. It is null once the semester has ended. Render
++   * nothing for null, never "0 absences restantes".
++   */
++  absencesLeft: number | null;
+   absences: AbsenceRecord[];
+ }
+ 
+@@ -201,6 +212,14 @@ export interface AttendanceOverall {
+   partial: number;
+   /** Hours-based, so null when no session lengths could be resolved. */
+   percentage: number | null;
++  /** Computed server-side (`ok` | `near` | `below`); never derived locally. */
++  band: AttendanceBand;
++  /**
++   * Sessions the student can still miss and finish at or above the threshold.
++   * NULLABLE: null is not 0. It is null once the semester has ended. Render
++   * nothing for null, never "0 absences restantes".
++   */
++  absencesLeft: number | null;
+ }
+ 
+ /** `overall` is null when no semester is marked current. The two rules are
+diff --git a/pwa/lib/attendance-contract.ts b/pwa/lib/attendance-contract.ts
+new file mode 100644
+index 0000000..7ac9e9d
+--- /dev/null
++++ b/pwa/lib/attendance-contract.ts
+@@ -0,0 +1,66 @@
++import type { AttendanceBand, AttendanceResponse } from './api-types';
++
++/**
++ * The contract check for GET /student/attendance.
++ *
++ * It lives in lib/ rather than beside the attendance components because lib/
++ * must not import from components/, and the check belongs with the API layer
++ * that receives the response.
++ */
++
++const BANDS: readonly AttendanceBand[] = ['ok', 'near', 'below'];
++
++function isBand(v: unknown): v is AttendanceBand {
++  return typeof v === 'string' && (BANDS as readonly string[]).includes(v);
++}
++
++/** Present, and either a non-negative integer or null (semester ended). */
++function isAbsencesLeft(v: unknown): v is number | null {
++  return v === null || (typeof v === 'number' && Number.isInteger(v) && v >= 0);
++}
++
++/**
++ * Throws when a response lacks the rules or the verdict the attendance UI is
++ * built on.
++ *
++ * NO LOCAL FALLBACK, deliberately. A default threshold here would be exactly the
++ * hardcoded 75 this replaced, silently disagreeing with the admin portal the day
++ * the setting moves; a missing `canSubmitJustification` read as falsy would mark
++ * every absence expired. The same goes for `band` and `absencesLeft`: they are
++ * computed once, on the server, so the PWA never derives a band from
++ * `percentage` and the threshold. A response without these fields means the PWA
++ * is talking to a backend older than 15ecfe7 (rules) or 7c929ec (band), a
++ * deployment bug, so the missing fields are logged by name and the caller shows
++ * its error state rather than guessing.
++ *
++ * `overall.band` / `overall.absencesLeft` are checked only when `overall` is
++ * not null: with no current semester there is no overall figure to carry them.
++ */
++export function checkAttendanceContract(data: AttendanceResponse): AttendanceResponse {
++  const missing: string[] = [];
++
++  if (typeof data.attendanceThreshold !== 'number') missing.push('attendanceThreshold');
++  if (typeof data.justificationDeadlineDays !== 'number') {
++    missing.push('justificationDeadlineDays');
++  }
++  if (data.overall !== null) {
++    if (!isBand(data.overall.band)) missing.push('overall.band');
++    if (!isAbsencesLeft(data.overall.absencesLeft)) missing.push('overall.absencesLeft');
++  }
++  if (!data.subjects.every((s) => isBand(s.band))) missing.push('subjects[].band');
++  if (!data.subjects.every((s) => isAbsencesLeft(s.absencesLeft))) {
++    missing.push('subjects[].absencesLeft');
++  }
++  const recordsOk = data.subjects.every((entry) =>
++    entry.absences.every((a) => typeof a.canSubmitJustification === 'boolean')
++  );
++  if (!recordsOk) missing.push('absences[].canSubmitJustification');
++
++  if (missing.length > 0) {
++    const message = `GET /student/attendance is missing ${missing.join(', ')}`;
++    console.error(`[attendance] ${message}`);
++    throw new Error(message);
++  }
++
++  return data;
++}
+diff --git a/pwa/lib/offline-cache.ts b/pwa/lib/offline-cache.ts
+index d440469..3daf237 100644
+--- a/pwa/lib/offline-cache.ts
++++ b/pwa/lib/offline-cache.ts
+@@ -24,8 +24,12 @@
+  * is opened at this version; a stored database at any other version — newer
+  * after a rollback, older after an upgrade — is emptied before use, so a
+  * payload written under one shape is never handed to code expecting another.
++ *
++ * 2: the GET /student/attendance payload gained `band` and `absencesLeft` on
++ * `overall` and on every subject. A version-1 attendance entry has neither, so
++ * every version-1 database is emptied rather than read back.
+  */
+-const SCHEMA_VERSION = 1;
++const SCHEMA_VERSION = 2;
+ 
+ const DB_NAME = 'unipocket';
+ const STORE = 'cache';
