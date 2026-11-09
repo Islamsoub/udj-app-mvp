@@ -28,6 +28,7 @@ import type {
   StudentPreferences,
   UploadJustificationResponse,
 } from '@/lib/api-types';
+import { checkAttendanceContract } from '@/lib/attendance-contract';
 
 /**
  * Same-origin paths only. The browser never learns the backend's address: the
@@ -270,26 +271,56 @@ function isGet(init: RequestInit): boolean {
  * returned without waiting for the write; a failure that mayFallBack accepts is
  * answered from the store if a copy exists, and the original error is rethrown
  * if not. Every other request passes straight through to `request`.
+ *
+ * `validate`, when given, is the endpoint's contract check: it returns the data
+ * typed or throws. It runs on every payload before anyone sees it, so the
+ * check cannot be skipped by a second consumer of the same endpoint:
+ *   • a fresh response is validated BEFORE markFresh / rememberResponse. A
+ *     response that fails is never written, the last good offline copy
+ *     survives, and the validation error reaches the caller;
+ *   • a cached payload is validated before it is served. One that fails is
+ *     treated as no copy at all, and the ORIGINAL request error is rethrown —
+ *     not the validation error, which would misreport an outage as a contract
+ *     bug. The store itself is left alone: offline-cache's silent-failure rule
+ *     is not this function's to bend, and the next good response overwrites it.
  */
-export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function apiFetch<T>(
+  path: string,
+  init: RequestInit = {},
+  validate?: (data: unknown) => T
+): Promise<T> {
   const key = isGet(init) ? cacheKeyFor(path) : null;
-  if (key === null) return request<T>(path, init, false);
+  if (key === null) {
+    const data = await request<unknown>(path, init, false);
+    return validate ? validate(data) : (data as T);
+  }
 
   // Taken before the request, so a logout while it is in flight voids its write.
   const ticket = cacheTicket();
 
-  let data: T;
+  let raw: unknown;
   try {
-    data = await request<T>(path, init, false);
+    raw = await request<unknown>(path, init, false);
   } catch (err) {
     if (!mayFallBack(err)) throw err;
 
     const entry = await readCachedResponse(key, tokenStudentId());
     if (entry === null) throw err;
 
+    let cached: T;
+    try {
+      cached = validate ? validate(entry.payload) : (entry.payload as T);
+    } catch {
+      throw err;
+    }
+
     markServedFromCache(key, entry.savedAt);
-    return entry.payload as T;
+    return cached;
   }
+
+  // Outside the try above on purpose: a validation failure is not a network
+  // failure and must not fall back to the store.
+  const data: T = validate ? validate(raw) : (raw as T);
 
   markFresh(key);
 
@@ -339,7 +370,20 @@ export const getGrades = (semesterId?: string) =>
 export const getGradesAllSemesters = () =>
   apiFetch<AllSemestersResponse>(withQuery('/student/grades', { allSemesters: 'true' }));
 
-export const getAttendance = () => apiFetch<AttendanceResponse>('/student/attendance');
+/**
+ * Validated inside apiFetch, so a response without the server's rules or band
+ * is never cached and never reaches a consumer — the attendance page and the
+ * dashboard card alike.
+ *
+ * The cast adapts checkAttendanceContract, which takes AttendanceResponse, to
+ * the validator's `unknown`. A payload that is not even an object makes the
+ * check throw a TypeError rather than its named-field error; it still throws,
+ * so it is still never cached or served.
+ */
+export const getAttendance = () =>
+  apiFetch<AttendanceResponse>('/student/attendance', {}, (data) =>
+    checkAttendanceContract(data as AttendanceResponse)
+  );
 
 export const getNotifications = (limit?: number, offset?: number) =>
   apiFetch<NotificationsResponse>(withQuery('/student/notifications', { limit, offset }));

@@ -11,7 +11,6 @@ import { StateLayers } from '@/components/grades/StateLayers';
 import { useOnline } from '@/components/shell/useOnline';
 import { getAttendance } from '@/lib/api-client';
 import type { AttendanceResponse } from '@/lib/api-types';
-import { checkAttendanceContract } from '@/lib/attendance-contract';
 import { useI18n } from '@/lib/i18n';
 import { AttendanceView } from './AttendanceView';
 import { AttendanceSkeleton } from './skeletons';
@@ -22,11 +21,12 @@ import styles from './attendance.module.css';
  * ref and re-runs only on retry or reconnect, and an inline arrow here would be
  * a new function on every render for no benefit.
  *
- * The contract check runs here, at the boundary, so a response without the
- * server's rules lands in the error state instead of reaching the view.
+ * The contract check is not run here: getAttendance runs it inside apiFetch,
+ * before the response is cached, so a response without the server's rules or
+ * band rejects and lands in the error state instead of reaching the view.
  */
 function loadAttendance(): Promise<AttendanceResponse> {
-  return getAttendance().then(checkAttendanceContract);
+  return getAttendance();
 }
 
 /**
