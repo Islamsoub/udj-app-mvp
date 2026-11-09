@@ -16,3 +16,8 @@ ios/
 *.keystore
 *.jks
 *.p8
+
+# Agent Room runtime state (written by .claude/room/hook.mjs)
+.claude/room/events.ndjson
+.claude/room/events.ndjson.*.tmp
+.claude/room/state.json
