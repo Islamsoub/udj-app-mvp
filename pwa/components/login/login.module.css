@@ -39,21 +39,23 @@
   overflow: hidden;
   padding: 40px 32px 30px;
   text-align: center;
-  /* A deep jade carrying white in light, a quiet surface carrying ink in dark
-     (see globals.css). --hero-ink is the one colour for text on the hero; its
-     contrast is measured at the lightest point under the text — over a .blob —
-     not against the flat background. */
+  /* A jade gradient carrying white in both themes (see globals.css). --hero-ink
+     is the one colour for text on the hero; its contrast is measured at the
+     lightest point under it — the gradient's start stop, under a .blob — not
+     at an average of the gradient. */
   color: var(--hero-ink);
   background: var(--hero-bg);
 }
 
-/* Lighter circles behind the mark. With white text these are the WORST case,
-   not a help: any change to their colour or opacity must re-measure
-   --hero-ink and --hero-mark against the blended colour (globals.css). */
+/* Lighter circles behind the mark, white 4%. With white text these are the
+   WORST case, not a help: in light the start circle over the start stop is
+   4.23:1, below AA, so no text may sit there other than the chip on its own
+   pill. Any change to their colour, opacity or position must re-measure
+   --hero-ink, --hero-mark and --hero-chip against the blend (globals.css). */
 .blob {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.04);
   pointer-events: none;
 }
 
@@ -89,9 +91,9 @@
  * and nothing is squashed into a square or cropped.
  *
  * COLOUR. --hero-mark, through a mask — the shell's .logoMark technique. The
- * file's paths happen to be white, which is what light now wants, but dark
- * wants jade; the mask keeps the file untouched (the native app shares it) and
- * takes the colour from the token in both themes. A masked
+ * file's paths happen to be white, which both themes now want; the mask keeps
+ * the file untouched (the native app shares it) and still takes the colour from
+ * the token, so a theme can change it in globals.css alone. A masked
  * box has no intrinsic size, so the 99:143 ratio is declared and the height
  * alone sets the size — the same 63.7 x 92 box the <img> had.
  */
@@ -101,7 +103,7 @@
   height: 92px;
   aspect-ratio: 99 / 143;
   margin-inline: auto;
-  /* White on the light hero, jade on the dark one — see --hero-mark. */
+  /* White on the hero in both themes — see --hero-mark. */
   background-color: var(--hero-mark);
   -webkit-mask-image: url('/logo.svg');
   mask-image: url('/logo.svg');
@@ -765,8 +767,9 @@
   outline-offset: 2px;
 }
 
-/* The chip sits on the hero, where a jade ring would vanish in light; the
-   hero's own text colour reads on it in both themes (5.34:1 over a circle). */
+/* The chip sits on the hero, where a jade ring would vanish; the hero's own
+   text colour reads on it in both themes (4.23:1 light, 7.05:1 dark, over a
+   circle — a ring is non-text and needs 3:1). */
 .langChip:focus-visible {
   outline-color: var(--hero-ink);
 }
