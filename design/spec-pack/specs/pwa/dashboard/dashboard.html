@@ -57,7 +57,7 @@
           <div class="notif-panel" id="notif-panel">
             <h4 data-fr="Notifications" data-ar="الإشعارات">Notifications</h4>
             <div class="notif-row"><div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5-9 5-9-5 9-5z"></path></svg></div><div><div class="t" data-fr="Vos notes de Réseaux sont publiées" data-ar="تم نشر درجات مادة الشبكات">Vos notes de Réseaux sont publiées</div><div class="d">09:12</div></div></div>
-            <div class="notif-row"><div class="chip" style="background:var(--warning-bg);color:var(--warning)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div><div><div class="t" data-fr="Présence à 72 % — sous le seuil" data-ar="نسبة الحضور 72٪ — دون الحد الأدنى">Présence à 72 % — sous le seuil</div><div class="d">Hier</div></div></div>
+            <div class="notif-row"><div class="chip" style="background:var(--warning-bg);color:var(--warning)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div><div><div class="t" data-fr="Statistiques L2 : limite d'absences dépassée — présence 72 %, seuil 75 %" data-ar="الإحصاء L2: تم تجاوز حد الغياب — الحضور 72٪، الحد الأدنى 75٪">Statistiques L2 : limite d'absences dépassée — présence 72 %, seuil 75 %</div><div class="d">Hier</div></div></div>
             <div class="notif-row"><div class="chip" style="background:var(--exam-bg);color:var(--exam)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 9h18"></path></svg></div><div><div class="t" data-fr="Calendrier des examens S2 publié" data-ar="تم نشر جدول امتحانات الفصل الثاني">Calendrier des examens S2 publié</div><div class="d">Lundi</div></div></div>
           </div>
         </div>
@@ -100,8 +100,8 @@
             <div class="card" style="cursor:pointer;flex:1;padding:16px" data-view-link="attendance">
               <h3 data-fr="Assiduité" data-ar="المواظبة">Assiduité</h3>
               <div class="gauge-wrap">
-                <div class="gauge" style="background:conic-gradient(var(--warning) 0 87%, var(--sunken) 0 100%)"><div class="hole"><b>87%</b><small data-fr="TAUX" data-ar="النسبة">TAUX</small></div></div>
-                <p class="attend-note"><strong data-fr="Seuil : 75%" data-ar="الحد الأدنى: 75٪">Seuil : 75%</strong><br><span data-fr="2 absences avant avertissement." data-ar="غيابان قبل التحذير.">2 absences avant avertissement.</span></p>
+                <div class="gauge" id="att-ring" style="background:conic-gradient(var(--jade) 0 87%, var(--sunken) 0 100%)"><div class="hole"><b>87%</b><small data-fr="TAUX" data-ar="النسبة">TAUX</small></div></div>
+                <p class="attend-note"><strong id="att-seuil" class="band-ok" data-fr="Seuil : 75 %" data-ar="الحد الأدنى: 75٪">Seuil : 75 %</strong><span id="att-line" class="worst band-below" data-fr="Statistiques L2 : limite d'absences dépassée" data-ar="الإحصاء L2: تم تجاوز حد الغياب">Statistiques L2 : limite d'absences dépassée</span></p>
               </div>
             </div>
           </div>
@@ -109,7 +109,7 @@
             <div class="card-head"><h3 data-fr="Notifications" data-ar="الإشعارات">Notifications</h3><button class="see-all" id="dash-notif-all" data-fr="Tout voir" data-ar="عرض الكل">Tout voir</button></div>
             <div style="display:flex;flex-direction:column;gap:2px">
               <div class="notif-row" style="padding:10px 0"><div class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 5-9 5-9-5 9-5z"></path></svg></div><div><div class="t" data-fr="Vos notes de Réseaux sont publiées" data-ar="تم نشر درجات مادة الشبكات">Vos notes de Réseaux sont publiées</div><div class="d">09:12</div></div></div>
-              <div class="notif-row" style="padding:10px 0"><div class="chip" style="background:var(--warning-bg);color:var(--warning)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div><div><div class="t" data-fr="Présence à 72 % — sous le seuil" data-ar="نسبة الحضور 72٪ — دون الحد الأدنى">Présence à 72 % — sous le seuil</div><div class="d">Hier</div></div></div>
+              <div class="notif-row" style="padding:10px 0"><div class="chip" style="background:var(--warning-bg);color:var(--warning)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></div><div><div class="t" data-fr="Statistiques L2 : limite d'absences dépassée — présence 72 %, seuil 75 %" data-ar="الإحصاء L2: تم تجاوز حد الغياب — الحضور 72٪، الحد الأدنى 75٪">Statistiques L2 : limite d'absences dépassée — présence 72 %, seuil 75 %</div><div class="d">Hier</div></div></div>
               <div class="notif-row" style="padding:10px 0"><div class="chip" style="background:var(--exam-bg);color:var(--exam)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M3 9h18"></path></svg></div><div><div class="t" data-fr="Calendrier des examens S2 publié" data-ar="تم نشر جدول امتحانات الفصل الثاني">Calendrier des examens S2 publié</div><div class="d">Lundi</div></div></div>
             </div>
           </div>
@@ -161,6 +161,19 @@ document.addEventListener('click',()=>{$('#notif-panel').classList.remove('open'
 const mqTablet=matchMedia('(min-width:640px) and (max-width:1023px)');
 function checkTablet(){document.body.classList.toggle('tablet',mqTablet.matches);}
 mqTablet.addEventListener('change',checkTablet);addEventListener('resize',checkTablet);addEventListener('load',checkTablet);
+
+/* Attendance card — server sends band + absencesLeft per subject and overall (Round 2 §1). ?att=ok|near|below|ended previews each state. */
+const ATT_RING={ok:'var(--jade)',near:'var(--warning)',below:'var(--danger)'};
+const ATT={
+ ok:{overall:'ok',line:'ok',fr:'Toutes les matières au-dessus du seuil',ar:'جميع المواد فوق الحد الأدنى'},
+ near:{overall:'near',line:'near',fr:'Statistiques L2 : encore 2 absences avant la limite',ar:'الإحصاء L2: يتبقّى غيابان قبل بلوغ الحد'},
+ below:{overall:'ok',line:'below',fr:"Statistiques L2 : limite d'absences dépassée",ar:'الإحصاء L2: تم تجاوز حد الغياب'},
+ ended:{overall:'ok',line:'ended-below',fr:'Statistiques L2 : semestre terminé sous le seuil',ar:'الإحصاء L2: انتهى الفصل دون بلوغ الحد الأدنى'}
+};
+function applyAtt(k){const s=ATT[k]||ATT.below;const ln=$('#att-line'),se=$('#att-seuil');
+ ln.dataset.fr=s.fr;ln.dataset.ar=s.ar;ln.className='worst band-'+(s.line==='ended-below'?'below':s.line);
+ se.className='band-'+s.overall;$('#att-ring').style.background='conic-gradient('+ATT_RING[s.overall]+' 0 87%, var(--sunken) 0 100%)';}
+applyAtt(q.get('att')||'below');
 $('#sidebar').style.transition='none';checkTablet();applyLang();requestAnimationFrame(()=>requestAnimationFrame(()=>{checkTablet();$('#sidebar').style.transition='';}));
 </script>
 </body>

@@ -10,7 +10,7 @@
 html[data-theme="light"]{
   --bg:#F7F4EE;--surface:#FFFFFF;--surface2:#F8F5EF;--sunken:#EFEAE0;
   --ink:#1E231F;--ink2:#6C7267;--ink3:#9CA396;--hair:rgba(30,35,31,.10);--hair2:rgba(30,35,31,.16);
-  --jade:#1D9E75;--jade-hover:#0F6E56;--jade-text:#0F6E56;--jade-faint:rgba(29,158,117,.10);
+  --jade:#1D9E75;--jade-hover:#22B083;--jade-text:#0F6E56;--jade-faint:rgba(29,158,117,.10);
   --danger:#EF4444;--danger-bg:rgba(239,68,68,.10);--warning:#F59E0B;--warning-bg:rgba(245,158,11,.14);
   --info:#3B82F6;--info-bg:rgba(59,130,246,.12);--exam:#8B5CF6;--exam-bg:rgba(139,92,246,.12);
 }
@@ -22,10 +22,11 @@ html[data-theme="dark"]{
   --info:#5AA0E6;--info-bg:rgba(90,160,230,.18);--exam:#A98BF0;--exam-bg:rgba(169,139,240,.18);
 }
 
-/* ---- Round 2 additions (§1 text-safe band colours, §3 hero gradient) ---- */
-html[data-theme="light"]{--warning-text:#9A5B06;--danger-text:#C62828;--hero-start:#168666;--hero-end:#0F6E56}
-html[data-theme="dark"]{--warning-text:#F0A84B;--danger-text:#FF6B6B;--hero-start:#168666;--hero-end:#0F6E56}
-/* hero gradient, both themes: login 155deg, dashboard GPA card 150deg
+/* ---- Round 2 additions (§1 band text, §3 hero). Ink tokens are the shipped --warning-ink / --danger-ink (pwa/app/globals.css). Login-hero decorative circles: rgba(255,255,255,.04). ---- */
+html[data-theme="light"]{--hero-bg:linear-gradient(155deg,#168666,#0F6E56);--hero-ink:#FFFFFF;--hero-mark:#FFFFFF;--hero-chip:rgba(10,61,46,.40);--hero-chip-hover:rgba(10,61,46,.50);--warning-ink:#8A5200;--danger-ink:#B3261E;--on-jade:#1E231F;--hero-start:#168666;--hero-end:#0F6E56}
+html[data-theme="dark"]{--hero-bg:linear-gradient(155deg,#0F5E48,#0A3D2E);--hero-ink:#FFFFFF;--hero-mark:#FFFFFF;--hero-chip:rgba(10,61,46,.40);--hero-chip-hover:rgba(10,61,46,.50);--warning-ink:#F2B35E;--danger-ink:#FF9B8F;--on-jade:#0F1713;--hero-start:#168666;--hero-end:#0F6E56}
+/* --hero-* drive the LOGIN hero only (dark is darker, 2026-11-09). --hero-start/end drive the dashboard GPA card, same in both themes.
+   hero gradient, both themes: login 155deg, dashboard GPA card 150deg
    .login-hero{background:linear-gradient(155deg,var(--hero-start),var(--hero-end))}
    .hero-jade{background:linear-gradient(150deg,var(--hero-start),var(--hero-end))}
-   --warning (#F59E0B) and --danger (#EF4444) are fills/strokes only — never text. */
+   --warning (#F59E0B) and --danger (#EF4444) are fills/strokes only — text uses --warning-ink / --danger-ink. */

@@ -62,18 +62,18 @@ band = "below"  if bestCase < T          // perfect attendance from here can no 
 <h3>Per subject or overall?</h3>
 <div class="dec"><b>Both, with clear jobs.</b> Formal warnings are per subject, as the notification shows. The <b>ring</b> shows the <b>overall</b> rate and is coloured by the <b>overall</b> band, so the colour always describes the number next to it. The <b>sentence</b> under "Seuil" reports the <b>most at-risk subject</b>.</div>
 <table><thead><tr><th>Worst subject</th><th>Sentence (FR)</th><th>Sentence (AR)</th><th>Text colour</th></tr></thead><tbody>
-<tr><td>below</td><td>{subject} : limite d'absences dépassée</td><td dir="rtl">{subject}: تم تجاوز حد الغياب</td><td>danger-text</td></tr>
-<tr><td>near</td><td>{subject} : encore {n} absence(s) avant le seuil</td><td dir="rtl">{subject}: {n} غياب متبقٍّ قبل الحد الأدنى</td><td>warning-text</td></tr>
+<tr><td>below</td><td>{subject} : limite d'absences dépassée</td><td dir="rtl">{subject}: تم تجاوز حد الغياب</td><td>danger-ink</td></tr>
+<tr><td>near</td><td>{subject} : encore {n} absence(s) avant le seuil</td><td dir="rtl">{subject}: {n} غياب متبقٍّ قبل الحد الأدنى</td><td>warning-ink</td></tr>
 <tr><td>ok (all)</td><td>Toutes les matières au-dessus du seuil</td><td dir="rtl">جميع المواد فوق الحد الأدنى</td><td>ink2</td></tr>
 </tbody></table>
 <p class="note">The "Seuil : {T} %" label always shows the live T, coloured by the overall band. If several subjects are in the worst band, show the lowest rate and append "+ {k} autre(s)". With the sample data (T = 75), the ring is 87%, green. If Statistiques L2 has used up its allowance, the sentence reads, in red: "Statistiques L2 : limite d'absences dépassée". It matches the notification.</p>
 <h3>Colours: text-safe values (measured)</h3>
 <table><thead><tr><th>Band</th><th>Ring stroke</th><th>Text, light</th><th>Text, dark</th></tr></thead><tbody>
 <tr><td>ok</td><td>--jade</td><td><span class="sw" style="background:#0F6E56"></span>#0F6E56 · 6.20 on white, 5.70 on surface2</td><td>#5FD3A6 · 8.34</td></tr>
-<tr><td>near</td><td>--warning</td><td><span class="sw" style="background:#9A5B06"></span><b>#9A5B06</b> · 5.42 on white, 4.87 on warning-bg</td><td>#F0A84B · 7.64</td></tr>
-<tr><td>below</td><td>--danger</td><td><span class="sw" style="background:#C62828"></span><b>#C62828</b> · 5.62 on white, 4.94 on danger-bg</td><td>#FF6B6B · 5.56</td></tr>
+<tr><td>near</td><td>--warning</td><td><span class="sw" style="background:#8A5200"></span><b>#8A5200</b> · 6.39 on white, 5.74 on warning-bg</td><td>#F2B35E · 8.36</td></tr>
+<tr><td>below</td><td>--danger</td><td><span class="sw" style="background:#B3261E"></span><b>#B3261E</b> · 6.54 on white, 5.74 on danger-bg</td><td>#FF9B8F · 7.59</td></tr>
 </tbody></table>
-<p class="note">Add the tokens <code>--warning-text</code> (#9A5B06 / #F0A84B) and <code>--danger-text</code> (#C62828 / #FF6B6B). #9A5B06 already ships in the prototype for "Limite" pills. #F59E0B (2.15) and #EF4444 (3.76) stay for fills and strokes only, never for text. The ring is not the only signal, because the number and the sentence carry the meaning, so its stroke may stay in the fill colours.</p>
+<p class="note">Use the existing tokens <code>--warning-ink</code> (#8A5200 / #F2B35E) and <code>--danger-ink</code> (#B3261E / #FF9B8F) from <code>pwa/app/globals.css</code>; do not add parallel tokens (revised 2026-11-09). #F59E0B (2.15) and #EF4444 (3.76) stay for fills and strokes only, never for text. The ring is not the only signal, because the number and the sentence carry the meaning, so its stroke may stay in the fill colours.</p>
 
 <h2>2 · Print — Emploi du temps (new work)</h2>
 <div class="fig"><div class="frame" style="width:700px;height:495px"><iframe src="schedule-print.html?only=fr" style="width:1123px;height:794px;transform:scale(.6234)"></iframe></div><div class="cap">A · FR, A4 landscape, full week</div></div>
@@ -115,7 +115,7 @@ band = "below"  if bestCase < T          // perfect attendance from here can no 
 <div class="dec"><b>Decision: darken the gradient start, not a position rule.</b> New hero gradient: <code>linear-gradient(155deg, #168666, #0F6E56)</code>. #168666 alone gives <b>4.53 : 1</b> with white, so <b>every point of the hero passes 4.5 : 1</b>, in any layout, language or width. Use it in both themes, and on the dashboard GPA card (<code>150deg</code>) too.</div>
 <p>Three more elements on the green fail today and are fixed with it:</p>
 <table><thead><tr><th>Element</th><th>Today</th><th>Fix</th><th>Result</th></tr></thead><tbody>
-<tr><td>Login language chip "FR" (11 px) on 16% white</td><td>2.88 : 1</td><td>Chip bg <code>rgba(0,0,0,.16)</code></td><td>6.00 : 1</td></tr>
+<tr><td>Login language chip "FR" (11 px) on 16% white</td><td>2.88 : 1</td><td>Chip bg <code>--hero-chip</code> rgba(10,61,46,.40) (revised 2026-11-09)</td><td>6.37 : 1 over a circle</td></tr>
 <tr><td>GPA label (12.5 px) at 78% white</td><td>2.81 : 1</td><td>100% white</td><td>≥ 4.53 : 1</td></tr>
 <tr><td>Mention badge (13 px) on 18% white</td><td>3.25 : 1</td><td>Badge bg <code>rgba(0,0,0,.16)</code></td><td>6.00 : 1</td></tr>
 </tbody></table>
