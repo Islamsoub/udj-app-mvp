@@ -11,6 +11,17 @@ const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 /**
+ * The stroke follows the server's overall band (ROUND2-CLOSEOUT §4, with §3's
+ * three colours) and is never derived from the percentage here. Track and
+ * aria-label are band-independent: the Hero's sentence says the band in words.
+ */
+const STROKE_CLASS: Record<AttendanceBand, string> = {
+  ok: '',
+  near: styles.ringValueNear,
+  below: styles.ringValueBelow,
+};
+
+/**
  * The presence gauge — §9 calls the fill-on-load "the hero moment of this
  * screen", so it is the largest of the three rings in the app.
  *
@@ -43,17 +54,6 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
  * hero moment would never happen. Hence a local component with its own key, and
  * a note rather than a quiet fourth fork.
  */
-/**
- * The stroke follows the server's overall band (ROUND2-CLOSEOUT §4, with §3's
- * three colours) and is never derived from the percentage here. Track and
- * aria-label are band-independent: the Hero's sentence says the band in words.
- */
-const STROKE_CLASS: Record<AttendanceBand, string> = {
-  ok: '',
-  near: styles.ringValueNear,
-  below: styles.ringValueBelow,
-};
-
 export function PresenceRing({
   percentage,
   band,
