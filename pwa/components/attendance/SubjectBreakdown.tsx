@@ -36,7 +36,7 @@ export function SubjectBreakdown({
 }) {
   const { t, lang } = useI18n();
 
-  const ordered = sortSubjects(subjects);
+  const ordered = sortSubjects(subjects, lang);
 
   return (
     <section className={styles.section}>
