@@ -202,8 +202,8 @@
   --hero-bg: linear-gradient(155deg, #168666, #0F6E56);
   /* Every piece of text on the hero — title, subtitle, language chip — and the
      chip's focus ring. Solid, never white at reduced opacity. 4.53:1 at worst
-     for text, on the bare start stop; the 4.23:1 start-corner point under the
-     circle must carry no text (see --hero-bg). The focus ring is non-text and
+     for text, on the bare start stop; the 4.23:1 point at the top-left corner (under a
+     circle) must carry no text (see --hero-bg). The focus ring is non-text and
      needs 3:1: 4.23:1 there. */
   --hero-ink: #FFFFFF;
   /* The logo mark on that hero: white, the same as the ink. A token rather than
