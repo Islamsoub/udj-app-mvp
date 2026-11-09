@@ -93,7 +93,20 @@
     "attendance": {
       "title": "Assiduité",
       "empty": "Aucune séance enregistrée pour le moment.",
-      "sessions": "{{present}} séances suivies sur {{total}}"
+      "sessions": "{{present}} séances suivies sur {{total}}",
+      "ok": "Toutes les matières au-dessus du seuil",
+      "near": {
+        "zero": "{{subject}} : plus aucune absence possible",
+        "one": "{{subject}} : encore 1 absence avant la limite",
+        "two": "{{subject}} : encore 2 absences avant la limite",
+        "few": "{{subject}} : encore {{n}} absences avant la limite",
+        "many": "{{subject}} : encore {{n}} absences avant la limite",
+        "other": "{{subject}} : encore {{n}} absences avant la limite"
+      },
+      "below": "{{subject}} : limite d'absences dépassée",
+      "ended_below": "{{subject}} : semestre terminé sous le seuil",
+      "ended_ok": "Semestre terminé — toutes les matières au-dessus du seuil",
+      "others": "+ {{k}} autre(s)"
     },
     "notifications": {
       "title": "Notifications",
