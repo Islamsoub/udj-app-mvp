@@ -12,6 +12,7 @@ import {
 import {
   arMessages,
   frMessages,
+  type PluralKey,
   type TranslationKey,
   type TranslationParams,
 } from '@/lib/i18n-types';
@@ -30,6 +31,7 @@ import {
   LANG_STORAGE_KEY,
   dirFor,
   isLang,
+  pluralCategory,
   type Dir,
   type Lang,
 } from '@/lib/i18n-shared';
@@ -68,6 +70,23 @@ function lookup(tree: unknown, key: string): string | null {
 }
 
 /**
+ * Walks a dotted path to a plural message and returns the template for one
+ * category. Null for a missing path, a non-object node, or a missing/non-string
+ * category — the PluralKey type plus the fr/ar shape check make that
+ * unreachable, but a bypassed guard still degrades to the key, not a crash.
+ */
+function lookupPlural(tree: unknown, key: string, category: string): string | null {
+  let node: unknown = tree;
+  for (const part of key.split('.')) {
+    if (typeof node !== 'object' || node === null) return null;
+    node = (node as Record<string, unknown>)[part];
+  }
+  if (typeof node !== 'object' || node === null) return null;
+  const template = (node as Record<string, unknown>)[category];
+  return typeof template === 'string' ? template : null;
+}
+
+/**
  * Replaces `{{name}}` with the matching param. An unmatched placeholder is left
  * in place rather than blanked — a visible `{{minutes}}` in a screenshot is a
  * bug report, whereas an empty gap reads as intentional and goes unnoticed.
@@ -84,6 +103,14 @@ export interface I18nValue {
   dir: Dir;
   setLang: (lang: Lang) => void;
   t: (key: TranslationKey, params?: TranslationParams) => string;
+  /**
+   * The plural message at `key` for count `n`, as a RAW template: its
+   * `{{placeholders}}` are left intact, like t(key) with no params, so the
+   * caller renders it with fmtPhrase / Interpolated and keeps control of how
+   * each value is isolated and which face it takes. The category comes from
+   * pluralCategory (lib/i18n-shared.ts): 0 is `zero`, everything else Intl.
+   */
+  plural: (key: PluralKey, n: number) => string;
 }
 
 const I18nContext = createContext<I18nValue | null>(null);
@@ -171,9 +198,26 @@ export function I18nProvider({ initialLang = DEFAULT_LANG, children }: I18nProvi
     [lang]
   );
 
+  const plural = useCallback(
+    (key: PluralKey, n: number): string => {
+      const category = pluralCategory(lang, n);
+      const template = lookupPlural(dictionaries[lang], key, category);
+
+      if (template === null) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn(`[i18n] missing plural translation: ${lang}.${key}.${category}`);
+        }
+        return key;
+      }
+
+      return template;
+    },
+    [lang]
+  );
+
   const value = useMemo<I18nValue>(
-    () => ({ lang, dir: dirFor(lang), setLang, t }),
-    [lang, setLang, t]
+    () => ({ lang, dir: dirFor(lang), setLang, t, plural }),
+    [lang, setLang, t, plural]
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
