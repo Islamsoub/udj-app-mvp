@@ -163,6 +163,9 @@ export interface AllSemestersResponse {
 
 // ── GET /student/attendance ───────────────────────────────────────────────────
 
+/** The server's attendance verdict, on the overall figure and on each subject. */
+export type AttendanceBand = 'ok' | 'near' | 'below';
+
 export interface AbsenceRecord {
   id: string;
   date: string;
@@ -190,6 +193,14 @@ export interface AttendanceSubject {
   justified: number;
   partial: number;
   percentage: number;
+  /** Computed server-side (`ok` | `near` | `below`); never derived locally. */
+  band: AttendanceBand;
+  /**
+   * Sessions the student can still miss and finish at or above the threshold.
+   * NULLABLE: null is not 0. It is null once the semester has ended. Render
+   * nothing for null, never "0 absences restantes".
+   */
+  absencesLeft: number | null;
   absences: AbsenceRecord[];
 }
 
@@ -201,6 +212,14 @@ export interface AttendanceOverall {
   partial: number;
   /** Hours-based, so null when no session lengths could be resolved. */
   percentage: number | null;
+  /** Computed server-side (`ok` | `near` | `below`); never derived locally. */
+  band: AttendanceBand;
+  /**
+   * Sessions the student can still miss and finish at or above the threshold.
+   * NULLABLE: null is not 0. It is null once the semester has ended. Render
+   * nothing for null, never "0 absences restantes".
+   */
+  absencesLeft: number | null;
 }
 
 /** `overall` is null when no semester is marked current. The two rules are

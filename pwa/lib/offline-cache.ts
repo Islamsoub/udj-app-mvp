@@ -24,8 +24,12 @@
  * is opened at this version; a stored database at any other version — newer
  * after a rollback, older after an upgrade — is emptied before use, so a
  * payload written under one shape is never handed to code expecting another.
+ *
+ * 2: the GET /student/attendance payload gained `band` and `absencesLeft` on
+ * `overall` and on every subject. A version-1 attendance entry has neither, so
+ * every version-1 database is emptied rather than read back.
  */
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 const DB_NAME = 'unipocket';
 const STORE = 'cache';

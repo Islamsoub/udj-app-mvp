@@ -1,10 +1,11 @@
-import type { AbsenceRecord, AttendanceResponse, AttendanceSubject } from '@/lib/api-types';
+import type { AbsenceRecord, AttendanceSubject } from '@/lib/api-types';
 
 /**
  * The attendance rules — the threshold and the justification window — are NOT
  * defined here. Both are admin-editable on the server and arrive on every
- * GET /student/attendance response; `checkAttendanceContract` below refuses a
- * response that lacks them rather than substituting a local value.
+ * GET /student/attendance response; `checkAttendanceContract` in
+ * lib/attendance-contract.ts refuses a response that lacks them rather than
+ * substituting a local value. The same holds for `band` and `absencesLeft`.
  */
 
 /**
@@ -61,37 +62,6 @@ export function justificationState(record: AbsenceRecord): JustificationState {
 export function needsAction(record: AbsenceRecord): boolean {
   const state = justificationState(record);
   return (state === 'none' || state === 'rejected') && record.canSubmitJustification;
-}
-
-/**
- * Throws when a response lacks the rules this screen is built on.
- *
- * NO LOCAL FALLBACK, deliberately. A default threshold here would be exactly the
- * hardcoded 75 this replaced, silently disagreeing with the admin portal the day
- * the setting moves; a missing `canSubmitJustification` read as falsy would mark
- * every absence expired. A response without these fields means the PWA is
- * talking to a backend older than 15ecfe7 — a deployment bug — so it is logged
- * by name and the screen shows its error state rather than guessing.
- */
-export function checkAttendanceContract(data: AttendanceResponse): AttendanceResponse {
-  const missing: string[] = [];
-
-  if (typeof data.attendanceThreshold !== 'number') missing.push('attendanceThreshold');
-  if (typeof data.justificationDeadlineDays !== 'number') {
-    missing.push('justificationDeadlineDays');
-  }
-  const recordsOk = data.subjects.every((entry) =>
-    entry.absences.every((a) => typeof a.canSubmitJustification === 'boolean')
-  );
-  if (!recordsOk) missing.push('absences[].canSubmitJustification');
-
-  if (missing.length > 0) {
-    const message = `GET /student/attendance is missing ${missing.join(', ')}`;
-    console.error(`[attendance] ${message}`);
-    throw new Error(message);
-  }
-
-  return data;
 }
 
 /** A record plus the subject it belongs to — the absence list is flat and

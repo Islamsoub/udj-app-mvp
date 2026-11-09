@@ -11,9 +11,9 @@ import { StateLayers } from '@/components/grades/StateLayers';
 import { useOnline } from '@/components/shell/useOnline';
 import { getAttendance } from '@/lib/api-client';
 import type { AttendanceResponse } from '@/lib/api-types';
+import { checkAttendanceContract } from '@/lib/attendance-contract';
 import { useI18n } from '@/lib/i18n';
 import { AttendanceView } from './AttendanceView';
-import { checkAttendanceContract } from './model';
 import { AttendanceSkeleton } from './skeletons';
 import styles from './attendance.module.css';
 
