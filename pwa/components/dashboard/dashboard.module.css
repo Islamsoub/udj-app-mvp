@@ -16,6 +16,14 @@
   color: var(--ink);
 }
 
+/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
+   because mirroring belongs to logical properties; letter-spacing belongs to
+   the script. Arabic letters join, and tracking pulls them apart in either
+   direction. This is not a breach of that rule, so do not remove it as one. */
+html[lang="ar"] .heading {
+  letter-spacing: normal;
+}
+
 /*
  * Two columns from 900px, one below. `auto-fit` with a minimum rather than a
  * fixed count so the cards reflow while the sidebar is collapsing, instead of

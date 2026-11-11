@@ -86,6 +86,8 @@
   html, body { margin: 0; }
   body { font-family: var(--font-sans); background: var(--bg); color: var(--ink); }
   html[lang="ar"] body { font-family: var(--font-ar); }
+  /* Arabic: no tracking on .brand. Keyed on language, not direction; see the note in the module files. */
+  html[lang="ar"] .brand { letter-spacing: normal; }
 
   /* Both languages are in the markup; only the active one shows. */
   html[lang="fr"] [data-l="ar"], html[lang="ar"] [data-l="fr"] { display: none; }

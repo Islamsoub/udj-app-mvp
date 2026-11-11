@@ -377,6 +377,14 @@
   animation: titleIn var(--dur-fast) var(--ease-out);
 }
 
+/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
+   because mirroring belongs to logical properties; letter-spacing belongs to
+   the script. Arabic letters join, and tracking pulls them apart in either
+   direction. This is not a breach of that rule, so do not remove it as one. */
+html[lang="ar"] .title {
+  letter-spacing: normal;
+}
+
 /* The outgoing title, held for one transition then dropped. */
 .titleLeaving {
   animation: titleOut var(--dur-fast) var(--ease-out) forwards;
@@ -950,6 +958,11 @@
   font-weight: 800;
   letter-spacing: -0.3px;
   color: var(--ink);
+}
+
+/* Arabic: no tracking — see the note at .title. */
+html[lang="ar"] .pageHeading {
+  letter-spacing: normal;
 }
 
 .pagePlaceholder {

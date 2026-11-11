@@ -19,6 +19,14 @@
   color: var(--ink);
 }
 
+/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
+   because mirroring belongs to logical properties; letter-spacing belongs to
+   the script. Arabic letters join, and tracking pulls them apart in either
+   direction. This is not a breach of that rule, so do not remove it as one. */
+html[lang="ar"] .heading {
+  letter-spacing: normal;
+}
+
 /*
  * One grid cell shared by every list state, so the skeleton and what replaces
  * it occupy the same box during §5's crossfade. Grades' StateLayers supplies the
@@ -395,6 +403,11 @@
   line-height: 1.3;
   letter-spacing: -0.3px;
   color: var(--ink);
+}
+
+/* Arabic: no tracking — see the note at .heading. */
+html[lang="ar"] .readerTitle {
+  letter-spacing: normal;
 }
 
 .readerBody {

@@ -21,6 +21,14 @@
   color: var(--ink);
 }
 
+/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
+   because mirroring belongs to logical properties; letter-spacing belongs to
+   the script. Arabic letters join, and tracking pulls them apart in either
+   direction. This is not a breach of that rule, so do not remove it as one. */
+html[lang="ar"] .heading {
+  letter-spacing: normal;
+}
+
 /*
  * A single grid cell that every screen state shares, so the skeleton and what
  * replaces it occupy the same box at the same time and nothing below moves
