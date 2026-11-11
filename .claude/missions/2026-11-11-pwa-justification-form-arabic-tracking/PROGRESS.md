@@ -467,3 +467,17 @@ Checks, by hand, since pwa/ has no CI:
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
+
+### Milestone 4: rebase onto develop after 1 and 3 merged (orchestrator, 2026-11-11)
+- Rebased onto `origin/develop` at bd64f1d (milestones 1 and 3 merged). The only conflict was this file. It was resolved by keeping develop's Milestone 1 and 3 sections and appending the Milestone 4 section. The CSS merged cleanly.
+- **Comment de-duplication, as Islam directed.** In attendance, dashboard, grades and schedule, milestone 3's reset already carries the full "Keyed on language…" comment. Milestone 4's copy above `.heading` is replaced with a pointer to that rule:
+  - attendance: `.heroLabel`
+  - dashboard: `.cardTitle`
+  - grades: `.heroLabel`
+  - schedule: `.dayName`
+  
+  Each of those files now has the full comment exactly once.
+- **Departure from the mission.** The mission puts the full comment on the *first* reset in each file. In these four files, the pointer at `.heading` now sits above the rule that carries the full comment, and points down to it. news, profile, shell and login are unchanged and keep the full comment on their first reset.
+- **Checks.** `npm run typecheck` exits 0 (`tsc --noEmit`, no output). `npm run build` exits 0, and all 12 routes compile.
+- **Built CSS.** The built CSS has 22 distinct `html[lang=ar] … {letter-spacing:normal}` rules: the 12 from milestone 3 and the 10 module rules from milestone 4. The 11th milestone 4 rule is in `public/offline.html`, outside the build.
+- **Not re-run.** The browser screenshots and the computed-style table were not re-taken. The rebase changed no selector or declaration, only comments.
