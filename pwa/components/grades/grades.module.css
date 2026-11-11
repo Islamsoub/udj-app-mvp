@@ -21,6 +21,11 @@
   color: var(--ink);
 }
 
+/* Arabic: no tracking — see the note at .heroLabel. */
+html[lang="ar"] .heading {
+  letter-spacing: normal;
+}
+
 /*
  * A single grid cell that every screen state shares, so the skeleton and what
  * replaces it occupy the same box at the same time and nothing below moves
