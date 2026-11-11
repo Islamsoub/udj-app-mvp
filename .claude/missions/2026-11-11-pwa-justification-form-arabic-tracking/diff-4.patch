@@ -1,10 +1,11 @@
 diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/PROGRESS.md b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/PROGRESS.md
-new file mode 100644
-index 0000000..042d6f7
---- /dev/null
+index 854546f..77ba4fc 100644
+--- a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/PROGRESS.md
 +++ b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/PROGRESS.md
-@@ -0,0 +1,158 @@
-+# Progress — PWA justification form states and Arabic tracking
+@@ -310,3 +310,174 @@ justifiable absence. The stubs are listed in PROGRESS.md; nothing was submitted.
+ 
+ 🤖 Generated with [Claude Code](https://claude.com/claude-code)
+ ```
 +
 +## Milestone 4 — Arabic: no negative tracking on translated headings
 +
@@ -23,7 +24,7 @@ index 0000000..042d6f7
 +  - `login.module.css` `.brand`
 +  - `public/offline.html` `.brand`, in the inline `<style>`, beside its existing `html[lang="ar"]` rules
 +- Comments follow the Decision section:
-+  - the full verbatim sentence goes on the first reset in each module;
++  - the full verbatim sentence goes on the first reset in each module; *(superseded after the rebase in attendance, dashboard, grades and schedule — see "rebase onto develop" below)*
 +  - the second reset in news and shell carries the pointer (`see the note at .heading` / `.title`);
 +  - offline.html has one line.
 +- Unchanged: `.brandName`, `.heroNumber`, `.subjectValue`, `.unreadCount`, `.calcCurrentValue`, `.calcResultValue`, `.langCode`, `.inputId`. sw.js and globals.css are not touched either.
@@ -127,7 +128,7 @@ index 0000000..042d6f7
 +- `ar-offline.png`: offline.html.
 +
 +### Flagged
-+- **Comment collision with milestone 3 (for whoever merges second).**
++- **Comment collision with milestone 3 (for whoever merges second).** *(Done after the rebase — see "rebase onto develop" below.)*
 +  - In attendance, dashboard, grades and schedule, this branch's `.heading` reset is the first `html[lang="ar"]` rule in the file, so it carries the full verbatim comment.
 +  - Milestone 3 also puts the full comment on *its* first reset in those four files.
 +  - After both merge, each of those files has the full sentence twice. Taken literally, the Decision section wants the later one (milestone 3's, lower in the file) reduced to `/* Arabic: no tracking — see the note at .heading. */`.
@@ -162,6 +163,20 @@ index 0000000..042d6f7
 +
 +🤖 Generated with [Claude Code](https://claude.com/claude-code)
 +```
++
++### Milestone 4: rebase onto develop after 1 and 3 merged (orchestrator, 2026-11-11)
++- Rebased onto `origin/develop` at bd64f1d (milestones 1 and 3 merged). The only conflict was this file. It was resolved by keeping develop's Milestone 1 and 3 sections and appending the Milestone 4 section. The CSS merged cleanly.
++- **Comment de-duplication, as Islam directed.** In attendance, dashboard, grades and schedule, milestone 3's reset already carries the full "Keyed on language…" comment. Milestone 4's copy above `.heading` is replaced with a pointer to that rule:
++  - attendance: `.heroLabel`
++  - dashboard: `.cardTitle`
++  - grades: `.heroLabel`
++  - schedule: `.dayName`
++  
++  Each of those files now has the full comment exactly once.
++- **Departure from the mission.** The mission puts the full comment on the *first* reset in each file. In these four files, the pointer at `.heading` now sits above the rule that carries the full comment, and points down to it. news, profile, shell and login are unchanged and keep the full comment on their first reset.
++- **Checks.** `npm run typecheck` exits 0 (`tsc --noEmit`, no output). `npm run build` exits 0, and all 12 routes compile.
++- **Built CSS.** The built CSS has 22 distinct `html[lang=ar] … {letter-spacing:normal}` rules: the 12 from milestone 3 and the 10 module rules from milestone 4. The 11th milestone 4 rule is in `public/offline.html`, outside the build.
++- **Not re-run.** The browser screenshots and the computed-style table were not re-taken. The rebase changed no selector or declaration, only comments.
 diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m4/ar-attendance.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m4/ar-attendance.png
 new file mode 100644
 index 0000000..eeade35
@@ -203,17 +218,14 @@ new file mode 100644
 index 0000000..d507c39
 Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m4/ar-topbar-title-390.png differ
 diff --git a/pwa/components/attendance/attendance.module.css b/pwa/components/attendance/attendance.module.css
-index d7af66f..cb157c3 100644
+index 1b09d50..26b0746 100644
 --- a/pwa/components/attendance/attendance.module.css
 +++ b/pwa/components/attendance/attendance.module.css
-@@ -21,6 +21,14 @@
+@@ -21,6 +21,11 @@
    color: var(--ink);
  }
  
-+/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
-+   because mirroring belongs to logical properties; letter-spacing belongs to
-+   the script. Arabic letters join, and tracking pulls them apart in either
-+   direction. This is not a breach of that rule, so do not remove it as one. */
++/* Arabic: no tracking — see the note at .heroLabel. */
 +html[lang="ar"] .heading {
 +  letter-spacing: normal;
 +}
@@ -222,17 +234,14 @@ index d7af66f..cb157c3 100644
   * A single grid cell that every screen state shares, so the skeleton and what
   * replaces it occupy the same box at the same time and nothing below moves
 diff --git a/pwa/components/dashboard/dashboard.module.css b/pwa/components/dashboard/dashboard.module.css
-index 3d2b77c..e253679 100644
+index 516427e..8ed923a 100644
 --- a/pwa/components/dashboard/dashboard.module.css
 +++ b/pwa/components/dashboard/dashboard.module.css
-@@ -16,6 +16,14 @@
+@@ -16,6 +16,11 @@
    color: var(--ink);
  }
  
-+/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
-+   because mirroring belongs to logical properties; letter-spacing belongs to
-+   the script. Arabic letters join, and tracking pulls them apart in either
-+   direction. This is not a breach of that rule, so do not remove it as one. */
++/* Arabic: no tracking — see the note at .cardTitle. */
 +html[lang="ar"] .heading {
 +  letter-spacing: normal;
 +}
@@ -241,17 +250,14 @@ index 3d2b77c..e253679 100644
   * Two columns from 900px, one below. `auto-fit` with a minimum rather than a
   * fixed count so the cards reflow while the sidebar is collapsing, instead of
 diff --git a/pwa/components/grades/grades.module.css b/pwa/components/grades/grades.module.css
-index 608fa86..1167764 100644
+index f0036bf..47b4aba 100644
 --- a/pwa/components/grades/grades.module.css
 +++ b/pwa/components/grades/grades.module.css
-@@ -21,6 +21,14 @@
+@@ -21,6 +21,11 @@
    color: var(--ink);
  }
  
-+/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
-+   because mirroring belongs to logical properties; letter-spacing belongs to
-+   the script. Arabic letters join, and tracking pulls them apart in either
-+   direction. This is not a breach of that rule, so do not remove it as one. */
++/* Arabic: no tracking — see the note at .heroLabel. */
 +html[lang="ar"] .heading {
 +  letter-spacing: normal;
 +}
@@ -329,17 +335,14 @@ index 9aa3460..335e403 100644
    display: flex;
    flex-direction: column;
 diff --git a/pwa/components/schedule/schedule.module.css b/pwa/components/schedule/schedule.module.css
-index 4b7f69f..493350f 100644
+index 70d687d..cc6de28 100644
 --- a/pwa/components/schedule/schedule.module.css
 +++ b/pwa/components/schedule/schedule.module.css
-@@ -23,6 +23,14 @@
+@@ -23,6 +23,11 @@
    color: var(--ink);
  }
  
-+/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
-+   because mirroring belongs to logical properties; letter-spacing belongs to
-+   the script. Arabic letters join, and tracking pulls them apart in either
-+   direction. This is not a breach of that rule, so do not remove it as one. */
++/* Arabic: no tracking — see the note at .dayName. */
 +html[lang="ar"] .heading {
 +  letter-spacing: normal;
 +}

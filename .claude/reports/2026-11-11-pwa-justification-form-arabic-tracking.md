@@ -76,3 +76,62 @@ All three branches were cut from develop at 5e10463. In `pwa/`, `npm run typeche
 9. **May the leftover worktrees be removed?**
    - `.claude/worktrees/agent-*` (three, locked): created by a failed automatic-isolation attempt. The tool refused because of the `documents` / `Documents` path case. My attempt to remove them was blocked by the permission check. They are untouched checkouts at e4c03bb.
    - `../udj-wt-m1`, `../udj-wt-m3`, `../udj-wt-m4`: the builders' worktrees. Keep them until the PRs are merged, then run `git worktree remove` on each.
+
+---
+
+# Run 2 (same day): milestone 4 rebased, milestone 2 built
+
+Islam merged milestones 1 and 3 into develop (bd64f1d) and asked for three things:
+- rebase milestone 4 onto develop;
+- de-duplicate the comment, keeping milestone 3's copy;
+- continue with milestone 2.
+
+**Where the run stopped:** every milestone in the mission is now built and reviewed with no findings. Nothing is merged, and no PR is open, because `gh` is still missing.
+
+| # | Goal met? | Branch | Head | Review |
+|---|---|---|---|---|
+| 2 | Yes, after one fix round | `feature/pwa-justification-field-errors` | 5cb22f0 | Round 1: no code defects, but the long-Arabic-message screenshot did not wrap. Round 2: no findings |
+| 4 | Yes | `feature/pwa-arabic-heading-tracking-rebased` (see below) | d539ab4 | No findings after the rebase |
+
+## Milestone 4: rebase
+- **Rebase.** It rebased onto bd64f1d. Only PROGRESS.md conflicted, and the fix keeps the Milestone 1 and 3 sections and appends Milestone 4's. The CSS merged cleanly.
+- **Comment.** In attendance, dashboard, grades and schedule, the comment above `.heading` is now the one-line pointer, naming milestone 3's rule:
+  - attendance: `.heroLabel`
+  - dashboard: `.cardTitle`
+  - grades: `.heroLabel`
+  - schedule: `.dayName`
+
+  Each of those files carries the full comment once. This departs from the mission's "full comment on the first reset", as directed, and PROGRESS.md records it.
+- **Checks.** typecheck exits 0 and build exits 0. The built CSS has 22 Arabic reset rules (12 + 10), and the 11th milestone 4 rule is in `offline.html`.
+- **Branch name.** The original branch, `feature/pwa-arabic-heading-tracking`, still points at the pre-rebase commit bc923ee. Updating it needs a force push, which the permission check blocked. The rebased work was pushed as a new branch, **`feature/pwa-arabic-heading-tracking-rebased`**.
+- **Reviewer note, fixed.** The original Milestone 4 notes in PROGRESS.md still described the old comment placement. They are now annotated as superseded.
+
+## Milestone 2: field errors
+- **Error state.** `JustificationForm.tsx` replaces the single `error` with `fileError`, `noteError` and `formError`. `errorKey` returns `{ field, key }`, and the note check runs first in the 400 branch.
+- **Where each error lands:**
+  - **Drop zone:** the client checks `type`, `too_large`, `empty` and `multiple`; server 400s that read as type or size; and 413.
+  - **Note:** any 400 whose message matches `/note/i`, which covers both backend sentences.
+  - **Form box, now directly above the submit button:** everything else, including `rejected`, `network`, `deadline`, `conflict`, 429, 5xx, and unmapped statuses.
+- **Note field.** The input is now labelled and described, and in error its hint is replaced by the message.
+- **Drop zone precedence:** busy, then dragging, then error, then hover, then rest. Hover does not repaint an errored zone.
+- **`--danger-ink` gate: passed.** Measured on `--surface`, it is 6.54:1 in light and 7.59:1 in dark. The reviewer recomputed both, and both theme comments in globals.css now carry them.
+- **Error keys.** The mission said 16. The builder and reviewer both count 13 `upload.error.*` keys plus `note_hint`. The reviewer confirmed that every key that can be produced lands on exactly one field.
+- **Fix round.** No Arabic form error wraps at 390px, including the longest, `conflict`. The wrap and no-clip check was done at 360px with `conflict`: 58px, 2 lines, `scrollHeight == clientHeight`. French wraps at 390px.
+- **Test data.** Every upload was stubbed and never reached the server. GET attendance was the live response with `canSubmitJustification` set to true on the 4 absences that had nothing filed. Credentials are in no file.
+- **Files:**
+  - `JustificationForm.tsx`
+  - `attendance.module.css`
+  - `globals.css` (comment only)
+  - PROGRESS.md
+  - `screenshots/m2/`: 20 PNGs, generated
+
+## New questions for a human
+1. **How should milestone 4 be merged?** Merge `feature/pwa-arabic-heading-tracking-rebased`, or force-push it over the original name yourself:
+   `git -C ../udj-wt-m4 push --force-with-lease=feature/pwa-arabic-heading-tracking:bc923ee origin feature/pwa-arabic-heading-tracking`
+2. **Design: should the `rejected` text change?** It still says "Réessayez avec un autre fichier", but it now appears in the form box and the file is not marked. Should it get new text?
+3. **Should a refused file clear the old form error?** For example, a 502 box followed by picking a `.txt` shows both the red zone and the box. This matches the mission's clearing rules ("when a new file is *accepted*"). Is that what you want, or should any file choice clear the form error?
+4. **Should a server-side file error unselect the file?** Today it stays selected, so resending fails the same way. This was already the behaviour before milestone 2.
+5. **Flag 1 is still open:** is the note error text final, or should there be a dedicated `attendance.upload.error.note` key?
+6. **Can you stop the leftover milestone 1 server?** It is PID 24456, still listening on port 3101: `next start -p 3101` from `udj-wt-m1/pwa`, started at 15:30 by milestone 1's builder, which reported it stopped. My attempt to stop it was blocked by the permission check. Run: `Stop-Process -Id 24456`.
+7. **Builder mistake, harmless:** the milestone 2 builder once ran `taskkill /T /F` on PID 0 by misreading netstat. Windows refused it and nothing was terminated. The builder then stopped only its own verified server.
+8. **Still open from run 1:** the "KB 1" ticket, the credits-line bidi question, Flag 2 (the CLAUDE.md wording), the test account's data, and the leftover worktrees: `.claude/worktrees/agent-*` and `../udj-wt-m1` through `../udj-wt-m4`.
