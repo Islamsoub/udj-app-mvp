@@ -403,7 +403,7 @@ For each of fr-light, fr-dark, ar-light and ar-dark, the results were the same:
   - its next sibling is the submit button;
   - both fields are at their rest colours.
 - **A new valid file** clears the box.
-- **Long message, 390px wide:** a 409 `DEADLINE_PASSED` box in AR and FR, light and dark. `scrollHeight` equals `clientHeight` (39px AR, 58px FR), so it is not clipped. The too-large file message at the same width is not clipped either.
+- **Long message that wraps:** see "Fix round: a long form error that wraps" below. The first round's Arabic shot did not wrap, so it proved nothing about clipping. The too-large file message at 390px is not clipped either.
 - **Animation:**
   - normal motion: `fieldErrorIn 0.18s cubic-bezier(0.16, 1, 0.3, 1)`, fill `none`;
   - with `reducedMotion: 'reduce'`: `0.1s linear`, fill `none`.
@@ -434,7 +434,36 @@ For each of `fr-light`, `fr-dark`, `ar-light` and `ar-dark`:
 - `-file-error-hover`: still reads as the error
 - `-note-error`
 - `-form-error`: the 502 box above the submit button
-- `-form-error-long-390`: 409 deadline at 390px, not clipped
+
+Long form error that wraps to 2 lines (fix round):
+- `fr-light-form-error-long-390.png`, `fr-dark-form-error-long-390.png`: `deadline` at 390px.
+- `ar-light-form-error-long-360.png`, `ar-dark-form-error-long-360.png`: `conflict` at 360px. The old `ar-*-form-error-long-390.png` files are deleted. They showed a single line, and their names claimed more than they showed.
+
+### Fix round: a long form error that wraps
+The reviewer found that `ar-*-form-error-long-390.png` used `error.deadline`, which fits on one line in Arabic, so wrapping was never tested.
+
+**Survey at 390px.** Every form-level key was stubbed in turn (`rejected` through an unrecognised 400, then `not_found`, `deadline`, `not_absent`, `conflict`, `rate_limited`, `storage`, `unavailable`). Each `.formError` box was measured after its transition:
+- **AR: none of the eight keys wraps at 390px.** Every box is 39px (`clientHeight` = 20px padding + one 18.75px line). That includes `conflict`, the longest Arabic string: "لم يعد بالإمكان إرسال مبرر لهذا الغياب. أغلق اللوحة وأعد فتح القائمة."
+- FR: all eight keys wrap to 2 lines (58px) at 390px.
+
+So no mapped Arabic form error can show a wrapping box at 390px. I did not edit copy or force a longer string. I measured `conflict` at 360px instead, which is the commonest Android phone width, and it wraps there. All other Arabic keys are still one line at 360px.
+
+**Results.** Lines are counted two ways: distinct line boxes from `Range.getClientRects()`, and (clientHeight − padding) ÷ line-height. The two agree.
+
+| Shot | Key | Width | clientHeight | scrollHeight | Lines | Clipped |
+|---|---|---|---|---|---|---|
+| ar-light | `conflict` (409, no code) | 360 | 58 | 58 | 2 | no |
+| ar-dark | `conflict` (409, no code) | 360 | 58 | 58 | 2 | no |
+| fr-light | `deadline` (409 DEADLINE_PASSED) | 390 | 58 | 58 | 2 | no |
+| fr-dark | `deadline` (409 DEADLINE_PASSED) | 390 | 58 | 58 | 2 | no |
+
+In every shot the box's next sibling is the submit button. `.formError` has no `overflow` or `max-height`, so its own height governs and the second line is fully shown. The screenshots confirm it.
+
+**Stubs.** These were the same as the first round. The upload stub fulfilled every request locally and never continued any of them (30 requests across the survey and the shots). GET attendance was live, with `canSubmitJustification` flipped on. The credentials were environment variables only.
+
+**Server.** I served on :3102 and stopped it afterwards. Before killing anything, I checked that the listener's command line was this worktree's `next start -p 3102` (PID 21648). Afterwards, `Get-NetTCPConnection -LocalPort 3102` showed no owning process, and `curl` was refused.
+
+**Flag for Design.** Every Arabic form error fits on one line at 390px. The "long Arabic message" in the done-when list exists at 360px (only `conflict`) but not at 390px. Above that, it needs copy longer than what ships today. I did not measure the exact width where it starts to wrap.
 
 ### Checks
 `npm run typecheck` (exit 0):
