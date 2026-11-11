@@ -1,0 +1,344 @@
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/PROGRESS.md b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/PROGRESS.md
+new file mode 100644
+index 0000000..5b5a691
+--- /dev/null
++++ b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/PROGRESS.md
+@@ -0,0 +1,158 @@
++# Progress
++
++## Milestone 1: Submit button and drop zone: hover, press, easing
++
++Branch: `feature/pwa-justification-submit-dropzone-states`, cut from `origin/develop` at 5e10463.
++Status: built, checked, pushed. **Not merged.** No PR opened, because `gh` is not installed. The ready-to-paste PR is below.
++
++### What was done
++Only `pwa/components/attendance/attendance.module.css` changed, and only the rules the milestone lists. I re-checked the line numbers against 5e10463 before editing, and they matched the planner's table: `.dropZone` 783-795, `.submit` 878-895, reduced-motion block 1202-1243.
++- `.dropZone`: the transition went from `var(--dur-instant) linear` to `var(--dur-fast) var(--ease-out)` on both border-color and background-color. This fixes the audit's Medium `linear` finding. The comment now explains why the duration is split.
++- New `.dropZoneLive:not(.dropZoneBusy):hover`: `--jade` border and `--jade-faint` fill, the same values as dragover. It sits between `.dropZoneLive` and `.dropZoneDragging`.
++- `.dropZoneDragging`: added `transition-duration: var(--dur-instant)` (§5 dragover).
++- `.submit`: added `transition: background var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out)`.
++- New `.submit:hover:not(:disabled) { background: var(--jade-hover) }` and `.submit:active:not(:disabled) { transform: scale(0.97) }`. These mirror login's `.submit`. `.submit:disabled` is unchanged.
++- Reduced-motion block:
++  - `.submit` is added to the list that collapses to `--dur-instant` linear.
++  - `.submit:active:not(:disabled)` is added to the list whose transform is `none`.
++  - **Deviation from the mission's wording.** The mission says to add `.submit:active`. A bare `.submit:active` is (0,2,0) and loses to the new `.submit:active:not(:disabled)` (0,3,0), because a media query adds no specificity. The override has to repeat the full selector to win. I verified it in the browser with `reducedMotion: 'reduce'`: the pressed transform is `none`, and the transition is `0.1s linear`.
++- No TSX change.
++
++### Test data: what was real and what was stubbed
++- **Upload: stubbed.** `page.route('**/api/backend/student/attendance/*/justification')` was registered before any page loaded. It was always fulfilled with a fake 200 PENDING body and never continued.
++  - In the screenshot run it received 0 requests. The press was released off the button, so no click fired.
++  - In the reduced-motion/busy run it received 1 request on purpose, held 4s so the busy state could be observed. That request was fulfilled by the stub and never reached the server.
++- **GET attendance: stubbed.** The test account has 9 records, and `canSubmitJustification` is false on every one, so no form was reachable.
++  - The stub calls `route.fetch()` for the live GET response. It sets `canSubmitJustification: true` on the 4 records that are `ABSENT` with `justificationStatus: null`, then fulfils the request with that body.
++  - Everything else is the server's real data, so `band`, `absencesLeft` and the rest of the `lib/attendance-contract.ts` shape are genuine.
++- The login was real. Language and theme were set through the app's own Profile → device controls.
++- Scripts live outside the repo, in the session scratchpad. No credential is in any file.
++
++### Computed values (Playwright, `getComputedStyle`)
++The rows below are the same in FR and AR. Each pair of values is light / dark.
++
++| State | Background | Border | Transform |
++|---|---|---|---|
++| submit, rest | rgb(29,158,117) / rgb(43,185,137) | n/a | none |
++| submit, hover | rgb(34,176,131) / rgb(63,203,154), the `--jade-hover` values #22B083 / #3FCB9A | n/a | none |
++| submit, pressed | `--jade-hover` | n/a | `matrix(0.97,…)` |
++| submit, no file, hover | identical to rest: `--jade`, opacity 0.5, `not-allowed` | n/a | none |
++| drop zone, rest | `--surface2` | `--hair2` | n/a |
++| drop zone, hover | rgba(29,158,117,.10) / rgba(43,185,137,.16) | `--jade` | n/a |
++| drop zone, busy, hovered | rest values | rest values | n/a |
++
++Transitions:
++- drop zone: `0.18s cubic-bezier(0.16, 1, 0.3, 1)`.
++- submit: background 0.18s and transform 0.1s, both on that curve.
++
++Reduced motion: both controls run `0.1s linear`, and the pressed submit has transform `none`.
++
++In the built CSS, `.dropZoneDragging` carries `transition-duration:var(--dur-instant)`, confirmed in `.next/static/chunks/*.css`. I did not drive a real drag-and-drop in Playwright.
++
++### Screenshots (`screenshots/m1/`)
++For each of `fr-light`, `fr-dark`, `ar-light` and `ar-dark`:
++- `-nofile-submit-rest`, `-nofile-submit-hover`: these two must be identical, and they are;
++- `-file-rest`: drop zone and submit at rest, with a valid file selected;
++- `-file-dropzone-hover`;
++- `-file-submit-hover`;
++- `-file-submit-pressed`.
++
++There is also `fr-light-busy-dropzone-hover.png`, taken under reduced motion: a busy zone does not hover.
++
++### Checks
++`grep -n linear pwa/components/attendance/attendance.module.css`:
++```
++1090:  background-image: linear-gradient(
++1100:  animation: shimmer 900ms linear infinite;
++1239:    animation-timing-function: linear;
++1246:    transition-timing-function: linear;
++1256:    transition-timing-function: linear;
++```
++1090 and 1100 are the shimmer. 1239, 1246 and 1256 are inside the reduced-motion block, which starts at 1226. No other `linear` remains.
++
++`npm run typecheck` (exit 0):
++```
++> unipocket-pwa@1.0.0 typecheck
++> tsc --noEmit
++```
++
++`npm run build`:
++```
++> unipocket-pwa@1.0.0 build
++> next build
++
++▲ Next.js 16.3.3 (Turbopack)
++- Environments: .env.local
++✓ Running next.config.ts took 7.2s
++
++  Creating an optimized production build ...
++✓ Compiled successfully in 32.3s
++  Running TypeScript ...
++✓ Finished writing to filesystem cache in 12.0s
++  Finished TypeScript in 32.2s ...
++  Collecting page data using 7 workers ...
++✓ Generating static pages using 7 workers (12/12) in 2.0s
++  Finalizing page optimization ...
++
++Route (app)
++┌ ƒ /
++├ ƒ /_not-found
++├ ƒ /api/auth/login
++├ ƒ /api/auth/logout
++├ ƒ /api/auth/refresh
++├ ƒ /api/backend/[...path]
++├ ƒ /attendance
++├ ƒ /grades
++├ ƒ /login
++├ ƒ /news
++├ ƒ /profile
++└ ƒ /schedule
++
++ƒ  (Dynamic)  server-rendered on demand
++```
++
++### Flagged
++- **Arabic file size renders as "KB 1"** in the drop zone. You can see it in `ar-*-file-*.png`. `formatSize` output in `.dropFileSize` is not wrapped with `lib/bidi.tsx` `fmtLtr`, so the bidi algorithm reorders the figure and the unit. This existed before this milestone and is out of scope here. It needs its own ticket, and it touches `JustificationForm.tsx`.
++- **The reduced-motion selector differs from the mission's wording.** The mission says `.submit:active`; I used `.submit:active:not(:disabled)`. The reason is under "What was done".
++- No user-facing copy was added.
++
++### Could not do
++- Open the PR: `gh` is not installed. The branch is pushed, and the title and description are below.
++- A real drag-and-drop gesture in Playwright. The dragover duration is verified in the built CSS only.
++
++### PR (ready to paste)
++Title: `fix(pwa): justification submit and drop zone hover, press and easing`
++
++Body:
++```
++Milestone 1 of .claude/missions/2026-11-11-pwa-justification-form-arabic-tracking.
++Does not touch backend/prisma/schema.prisma (PWA CSS only).
++
++CSS only, in pwa/components/attendance/attendance.module.css:
++
++- .submit: §5 button states, mirroring login's .submit. The background eases
++  over --dur-fast and the transform over --dur-instant, both on --ease-out.
++  :hover:not(:disabled) goes to --jade-hover, :active:not(:disabled) presses to
++  scale(0.97). .submit:disabled is unchanged, so a disabled button neither
++  hovers nor presses.
++- .dropZone: the transition moves off `linear` (audit, Medium) to --ease-out,
++  over --dur-fast for the §3 hover.
++- New .dropZoneLive:not(.dropZoneBusy):hover: --jade border and --jade-faint
++  fill, the same signal as dragover. A busy zone has no hover.
++- .dropZoneDragging keeps §5's --dur-instant through its own
++  transition-duration.
++- Reduced motion: .submit collapses to --dur-instant linear, and the pressed
++  .submit has no transform. The override repeats `:active:not(:disabled)`
++  because a bare `.submit:active` would lose on specificity.
++
++No TSX change.
++
++Checks: `npm run typecheck` and `npm run build` pass in pwa/ (pwa has no CI
++job). Outputs, computed-style values and FR/AR × light/dark screenshots are in
++the mission's PROGRESS.md and screenshots/m1/. The upload was stubbed and
++never reached the server. GET attendance was stubbed from the live response
++with canSubmitJustification flipped on, because the test account has no
++justifiable absence.
++
++🤖 Generated with [Claude Code](https://claude.com/claude-code)
++```
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-file-dropzone-hover.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-file-dropzone-hover.png
+new file mode 100644
+index 0000000..1edcceb
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-file-dropzone-hover.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-file-rest.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-file-rest.png
+new file mode 100644
+index 0000000..6d22caf
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-file-rest.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-file-submit-hover.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-file-submit-hover.png
+new file mode 100644
+index 0000000..088db13
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-file-submit-hover.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-file-submit-pressed.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-file-submit-pressed.png
+new file mode 100644
+index 0000000..c659133
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-file-submit-pressed.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-nofile-submit-hover.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-nofile-submit-hover.png
+new file mode 100644
+index 0000000..301a6bc
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-nofile-submit-hover.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-nofile-submit-rest.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-nofile-submit-rest.png
+new file mode 100644
+index 0000000..301a6bc
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-dark-nofile-submit-rest.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-file-dropzone-hover.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-file-dropzone-hover.png
+new file mode 100644
+index 0000000..ea8a948
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-file-dropzone-hover.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-file-rest.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-file-rest.png
+new file mode 100644
+index 0000000..04eb2db
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-file-rest.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-file-submit-hover.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-file-submit-hover.png
+new file mode 100644
+index 0000000..f48e6e8
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-file-submit-hover.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-file-submit-pressed.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-file-submit-pressed.png
+new file mode 100644
+index 0000000..99b89b2
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-file-submit-pressed.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-nofile-submit-hover.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-nofile-submit-hover.png
+new file mode 100644
+index 0000000..6ea4f90
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-nofile-submit-hover.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-nofile-submit-rest.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-nofile-submit-rest.png
+new file mode 100644
+index 0000000..6ea4f90
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/ar-light-nofile-submit-rest.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-file-dropzone-hover.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-file-dropzone-hover.png
+new file mode 100644
+index 0000000..431b12f
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-file-dropzone-hover.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-file-rest.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-file-rest.png
+new file mode 100644
+index 0000000..ff62065
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-file-rest.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-file-submit-hover.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-file-submit-hover.png
+new file mode 100644
+index 0000000..4bb50fd
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-file-submit-hover.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-file-submit-pressed.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-file-submit-pressed.png
+new file mode 100644
+index 0000000..6988513
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-file-submit-pressed.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-nofile-submit-hover.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-nofile-submit-hover.png
+new file mode 100644
+index 0000000..57ee956
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-nofile-submit-hover.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-nofile-submit-rest.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-nofile-submit-rest.png
+new file mode 100644
+index 0000000..57ee956
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-dark-nofile-submit-rest.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-busy-dropzone-hover.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-busy-dropzone-hover.png
+new file mode 100644
+index 0000000..94e13a7
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-busy-dropzone-hover.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-file-dropzone-hover.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-file-dropzone-hover.png
+new file mode 100644
+index 0000000..209b1a9
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-file-dropzone-hover.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-file-rest.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-file-rest.png
+new file mode 100644
+index 0000000..88897a4
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-file-rest.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-file-submit-hover.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-file-submit-hover.png
+new file mode 100644
+index 0000000..a1dca78
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-file-submit-hover.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-file-submit-pressed.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-file-submit-pressed.png
+new file mode 100644
+index 0000000..9f6b665
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-file-submit-pressed.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-nofile-submit-hover.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-nofile-submit-hover.png
+new file mode 100644
+index 0000000..85fe32f
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-nofile-submit-hover.png differ
+diff --git a/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-nofile-submit-rest.png b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-nofile-submit-rest.png
+new file mode 100644
+index 0000000..85fe32f
+Binary files /dev/null and b/.claude/missions/2026-11-11-pwa-justification-form-arabic-tracking/screenshots/m1/fr-light-nofile-submit-rest.png differ
+diff --git a/pwa/components/attendance/attendance.module.css b/pwa/components/attendance/attendance.module.css
+index d7af66f..ae0b549 100644
+--- a/pwa/components/attendance/attendance.module.css
++++ b/pwa/components/attendance/attendance.module.css
+@@ -789,9 +789,11 @@
+   border: 1px dashed var(--hair2);
+   border-radius: var(--r-md);
+   background: var(--surface2);
+-  /* §5: the dragover swap happens over --dur-instant. */
+-  transition: border-color var(--dur-instant) linear,
+-    background-color var(--dur-instant) linear;
++  /* §3: hover eases in over --dur-fast with §2's --ease-out. The dragover
++     swap is faster (§5, --dur-instant); .dropZoneDragging sets that duration
++     itself, because a transition takes its duration from the state entered. */
++  transition: border-color var(--dur-fast) var(--ease-out),
++    background-color var(--dur-fast) var(--ease-out);
+ }
+ 
+ /* Live, as opposed to the disabled placeholder this used to be. */
+@@ -799,11 +801,19 @@
+   cursor: pointer;
+ }
+ 
++/* §3 hover. The same values as dragover: "this zone takes a file" is one
++   signal. Never while uploading — a busy zone takes nothing. */
++.dropZoneLive:not(.dropZoneBusy):hover {
++  border-color: var(--jade);
++  background: var(--jade-faint);
++}
++
+ /* §5: "dragover state adds a jade dashed border + jade-faint background over
+    --dur-instant". */
+ .dropZoneDragging {
+   border-color: var(--jade);
+   background: var(--jade-faint);
++  transition-duration: var(--dur-instant);
+ }
+ 
+ .dropZoneBusy {
+@@ -890,6 +900,20 @@
+   font-size: 13.5px;
+   font-weight: 700;
+   cursor: pointer;
++  /* §5 buttons, as login's .submit: the fill eases over --dur-fast, the press
++     over --dur-instant. */
++  transition: background var(--dur-fast) var(--ease-out),
++    transform var(--dur-instant) var(--ease-out);
++}
++
++/* The :not(:disabled) guards are what keep §3's "hover and press disabled"
++   true; .submit:disabled below is unchanged. */
++.submit:hover:not(:disabled) {
++  background: var(--jade-hover);
++}
++
++.submit:active:not(:disabled) {
++  transform: scale(0.97);
+ }
+ 
+ /* §3: disabled controls drop to 0.5 opacity and refuse the cursor, with hover
+@@ -1226,7 +1250,8 @@
+   .retryButton,
+   .document,
+   .dropZone,
+-  .noteInput {
++  .noteInput,
++  .submit {
+     transition-duration: var(--dur-instant);
+     transition-timing-function: linear;
+   }
+@@ -1237,7 +1262,8 @@
+ 
+   .absence:active,
+   .retryButton:active,
+-  .document:active {
++  .document:active,
++  .submit:active:not(:disabled) {
+     transform: none;
+   }
+ }
