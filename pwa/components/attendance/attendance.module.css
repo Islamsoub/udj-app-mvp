@@ -789,9 +789,11 @@
   border: 1px dashed var(--hair2);
   border-radius: var(--r-md);
   background: var(--surface2);
-  /* §5: the dragover swap happens over --dur-instant. */
-  transition: border-color var(--dur-instant) linear,
-    background-color var(--dur-instant) linear;
+  /* §3: hover eases in over --dur-fast with §2's --ease-out. The dragover
+     swap is faster (§5, --dur-instant); .dropZoneDragging sets that duration
+     itself, because a transition takes its duration from the state entered. */
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
 
 /* Live, as opposed to the disabled placeholder this used to be. */
@@ -799,11 +801,19 @@
   cursor: pointer;
 }
 
+/* §3 hover. The same values as dragover: "this zone takes a file" is one
+   signal. Never while uploading — a busy zone takes nothing. */
+.dropZoneLive:not(.dropZoneBusy):hover {
+  border-color: var(--jade);
+  background: var(--jade-faint);
+}
+
 /* §5: "dragover state adds a jade dashed border + jade-faint background over
    --dur-instant". */
 .dropZoneDragging {
   border-color: var(--jade);
   background: var(--jade-faint);
+  transition-duration: var(--dur-instant);
 }
 
 .dropZoneBusy {
@@ -890,6 +900,20 @@
   font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
+  /* §5 buttons, as login's .submit: the fill eases over --dur-fast, the press
+     over --dur-instant. */
+  transition: background var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+/* The :not(:disabled) guards are what keep §3's "hover and press disabled"
+   true; .submit:disabled below is unchanged. */
+.submit:hover:not(:disabled) {
+  background: var(--jade-hover);
+}
+
+.submit:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 /* §3: disabled controls drop to 0.5 opacity and refuse the cursor, with hover
@@ -1226,7 +1250,8 @@
   .retryButton,
   .document,
   .dropZone,
-  .noteInput {
+  .noteInput,
+  .submit {
     transition-duration: var(--dur-instant);
     transition-timing-function: linear;
   }
@@ -1237,7 +1262,8 @@
 
   .absence:active,
   .retryButton:active,
-  .document:active {
+  .document:active,
+  .submit:active:not(:disabled) {
     transform: none;
   }
 }
