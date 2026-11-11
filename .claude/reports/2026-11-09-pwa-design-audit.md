@@ -17,90 +17,11 @@ Read-only. No code was changed and no branch was opened. This file is the only o
 2. **No hardcoded colours.** All six checkers grepped every CSS and TSX file in scope for hex, rgb, hsl and named colours, and found none. Every colour goes through a token. Category B findings are about tokens used against their rule, or about a spec'd treatment that was not built.
 3. **Severity was adjusted in places.** I re-rated some checker findings where "a feature is missing" had been scored as "a state rule is broken". Each case is noted.
 
-Labels: **[A]** state rule · **[B]** colour · **[C]** type · **[D]** spacing off the 8px grid. Each finding is a DEFECT, measured against a current spec, or a QUESTION.
+Labels: **[A]** state rule · **[B]** colour · **[C]** type · **[D]** spacing off the 8px grid. Each finding is a DEFECT (it exists and is wrong, measured against a current spec), a QUESTION, or **specified, not built** (a spec describes it and the build does not have it yet: scope, not a defect, so it carries no severity and sits in its own block per page).
 
 ---
 
-## 1. Dashboard and app shell (worst)
-
-The dashboard is the only page with a current, detailed spec, so it is also the only page where type and spacing differences count as defects. The shell (sidebar, topbar, tab bar, toasts) is shared by every page and is reported here.
-
-*Pending milestone 6, not counted:* the attendance card's band line, Seuil label, "+ {k}" suffix and band ring colour.
-
-### High
-- **[A] DEFECT: no notification bell.**
-  - Where: `pwa/components/shell/Topbar.tsx:11-27`, `shell.module.css:398-403`.
-  - Spec: the topbar has a 38 px bell with an 8 px `--danger` badge and a popover (Dashboard Spec §6, Round 2 §5, `bell-states.html`). Foundations §3's focus order is "bell, avatar".
-  - Effect: none of the bell's states exist, and the Notifications card has no "Tout voir" to open.
-- **[B] DEFECT: the GPA card is not the spec'd jade hero card.**
-  - Where: `dashboard.module.css:33-43`, `GpaCard.tsx`.
-  - Spec (Dashboard Spec §4/§6, close-out §1 "Scope", `app.css:379-388`): `linear-gradient(150deg, #168666, #0F6E56)`, white ink, radius 22, the jade shadow, a 7% depth circle, and a mention badge on `rgba(0,0,0,.16)`.
-  - Built: a plain `--surface` card with ink text and a `--jade-faint` mention (`:393-403`).
-  - Rated high because a current spec states it in full.
-
-### Medium
-- **[B] DEFECT: wrong sidebar logo.**
-  - Where: `pwa/components/shell/shell.module.css:162-170` masks `pwa/public/logo.svg`. That file is the mortarboard-over-U artwork.
-  - Spec: INDEX.md, Brand: "the U replaces the mortarboard everywhere" (decision of 2026-10-27). It names `unipocket-sidebar-mark` (34×34, r10, on the jade gradient) for the sidebar.
-  - Found by the orchestrator, not the checker.
-- **[C] DEFECT: type does not match the Dashboard Spec §5 / `app.css`.** Built vs spec, all in `dashboard.module.css`:
-
-  | Element | Lines | Built | Spec |
-  |---|---|---|---|
-  | GPA figure | 373-379 | 34/800 Jakarta, `--ink` | DM Mono 500, lh 1, white; 32 in the doc text, 42 in `app.css:382` (the spec contradicts itself) |
-  | "/20" | 381-385 | 14/600 `--ink2` | 17/400 white |
-  | Mention | 393-403 | 12/700, padding 3 10 | 13/700, padding 5 12, gap 7 |
-  | Card title | 94-101 | 12/700 uppercase, ls .04em, `--ink2`, with icon | 14/700 `--ink`, no uppercase, no icon |
-  | Greeting heading | 11-17 | 24/800 | 28/800 at ≥1024 px (24 below), ls -0.4px, plus a 14/400 programme line that is not built |
-  | Next-class subject | 314-320 | 15/700 | 13.5/700 |
-  | Next-class meta | 338-345 | 12.5, Jakarta | room 12/400; times DM Mono 12 (`NextClassCard.tsx:55` uses `.num`, which is Jakarta) |
-  | Ring label | 451-457 | 17/800 | 18/800, plus a "TAUX" 9.5/600 caption that is not built |
-  | Notification item | 478-485 | 12.5 | 13/600 lh 1.35, plus a DM Mono 11.5 time |
-  | Unread count | 461-467 | 34/800 | not in spec |
-  | Quick link | 518-519 | 12.5/600, no subtitle | 13/700, plus an 11/600 subtitle |
-  | News title / meta | 561-571 | 13/600, meta 11.5 | 14.5/700, plus an 11/700 category pill and thumbnail (neither built) |
-
-- **[C] DEFECT: shell type does not match the spec.** All in `pwa/components/shell/shell.module.css`:
-
-  | Element | Lines | Built | Spec |
-  |---|---|---|---|
-  | Topbar title | 368-378 | 18/700 | 19/800, ls -0.3px |
-  | Nav item | 217-234 | 13.5/600, icon 20 | 14/600, icon 19 |
-  | Collapse button | 293-313 | 13/600, chevron 20, 44 tall, no fill | 12/600, chevron 14, 38 tall, `--surface2` r12 |
-  | Tab bar | 847-880 | 10/500 (700 active), icon 22, 56 tall | 10.5/600, icon 21, 64 tall |
-
-  The tab bar's default colour is `--ink2` where the spec says `--ink3`. The build's choice is the AA-safe one, so it is not counted.
-- **Layout: structure differs from Dashboard Spec §1/§6.** These are not strictly A–D, but each one is a difference from a current spec:
-  - **Grid.** The spec is 1/2/3 columns at 640/1024 px, GPA stacked over Assiduité, Notifications spanning two columns at tablet width. Built is six equal `auto-fit` cards at `minmax(280px)` (`:27`).
-  - **Content padding.** Spec is 24 / 32 / 48 px with `max-width: 1200px`, centred. Built is 24 px at every width, with no max-width (`shell.module.css:44`).
-  - **Topbar.** Spec padding is 16/24 → 18/32 → 20/48, and the bar is sticky and blurred. Built is a fixed 64 px tall with `--surface`, not sticky (`:345-355`).
-  - **Avatar.** Spec is a 36 px `--jade-faint` circle with initials at 13/700, plus a chevron. Built is a 44 px icon button with a generic icon (`:437-465`).
-  - **Quick-link tiles.** Spec is `--surface`, 1 px `--hair` border, r16, a 36 px icon tile, and a jade hover. Built is `--surface2`, `--r-sm`, no border, a bare 16 px icon, and a lift on hover (`:509-531`).
-  - **Card padding.** Spec is 20 (16 on Assiduité, 18 on GPA). Built is 16 on every card (`:38`).
-  - **Gaps.** Spec quick-link gap is 12 and news gap is 10. Built is 8 (`:506`) and 12 (`:549`).
-  - **Ring.** Spec gauge is 88 px with a 9 px stroke. Built is 84 px with an 8 px stroke (`Ring.tsx:8-9`).
-  - **Menu.** Spec is min-width 220 and radius r16. Built is 200 and `--r-md` (`shell.module.css:483,486`).
-  - **Nav and collapse radius.** Spec is r12. Built is `--r-sm` (8).
-  - **Sidebar foot.** The spec's 1 px top border is missing (`:287-290`).
-  - **Card links.** "Tout voir" and "Voir tout" on the Notifications and Actualités cards are not built.
-
-### Low
-- **[A] DEFECT: quick links press like buttons.** `dashboard.module.css:533-535` scales `.quickLink` to 0.97 on `:active`, with the transform over `--dur-fast` (`:522-524`). Foundations §3: the press is for buttons only, at `--dur-instant`. Clickable cards lift.
-- **[A] DEFECT: focus ring covers less than the click target.** `dashboard.module.css:575-580` puts the focus ring on the title link only, while the click area is the whole card via `::after` (Foundations §3).
-- **[A] DEFECT: toasts don't stack.** `Toast.tsx:7-66` shows one toast at a time. Foundations §5 asks for stacking with an 8 px gap, at most 2 visible.
-- **[A] QUESTION: sidebar collapse timing.** `shell.module.css:116` uses `--dur-base --ease-in-out` (Foundations §7). Dashboard Spec §1 says `.18s ease`, and the screen spec outranks the foundations. Neither value maps onto the other through the tokens.
-- **[A] QUESTION: offline banner uses `--warning` for graphics.** `shell.module.css:557,580` use `--warning` for the banner's icon and border. That is 2.15 : 1, under 3 : 1 for graphics, the reason close-out A3 dropped it. Text sits beside them, so colour is not the only signal.
-- **[A] QUESTION: offline banner shape.** The build is full width (`:549-560`). The dashboard CSS draws `.offline-banner` as a card, but `dashboard.html` never shows it.
-- **[C] DEFECT: countdown pill and menu item sizes.**
-  - Countdown pill padding is 4 10; spec is 5 11 (`dashboard.module.css:327-336`).
-  - Menu item is min 44 tall with an 18 px `--ink2` icon; spec is 40 tall with a 16 px `--ink3` icon (`shell.module.css:500-520`). The 44 px height is the touch target.
-- **[D] Off-grid spacing.**
-  - Dashboard: 20 (`:12`, spec says 24); 12 (`:91`, spec says 14; `:473`, `:549`, `:284` have no spec value; `:240`, `:311`, `:341` match the spec's 12); 10 (`:207`, `:342` no spec value; `:329`, `:397`, `:514` where the spec says 11, 12 and 14); 6 and 5 (`:341`, `:489-491`, `:350`); 3 (`:397`); 14 (`:354-355`); 34 (`:228`); 148 and 280 (`:37`, `:27`).
-  - Shell: 10 (`:126`, which matches the spec; `:128`, `:223`, `:299`, `:503`, `:552`); 20 (`:129`, `:764`); 22 (`:462-465`, `:877-880`); 6 (`:481`, `:484`, where the spec says 8); 12 (`:221`, `:296` match the spec; `:555`, `:635`); 3 (`:854`, matches the spec); 11 and 18 (`:615`, match the spec).
-
----
-
-## 2. Attendance
+## 1. Attendance (worst)
 
 *Pending milestone 7, not counted:* the Hero band line, the subject-row band treatment and the ring stroke (close-out §4). These are built on `feature/pwa-attendance-page-band`.
 
@@ -142,7 +63,100 @@ The dashboard is the only page with a current, detailed spec, so it is also the 
 
 ---
 
+## 2. Dashboard and app shell
+
+The dashboard is the only page with a current, detailed spec, so it is also the only page where type and spacing differences count as defects. The shell (sidebar, topbar, tab bar, toasts) is shared by every page and is reported here.
+
+*Pending milestone 6, not counted:* the attendance card's band line, Seuil label, "+ {k}" suffix and band ring colour.
+
+### Specified, not built
+Planned scope that a current spec describes and the build does not have yet. These are not design defects, so they carry no severity. The detail is kept for whoever builds them.
+- **[A] Notification bell.**
+  - Where it would go: `pwa/components/shell/Topbar.tsx:11-27`, `shell.module.css:398-403`.
+  - Spec: the topbar has a 38 px bell with an 8 px `--danger` badge and a popover (Dashboard Spec §6, Round 2 §5, `bell-states.html`). Foundations §3's focus order is "bell, avatar".
+  - Depends on it: the bell's states, and the Notifications card's "Tout voir", which opens it.
+- **[B] Jade GPA hero card.**
+  - Where: `dashboard.module.css:33-43`, `GpaCard.tsx`.
+  - Spec (Dashboard Spec §4/§6, close-out §1 "Scope", `app.css:379-388`): `linear-gradient(150deg, #168666, #0F6E56)`, white ink, radius 22, the jade shadow, a 7% depth circle, and a mention badge on `rgba(0,0,0,.16)`.
+  - Built today: a plain `--surface` card with ink text and a `--jade-faint` mention (`:393-403`).
+  - The hero's own type comes with it, built vs spec:
+
+    | Element | Lines | Built | Spec |
+    |---|---|---|---|
+    | GPA figure | 373-379 | 34/800 Jakarta, `--ink` | DM Mono 500, lh 1, white; 32 in the doc text, 42 in `app.css:382` (the spec contradicts itself) |
+    | "/20" | 381-385 | 14/600 `--ink2` | 17/400 white |
+    | Mention | 393-403 | 12/700, padding 3 10 | 13/700, padding 5 12, gap 7 |
+- **[C] Greeting programme line.** A 14/400 `--ink2` line under the heading (`app.css:165-168`).
+- **[C] Ring "TAUX" caption.** 9.5/600 (`app.css:188`).
+- **[C] Notification time.** DM Mono 11.5 (`app.css:131-135`).
+- **[C] Quick-link subtitle.** 11/600 (`app.css:202-207`).
+- **[C] News category pill and thumbnail.** The pill is 11/700 (Dashboard Spec §5).
+- **Card links.** "Tout voir" and "Voir tout" on the Notifications and Actualités cards.
+
+### Medium
+- **[B] DEFECT: wrong sidebar logo.**
+  - Where: `pwa/components/shell/shell.module.css:162-170` masks `pwa/public/logo.svg`. That file is the mortarboard-over-U artwork.
+  - Spec: INDEX.md, Brand: "the U replaces the mortarboard everywhere" (decision of 2026-10-27). It names `unipocket-sidebar-mark` (34×34, r10, on the jade gradient) for the sidebar.
+  - Found by the orchestrator, not the checker.
+- **[C] DEFECT: type does not match the Dashboard Spec §5 / `app.css`.** Built vs spec, all in `dashboard.module.css`:
+
+  | Element | Lines | Built | Spec |
+  |---|---|---|---|
+  | Card title | 94-101 | 12/700 uppercase, ls .04em, `--ink2`, with icon | 14/700 `--ink`, no uppercase, no icon |
+  | Greeting heading | 11-17 | 24/800 | 28/800 at ≥1024 px (24 below), ls -0.4px |
+  | Next-class subject | 314-320 | 15/700 | 13.5/700 |
+  | Next-class meta | 338-345 | 12.5, Jakarta | room 12/400; times DM Mono 12 (`NextClassCard.tsx:55` uses `.num`, which is Jakarta) |
+  | Ring label | 451-457 | 17/800 | 18/800 |
+  | Notification item | 478-485 | 12.5 | 13/600 lh 1.35 |
+  | Unread count | 461-467 | 34/800 | not in spec |
+  | Quick link | 518-519 | 12.5/600 | 13/700 |
+  | News title / meta | 561-571 | 13/600, meta 11.5 | 14.5/700 |
+
+- **[C] DEFECT: shell type does not match the spec.** All in `pwa/components/shell/shell.module.css`:
+
+  | Element | Lines | Built | Spec |
+  |---|---|---|---|
+  | Topbar title | 368-378 | 18/700 | 19/800, ls -0.3px |
+  | Nav item | 217-234 | 13.5/600, icon 20 | 14/600, icon 19 |
+  | Collapse button | 293-313 | 13/600, chevron 20, 44 tall, no fill | 12/600, chevron 14, 38 tall, `--surface2` r12 |
+  | Tab bar | 847-880 | 10/500 (700 active), icon 22, 56 tall | 10.5/600, icon 21, 64 tall |
+
+  The tab bar's default colour is `--ink2` where the spec says `--ink3`. The build's choice is the AA-safe one, so it is not counted.
+- **Layout: structure differs from Dashboard Spec §1/§6.** These are not strictly A–D, but each one is a difference from a current spec:
+  - **Grid.** The spec is 1/2/3 columns at 640/1024 px, GPA stacked over Assiduité, Notifications spanning two columns at tablet width. Built is six equal `auto-fit` cards at `minmax(280px)` (`:27`).
+  - **Content padding.** Spec is 24 / 32 / 48 px with `max-width: 1200px`, centred. Built is 24 px at every width, with no max-width (`shell.module.css:44`).
+  - **Topbar.** Spec padding is 16/24 → 18/32 → 20/48, and the bar is sticky and blurred. Built is a fixed 64 px tall with `--surface`, not sticky (`:345-355`).
+  - **Avatar.** Spec is a 36 px `--jade-faint` circle with initials at 13/700, plus a chevron. Built is a 44 px icon button with a generic icon (`:437-465`).
+  - **Quick-link tiles.** Spec is `--surface`, 1 px `--hair` border, r16, a 36 px icon tile, and a jade hover. Built is `--surface2`, `--r-sm`, no border, a bare 16 px icon, and a lift on hover (`:509-531`).
+  - **Card padding.** Spec is 20 (16 on Assiduité, 18 on GPA). Built is 16 on every card (`:38`).
+  - **Gaps.** Spec quick-link gap is 12 and news gap is 10. Built is 8 (`:506`) and 12 (`:549`).
+  - **Ring.** Spec gauge is 88 px with a 9 px stroke. Built is 84 px with an 8 px stroke (`Ring.tsx:8-9`).
+  - **Menu.** Spec is min-width 220 and radius r16. Built is 200 and `--r-md` (`shell.module.css:483,486`).
+  - **Nav and collapse radius.** Spec is r12. Built is `--r-sm` (8).
+  - **Sidebar foot.** The spec's 1 px top border is missing (`:287-290`).
+
+### Low
+- **[A] DEFECT: quick links press like buttons.** `dashboard.module.css:533-535` scales `.quickLink` to 0.97 on `:active`, with the transform over `--dur-fast` (`:522-524`). Foundations §3: the press is for buttons only, at `--dur-instant`. Clickable cards lift.
+- **[A] DEFECT: focus ring covers less than the click target.** `dashboard.module.css:575-580` puts the focus ring on the title link only, while the click area is the whole card via `::after` (Foundations §3).
+- **[A] DEFECT: toasts don't stack.** `Toast.tsx:7-66` shows one toast at a time. Foundations §5 asks for stacking with an 8 px gap, at most 2 visible.
+- **[A] QUESTION: sidebar collapse timing.** `shell.module.css:116` uses `--dur-base --ease-in-out` (Foundations §7). Dashboard Spec §1 says `.18s ease`, and the screen spec outranks the foundations. Neither value maps onto the other through the tokens.
+- **[A] QUESTION: offline banner uses `--warning` for graphics.** `shell.module.css:557,580` use `--warning` for the banner's icon and border. That is 2.15 : 1, under 3 : 1 for graphics, the reason close-out A3 dropped it. Text sits beside them, so colour is not the only signal.
+- **[A] QUESTION: offline banner shape.** The build is full width (`:549-560`). The dashboard CSS draws `.offline-banner` as a card, but `dashboard.html` never shows it.
+- **[C] DEFECT: countdown pill and menu item sizes.**
+  - Countdown pill padding is 4 10; spec is 5 11 (`dashboard.module.css:327-336`).
+  - Menu item is min 44 tall with an 18 px `--ink2` icon; spec is 40 tall with a 16 px `--ink3` icon (`shell.module.css:500-520`). The 44 px height is the touch target.
+- **[D] Off-grid spacing.**
+  - Dashboard: 20 (`:12`, spec says 24); 12 (`:91`, spec says 14; `:473`, `:549`, `:284` have no spec value; `:240`, `:311`, `:341` match the spec's 12); 10 (`:207`, `:342` no spec value; `:329`, `:397`, `:514` where the spec says 11, 12 and 14); 6 and 5 (`:341`, `:489-491`, `:350`); 3 (`:397`); 14 (`:354-355`); 34 (`:228`); 148 and 280 (`:37`, `:27`).
+  - Shell: 10 (`:126`, which matches the spec; `:128`, `:223`, `:299`, `:503`, `:552`); 20 (`:129`, `:764`); 22 (`:462-465`, `:877-880`); 6 (`:481`, `:484`, where the spec says 8); 12 (`:221`, `:296` match the spec; `:555`, `:635`); 3 (`:854`, matches the spec); 11 and 18 (`:615`, match the spec).
+
+---
+
 ## 3. Profile
+
+### Specified, not built
+Planned or proposed scope that a spec describes and the build does not have. Not a design defect, so no severity.
+- **[A] "Vider le cache" (open decision).** §9 Profile specifies a toast plus a pulse on the last-sync label. `AccountActions.tsx:14-20` says it was removed on purpose, because the offline-data switch and sign-out already clear the store. That decision is not on the known-divergences list. Add it there, or build it?
+- **[A] Change-password block (open decision).** The prototype has a "Sécurité" block, and §8 assumes a change-password form exists. The PWA has none. CLAUDE.md puts self-service password *reset* out of MVP scope; whether *changing* a password is in scope is not stated.
 
 ### Medium
 - **[A] DEFECT: switch thumb and track timing.**
@@ -158,8 +172,6 @@ The dashboard is the only page with a current, detailed spec, so it is also the 
   - Where: `NotificationPrefs.tsx:136-139`, `locales/fr.json:458`.
   - Built: offline, the switches are disabled and a separate hint reads "Connexion requise pour modifier vos notifications."
   - Spec: §8 puts "Connexion requise" on the blocked control itself. Switches have no label to replace, so this may be the closest fit. Confirm.
-- **[A] QUESTION: "Vider le cache" not built.** §9 Profile specifies a toast plus a pulse on the last-sync label. `AccountActions.tsx:14-20` says it was removed on purpose, because the offline-data switch and sign-out already clear the store. That decision is not on the known-divergences list. Add it there, or build it? Re-rated from a high defect.
-- **[A] QUESTION: no change-password block.** The prototype has a "Sécurité" block, and §8 assumes a change-password form exists. The PWA has none. CLAUDE.md puts self-service password *reset* out of MVP scope; whether *changing* a password is in scope is not stated. Re-rated from a high defect.
 
 ### Low
 - **[A] DEFECT: reduced-motion inconsistency.** `profile.module.css:579-588`: the thumb gets `transition: none` while the track gets `--dur-instant` linear. §2 says to collapse both to `--dur-instant`.
@@ -188,8 +200,11 @@ The dashboard is the only page with a current, detailed spec, so it is also the 
 
 ## 4. Schedule
 
+### Specified, not built
+Planned or proposed scope that a spec describes and the build does not have. Not a design defect, so no severity.
+- **[A] Schedule print sheet (open decision).** The Round 2 Spec and `schedule-print.html` make the A4 schedule print sheet **current**. The PWA has no print button and no `@media print` anywhere under `pwa/`. Is this planned, or dropped?
+
 ### Medium
-- **[A] QUESTION: no print sheet.** The Round 2 Spec and `schedule-print.html` make the A4 schedule print sheet **current**. The PWA has no print button and no `@media print` anywhere under `pwa/`. Is this planned, or dropped?
 - **[A] DEFECT: phone skeleton doesn't match the loaded layout.**
   - Where: `pwa/components/schedule/skeletons.tsx:35-66`, `ScheduleView.tsx:56`.
   - Built: the skeleton always draws the toggle plus a five-column week grid, 448 px tall.
@@ -249,9 +264,12 @@ The dashboard is the only page with a current, detailed spec, so it is also the 
 
 No high-severity findings.
 
+### Specified, not built
+Planned or proposed scope that a spec describes and the build does not have. Not a design defect, so no severity.
+- **[A] GPA history sparkline.** Foundations §5 specifies its draw-in, and the prototype has a "Historique GPA" card. Nothing in `pwa/components/grades/` draws one. Deliberate?
+
 ### Medium
 - **[A] QUESTION: status pill doesn't fade on change.** `grades.module.css:481-490`, `GradesTable.tsx:117-121`. Foundations §5 says that when a grade is published, the pill fades in from 0 over `--dur-base`. The code reads "never animates on its own" as "never animates".
-- **[A] QUESTION: no GPA history sparkline.** Foundations §5 specifies its draw-in, and the prototype has a "Historique GPA" card. Nothing in `pwa/components/grades/` draws one. Deliberate?
 
 ### Low
 - **[A] DEFECT: calculator select has no hover.** `grades.module.css:881-899`: `.calcSelect` has `cursor: pointer` but no hover (§3).
@@ -283,8 +301,9 @@ No high-severity findings.
 
 No defects found.
 
-### Medium
-- **[A] QUESTION: no bookmark control.** No bookmark exists, so §9's save bounce (`scale(1→1.3→1)` over `--dur-fast`, on save only) has nothing to apply to. Out of scope for the PWA, or missing?
+### Specified, not built
+Planned or proposed scope that a spec describes and the build does not have. Not a design defect, so no severity.
+- **[A] Bookmark control.** No bookmark exists, so §9's save bounce (`scale(1→1.3→1)` over `--dur-fast`, on save only) has nothing to apply to. Out of scope for the PWA, or missing?
 
 ### Low
 - **[A] QUESTION: chips don't press, and hover is instant.** `news.module.css:45-58, 68-70`. The build follows §9 ("instant colour swap"). §3 doesn't say whether chips count as buttons.

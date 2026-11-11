@@ -24,6 +24,21 @@ Pass 2, visual. Render the screen and the spec at the same viewport, in light
 and dark, FR and AR. Produce a side-by-side image per pair, then list the
 differences in words with their location on the screen.
 
+Sort every finding into one of three kinds, and keep them apart in the report:
+- DEFECT: the element or behaviour exists in the build and is wrong against a
+  current spec. Only defects get a severity.
+- SPECIFIED, NOT BUILT: a spec describes an element, state or behaviour that
+  has no counterpart in the build at all (a missing bell, an unbuilt print
+  sheet, a caption that was never added). This is unbuilt scope, not a design
+  defect: give it no severity, list it in its own block per screen, and keep
+  the full detail (the spec reference, the spec values, and where in the code
+  it would live) so whoever builds it can work from your report.
+  The test: if the thing exists and differs, it is a defect. If there is
+  nothing there to differ, it is specified, not built.
+- QUESTION: the only reference is an outdated or non-authoritative source, or
+  the specs disagree. A question can also be specified-not-built when the scope
+  itself is undecided; say so.
+
 Rules:
 - Report differences. Never a verdict. "The FR chip sits top-left in the spec
   and top-right in ours" is checkable. "Looks good" is not, and is the failure
