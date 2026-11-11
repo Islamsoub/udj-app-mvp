@@ -71,19 +71,20 @@ html[lang=ar] .schedule-module__Z3P5OW__detailType .schedule-module__Z3P5OW__typ
 ### Computed letter-spacing (`getComputedStyle(el).letterSpacing`)
 These are from the production build (`next start -p 3103`), Chrome, real test account, language set by the `unipocket_lang` cookie. `document.documentElement.lang` was confirmed as `fr` or `ar` for each reading. Origin key:
 - **live**: read from the rendered page with real data.
-- **built CSS**: the class does not render for the test account. Its value was read in Chrome from a synthetic `<html lang>` page that loads the built `.next/static/chunks/*.css` and carries the hashed class names. The live-reachable classes in the "control" rows were measured both ways, and the two methods agreed.
+- **live, stubbed data**: read from the rendered page, with GET responses stubbed by Playwright (see "Real vs stubbed"). These rows were first verified against the built CSS only; the fix round re-read them live.
+- **built CSS**: a cross-check, not a substitute. Its value was read in Chrome from a synthetic `<html lang>` page that loads the built `.next/static/chunks/*.css` and carries the hashed class names. The live-reachable classes in the "control" rows were measured both ways, and the two methods agreed.
 
 | # | Rule | FR | AR | Expected AR | Origin |
 |---|---|---|---|---|---|
 | 1 | attendance `.heroLabel` | 0.48px | normal | normal | live (control: built CSS agrees) |
 | 2 | attendance `.panelDateLabel` | 0.6px | normal | normal | live |
 | 3 | attendance `.noteLabel` | 0.6px | normal | normal | live |
-| 4 | attendance `.formLabel` | 0.6px | normal | normal | built CSS: no absence on the account can be justified, so the form never renders |
+| 4 | attendance `.formLabel` | 0.6px | normal | normal | live, stubbed data (built CSS agrees) |
 | 5 | dashboard `.cardTitle` | 0.48px | normal | normal | live (control: built CSS agrees) |
-| 6 | grades `.heroLabel` | 0.48px | normal | normal | built CSS: no grades published for S1 or S2 |
-| 7 | grades `.sortButton` | 0.345px | normal | normal | built CSS: same reason |
-| 8 | grades `.cardLabel` | 0.6px | normal | normal | built CSS: same reason |
-| 9 | grades `.calcLabel` | 0.66px | normal | normal | built CSS: same reason (calculator trigger absent) |
+| 6 | grades `.heroLabel` | 0.48px | normal | normal | live, stubbed data (built CSS agrees) |
+| 7 | grades `.sortButton` | 0.345px | normal | normal | live, stubbed data (built CSS agrees) |
+| 8 | grades `.cardLabel` | 0.6px | normal | normal | live, stubbed data, 390px (built CSS agrees) |
+| 9 | grades `.calcLabel` | 0.66px | normal | normal | live, stubbed data (built CSS agrees) |
 | 10 | schedule `.dayName` | 0.44px | normal | normal | live |
 | 11 | schedule `.detailLabel` | 0.66px | normal | normal | live |
 | 12 | schedule `.typePill` in CourseDetail (`.detailType`) | 0.72px | normal | normal | live (built CSS agrees) |
@@ -97,19 +98,32 @@ The FR values equal the original em values at each font size (for example 0.04em
 - `ar-attendance-panel-panelDateLabel.png`
 - `ar-attendance-panel-noteLabel.png`: the justification panel
 - `ar-dashboard-card-title.png`
-- `ar-grades-hero-table-header.png` and `ar-grades-phone-cards.png`: these show only the "not published yet" empty state. The test account has no published grades, so the grades hero and table header could not be captured.
+- `ar-grades-hero-table-header.png`: the grades hero and the desktop table header (`.sortButton`), with stubbed data
+- `ar-grades-phone-cards.png`: the phone cards (`.cardLabel`) at 390px, with stubbed data
+- `ar-grades-calculator.png`: the calculator labels (`.calcLabel`), with stubbed data
+- `ar-attendance-upload-form.png`: the open upload form (`.formLabel` on the file label and the note label), with stubbed data
+- The round-1 grades screenshots, which showed only the "not published yet" empty state under misleading names, were overwritten by the first two files above. No empty-state screenshot is kept.
 - `ar-schedule-week-header.png`, `ar-schedule-course-detail.png`, `ar-schedule-daylist.png`
 
 ### Real vs stubbed
-Nothing was stubbed. All data is the live test account, read-only: no form was submitted and nothing on the account changed. Classes the account cannot render were verified against the built CSS, as listed above.
+Round 1 (`scratchpad/m3/check.js`): nothing stubbed. This covers rows 1-3, 5 and 10-13, the DayList pill, and screenshots `ar-attendance-hero`, `ar-attendance-panel-*`, `ar-dashboard-card-title` and `ar-schedule-*`.
+
+Fix round (`scratchpad/m3/check2.js`): rows 4 and 6-9, and the four screenshots marked "stubbed data". The routes were registered on the browser context before anything was opened:
+- **`**/api/backend/student/attendance/*/justification`**: fulfilled locally with a 500 and never continued to the server. It was never hit, because nothing was submitted.
+- **GET `**/api/backend/student/attendance`**: the **live** response, fetched through `route.fetch()`. One field was changed: the first `ABSENT` record with `justificationStatus: null` and no `justificationUrl` got `canSubmitJustification: true`. Everything else, including `band` and `absencesLeft`, is real, so `checkAttendanceContract` passes unchanged.
+- **GET `**/api/backend/student/grades`** (single semester): the **live** response's `semester` and `credits` were kept. Changed: `ccPublished` and `nfPublished` set to true, `gpa` 12.4, `mention` null, and `grades` replaced by a **fixture** of four rows. The rows use the account's own schedule subjects (INF301, PHY301, INF303, INF302, with their FR/AR names) and invented marks. The live API returns `grades: []` while nothing is published. Credits stay live, which is why the hero reads "0 / 32".
+- **GET `**/api/backend/student/grades?allSemesters=true`**: the live response with each semester's `gpa` set to 12.4.
+- **Real**: login, the session, all other endpoints, and every string on screen (all from locales).
+
+Nothing was submitted and nothing on the account changed.
 
 ### Flagged
-- **Test data gap.** The test account has no published grades (S1 or S2) and no absence that can be justified. As a result, grades `.heroLabel`, `.sortButton`, `.cardLabel` and `.calcLabel` and attendance `.formLabel` were checked only against the built CSS, with no live render, and there is no AR screenshot of the grades hero, the table header or the upload form. A test account with published grades would close this gap.
+- **Test data gap.** The test account has no published grades (S1 or S2) and no absence that can still be justified. The five classes that need them were checked live against stubbed GET responses (see "Real vs stubbed"). A test account with published grades and a recent absence would remove the need for stubs.
+- **Port note.** In round 1 my "stop the server" step filtered netstat on `LISTENING`, but the state column is localized on this machine, so the 3103 server kept running until the fix round. That process was mine (`udj-wt-m3/pwa`, same build). It has been stopped; 3101 was not touched.
 - Mission Flag 2 (the CLAUDE.md wording for `html[lang="ar"]`) still stands. I did not edit CLAUDE.md.
 
 ### Could not do
 - Open the PR: `gh` is not installed. The branch is pushed, and the PR text is below.
-- The screenshots listed under "Test data gap" above.
 
 ### PR
 **Title:** `fix(pwa): no letter-spacing on translated labels in Arabic`
@@ -133,9 +147,9 @@ grades and schedule modules. No existing line changes; French is unchanged.
 
 Checks (pwa/ has no CI job): `npm run typecheck` and `npm run build` pass.
 Computed letter-spacing in FR and AR for all 13 rules, plus the DayList pill,
-is in PROGRESS.md. Grades labels and `.formLabel` were verified against the
-built CSS because the test account has no published grades and no justifiable
-absence.
+is in PROGRESS.md. The grades labels and `.formLabel` were read live against
+stubbed GET responses, because the test account has no published grades and no
+justifiable absence. The stubs are listed in PROGRESS.md; nothing was submitted.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
