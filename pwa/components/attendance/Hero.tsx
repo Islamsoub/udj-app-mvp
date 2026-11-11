@@ -4,9 +4,43 @@ import { Interpolated } from '@/components/dashboard/Interpolated';
 import type { AttendanceOverall } from '@/lib/api-types';
 import { fmtPercent, percentText } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
+import type { TranslationKey } from '@/lib/i18n-types';
 import { WarningIcon } from './icons';
 import { PresenceRing } from './PresenceRing';
 import styles from './attendance.module.css';
+
+/**
+ * The line under the figure, per ROUND2-CLOSEOUT §4 "Hero line": which sentence,
+ * and in which tone. Read off the SERVER's `band` and `absencesLeft` only — the
+ * PWA never compares the percentage against the threshold.
+ *
+ * Term over is `absencesLeft === null`, and it is checked first: §4's term-over
+ * rows apply whatever the band, so a term-over `near` reads `ended_ok` in the
+ * neutral tone (Flag 4, open: the ring keeps the near stroke beside it).
+ */
+type HeroTone = 'neutral' | 'warning' | 'danger';
+
+function heroLine(overall: AttendanceOverall): { key: TranslationKey; tone: HeroTone } {
+  if (overall.absencesLeft === null) {
+    return overall.band === 'below'
+      ? { key: 'attendance.hero.ended_below', tone: 'danger' }
+      : { key: 'attendance.hero.ended_ok', tone: 'neutral' };
+  }
+  switch (overall.band) {
+    case 'below':
+      return { key: 'attendance.hero.below', tone: 'danger' };
+    case 'near':
+      return { key: 'attendance.hero.near', tone: 'warning' };
+    case 'ok':
+      return { key: 'attendance.hero.threshold', tone: 'neutral' };
+  }
+}
+
+const TONE_CLASS: Record<HeroTone, string> = {
+  neutral: '',
+  warning: styles.heroThresholdNear,
+  danger: styles.heroThresholdBelow,
+};
 
 /**
  * The hero stat: the semester's presence percentage, the gauge, and what the
@@ -15,8 +49,12 @@ import styles from './attendance.module.css';
  * THE THRESHOLD IS STATED HERE, not only implied by a colour on the subject
  * rows. A student who is at 92% needs to know where the line is before the number
  * means anything, and §10 forbids colour as the only signal anyway — so the
- * requirement is a sentence, and being under it adds an icon and a word on top
- * of the tint rather than instead of it.
+ * requirement is a sentence, and every non-ok state words its own sentence and
+ * adds an icon on top of the colour rather than instead of it.
+ *
+ * The overall `absencesLeft` is NOT shown (§4): it is a pooled figure, and one
+ * absence counts against one subject, so it can read "8 left" while a subject
+ * has none. The subject rows carry the number instead.
  *
  * The caller does not mount this without a percentage: §5's fill "animates from
  * 0% to its target value", and a gauge pinned at zero reads as "you attended
@@ -29,17 +67,19 @@ export function Hero({
 }: {
   overall: AttendanceOverall;
   percentage: number;
-  /** From the response; see model.ts for why there is no local default. */
+  /** From the response; see model.ts for why there is no local default.
+   *  Displayed only — the state comes from `overall.band`. */
   threshold: number;
 }) {
   const { t } = useI18n();
 
-  const below = percentage < threshold;
+  const line = heroLine(overall);
 
   return (
     <section className={styles.hero}>
       <PresenceRing
         percentage={percentage}
+        band={overall.band}
         label={t('attendance.hero.ring_label', { value: percentText(percentage) })}
       />
 
@@ -66,15 +106,13 @@ export function Hero({
         </p>
 
         {/*
-          The requirement, always shown — and when it is not met, said in words
-          with an icon beside them (§10) rather than left to the tint alone.
+          The requirement, always shown in every state's sentence — and when the
+          band is not ok, said in words with an icon beside them (§10) rather
+          than left to the colour alone.
         */}
-        <p className={`${styles.heroThreshold} ${below ? styles.heroThresholdBelow : ''}`}>
-          {below && <WarningIcon className={styles.heroThresholdIcon} />}
-          <Interpolated
-            template={t(below ? 'attendance.hero.below' : 'attendance.hero.threshold')}
-            values={{ threshold: fmtPercent(threshold) }}
-          />
+        <p className={`${styles.heroThreshold} ${TONE_CLASS[line.tone]}`}>
+          {line.tone !== 'neutral' && <WarningIcon className={styles.heroThresholdIcon} />}
+          <Interpolated template={t(line.key)} values={{ threshold: fmtPercent(threshold) }} />
         </p>
 
         {/*

@@ -21,6 +21,11 @@
   color: var(--ink);
 }
 
+/* Arabic: no tracking — see the note at .heroLabel. */
+html[lang="ar"] .heading {
+  letter-spacing: normal;
+}
+
 /*
  * A single grid cell that every screen state shares, so the skeleton and what
  * replaces it occupy the same box at the same time and nothing below moves
@@ -212,6 +217,14 @@
   color: var(--ink2);
 }
 
+/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
+   because mirroring belongs to logical properties; letter-spacing belongs to
+   the script. Arabic letters join, and tracking pulls them apart in either
+   direction. This is not a breach of that rule, so do not remove it as one. */
+html[lang="ar"] .heroLabel {
+  letter-spacing: normal;
+}
+
 .heroValue {
   display: flex;
   align-items: baseline;
@@ -398,6 +411,11 @@
   transition: color var(--dur-fast) var(--ease-out);
 }
 
+/* Arabic: no tracking — see the note at .heroLabel. */
+html[lang="ar"] .sortButton {
+  letter-spacing: normal;
+}
+
 .thEnd .sortButton {
   justify-content: flex-end;
 }
@@ -567,6 +585,11 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink2);
+}
+
+/* Arabic: no tracking — see the note at .heroLabel. */
+html[lang="ar"] .cardLabel {
+  letter-spacing: normal;
 }
 
 .cardValue {
@@ -872,6 +895,11 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink2);
+}
+
+/* Arabic: no tracking — see the note at .heroLabel. */
+html[lang="ar"] .calcLabel {
+  letter-spacing: normal;
 }
 
 .calcLabel:not(:first-child) {

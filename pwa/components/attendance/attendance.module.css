@@ -21,6 +21,11 @@
   color: var(--ink);
 }
 
+/* Arabic: no tracking — see the note at .heroLabel. */
+html[lang="ar"] .heading {
+  letter-spacing: normal;
+}
+
 /*
  * A single grid cell that every screen state shares, so the skeleton and what
  * replaces it occupy the same box at the same time and nothing below moves
@@ -55,6 +60,14 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink2);
+}
+
+/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
+   because mirroring belongs to logical properties; letter-spacing belongs to
+   the script. Arabic letters join, and tracking pulls them apart in either
+   direction. This is not a breach of that rule, so do not remove it as one. */
+html[lang="ar"] .heroLabel {
+  letter-spacing: normal;
 }
 
 .heroValue {
@@ -100,15 +113,21 @@
   color: var(--ink2);
 }
 
-/* Under the line. The tint is ONE of three signals — the triangle beside it and
-   the wording itself carry the same meaning (§10).
-   Text on the card surface, so --warning-ink: --warning is 2.15:1 on it in
-   light. The triangle follows it through currentColor on purpose — unlike the
-   danger and info icons, --warning cannot reach even the 3:1 a graphic needs
-   on a light surface, so this icon is not split back to the hue. The same
-   holds for .subjectFlag. */
-.heroThresholdBelow {
+/* The overall band, ROUND2-CLOSEOUT §4 "Hero line". The colour is ONE of three
+   signals — the triangle beside it and the sentence itself carry the same
+   meaning (§10). ok and term-over-ok keep .heroThreshold's --ink2 and no icon.
+   Text on the card --surface, so the -ink tokens, never the hues: --warning is
+   2.15:1 on it in light. The triangle follows the text through currentColor, as
+   §4 asks. Measured on --surface: --warning-ink 6.39 light / 8.36 dark,
+   --danger-ink 6.54 light / 7.59 dark. */
+.heroThresholdNear {
   color: var(--warning-ink);
+  font-weight: 700;
+}
+
+/* below, and term-over below. */
+.heroThresholdBelow {
+  color: var(--danger-ink);
   font-weight: 700;
 }
 
@@ -165,6 +184,21 @@
   stroke-dashoffset: var(--ring-offset);
 }
 
+/*
+ * The stroke follows overall.band (ROUND2-CLOSEOUT §4, with §3/A3's colours):
+ * ok --jade above, near --warning-ink, below --danger. A graphic, so 3:1 is the
+ * bar. Measured on --surface: --jade 3.39 light / 6.17 dark, --warning-ink
+ * 6.39 light / 8.36 dark, --danger 3.76 light / 5.56 dark. --warning is not
+ * used: 2.15:1 on --surface in light.
+ */
+.ringValueNear {
+  stroke: var(--warning-ink);
+}
+
+.ringValueBelow {
+  stroke: var(--danger);
+}
+
 .ringFilling {
   animation: ringFill var(--dur-slow) var(--ease-in-out);
 }
@@ -217,13 +251,28 @@
 }
 
 /*
- * Below the threshold. A tinted surface AND a warning border — but never on its
- * own: the row carries the triangle glyph and the words "Sous le seuil" as well,
- * because §10 forbids colour as the only signal.
+ * The subject's own band, ROUND2-CLOSEOUT §4 "Row treatment": border, bar fill
+ * and figure. Never on its own — the row also carries the triangle glyph and a
+ * sentence (.subjectFlag), because §10 forbids colour as the only signal.
+ *
+ * No background tint: §4's table has no background column, so --warning-bg is
+ * no longer used here (Flag 8, Design to confirm). --warning is not used either
+ * (A3: 2.15:1 on --surface in light).
+ *
+ * near: all three in --warning-ink, which is text-safe on the card and holds as
+ * a graphic on the track — 6.39 light / 8.36 dark on --surface, 5.33 light /
+ * 9.88 dark against the --sunken track (§4 quotes the 5.33).
+ *
+ * below (and term-over below): border and fill in the --danger hue, a graphic at
+ * 3.76 light / 5.56 dark on --surface and 3.14 light / 6.57 dark on --sunken; the
+ * figure is text, so it takes --danger-ink, 6.54 light / 7.59 dark on --surface.
  */
+.subjectNear {
+  border-color: var(--warning-ink);
+}
+
 .subjectBelow {
-  border-color: var(--warning);
-  background: var(--warning-bg);
+  border-color: var(--danger);
 }
 
 .subjectHead {
@@ -260,8 +309,12 @@
   color: var(--ink);
 }
 
-.subjectValueBelow {
+.subjectNear .subjectValue {
   color: var(--warning-ink);
+}
+
+.subjectBelow .subjectValue {
+  color: var(--danger-ink);
 }
 
 /* ── Bars ──────────────────────────────────────────────────────────────────── */
@@ -295,8 +348,13 @@
   background: var(--jade);
 }
 
+/* Fill colours per band; the ratios are with .subjectNear / .subjectBelow. */
+.subjectNear .barFill {
+  background: var(--warning-ink);
+}
+
 .subjectBelow .barFill {
-  background: var(--warning);
+  background: var(--danger);
 }
 
 /*
@@ -340,12 +398,19 @@
   color: var(--ink2);
 }
 
+/* The row's sentence and its triangle, which follows the text through
+   currentColor (§4). Text on the card --surface: --warning-ink for near (6.39
+   light / 8.36 dark), --danger-ink for below and term-over below (6.54 / 7.59). */
 .subjectFlag {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   color: var(--warning-ink);
   font-weight: 700;
+}
+
+.subjectFlagBelow {
+  color: var(--danger-ink);
 }
 
 .subjectFlagIcon {
@@ -560,6 +625,11 @@
   color: var(--ink2);
 }
 
+/* Arabic: no tracking — see the note at .heroLabel. */
+html[lang="ar"] .panelDateLabel {
+  letter-spacing: normal;
+}
+
 .panelDateValue {
   font-size: 13.5px;
   font-weight: 600;
@@ -635,6 +705,11 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink2);
+}
+
+/* Arabic: no tracking — see the note at .heroLabel. */
+html[lang="ar"] .noteLabel {
+  letter-spacing: normal;
 }
 
 /* Free text from a person, so it wraps and preserves the line breaks they typed
@@ -717,6 +792,11 @@
   color: var(--ink2);
 }
 
+/* Arabic: no tracking — see the note at .heroLabel. */
+html[lang="ar"] .formLabel {
+  letter-spacing: normal;
+}
+
 .formHint {
   margin: 0;
   font-size: 12.5px;
@@ -737,9 +817,11 @@
   border: 1px dashed var(--hair2);
   border-radius: var(--r-md);
   background: var(--surface2);
-  /* §5: the dragover swap happens over --dur-instant. */
-  transition: border-color var(--dur-instant) linear,
-    background-color var(--dur-instant) linear;
+  /* §3: hover eases in over --dur-fast with §2's --ease-out. The dragover
+     swap is faster (§5, --dur-instant); .dropZoneDragging sets that duration
+     itself, because a transition takes its duration from the state entered. */
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
 }
 
 /* Live, as opposed to the disabled placeholder this used to be. */
@@ -747,11 +829,35 @@
   cursor: pointer;
 }
 
+/* §3 hover. The same values as dragover: "this zone takes a file" is one
+   signal. Never while uploading — a busy zone takes nothing — and never over an
+   error, which hovering must not repaint. */
+.dropZoneLive:not(.dropZoneBusy):not(.dropZoneError):hover {
+  border-color: var(--jade);
+  background: var(--jade-faint);
+}
+
+/*
+ * The file was refused. §5's inline field error, as login's .inputError:
+ * danger border, danger-tinted fill. The message beneath (.fieldError) carries
+ * the meaning in words, so colour is never the only signal (§10).
+ *
+ * Precedence, highest first: busy, dragging, error, hover, rest. Hover is
+ * excluded above; dragging comes AFTER this rule at the same specificity, so it
+ * wins — the student is dropping the replacement. Busy and an error never
+ * coexist: every error is cleared on submit.
+ */
+.dropZoneError {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+
 /* §5: "dragover state adds a jade dashed border + jade-faint background over
    --dur-instant". */
 .dropZoneDragging {
   border-color: var(--jade);
   background: var(--jade-faint);
+  transition-duration: var(--dur-instant);
 }
 
 .dropZoneBusy {
@@ -838,6 +944,20 @@
   font-size: 13.5px;
   font-weight: 700;
   cursor: pointer;
+  /* §5 buttons, as login's .submit: the fill eases over --dur-fast, the press
+     over --dur-instant. */
+  transition: background var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+/* The :not(:disabled) guards are what keep §3's "hover and press disabled"
+   true; .submit:disabled below is unchanged. */
+.submit:hover:not(:disabled) {
+  background: var(--jade-hover);
+}
+
+.submit:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 /* §3: disabled controls drop to 0.5 opacity and refuse the cursor, with hover
@@ -862,6 +982,7 @@
   font-family: inherit;
   font-size: 13.5px;
   transition: border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
     box-shadow var(--dur-fast) var(--ease-out);
 }
 
@@ -879,9 +1000,59 @@
 }
 
 /*
- * A rejected file or a failed request. §5's inline field error: danger border,
- * danger-tinted background. The icon-free wording carries the meaning on its
- * own, so colour is never the only signal (§10).
+ * The note was refused. The same fill and border as .dropZoneError, and as
+ * login's .inputError. Declared after :focus-visible but weaker than it
+ * (0,1,0 against 0,2,0), so a focused field still gets the jade border and
+ * ring over the danger fill — again as login does.
+ */
+.noteInputError {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+
+/*
+ * The message under a field in error: the file one beneath the drop zone, the
+ * note one in place of the note's hint. Plain text, not a box, at .formHint's
+ * size; the field above is what is marked.
+ *
+ * --danger-ink sits here on the panel's surface, not on its own tint — see the
+ * token comment in globals.css for the measured ratios.
+ *
+ * It slides down with login's errorCardIn technique (login.module.css): a
+ * max-height ceiling far larger than the text can ever be, opacity with it,
+ * --dur-fast, --ease-out, and NO forwards fill, so its own height governs the
+ * moment it ends and a long Arabic line cannot clip. The negative start margin
+ * takes back the form's 8px gap, so what sits below is pushed down smoothly
+ * rather than jumping on the first frame.
+ */
+.fieldError {
+  margin: 0;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--danger-ink);
+  animation: fieldErrorIn var(--dur-fast) var(--ease-out);
+}
+
+@keyframes fieldErrorIn {
+  from {
+    max-height: 0;
+    margin-block-start: -8px;
+    opacity: 0;
+  }
+  to {
+    max-height: 240px;
+    margin-block-start: 0;
+    opacity: 1;
+  }
+}
+
+/*
+ * A failed request that is about neither field: sending itself (network,
+ * deadline, rate limit, an unrecognised refusal…). It sits just above the
+ * submit button and marks no field, so it keeps a box of its own: §5's danger
+ * border and danger-tinted background. The icon-free wording carries the
+ * meaning on its own, so colour is never the only signal (§10).
  */
 .formError {
   margin: 0;
@@ -1158,7 +1329,8 @@
     animation: none;
   }
 
-  .confirmChipEntering {
+  .confirmChipEntering,
+  .fieldError {
     animation-duration: var(--dur-instant);
     animation-timing-function: linear;
   }
@@ -1174,7 +1346,8 @@
   .retryButton,
   .document,
   .dropZone,
-  .noteInput {
+  .noteInput,
+  .submit {
     transition-duration: var(--dur-instant);
     transition-timing-function: linear;
   }
@@ -1185,7 +1358,8 @@
 
   .absence:active,
   .retryButton:active,
-  .document:active {
+  .document:active,
+  .submit:active:not(:disabled) {
     transform: none;
   }
 }

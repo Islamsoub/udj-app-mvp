@@ -94,6 +94,7 @@
       "title": "Assiduité",
       "empty": "Aucune séance enregistrée pour le moment.",
       "sessions": "{{present}} séances suivies sur {{total}}",
+      "threshold": "Seuil : {{threshold}}",
       "ok": "Toutes les matières au-dessus du seuil",
       "near": {
         "zero": "{{subject}} : plus aucune absence possible",
@@ -106,7 +107,14 @@
       "below": "{{subject}} : limite d'absences dépassée",
       "ended_below": "{{subject}} : semestre terminé sous le seuil",
       "ended_ok": "Semestre terminé — toutes les matières au-dessus du seuil",
-      "others": "+ {{k}} autre(s)"
+      "others": {
+        "zero": "+ {{k}} autres matières",
+        "one": "+ 1 autre matière",
+        "two": "+ {{k}} autres matières",
+        "few": "+ {{k}} autres matières",
+        "many": "+ {{k}} autres matières",
+        "other": "+ {{k}} autres matières"
+      }
     },
     "notifications": {
       "title": "Notifications",
@@ -254,7 +262,10 @@
       "ring_label": "Présence : {{value}}",
       "sessions": "{{present}} séances suivies sur {{total}}",
       "threshold": "Seuil requis : {{threshold}}",
-      "below": "Sous le seuil requis de {{threshold}}",
+      "near": "Seuil requis : {{threshold}} · marge faible",
+      "below": "Seuil requis de {{threshold}} hors d'atteinte ce semestre",
+      "ended_below": "Semestre terminé sous le seuil requis de {{threshold}}",
+      "ended_ok": "Semestre terminé · seuil requis : {{threshold}}",
       "absences": "Absences : {{count}}",
       "justified": "Dont justifiées : {{count}}",
       "partial": "Séances partielles : {{count}}"
@@ -263,7 +274,16 @@
       "title": "Par matière",
       "note": "Le seuil de présence requis est de {{threshold}}.",
       "sessions": "{{present}} séances suivies sur {{total}}",
-      "below": "Sous le seuil",
+      "near": {
+        "zero": "Plus aucune absence possible",
+        "one": "Encore 1 absence avant la limite",
+        "two": "Encore 2 absences avant la limite",
+        "few": "Encore {{n}} absences avant la limite",
+        "many": "Encore {{n}} absences avant la limite",
+        "other": "Encore {{n}} absences avant la limite"
+      },
+      "below": "Limite d'absences dépassée",
+      "ended_below": "Semestre terminé sous le seuil",
       "bar_label": "Présence en {{subject}}"
     },
     "absences": {

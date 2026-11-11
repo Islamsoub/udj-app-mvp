@@ -2,12 +2,24 @@
 
 import { useState } from 'react';
 import { takeOnce } from '@/components/dashboard/session-flags';
+import type { AttendanceBand } from '@/lib/api-types';
 import styles from './attendance.module.css';
 
 const SIZE = 132;
 const STROKE = 11;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+
+/**
+ * The stroke follows the server's overall band (ROUND2-CLOSEOUT §4, with §3's
+ * three colours) and is never derived from the percentage here. Track and
+ * aria-label are band-independent: the Hero's sentence says the band in words.
+ */
+const STROKE_CLASS: Record<AttendanceBand, string> = {
+  ok: '',
+  near: styles.ringValueNear,
+  below: styles.ringValueBelow,
+};
 
 /**
  * The presence gauge — §9 calls the fill-on-load "the hero moment of this
@@ -42,7 +54,15 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
  * hero moment would never happen. Hence a local component with its own key, and
  * a note rather than a quiet fourth fork.
  */
-export function PresenceRing({ percentage, label }: { percentage: number; label: string }) {
+export function PresenceRing({
+  percentage,
+  band,
+  label,
+}: {
+  percentage: number;
+  band: AttendanceBand;
+  label: string;
+}) {
   const [filling] = useState(() => takeOnce('attendance_presence_ring'));
 
   const clamped = Math.max(0, Math.min(100, percentage));
@@ -69,7 +89,7 @@ export function PresenceRing({ percentage, label }: { percentage: number; label:
         strokeWidth={STROKE}
       />
       <circle
-        className={`${styles.ringValue} ${filling ? styles.ringFilling : ''}`}
+        className={`${styles.ringValue} ${STROKE_CLASS[band]} ${filling ? styles.ringFilling : ''}`}
         cx={SIZE / 2}
         cy={SIZE / 2}
         r={RADIUS}
