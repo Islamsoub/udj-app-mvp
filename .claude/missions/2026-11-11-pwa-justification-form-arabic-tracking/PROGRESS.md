@@ -481,3 +481,251 @@ Checks, by hand, since pwa/ has no CI:
 - **Checks.** `npm run typecheck` exits 0 (`tsc --noEmit`, no output). `npm run build` exits 0, and all 12 routes compile.
 - **Built CSS.** The built CSS has 22 distinct `html[lang=ar] … {letter-spacing:normal}` rules: the 12 from milestone 3 and the 10 module rules from milestone 4. The 11th milestone 4 rule is in `public/offline.html`, outside the build.
 - **Not re-run.** The browser screenshots and the computed-style table were not re-taken. The rebase changed no selector or declaration, only comments.
+
+## Milestone 2: Field errors: on the drop zone, on the note, and the rest kept apart
+
+Branch: `feature/pwa-justification-field-errors`, cut from `origin/develop` at bd64f1d (milestones 1 and 3 merged).
+Status: built, checked, pushed. **Not merged.** No PR opened, because `gh` is not installed. The ready-to-paste PR is below.
+
+### What was done
+I re-checked the line numbers first. Milestones 1 and 3 had moved them: at bd64f1d `.dropZone` was at 806, `.noteInput` at 951, `.formError` at 985 and the reduced-motion block at 1249. In the TSX, the drop zone was at 230-279, the error box at 292-296, the note at 298-308 and `errorKey` at 372-423. The backend note sentences are at `backend/src/routes/student.ts:1032` ("Invalid note") and `:1036` ("Note must be 80 characters or fewer").
+
+**`pwa/components/attendance/JustificationForm.tsx`**
+- The single `error` state is replaced by three: `fileError`, `noteError` and `formError`.
+- `errorKey` now returns `{ field: 'file' | 'note' | 'form', key }`. The submit `catch` switches on `field`.
+- In `case 400`, the note test (`/note/i`) comes first. The comment beside "STILL BY SENTENCE" names both backend sentences.
+- Clearing:
+  - `fileError` and `formError` clear when a new file is accepted.
+  - `noteError` clears in the note's `onChange`.
+  - All three clear on submit.
+  - `accept()` still refuses a bad file with `setFile(null)`.
+- Drop zone:
+  - `.dropZoneError` is applied while `fileError` is set.
+  - The hidden input gets `aria-invalid`. `aria-describedby` is still the hint plus the error.
+- File message: a `<p class=fieldError role="alert">` directly beneath the zone, above the formats hint.
+- Note:
+  - The label `<p>` has an id, and the input has `aria-labelledby`. It had no accessible name before.
+  - `aria-describedby` points at the hint, or at the error while one is shown.
+  - In error, the input gets `aria-invalid` and `.noteInputError`. The hint is replaced by a `fieldError` message with `role="alert"`.
+- Form errors: the existing `.formError` box moved to sit immediately above the submit button, after the progress bar. That bar only renders while uploading, and every error clears on submit, so the two never show together. `role="alert"` and the `Interpolated` call are unchanged.
+
+**`pwa/components/attendance/attendance.module.css`**
+- The hover rule is now `.dropZoneLive:not(.dropZoneBusy):not(.dropZoneError):hover`, so hover never repaints an errored zone.
+- New `.dropZoneError`: `--danger` border and `--danger-bg` fill. It sits **before** `.dropZoneDragging` at the same specificity, so dragging wins. The resulting order, highest first, is busy, dragging, error, hover, rest. Busy and error never coexist, because every error clears on submit.
+- `.noteInput`: `background` added to its transition, as login's `.input` has it.
+- New `.noteInputError`: the same fill and border. It is weaker than `:focus-visible` (0,1,0 against 0,2,0), so a focused errored field gets the jade border and ring over the danger fill. That is login's behaviour.
+- New `.fieldError` and `@keyframes fieldErrorIn`:
+  - plain `--danger-ink` text at 12.5px / 1.5, which matches `.formHint`;
+  - `max-height` 0 → 240px and `opacity` 0 → 1, over `--dur-fast` `--ease-out`, with no forwards fill. This is login's `errorCardIn` technique, and the comment cites it.
+  - One addition: `margin-block-start` goes from -8px to 0. It takes back the form's flex `gap`, so the content below slides down instead of jumping 8px on the first frame. Login animates its `margin-bottom` for the same reason.
+- `.formError`: the comment is rewritten for its new role. Its declarations are unchanged.
+- Reduced motion: `.fieldError` joins `.confirmChipEntering` (`--dur-instant`, linear).
+
+**`pwa/app/globals.css`**: the `--danger-ink` comment, in both theme blocks, now names this use and its measured ratio. No value changed.
+
+No change to `upload.ts`, the locales, or any other file. `grep -n linear` in attendance.module.css still shows only the shimmer and the reduced-motion block.
+
+### Classification: every error key and the field it lands on
+There are 13 `attendance.upload.error.*` keys. A 14th, `attendance.panel.none.note_hint`, is now used as the note error (Flag 1). Some keys are reached from more than one path, so the table has one row per path. All rows were verified live, except where marked.
+
+| Source | Key | Field | Verified |
+|---|---|---|---|
+| client `validateFile`: type | `error.type` | file | live (`.txt` through `setInputFiles`, 0 requests) |
+| client `validateFile`: size | `error.too_large` | file | live (5 MB file at 390px) |
+| client `validateFile`: empty | `error.empty` | file | live (0-byte file) |
+| client `onDrop`: more than one file | `error.multiple` | file | live (synthetic `drop` with 2 files) |
+| 400 matching `/note/i` ("Note must be 80…", "Invalid note") | `panel.none.note_hint` | **note** | live, both sentences |
+| 400 matching `/type/i` | `error.type` | file | live |
+| 400 matching `/large\|size\|5\s*mb/i` | `error.too_large` | file | live |
+| 400, anything else | `error.rejected` | **form** | live ("Missing file field…") |
+| 404 | `error.not_found` | form | live |
+| 409 `DEADLINE_PASSED` | `error.deadline` | form | live |
+| 409 `NOT_ABSENT` | `error.not_absent` | form | live |
+| 409, no known code | `error.conflict` | form | live |
+| 413 | `error.too_large` | file | live |
+| 429 | `error.rate_limited` | form | live |
+| 500 | `error.storage` | form | live |
+| 502, 504 | `error.unavailable` | form | live, both |
+| any other status (403, 422…) | `error.rejected` | **form** | live (403) |
+| not an `ApiError` (network) | `error.network` | form | live (request aborted at the stub) |
+
+On every "form" row neither field was red. On every "file" row the note was not red and no box was shown. On every "note" row the drop zone was not red and no box was shown.
+
+The orchestrator's brief mentions 16 error keys. I count 13 keys plus the note hint, or 18 paths, as in the table above. I could not reconcile the number 16. The table is the complete list.
+
+### Done-when checks (Playwright, production build on :3102, Chrome)
+For each of fr-light, fr-dark, ar-light and ar-dark, the results were the same:
+- **Wrong-type file** through `setInputFiles` (0 network requests):
+  - the zone has `.dropZoneError`, with border `--danger` and fill `--danger-bg`;
+  - the input has `aria-invalid="true"`, and `aria-describedby` reads the hint and then the error;
+  - the message has `role="alert"`, sits directly under the zone, and is followed by the formats hint;
+  - the note is not red, and no box is shown.
+- **Hovered errored zone:** the computed border and fill are still `--danger` and `--danger-bg`.
+- **Synthetic `dragenter` on an errored zone:** jade border and `--jade-faint` fill. Dragging beats the error.
+- **A valid file** clears the zone error and `aria-invalid`.
+- **Stubbed `400 {"error":"Note must be 80 characters or fewer"}`:**
+  - the note has `.noteInputError` and `aria-invalid="true"`;
+  - the message is "80 caractères maximum." / "80 حرفاً كحد أقصى.", and it replaces the hint;
+  - `aria-describedby` points at the message;
+  - the zone is not red, no box is shown, and no text on the form contains "autre fichier".
+- **Typing in the note** clears the error, restores the hint, and points `aria-describedby` back at the hint.
+- **Stubbed 502:**
+  - one box, "Le service est momentanément indisponible…" / "الخدمة غير متاحة مؤقتاً…", with `role="alert"`;
+  - its next sibling is the submit button;
+  - both fields are at their rest colours.
+- **A new valid file** clears the box.
+- **Long message that wraps:** see "Fix round: a long form error that wraps" below. The first round's Arabic shot did not wrap, so it proved nothing about clipping. The too-large file message at 390px is not clipped either.
+- **Animation:**
+  - normal motion: `fieldErrorIn 0.18s cubic-bezier(0.16, 1, 0.3, 1)`, fill `none`;
+  - with `reducedMotion: 'reduce'`: `0.1s linear`, fill `none`.
+- **Accessible name:** the note's `aria-labelledby` resolves to "Motif (facultatif)" / "السبب (اختياري)".
+
+### `--danger-ink` contrast (hard gate: passed)
+The panel background was measured live: the first opaque ancestor of the message is `panel-module__…__panel`, computed `--surface`. Ratios are WCAG 2.x, sRGB:
+
+| Theme | `--danger-ink` | Panel background | Ratio |
+|---|---|---|---|
+| light | #B3261E | #FFFFFF | **6.54:1** |
+| dark | #FF9B8F | #1C2721 | **7.59:1** |
+
+Both are above 4.5:1. The browser measurement matches the hand computation. For reference, the other surfaces the form touches also pass: light `--surface2` 6.01, `--bg` 5.95; dark `--surface2` 6.78, `--bg` 8.25. The token comments in both theme blocks now name this use and its ratio.
+
+### Test data: what was real and what was stubbed
+- **Upload: stubbed.** `context.route('**/api/backend/student/attendance/*/justification')` was registered before any page opened, and every request was fulfilled with the status and body each check needed. It was never continued. Across the runs it took 27 requests, all fulfilled locally. For the network case, the stub aborted the request instead, which still never reached the server.
+- **GET attendance: stubbed from live**, as in milestone 1. `route.fetch()` returned the real response, and `canSubmitJustification: true` was set on the 4 `ABSENT` records with no justification. Everything else, including `band` and `absencesLeft`, is real.
+- **Real:** the login, the session, the other endpoints, and every string on screen.
+- Language and theme were set through Profile's own controls.
+- The credentials were passed as environment variables at run time and are in no file.
+- The scripts are in the session scratchpad, under `m2/`.
+- Nothing on the account changed.
+
+### Screenshots (`screenshots/m2/`)
+For each of `fr-light`, `fr-dark`, `ar-light` and `ar-dark`:
+- `-file-error`
+- `-file-error-hover`: still reads as the error
+- `-note-error`
+- `-form-error`: the 502 box above the submit button
+
+Long form error that wraps to 2 lines (fix round):
+- `fr-light-form-error-long-390.png`, `fr-dark-form-error-long-390.png`: `deadline` at 390px.
+- `ar-light-form-error-long-360.png`, `ar-dark-form-error-long-360.png`: `conflict` at 360px. The old `ar-*-form-error-long-390.png` files are deleted. They showed a single line, and their names claimed more than they showed.
+
+### Fix round: a long form error that wraps
+The reviewer found that `ar-*-form-error-long-390.png` used `error.deadline`, which fits on one line in Arabic, so wrapping was never tested.
+
+**Survey at 390px.** Every form-level key was stubbed in turn (`rejected` through an unrecognised 400, then `not_found`, `deadline`, `not_absent`, `conflict`, `rate_limited`, `storage`, `unavailable`). Each `.formError` box was measured after its transition:
+- **AR: none of the eight keys wraps at 390px.** Every box is 39px (`clientHeight` = 20px padding + one 18.75px line). That includes `conflict`, the longest Arabic string: "لم يعد بالإمكان إرسال مبرر لهذا الغياب. أغلق اللوحة وأعد فتح القائمة."
+- FR: all eight keys wrap to 2 lines (58px) at 390px.
+
+So no mapped Arabic form error can show a wrapping box at 390px. I did not edit copy or force a longer string. I measured `conflict` at 360px instead, which is the commonest Android phone width, and it wraps there. All other Arabic keys are still one line at 360px.
+
+**Results.** Lines are counted two ways: distinct line boxes from `Range.getClientRects()`, and (clientHeight − padding) ÷ line-height. The two agree.
+
+| Shot | Key | Width | clientHeight | scrollHeight | Lines | Clipped |
+|---|---|---|---|---|---|---|
+| ar-light | `conflict` (409, no code) | 360 | 58 | 58 | 2 | no |
+| ar-dark | `conflict` (409, no code) | 360 | 58 | 58 | 2 | no |
+| fr-light | `deadline` (409 DEADLINE_PASSED) | 390 | 58 | 58 | 2 | no |
+| fr-dark | `deadline` (409 DEADLINE_PASSED) | 390 | 58 | 58 | 2 | no |
+
+In every shot the box's next sibling is the submit button. `.formError` has no `overflow` or `max-height`, so its own height governs and the second line is fully shown. The screenshots confirm it.
+
+**Stubs.** These were the same as the first round. The upload stub fulfilled every request locally and never continued any of them (30 requests across the survey and the shots). GET attendance was live, with `canSubmitJustification` flipped on. The credentials were environment variables only.
+
+**Server.** I served on :3102 and stopped it afterwards. Before killing anything, I checked that the listener's command line was this worktree's `next start -p 3102` (PID 21648). Afterwards, `Get-NetTCPConnection -LocalPort 3102` showed no owning process, and `curl` was refused.
+
+**Flag for Design.** Every Arabic form error fits on one line at 390px. The "long Arabic message" in the done-when list exists at 360px (only `conflict`) but not at 390px. Above that, it needs copy longer than what ships today. I did not measure the exact width where it starts to wrap.
+
+### Checks
+`npm run typecheck` (exit 0):
+```
+> unipocket-pwa@1.0.0 typecheck
+> tsc --noEmit
+```
+
+`npm run build` (exit 0, final tree):
+```
+> unipocket-pwa@1.0.0 build
+> next build
+
+▲ Next.js 16.3.3 (Turbopack)
+- Environments: .env.local
+✓ Running next.config.ts took 167ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.1s
+  Running TypeScript ...
+  Finished TypeScript in 3.6s ...
+  Collecting page data using 7 workers ...
+✓ Generating static pages using 7 workers (12/12) in 688ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /api/auth/login
+├ ƒ /api/auth/logout
+├ ƒ /api/auth/refresh
+├ ƒ /api/backend/[...path]
+├ ƒ /attendance
+├ ƒ /grades
+├ ƒ /login
+├ ƒ /news
+├ ƒ /profile
+└ ƒ /schedule
+
+ƒ  (Dynamic)  server-rendered on demand
+```
+
+### Flagged
+- **Flag 1 stands. Copy for Design.** The note error shows `attendance.panel.none.note_hint` ("80 caractères maximum." / "80 حرفاً كحد أقصى."). No new string was added. The reviewer should not treat that text as final. Open question: keep it, or supply `attendance.upload.error.note` in FR and AR?
+- **New, copy for Design: `rejected` now has a mismatched sentence.** `rejected` is a form error by design (Flag 3), but its text still says "Réessayez avec un autre fichier" / "حاول بملف آخر". For an unrecognised 400 or an unmapped status, it tells the student to change the file without marking the file. The copy was not touched (no locale changes in scope). Design may want a neutral wording.
+- **Error count.** The brief says 16 error keys. I count 13 keys plus the note hint, or 18 paths, all in the table above.
+- **Server-side file errors keep the file selected.** A 400 type/size or a 413 marks the zone while it still shows the filename. That was already the behaviour: only `accept()` clears the file, and the mission keeps it that way. Resubmitting the same file will fail the same way. Possible follow-up: clear the file on a server file error.
+- **Already flagged by milestone 1, still open:** the Arabic file size renders as "KB 1". It is visible in the `ar-*` screenshots and was not touched here.
+- **My own mistake, no harm done.** While stopping the server, my first netstat parse picked PID 0 from a TIME_WAIT row, and `taskkill /T /F` was run against it. Windows refused every process ("access denied" / "critical system process"), and nothing was terminated. I then found the real listener with `Get-NetTCPConnection`: PID 23560, my own `next start` from `udj-wt-m2/pwa`. I stopped it and verified that no process owns 3102 and that the port refuses connections. Next time, filter on owning PID ≠ 0.
+
+### Could not do
+- Open the PR, because `gh` is not installed. The branch is pushed, and the text is below.
+- A real OS drag-and-drop gesture. Dragging over an errored zone was checked with synthetic `dragenter`/`drop` events carrying a `DataTransfer`.
+
+### PR (ready to paste)
+Title: `fix(pwa): justification form field errors — file, note and form kept apart`
+
+Body:
+```
+Does not touch backend/prisma/schema.prisma.
+
+Milestone 2 of .claude/missions/2026-11-11-pwa-justification-form-arabic-tracking.
+
+The upload form had one error state that held both file problems and request
+failures, all shown in one box under the drop zone, and a refused note was
+reported as "try another file". It now splits errors by what they are about:
+
+- File (client type/too_large/empty/multiple, a 400 recognised as type or size,
+  the 413): the drop zone itself is marked (--danger border, --danger-bg fill,
+  aria-invalid on the input), with a --danger-ink message sliding down beneath
+  it (login's errorCardIn max-height technique, no forwards fill).
+- Note (a 400 matching /note/i, tested first; both backend sentences named in
+  the comment): the note input is marked and the message replaces its hint.
+  The note input is now labelled (aria-labelledby) and described
+  (aria-describedby). The message text is the existing note hint, pending
+  Design (mission flag 1).
+- Form (everything else, including `rejected` and unmapped statuses): one box,
+  moved to sit immediately above the submit button. Neither field is marked.
+
+errorKey returns { field, key }; the table of every path is in PROGRESS.md.
+Precedence on the zone: busy > dragging > error > hover > rest — hover does not
+repaint an errored zone.
+
+globals.css: comment only. --danger-ink now also carries the inline field
+messages on the panel's --surface. Measured 6.54:1 light and 7.59:1 dark.
+
+Checks (pwa/ has no CI job): `npm run typecheck` and `npm run build` pass.
+Every path was exercised in Chrome against stubbed upload responses, in FR/AR ×
+light/dark. Screenshots are in screenshots/m2/. The upload was always fulfilled
+by the stub and never reached the server. GET attendance was stubbed from the
+live response with canSubmitJustification flipped on.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+```
