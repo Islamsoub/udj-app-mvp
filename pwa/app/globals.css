@@ -378,6 +378,19 @@ html[lang="ar"] body {
   font-family: var(--font-ar);
 }
 
+/* Arabic letter-spacing resets live in each CSS module, directly after the rule
+   they override, as `html[lang="ar"] .<rule> { letter-spacing: normal; }`.
+   Not here, for three reasons: this file cannot name the hashed module
+   classes; a universal `html[lang="ar"] *` would also strip the tracking that
+   must stay on Latin-only text (figures in .num, course-type codes, the
+   language code, the student ID, the brand wordmark); and beside the rule is
+   where the next author changing that tracking will look.
+
+   Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
+   because mirroring belongs to logical properties; letter-spacing belongs to
+   the script. Arabic letters join, and tracking pulls them apart in either
+   direction. This is not a breach of that rule, so do not remove it as one. */
+
 /* Numbers, times, GPAs and student IDs stay on the Latin faces in BOTH
    languages — the Arabic face renders digits in a style the design system does
    not use, and a GPA must look identical whichever language is active. A direct

@@ -210,6 +210,14 @@
   color: var(--ink2);
 }
 
+/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
+   because mirroring belongs to logical properties; letter-spacing belongs to
+   the script. Arabic letters join, and tracking pulls them apart in either
+   direction. This is not a breach of that rule, so do not remove it as one. */
+html[lang="ar"] .dayName {
+  letter-spacing: normal;
+}
+
 .dayHeadToday .dayName,
 .dayHeadToday .dayDate {
   color: var(--jade-text);
@@ -395,6 +403,13 @@
   font-weight: 800;
   letter-spacing: 0.06em;
   white-space: nowrap;
+}
+
+/* Arabic: no tracking — see the note at .dayName. Scoped to .detailType, where
+   the pill carries the translated label; DayList's pill shows the Latin code
+   (CM/TD/TP/EXAM) and keeps its tracking. */
+html[lang="ar"] .detailType .typePill {
+  letter-spacing: normal;
 }
 
 /* ── Crossfade (§9) ────────────────────────────────────────────────────────── */
@@ -645,6 +660,11 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink2);
+}
+
+/* Arabic: no tracking — see the note at .dayName. */
+html[lang="ar"] .detailLabel {
+  letter-spacing: normal;
 }
 
 .detailIcon {
