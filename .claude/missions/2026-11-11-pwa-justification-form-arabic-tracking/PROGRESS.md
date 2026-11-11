@@ -328,7 +328,7 @@ Branch `feature/pwa-arabic-heading-tracking`, cut from `origin/develop` at 5e104
   - `login.module.css` `.brand`
   - `public/offline.html` `.brand`, in the inline `<style>`, beside its existing `html[lang="ar"]` rules
 - Comments follow the Decision section:
-  - the full verbatim sentence goes on the first reset in each module;
+  - the full verbatim sentence goes on the first reset in each module; *(superseded after the rebase in attendance, dashboard, grades and schedule — see "rebase onto develop" below)*
   - the second reset in news and shell carries the pointer (`see the note at .heading` / `.title`);
   - offline.html has one line.
 - Unchanged: `.brandName`, `.heroNumber`, `.subjectValue`, `.unreadCount`, `.calcCurrentValue`, `.calcResultValue`, `.langCode`, `.inputId`. sw.js and globals.css are not touched either.
@@ -432,7 +432,7 @@ Language is set with the `unipocket_lang` cookie. Values are `getComputedStyle(e
 - `ar-offline.png`: offline.html.
 
 ### Flagged
-- **Comment collision with milestone 3 (for whoever merges second).**
+- **Comment collision with milestone 3 (for whoever merges second).** *(Done after the rebase — see "rebase onto develop" below.)*
   - In attendance, dashboard, grades and schedule, this branch's `.heading` reset is the first `html[lang="ar"]` rule in the file, so it carries the full verbatim comment.
   - Milestone 3 also puts the full comment on *its* first reset in those four files.
   - After both merge, each of those files has the full sentence twice. Taken literally, the Decision section wants the later one (milestone 3's, lower in the file) reduced to `/* Arabic: no tracking — see the note at .heading. */`.
