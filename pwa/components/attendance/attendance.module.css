@@ -57,6 +57,14 @@
   color: var(--ink2);
 }
 
+/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
+   because mirroring belongs to logical properties; letter-spacing belongs to
+   the script. Arabic letters join, and tracking pulls them apart in either
+   direction. This is not a breach of that rule, so do not remove it as one. */
+html[lang="ar"] .heroLabel {
+  letter-spacing: normal;
+}
+
 .heroValue {
   display: flex;
   margin: 6px 0 0;
@@ -612,6 +620,11 @@
   color: var(--ink2);
 }
 
+/* Arabic: no tracking — see the note at .heroLabel. */
+html[lang="ar"] .panelDateLabel {
+  letter-spacing: normal;
+}
+
 .panelDateValue {
   font-size: 13.5px;
   font-weight: 600;
@@ -687,6 +700,11 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink2);
+}
+
+/* Arabic: no tracking — see the note at .heroLabel. */
+html[lang="ar"] .noteLabel {
+  letter-spacing: normal;
 }
 
 /* Free text from a person, so it wraps and preserves the line breaks they typed
@@ -767,6 +785,11 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ink2);
+}
+
+/* Arabic: no tracking — see the note at .heroLabel. */
+html[lang="ar"] .formLabel {
+  letter-spacing: normal;
 }
 
 .formHint {
