@@ -48,14 +48,32 @@ export function JustificationForm({
   const reducedMotion = useReducedMotion();
 
   const inputId = useId();
-  const errorId = useId();
+  const fileErrorId = useId();
   const hintId = useId();
-
+  const noteId = useId();
+  const formErrorId = useId();
 
   const [file, setFile] = useState<File | null>(null);
   const [note, setNote] = useState('');
   const [dragging, setDragging] = useState(false);
-  const [error, setError] = useState<TranslationKey | null>(null);
+
+  /*
+   * Three errors, split by what each one is about, because each is shown on
+   * the thing it is about. One shared state would mark the file wrong after a
+   * network failure. See `errorKey` for which failure lands where.
+   *
+   * - fileError: the drop zone is marked, with a message beneath it. Cleared
+   *   when a new file is accepted.
+   * - noteError: the note input is marked, and the message replaces its hint.
+   *   Cleared as soon as the note is edited.
+   * - formError: about sending, not about either field. A box above the submit
+   *   button. Cleared when a new file is accepted.
+   *
+   * All three are cleared on submit.
+   */
+  const [fileError, setFileError] = useState<TranslationKey | null>(null);
+  const [noteError, setNoteError] = useState<TranslationKey | null>(null);
+  const [formError, setFormError] = useState<TranslationKey | null>(null);
   const [phase, setPhase] = useState<'idle' | 'uploading' | 'done'>('idle');
   const [progress, setProgress] = useState(0);
 
@@ -103,12 +121,13 @@ export function JustificationForm({
       // The rejected file is NOT kept. Leaving it selected would put a file the
       // student cannot send next to an enabled-looking button.
       setFile(null);
-      setError(problem);
+      setFileError(problem);
       return;
     }
 
     setFile(candidate);
-    setError(null);
+    setFileError(null);
+    setFormError(null);
   };
 
   // ── Drag and drop (§5) ────────────────────────────────────────────────────
@@ -151,7 +170,7 @@ export function JustificationForm({
     const dropped = event.dataTransfer.files;
     if (dropped.length > 1) {
       setFile(null);
-      setError('attendance.upload.error.multiple');
+      setFileError('attendance.upload.error.multiple');
       return;
     }
     accept(dropped[0]);
@@ -163,7 +182,9 @@ export function JustificationForm({
     if (file === null || phase !== 'idle' || !online) return;
 
     setPhase('uploading');
-    setError(null);
+    setFileError(null);
+    setNoteError(null);
+    setFormError(null);
     setProgress(0);
 
     /*
@@ -185,7 +206,19 @@ export function JustificationForm({
       window.clearInterval(ticker);
       setProgress(0);
       setPhase('idle');
-      setError(errorKey(err));
+
+      const failure = errorKey(err);
+      switch (failure.field) {
+        case 'file':
+          setFileError(failure.key);
+          break;
+        case 'note':
+          setNoteError(failure.key);
+          break;
+        case 'form':
+          setFormError(failure.key);
+          break;
+      }
     }
   };
 
@@ -231,6 +264,7 @@ export function JustificationForm({
         className={[
           styles.dropZone,
           styles.dropZoneLive,
+          fileError !== null ? styles.dropZoneError : '',
           dragging ? styles.dropZoneDragging : '',
           uploading ? styles.dropZoneBusy : '',
         ]
@@ -248,7 +282,8 @@ export function JustificationForm({
           type="file"
           accept={ACCEPTED_TYPES.join(',')}
           disabled={uploading}
-          aria-describedby={`${hintId}${error === null ? '' : ` ${errorId}`}`}
+          aria-invalid={fileError !== null}
+          aria-describedby={`${hintId}${fileError === null ? '' : ` ${fileErrorId}`}`}
           onChange={(event) => {
             accept(event.target.files?.[0]);
             /*
@@ -278,6 +313,13 @@ export function JustificationForm({
         )}
       </label>
 
+      {/* Directly beneath the zone it is about, above the formats hint. */}
+      {fileError !== null && (
+        <p className={styles.fieldError} id={fileErrorId} role="alert">
+          <Interpolated template={t(fileError)} values={{ size: MAX_UPLOAD_MB }} />
+        </p>
+      )}
+
       <p className={styles.formHint} id={hintId}>
         {/*
           The real limit, in the copy. 4.5 and not the backend's 5 — see
@@ -289,23 +331,37 @@ export function JustificationForm({
         />
       </p>
 
-      {error !== null && (
-        <p className={styles.formError} id={errorId} role="alert">
-          <Interpolated template={t(error)} values={{ size: MAX_UPLOAD_MB }} />
-        </p>
-      )}
-
-      <p className={styles.formLabel}>{t('attendance.panel.none.note_label')}</p>
+      <p className={styles.formLabel} id={`${noteId}-label`}>
+        {t('attendance.panel.none.note_label')}
+      </p>
       <input
-        className={styles.noteInput}
+        className={[styles.noteInput, noteError !== null ? styles.noteInputError : '']
+          .filter(Boolean)
+          .join(' ')}
         type="text"
         value={note}
         maxLength={NOTE_MAX}
         disabled={uploading}
         placeholder={t('attendance.upload.note_placeholder')}
-        onChange={(event) => setNote(event.target.value)}
+        aria-labelledby={`${noteId}-label`}
+        aria-invalid={noteError !== null}
+        aria-describedby={noteError === null ? `${noteId}-hint` : `${noteId}-error`}
+        onChange={(event) => {
+          setNote(event.target.value);
+          setNoteError(null);
+        }}
       />
-      <p className={styles.formHint}>{t('attendance.panel.none.note_hint')}</p>
+      {/* In error, the message takes the hint's place rather than stacking
+          under it, and aria-describedby follows whichever is shown. */}
+      {noteError === null ? (
+        <p className={styles.formHint} id={`${noteId}-hint`}>
+          {t('attendance.panel.none.note_hint')}
+        </p>
+      ) : (
+        <p className={styles.fieldError} id={`${noteId}-error`} role="alert">
+          {t(noteError)}
+        </p>
+      )}
 
       {uploading && (
         <div
@@ -319,6 +375,16 @@ export function JustificationForm({
         >
           <span className={styles.progressFill} />
         </div>
+      )}
+
+      {/*
+        Immediately above the button, so a network or deadline failure reads as
+        being about sending, not about the file or the note above it.
+      */}
+      {formError !== null && (
+        <p className={styles.formError} id={formErrorId} role="alert">
+          <Interpolated template={t(formError)} values={{ size: MAX_UPLOAD_MB }} />
+        </p>
       )}
 
       <button
@@ -352,9 +418,27 @@ export function JustificationForm({
 
 // ── Failure mapping ───────────────────────────────────────────────────────────
 
+/** Which part of the form a failure is about, and what to say about it. */
+type Failure = {
+  field: 'file' | 'note' | 'form';
+  key: TranslationKey;
+};
+
 /**
- * Turns a thrown request error into a translation key. The backend's `error`
- * sentence is NEVER rendered.
+ * Turns a thrown request error into a translation key, and says which part of
+ * the form it is about. The backend's `error` sentence is NEVER rendered.
+ *
+ * ── WHERE EACH FAILURE LANDS ─────────────────────────────────────────────────
+ *
+ * - 'file': only what is certainly about the file — a 400 recognised as a type
+ *   or size refusal, and the 413. (The client's own `type`, `too_large`,
+ *   `empty` and `multiple` are set on the file directly, in `accept` and
+ *   `onDrop`, and never pass through here.)
+ * - 'note': a 400 about the note.
+ * - 'form': everything else, INCLUDING `rejected`. It is the fall-through for
+ *   400s nobody recognised and for every unmapped status (403, 422…), so its
+ *   cause is unknown — marking the file red for it would claim to know what is
+ *   wrong.
  *
  * ── 409: BY `code` ───────────────────────────────────────────────────────────
  *
@@ -368,23 +452,40 @@ export function JustificationForm({
  * The 400s have no codes yet, so a rejected type and an oversized file are
  * still told apart by matching the English sentence, defensively: anything
  * unrecognised falls through to the generic rejection, never a wrong specific.
+ *
+ * The note is matched by sentence too, and FIRST, so the order is explicit.
+ * The backend (backend/src/routes/student.ts, the justification handler) has
+ * two note refusals: "Invalid note" (a non-string field, which this client
+ * never sends) and "Note must be 80 characters or fewer". Neither contains
+ * "type", "large" or "size", but nothing should depend on that staying true.
  */
-function errorKey(err: unknown): TranslationKey {
+function errorKey(err: unknown): Failure {
   if (!(err instanceof ApiError)) {
     // Never reached the server: DNS, a dropped connection, a blocked request.
-    return 'attendance.upload.error.network';
+    return { field: 'form', key: 'attendance.upload.error.network' };
   }
 
   const message = messageOf(err.body);
 
   switch (err.status) {
     case 400:
-      if (/type/i.test(message)) return 'attendance.upload.error.type';
-      if (/large|size|5\s*mb/i.test(message)) return 'attendance.upload.error.too_large';
-      return 'attendance.upload.error.rejected';
+      if (/note/i.test(message)) {
+        /*
+         * No dedicated "note refused" string exists, and none is invented here
+         * (mission flag 1, open with Design). The hint states the very rule
+         * the server enforced — 80 characters — and that is the only note
+         * failure this client can reach.
+         */
+        return { field: 'note', key: 'attendance.panel.none.note_hint' };
+      }
+      if (/type/i.test(message)) return { field: 'file', key: 'attendance.upload.error.type' };
+      if (/large|size|5\s*mb/i.test(message)) {
+        return { field: 'file', key: 'attendance.upload.error.too_large' };
+      }
+      return { field: 'form', key: 'attendance.upload.error.rejected' };
 
     case 404:
-      return 'attendance.upload.error.not_found';
+      return { field: 'form', key: 'attendance.upload.error.not_found' };
 
     case 409:
       /*
@@ -394,31 +495,33 @@ function errorKey(err: unknown): TranslationKey {
        */
       switch (codeOf(err.body)) {
         case 'DEADLINE_PASSED':
-          return 'attendance.upload.error.deadline';
+          return { field: 'form', key: 'attendance.upload.error.deadline' };
         case 'NOT_ABSENT':
-          return 'attendance.upload.error.not_absent';
+          return { field: 'form', key: 'attendance.upload.error.not_absent' };
         default:
-          return 'attendance.upload.error.conflict';
+          return { field: 'form', key: 'attendance.upload.error.conflict' };
       }
 
     case 413:
       // Vercel's platform limit, answered before the function runs. Reachable
       // even under the client's 4.5 MB cap if the multipart envelope tips it.
-      return 'attendance.upload.error.too_large';
+      // The request body is the file, so this one is about the file.
+      return { field: 'file', key: 'attendance.upload.error.too_large' };
 
     case 429:
-      return 'attendance.upload.error.rate_limited';
+      return { field: 'form', key: 'attendance.upload.error.rate_limited' };
 
     case 500:
       // The handler's only 500 is a failed Storage write.
-      return 'attendance.upload.error.storage';
+      return { field: 'form', key: 'attendance.upload.error.storage' };
 
     case 502:
     case 504:
-      return 'attendance.upload.error.unavailable';
+      return { field: 'form', key: 'attendance.upload.error.unavailable' };
 
     default:
-      return 'attendance.upload.error.rejected';
+      // An unmapped status: the cause is unknown, so no field is blamed.
+      return { field: 'form', key: 'attendance.upload.error.rejected' };
   }
 }
 

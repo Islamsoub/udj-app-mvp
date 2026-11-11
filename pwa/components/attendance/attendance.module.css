@@ -825,10 +825,26 @@ html[lang="ar"] .formLabel {
 }
 
 /* §3 hover. The same values as dragover: "this zone takes a file" is one
-   signal. Never while uploading — a busy zone takes nothing. */
-.dropZoneLive:not(.dropZoneBusy):hover {
+   signal. Never while uploading — a busy zone takes nothing — and never over an
+   error, which hovering must not repaint. */
+.dropZoneLive:not(.dropZoneBusy):not(.dropZoneError):hover {
   border-color: var(--jade);
   background: var(--jade-faint);
+}
+
+/*
+ * The file was refused. §5's inline field error, as login's .inputError:
+ * danger border, danger-tinted fill. The message beneath (.fieldError) carries
+ * the meaning in words, so colour is never the only signal (§10).
+ *
+ * Precedence, highest first: busy, dragging, error, hover, rest. Hover is
+ * excluded above; dragging comes AFTER this rule at the same specificity, so it
+ * wins — the student is dropping the replacement. Busy and an error never
+ * coexist: every error is cleared on submit.
+ */
+.dropZoneError {
+  border-color: var(--danger);
+  background: var(--danger-bg);
 }
 
 /* §5: "dragover state adds a jade dashed border + jade-faint background over
@@ -961,6 +977,7 @@ html[lang="ar"] .formLabel {
   font-family: inherit;
   font-size: 13.5px;
   transition: border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
     box-shadow var(--dur-fast) var(--ease-out);
 }
 
@@ -978,9 +995,59 @@ html[lang="ar"] .formLabel {
 }
 
 /*
- * A rejected file or a failed request. §5's inline field error: danger border,
- * danger-tinted background. The icon-free wording carries the meaning on its
- * own, so colour is never the only signal (§10).
+ * The note was refused. The same fill and border as .dropZoneError, and as
+ * login's .inputError. Declared after :focus-visible but weaker than it
+ * (0,1,0 against 0,2,0), so a focused field still gets the jade border and
+ * ring over the danger fill — again as login does.
+ */
+.noteInputError {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+
+/*
+ * The message under a field in error: the file one beneath the drop zone, the
+ * note one in place of the note's hint. Plain text, not a box, at .formHint's
+ * size; the field above is what is marked.
+ *
+ * --danger-ink sits here on the panel's surface, not on its own tint — see the
+ * token comment in globals.css for the measured ratios.
+ *
+ * It slides down with login's errorCardIn technique (login.module.css): a
+ * max-height ceiling far larger than the text can ever be, opacity with it,
+ * --dur-fast, --ease-out, and NO forwards fill, so its own height governs the
+ * moment it ends and a long Arabic line cannot clip. The negative start margin
+ * takes back the form's 8px gap, so what sits below is pushed down smoothly
+ * rather than jumping on the first frame.
+ */
+.fieldError {
+  margin: 0;
+  overflow: hidden;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--danger-ink);
+  animation: fieldErrorIn var(--dur-fast) var(--ease-out);
+}
+
+@keyframes fieldErrorIn {
+  from {
+    max-height: 0;
+    margin-block-start: -8px;
+    opacity: 0;
+  }
+  to {
+    max-height: 240px;
+    margin-block-start: 0;
+    opacity: 1;
+  }
+}
+
+/*
+ * A failed request that is about neither field: sending itself (network,
+ * deadline, rate limit, an unrecognised refusal…). It sits just above the
+ * submit button and marks no field, so it keeps a box of its own: §5's danger
+ * border and danger-tinted background. The icon-free wording carries the
+ * meaning on its own, so colour is never the only signal (§10).
  */
 .formError {
   margin: 0;
@@ -1257,7 +1324,8 @@ html[lang="ar"] .formLabel {
     animation: none;
   }
 
-  .confirmChipEntering {
+  .confirmChipEntering,
+  .fieldError {
     animation-duration: var(--dur-instant);
     animation-timing-function: linear;
   }

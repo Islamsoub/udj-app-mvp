@@ -236,7 +236,10 @@
 
   /* Status TEXT on its own tint — chips only. The status colours above stay on
      icons, bars and borders, which need 3:1; text needs 4.5:1, and none of them
-     reach it on their tint. Each is the same hue, darkened until it does. */
+     reach it on their tint. Each is the same hue, darkened until it does.
+     --danger-ink alone also carries the attendance upload form's inline field
+     errors, on the panel's --surface: 6.54:1 on #FFFFFF (WCAG 2.x, measured
+     2026-11-11). */
   --danger-ink: #B3261E;
   --info-ink: #1D4ED8;
   --warning-ink: #8A5200;
@@ -301,7 +304,10 @@
   --exam: #A98BF0;
   --exam-bg: rgba(169, 139, 240, .18);
 
-  /* Status text on its tint; lightened rather than darkened on a dark page. */
+  /* Status text on its tint; lightened rather than darkened on a dark page.
+     --danger-ink alone also carries the attendance upload form's inline field
+     errors, on the panel's --surface: 7.59:1 on #1C2721 (WCAG 2.x, measured
+     2026-11-11). */
   --danger-ink: #FF9B8F;
   --info-ink: #8AB4FF;
   --warning-ink: #F2B35E;
