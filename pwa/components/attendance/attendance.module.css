@@ -100,15 +100,21 @@
   color: var(--ink2);
 }
 
-/* Under the line. The tint is ONE of three signals — the triangle beside it and
-   the wording itself carry the same meaning (§10).
-   Text on the card surface, so --warning-ink: --warning is 2.15:1 on it in
-   light. The triangle follows it through currentColor on purpose — unlike the
-   danger and info icons, --warning cannot reach even the 3:1 a graphic needs
-   on a light surface, so this icon is not split back to the hue. The same
-   holds for .subjectFlag. */
-.heroThresholdBelow {
+/* The overall band, ROUND2-CLOSEOUT §4 "Hero line". The colour is ONE of three
+   signals — the triangle beside it and the sentence itself carry the same
+   meaning (§10). ok and term-over-ok keep .heroThreshold's --ink2 and no icon.
+   Text on the card --surface, so the -ink tokens, never the hues: --warning is
+   2.15:1 on it in light. The triangle follows the text through currentColor, as
+   §4 asks. Measured on --surface: --warning-ink 6.39 light / 8.36 dark,
+   --danger-ink 6.54 light / 7.59 dark. */
+.heroThresholdNear {
   color: var(--warning-ink);
+  font-weight: 700;
+}
+
+/* below, and term-over below. */
+.heroThresholdBelow {
+  color: var(--danger-ink);
   font-weight: 700;
 }
 
@@ -165,6 +171,21 @@
   stroke-dashoffset: var(--ring-offset);
 }
 
+/*
+ * The stroke follows overall.band (ROUND2-CLOSEOUT §4, with §3/A3's colours):
+ * ok --jade above, near --warning-ink, below --danger. A graphic, so 3:1 is the
+ * bar. Measured on --surface: --jade 3.39 light / 6.17 dark, --warning-ink
+ * 6.39 light / 8.36 dark, --danger 3.76 light / 5.56 dark. --warning is not
+ * used: 2.15:1 on --surface in light.
+ */
+.ringValueNear {
+  stroke: var(--warning-ink);
+}
+
+.ringValueBelow {
+  stroke: var(--danger);
+}
+
 .ringFilling {
   animation: ringFill var(--dur-slow) var(--ease-in-out);
 }
@@ -217,13 +238,28 @@
 }
 
 /*
- * Below the threshold. A tinted surface AND a warning border — but never on its
- * own: the row carries the triangle glyph and the words "Sous le seuil" as well,
- * because §10 forbids colour as the only signal.
+ * The subject's own band, ROUND2-CLOSEOUT §4 "Row treatment": border, bar fill
+ * and figure. Never on its own — the row also carries the triangle glyph and a
+ * sentence (.subjectFlag), because §10 forbids colour as the only signal.
+ *
+ * No background tint: §4's table has no background column, so --warning-bg is
+ * no longer used here (Flag 8, Design to confirm). --warning is not used either
+ * (A3: 2.15:1 on --surface in light).
+ *
+ * near: all three in --warning-ink, which is text-safe on the card and holds as
+ * a graphic on the track — 6.39 light / 8.36 dark on --surface, 5.33 light /
+ * 9.88 dark against the --sunken track (§4 quotes the 5.33).
+ *
+ * below (and term-over below): border and fill in the --danger hue, a graphic at
+ * 3.76 light / 5.56 dark on --surface and 3.14 light / 6.57 dark on --sunken; the
+ * figure is text, so it takes --danger-ink, 6.54 light / 7.59 dark on --surface.
  */
+.subjectNear {
+  border-color: var(--warning-ink);
+}
+
 .subjectBelow {
-  border-color: var(--warning);
-  background: var(--warning-bg);
+  border-color: var(--danger);
 }
 
 .subjectHead {
@@ -260,8 +296,12 @@
   color: var(--ink);
 }
 
-.subjectValueBelow {
+.subjectNear .subjectValue {
   color: var(--warning-ink);
+}
+
+.subjectBelow .subjectValue {
+  color: var(--danger-ink);
 }
 
 /* ── Bars ──────────────────────────────────────────────────────────────────── */
@@ -295,8 +335,13 @@
   background: var(--jade);
 }
 
+/* Fill colours per band; the ratios are with .subjectNear / .subjectBelow. */
+.subjectNear .barFill {
+  background: var(--warning-ink);
+}
+
 .subjectBelow .barFill {
-  background: var(--warning);
+  background: var(--danger);
 }
 
 /*
@@ -340,12 +385,19 @@
   color: var(--ink2);
 }
 
+/* The row's sentence and its triangle, which follows the text through
+   currentColor (§4). Text on the card --surface: --warning-ink for near (6.39
+   light / 8.36 dark), --danger-ink for below and term-over below (6.54 / 7.59). */
 .subjectFlag {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   color: var(--warning-ink);
   font-weight: 700;
+}
+
+.subjectFlagBelow {
+  color: var(--danger-ink);
 }
 
 .subjectFlagIcon {

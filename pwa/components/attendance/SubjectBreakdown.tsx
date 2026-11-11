@@ -4,9 +4,47 @@ import { Interpolated } from '@/components/dashboard/Interpolated';
 import type { AttendanceSubject } from '@/lib/api-types';
 import { fmtPercent } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
+import type { TranslationKey } from '@/lib/i18n-types';
 import { WarningIcon } from './icons';
 import { sortSubjects } from './model';
 import styles from './attendance.module.css';
+
+type RowTone = 'ok' | 'near' | 'below';
+
+type RowFlag =
+  | { kind: 'near'; n: number }
+  | { kind: 'text'; key: TranslationKey };
+
+/**
+ * One subject's row state, per ROUND2-CLOSEOUT §4: the tone (border, bar fill,
+ * figure) and the flag beside the session count.
+ *
+ * Term over (`absencesLeft === null`) is checked first, because §4's term-over
+ * rows apply whatever the band. A term-over `below` keeps the below treatment
+ * with the term-over sentence; a term-over `near` gets no flag and no near tone,
+ * since "n absences left" means nothing once the term has ended.
+ */
+function subjectRow(entry: AttendanceSubject): { tone: RowTone; flag: RowFlag | null } {
+  if (entry.absencesLeft === null) {
+    return entry.band === 'below'
+      ? { tone: 'below', flag: { kind: 'text', key: 'attendance.subjects.ended_below' } }
+      : { tone: 'ok', flag: null };
+  }
+  switch (entry.band) {
+    case 'below':
+      return { tone: 'below', flag: { kind: 'text', key: 'attendance.subjects.below' } };
+    case 'near':
+      return { tone: 'near', flag: { kind: 'near', n: entry.absencesLeft } };
+    case 'ok':
+      return { tone: 'ok', flag: null };
+  }
+}
+
+const ROW_CLASS: Record<RowTone, string> = {
+  ok: '',
+  near: styles.subjectNear,
+  below: styles.subjectBelow,
+};
 
 /**
  * Attendance per subject, worst first.
@@ -16,10 +54,18 @@ import styles from './attendance.module.css';
  * reading of eight numbers, and the threshold is drawn as a line ACROSS every
  * bar at the same place so "below the line" is literally visible.
  *
+ * EACH ROW'S STATE IS THE SERVER'S `band` AND `absencesLeft` for that subject
+ * (ROUND2-CLOSEOUT §4, "Subject rows" and "Row treatment"); the percentage is
+ * never compared against the threshold here. The threshold is still displayed:
+ * in the section note and as the tick on every bar.
+ *
  * §10: "Status colors ... are never the only signal — always paired with a label
- * or icon." A subject under the threshold therefore gets three independent
- * markers: the warning tint, the triangle glyph, and the words "Sous le seuil".
- * Any one of them alone carries it.
+ * or icon." A `near` or `below` row therefore carries three independent markers:
+ * the border, bar and figure colour, the triangle glyph, and a sentence —
+ * "Encore 2 absences avant la limite", "Limite d'absences dépassée", or, once
+ * the term is over, "Semestre terminé sous le seuil". Any one of them alone
+ * carries it. The rows carry no background tint: §4's treatment table has no
+ * background column (Flag 8, Design to confirm).
  *
  * NOT a native <meter>. Its bar is drawn by the UA with no reliable way to place
  * the threshold marker inside it, and its `low`/`optimum` shading is a colour
@@ -31,10 +77,11 @@ export function SubjectBreakdown({
   threshold,
 }: {
   subjects: AttendanceSubject[];
-  /** From the response; see model.ts for why there is no local default. */
+  /** From the response; see model.ts for why there is no local default.
+   *  Displayed only — each row's state comes from its own `band`. */
   threshold: number;
 }) {
-  const { t, lang } = useI18n();
+  const { t, plural, lang } = useI18n();
 
   const ordered = sortSubjects(subjects, lang);
 
@@ -56,13 +103,10 @@ export function SubjectBreakdown({
         {ordered.map((entry) => {
           const name = lang === 'ar' ? entry.subject.nameAr : entry.subject.nameFr;
           const value = Math.round(entry.percentage);
-          const below = entry.percentage < threshold;
+          const row = subjectRow(entry);
 
           return (
-            <li
-              key={entry.subject.id}
-              className={`${styles.subject} ${below ? styles.subjectBelow : ''}`}
-            >
+            <li key={entry.subject.id} className={`${styles.subject} ${ROW_CLASS[row.tone]}`}>
               <div className={styles.subjectHead}>
                 <p className={styles.subjectName}>
                   {name}
@@ -70,7 +114,7 @@ export function SubjectBreakdown({
                   <span className={`${styles.subjectCode} num`}>{entry.subject.code}</span>
                 </p>
 
-                <p className={`${styles.subjectValue} ${below ? styles.subjectValueBelow : ''} num`}>
+                <p className={`${styles.subjectValue} num`}>
                   {fmtPercent(value)}
                 </p>
               </div>
@@ -108,10 +152,21 @@ export function SubjectBreakdown({
                   />
                 </span>
 
-                {below && (
-                  <span className={styles.subjectFlag}>
+                {row.flag !== null && (
+                  <span
+                    className={`${styles.subjectFlag} ${row.tone === 'below' ? styles.subjectFlagBelow : ''}`}
+                  >
                     <WarningIcon className={styles.subjectFlagIcon} />
-                    {t('attendance.subjects.below')}
+                    {row.flag.kind === 'near' ? (
+                      // {{n}} goes through .num, Western digits in both
+                      // languages; the zero/one/two forms carry no placeholder.
+                      <Interpolated
+                        template={plural('attendance.subjects.near', row.flag.n)}
+                        values={{ n: row.flag.n }}
+                      />
+                    ) : (
+                      t(row.flag.key)
+                    )}
                   </span>
                 )}
               </p>
