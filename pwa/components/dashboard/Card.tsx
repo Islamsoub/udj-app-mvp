@@ -22,15 +22,8 @@ export function Card({
   animate,
   children,
 }: {
+  /** Dashboard Spec §6: a card title has no leading icon. */
   title: string;
-  /**
-   * @deprecated Not rendered. Dashboard Spec §6 draws card titles with no
-   * leading icon. The six cards still pass one. M3 of the 2026-11-12
-   * design-conformance mission (which has Card.tsx and the six cards in its
-   * paths) removes it: the call-site props, their now-unused icon imports, and
-   * this prop.
-   */
-  icon?: ReactNode;
   /** Set when the whole card navigates; drives the §3 hover lift. */
   href?: string;
   /** Position in §4's reading order, which is also its stagger delay. */

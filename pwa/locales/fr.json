@@ -92,6 +92,7 @@
     },
     "attendance": {
       "title": "Assiduité",
+      "rate_caption": "TAUX",
       "empty": "Aucune séance enregistrée pour le moment.",
       "sessions": "{{present}} séances suivies sur {{total}}",
       "threshold": "Seuil : {{threshold}}",

@@ -92,6 +92,7 @@
     },
     "attendance": {
       "title": "الحضور",
+      "rate_caption": "النسبة",
       "empty": "لا توجد حصص مسجّلة حالياً.",
       "sessions": "حضرت {{present}} حصة من أصل {{total}}",
       "threshold": "الحد الأدنى: {{threshold}}",

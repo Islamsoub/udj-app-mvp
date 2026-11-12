@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getSchedule } from '@/lib/api-client';
 import type { ScheduleResponse } from '@/lib/api-types';
-import { fmtRange } from '@/lib/bidi';
+import { fmtLtr } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { Card, CardStates, EmptyState } from './Card';
 import { ClockIcon, PersonIcon, PinIcon } from './icons';
@@ -19,7 +19,6 @@ export function NextClassCard({ index, animate, online }: { index: number; anima
   return (
     <Card
       title={t('dashboard.next_class.title')}
-      icon={<ClockIcon />}
       href="/schedule"
       index={index}
       animate={animate}
@@ -27,10 +26,32 @@ export function NextClassCard({ index, animate, online }: { index: number; anima
       <CardStates
         state={state}
         skeleton={
-          <div className={styles.skeletonStack}>
-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineMedium}`} />
-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineShort}`} />
-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineWide}`} />
+          /*
+           * The loaded card's own boxes, emptied: the pill keeps its padding,
+           * the row its rail, gap and padding, and every text line is one line
+           * of ghost text in the loaded line's type and font mix (see
+           * .skeletonTextLine). The skeleton is therefore as tall as the loaded
+           * card, because §9's ellipsis keeps the subject and meta to one line.
+           */
+          <div className={styles.nextClass}>
+            <span className={`${styles.countdownPill} ${styles.skeleton}`}>
+              {/* The countdown text holds a .num figure ("Dans 45 min"). */}
+              <span className={`${styles.skeletonGhost} ${styles.skeletonGhostPill}`}>
+                <span className="num">0</span>
+                {'\u00a0'}
+              </span>
+            </span>
+            <div className={styles.classRow}>
+              <span className={`${styles.classRail} ${styles.skeleton}`} />
+              <div className={styles.classBody}>
+                <span className={`${styles.subjectName} ${styles.skeletonTextLine} ${styles.skeletonW70}`}>{'\u00a0'}</span>
+                <span className={`${styles.classMeta} ${styles.skeletonTextLine} ${styles.skeletonW40}`}>{'\u00a0'}</span>
+              </div>
+              <div className={`${styles.classTime} mono`}>
+                <span className={`${styles.skeletonTextLine} ${styles.skeletonTimeLine}`}>{'\u00a0'}</span>
+                <span className={`${styles.skeletonTextLine} ${styles.skeletonTimeLine}`}>{'\u00a0'}</span>
+              </div>
+            </div>
           </div>
         }
       >
@@ -41,30 +62,37 @@ export function NextClassCard({ index, animate, online }: { index: number; anima
           const subject = lang === 'ar' ? next.entry.subject.nameAr : next.entry.subject.nameFr;
 
           return (
-            <div>
-              <div className={styles.nextClassTop}>
-                <p className={styles.subjectName}>{subject}</p>
-                <Countdown startsAt={next.startsAt} startTime={next.entry.startTime} />
-              </div>
+            <div className={styles.nextClass}>
+              <Countdown startsAt={next.startsAt} startTime={next.entry.startTime} />
 
-              <div className={styles.meta}>
-                <span className={styles.metaItem}>
-                  <ClockIcon className={styles.metaIcon} />
-                  {/* .mono: course times are DM Mono (Dashboard Spec §5), a
-                      Latin face in Arabic too. fmtRange: and in start-to-end
-                      order there. */}
-                  <span className="mono">
-                    {fmtRange(next.entry.startTime, next.entry.endTime)}
-                  </span>
-                </span>
-                <span className={styles.metaItem}>
-                  <PinIcon className={styles.metaIcon} />
-                  {next.entry.room}
-                </span>
-                <span className={styles.metaItem}>
-                  <PersonIcon className={styles.metaIcon} />
-                  {next.entry.professorName}
-                </span>
+              {/* §6 ①: one .mini-class row. The card still shows the next
+                  class only (Flag 1). */}
+              <div className={styles.classRow}>
+                {/* Decorative. The payload carries no course colour, so the
+                    rail is jade for every course (see PROGRESS.md). */}
+                <span className={styles.classRail} aria-hidden="true" />
+
+                <div className={styles.classBody}>
+                  <p className={styles.subjectName}>{subject}</p>
+                  <p className={styles.classMeta}>
+                    <span className={styles.metaItem}>
+                      <PinIcon className={styles.metaIcon} />
+                      <span className={styles.metaText}>{fmtLtr(next.entry.room)}</span>
+                    </span>
+                    <span className={`${styles.metaItem} ${styles.metaItemShrink}`}>
+                      <PersonIcon className={styles.metaIcon} />
+                      <span className={styles.metaText}>{next.entry.professorName}</span>
+                    </span>
+                  </p>
+                </div>
+
+                {/* §5: course times are DM Mono, ink2, lh 1.5, end-aligned, on
+                    two lines (start over end). .mono keeps them on the Latin
+                    face in Arabic; fmtLtr keeps each time in order. */}
+                <p className={`${styles.classTime} mono`}>
+                  <span className={styles.classTimeLine}>{fmtLtr(next.entry.startTime)}</span>
+                  <span className={styles.classTimeLine}>{fmtLtr(next.entry.endTime)}</span>
+                </p>
               </div>
             </div>
           );
@@ -109,7 +137,11 @@ function Countdown({ startsAt, startTime }: { startsAt: number; startTime: strin
 
   return (
     <span className={styles.countdownPill}>
-      <CountdownText parts={parts} startTime={startTime} t={t} />
+      {/* §6 ①: a 13 px clock, gap 6. */}
+      <ClockIcon className={styles.countdownIcon} />
+      <span>
+        <CountdownText parts={parts} startTime={startTime} t={t} />
+      </span>
     </span>
   );
 }

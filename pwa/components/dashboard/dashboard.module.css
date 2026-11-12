@@ -313,8 +313,8 @@ html[lang="ar"] .heading {
 }
 
 .skeletonRing {
-  width: 84px;
-  height: 84px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
 }
 
@@ -386,66 +386,169 @@ html[lang="ar"] .heading {
   transform: scale(0.97);
 }
 
-/* ── Next class ────────────────────────────────────────────────────────────── */
+/* ── Next class (§6 ①) ─────────────────────────────────────────────────────── */
 
-.nextClassTop {
+/*
+ * The countdown pill, then one .mini-class row. A flex column, so the pill is
+ * a flex item rather than an inline box: an inline-flex pill in a line box
+ * would take that line's strut and sit taller than its own 28 px.
+ */
+.nextClass {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.subjectName {
-  margin: 0;
-  font-size: 13.5px;
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--ink);
 }
 
 /*
+ * §6 ①: inline-flex, gap 6, padding 5 11, pill radius, mb 14, with a 13 px
+ * clock. background-color, not the shorthand, so the skeleton's shimmer image
+ * survives on the same box.
+ *
  * §9: the pill swaps its text every 60s with NO transition. There is
  * deliberately no `transition` or `animation` on this rule — a ticking timer
  * that animates draws the eye away from whatever the student is actually doing.
  */
 .countdownPill {
-  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 14px;
   padding: 5px 11px;
   border-radius: 9999px;
-  background: var(--jade-faint);
+  background-color: var(--jade-faint);
   color: var(--jade-text);
   font-size: 12px;
   font-weight: 700;
+  line-height: 1.5;
   white-space: nowrap;
 }
 
-.meta {
+.countdownIcon {
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+}
+
+/*
+ * §6 ①: flex, gap 12, padding 12 0, border-top hair; the first row has no
+ * border and no top padding. The card shows one row, which is always that
+ * first row.
+ */
+.classRow {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px 12px;
-  margin-top: 10px;
+  align-self: stretch;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 0 0 12px;
+}
+
+/*
+ * §6 ①: the 4×38 rail. §6 gives r4; on a 4 px bar any radius from 2 up draws
+ * the same fully rounded ends, so the pill radius is used rather than a raw
+ * 4px. The payload carries no course colour, so the rail is jade for every
+ * course (Flagged in PROGRESS.md). Decorative: the subject name says which
+ * course it is.
+ */
+.classRail {
+  flex-shrink: 0;
+  width: 4px;
+  height: 38px;
+  border-radius: 9999px;
+  background-color: var(--jade);
+}
+
+/* §9: the course body is a text column that can shrink. */
+.classBody {
+  flex: 1;
+  min-width: 0;
+}
+
+/* §5 13.5/700 lh 1.3. §9: course titles truncate instead of pushing the time
+   column out. */
+.subjectName {
+  margin: 0;
+  overflow: hidden;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * §5 room line: 12/400 ink2, mt 2. The built card also shows the lecturer; it
+ * stays (content does not change), on the same line, and is the part that
+ * truncates when the line is short, so the row keeps the rail's 38 px.
+ */
+.classMeta {
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+  margin: 2px 0 0;
   font-size: 12px;
+  line-height: 1.5;
   color: var(--ink2);
+  white-space: nowrap;
 }
 
 .metaItem {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 5px;
+  min-width: 0;
+}
+
+.metaItemShrink {
+  flex-shrink: 1;
+}
+
+.metaText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .metaIcon {
+  flex-shrink: 0;
   width: 14px;
   height: 14px;
   color: var(--ink3);
 }
 
+/* §5 course times: DM Mono (.mono in the markup) 12/400 ink2, lh 1.5,
+   end-aligned, two lines; §6 ①: pushed to the end. */
+.classTime {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-items: flex-end;
+  margin: 0;
+  margin-inline-start: auto;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink2);
+  text-align: end;
+}
+
+.classTimeLine {
+  display: block;
+}
+
 /* ── Hero stats ────────────────────────────────────────────────────────────── */
 
+/* §6 ② .gauge-wrap: the ring and its text, gap 16; 12 below 380 (§9). */
 .heroRow {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+@media (max-width: 379px) {
+  .heroRow {
+    gap: 12px;
+  }
 }
 
 .heroValue {
@@ -488,16 +591,35 @@ html[lang="ar"] .heading {
 
 /* ── Attendance ring (§5) ──────────────────────────────────────────────────── */
 
+/* §6 ②: an 88 px gauge, 9 px ring (Ring.tsx draws the stroke). */
 .ring {
+  position: relative;
   flex-shrink: 0;
-  width: 84px;
-  height: 84px;
+  width: 88px;
+  height: 88px;
+}
+
+.ringSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   /*
    * The SVG is drawn with 0% at 12 o'clock going clockwise. Rotating -90deg puts
    * the start there; the sweep direction is not mirrored in RTL because a gauge
    * is a dial, not a line of text — clockwise means "more" in both directions.
    */
   transform: rotate(-90deg);
+}
+
+/* §6 ② .hole: inset 9 (the ring's thickness), value over caption, centred. */
+.ringHole {
+  position: absolute;
+  inset: 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .ringTrack {
@@ -612,16 +734,28 @@ html[lang="ar"] .heading {
   white-space: nowrap;
 }
 
-/* Counter-rotated so the label reads horizontally inside the rotated SVG. */
+/* §5 gauge value: 18/800. */
 .ringLabel {
   font-size: 18px;
   font-weight: 800;
-  fill: var(--ink);
-  transform: rotate(90deg);
-  transform-origin: center;
+  line-height: 1.2;
+  color: var(--ink);
 }
 
-/* ── Notifications ─────────────────────────────────────────────────────────── */
+/*
+ * §5 "TAUX": 9.5/600. The spec's --ink3 is under AA and must not carry text
+ * (CLAUDE.md, MISSION C4), so it is --ink2: 5.49 : 1 light / 6.78 : 1 dark on
+ * --surface. The word is the spec's, in capitals in both locale files, so no
+ * text-transform and no tracking to reset in Arabic.
+ */
+.ringCaption {
+  font-size: 9.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink2);
+}
+
+/* ── Notifications (§6 ③) ─────────────────────────────────────────────────── */
 
 .unreadCount {
   font-size: 34px;
@@ -631,29 +765,85 @@ html[lang="ar"] .heading {
   color: var(--ink);
 }
 
+/* The unread line under the count. Its own rule rather than the GPA card's
+   .heroCaption, so the line height the skeleton reproduces is stated here. */
+.notificationCaption {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
+/* The reference build's row list: a column, gap 2. */
 .notificationList {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
   margin: 12px 0 0;
   padding: 0;
   list-style: none;
 }
 
+/* §6 ③: flex, gap 10, padding 10 0, a hairline on every row, the first too. */
 .notificationItem {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--hair);
   font-size: 13px;
   line-height: 1.35;
   color: var(--ink2);
 }
 
+/*
+ * §6 ③: a 32×32 chip, r8, with a 15 px icon, coloured per type. The tints and
+ * the measured icon ratios are in NotificationsCard.tsx, beside the type map.
+ * background-color, not the shorthand, so the skeleton's shimmer image
+ * survives on the same box.
+ */
+.notificationChip {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+}
+
+.notificationChipIcon {
+  width: 15px;
+  height: 15px;
+}
+
+.chipGrades {
+  background-color: var(--jade-faint);
+  color: var(--jade-text);
+}
+
+.chipAttendance {
+  background-color: var(--warning-bg);
+  color: var(--warning-ink);
+}
+
+.chipSchedule {
+  background-color: var(--exam-bg);
+  color: var(--exam);
+}
+
+/* §9: the notification text column can shrink. */
+.notificationText {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Centred on the title's first line: half of one line box less half the dot. */
 .unreadDot {
   flex-shrink: 0;
   width: 6px;
   height: 6px;
-  margin-top: 5px;
+  margin-top: calc((1lh - 6px) / 2);
   border-radius: 50%;
   background: var(--jade);
 }
@@ -663,34 +853,57 @@ html[lang="ar"] .heading {
   font-weight: 600;
 }
 
-/* ── Quick links ───────────────────────────────────────────────────────────── */
+/* ── Quick links (§6 ④) ────────────────────────────────────────────────────── */
 
+/*
+ * Grid gap 12. Two columns as built: §1's three from 640 is Flagged (M2
+ * Flagged 4), because three columns over the four built links leaves a 3 + 1
+ * row. §9: minmax(0, 1fr) tracks, and one column below 380.
+ */
 .quickGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
+@media (max-width: 379px) {
+  .quickGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/*
+ * §6 ④ .qlink: flex, gap 11, padding 13 14, r16, 1 px hair, on --surface.
+ * Hover: border jade, fill jade-faint, text jade-text. The 1 px lift and the
+ * deeper shadow stay: foundations §3 gives quick-link tiles that lift, and M7
+ * owns the state rules. The press scale is M7's to remove.
+ */
 .quickLink {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 11px;
+  min-width: 0;
   min-height: 44px;
-  padding-inline: 10px;
-  border-radius: var(--r-sm);
-  background: var(--surface2);
+  padding: 13px 14px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
   color: var(--ink);
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
     transform var(--dur-fast) var(--ease-out),
     box-shadow var(--dur-fast) var(--ease-out);
 }
 
 .quickLink:hover {
+  border-color: var(--jade);
   background: var(--jade-faint);
+  color: var(--jade-text);
   transform: translateY(-1px);
   box-shadow: var(--shadow-lg);
 }
@@ -699,19 +912,43 @@ html[lang="ar"] .heading {
   transform: scale(0.97);
 }
 
-.quickIcon {
+/*
+ * §6 ④: a 36×36 icon tile, r10. There is no 10 px radius token, so it takes
+ * --r-sm (8) (Flagged). The tile is jade-faint / jade-text on all four built
+ * links: the spec's per-tile tints belong to its three action tiles (Flag 2),
+ * not to these destinations. jade-text on the tile: 5.54 : 1 light / 6.34 : 1
+ * dark (composited on --surface).
+ */
+.quickIconTile {
+  display: flex;
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  background: var(--jade-faint);
   color: var(--jade-text);
 }
 
-/* ── News ──────────────────────────────────────────────────────────────────── */
+/* §6 ④: svg 18, stroke 1.8 (icons.tsx). */
+.quickIcon {
+  width: 18px;
+  height: 18px;
+}
 
+/* §9: the tile text can shrink; it wraps normally. */
+.quickLabel {
+  min-width: 0;
+}
+
+/* ── News (§6 ⑤) ───────────────────────────────────────────────────────────── */
+
+/* §6 ⑤: the list has gap 10. */
 .newsList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -732,7 +969,96 @@ html[lang="ar"] .heading {
 
 .newsMeta {
   font-size: 12px;
+  line-height: 1.5;
   color: var(--ink2);
+}
+
+/* ── Card skeletons: Prochain cours, Notifications, À la une ───────────────── */
+
+/*
+ * These three skeletons are built from their loaded card's own boxes (the
+ * pill, the row, the chip, the list items, each with its padding, gap and
+ * hairline) and stand empty lines in for the text. The rules below come after
+ * the boxes they reuse, so on a box that carries both, the skeleton wins.
+ *
+ * A text line is combined with the loaded line's own class and holds one line
+ * of invisible ghost text in the same font mix as the loaded line: a no-break
+ * space in the body face, plus a `.num` figure where the loaded line has one.
+ * Its line box is then computed exactly as the loaded line's is. That matters
+ * in Arabic: a Plus Jakarta figure inside a Noto Naskh line sits at a different
+ * baseline offset and makes the line box 2-3 px taller than its line-height,
+ * which a fixed one-line-height box would miss. The shimmer bar is drawn over
+ * it, centred; --skeleton-w sets its length.
+ */
+.skeletonTextLine {
+  position: relative;
+  display: block;
+  color: transparent;
+  white-space: nowrap;
+}
+
+.skeletonTextLine::before {
+  content: '';
+  position: absolute;
+  inset-block-start: calc(50% - 0.375em);
+  inset-inline-start: 0;
+  width: var(--skeleton-w, 100%);
+  height: 0.75em;
+  border-radius: var(--r-sm);
+  background-image: linear-gradient(
+    90deg,
+    var(--sunken) 0%,
+    var(--surface2) 20%,
+    var(--sunken) 40%,
+    var(--sunken) 100%
+  );
+  background-size: 300% 100%;
+  animation: shimmer 900ms linear infinite;
+}
+
+.skeletonW20 {
+  --skeleton-w: 20%;
+}
+
+.skeletonW40 {
+  --skeleton-w: 40%;
+}
+
+.skeletonW70 {
+  --skeleton-w: 70%;
+}
+
+/* The unread count: a figure, not a sentence. */
+.skeletonCount {
+  --skeleton-w: 1.4em;
+}
+
+/* "10:00": five DM Mono advances (the time column is .mono). */
+.skeletonTimeLine {
+  width: 5ch;
+}
+
+/*
+ * The inside of a skeleton box that is itself the shimmer (the countdown pill,
+ * a news category pill): the same invisible ghost text, so the box keeps its
+ * loaded height, at a width close to the loaded label's.
+ */
+.skeletonGhost {
+  color: transparent;
+  white-space: nowrap;
+}
+
+.skeletonGhostPill {
+  width: 8em;
+}
+
+.skeletonGhostTag {
+  width: 4em;
+}
+
+/* .skeleton's r8, put back to the pill the box really is. */
+.skeletonPillShape {
+  border-radius: 9999px;
 }
 
 /* ── Focus ring (§3, §10) ──────────────────────────────────────────────────── */
@@ -761,7 +1087,8 @@ html[lang="ar"] .heading {
     animation: none;
   }
 
-  .skeleton {
+  .skeleton,
+  .skeletonTextLine::before {
     background-image: none;
     background-color: var(--sunken);
     animation: none;

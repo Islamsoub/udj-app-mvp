@@ -1,10 +1,12 @@
 /**
- * Card header and inline glyphs — stroke-only, sized by CSS, coloured by
- * `currentColor`. Same reasoning as the shell's icon set.
+ * Inline glyphs inside the dashboard cards — stroke-only, sized by CSS,
+ * coloured by `currentColor`. Same reasoning as the shell's icon set. Card
+ * titles carry no icon (Dashboard Spec §6).
  */
 
 type IconProps = { className?: string };
 
+/** Dashboard Spec §7: the quick-access icons use stroke 1.8. */
 const strokeProps = {
   fill: 'none',
   stroke: 'currentColor',
@@ -13,7 +15,10 @@ const strokeProps = {
   strokeLinejoin: 'round' as const,
 };
 
-/** Clock — next class, and the time row. */
+/** Dashboard Spec §7: utility icons (the notification chips) use stroke 2. */
+const utilityStrokeProps = { ...strokeProps, strokeWidth: 2 };
+
+/** Clock — the countdown pill, and the meta row. */
 export function ClockIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
@@ -23,17 +28,7 @@ export function ClockIcon({ className }: IconProps) {
   );
 }
 
-/** Mortarboard — the GPA card. */
-export function GpaIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
-      <path d="M12 4 2.5 9 12 14l9.5-5z" />
-      <path d="M6.5 11.5V16c0 1.4 2.5 2.5 5.5 2.5s5.5-1.1 5.5-2.5v-4.5" />
-    </svg>
-  );
-}
-
-/** Check in a circle — attendance. */
+/** Check in a circle — the attendance quick link. */
 export function AttendanceIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
@@ -43,29 +38,54 @@ export function AttendanceIcon({ className }: IconProps) {
   );
 }
 
-/** Bell — the notifications card. Not the topbar bell, which is out of scope. */
+/*
+ * The notification-row chips (Dashboard Spec §6 ③, icons/notif-*.svg). The
+ * paths are the spec's; the C2PA metadata in those files is not copied.
+ */
+
+/** Layers — a grades notification (icons/notif-grades.svg). */
+export function NotifGradesIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...utilityStrokeProps}>
+      <path d="M12 2l9 5-9 5-9-5 9-5z" />
+    </svg>
+  );
+}
+
+/** Clock — an attendance notification (icons/notif-attendance.svg). */
+export function NotifAttendanceIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...utilityStrokeProps}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 3" />
+    </svg>
+  );
+}
+
+/** Calendar — a schedule or exam-calendar notification (icons/notif-exam.svg). */
+export function NotifExamIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...utilityStrokeProps}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M3 9h18" />
+    </svg>
+  );
+}
+
+/**
+ * Bell — a notification of any other type (GENERAL, NEWS). The spec draws no
+ * chip for those; the glyph is the bell from bell-states.html.
+ */
 export function BellIcon({ className }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
-      <path d="M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5z" />
-      <path d="M10.5 19a2 2 0 0 0 3 0" />
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...utilityStrokeProps}>
+      <path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6" />
+      <path d="M10 20a2 2 0 0 0 4 0" />
     </svg>
   );
 }
 
-/** Grid — quick links. */
-export function GridIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
-      <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
-      <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
-      <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
-      <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
-    </svg>
-  );
-}
-
-/** Newspaper — the news card. */
+/** Newspaper — the news quick link. */
 export function NewsIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
