@@ -149,7 +149,7 @@ lacks it, and the source row.
 | Mark one notification read | app | pwa: MISSING. Decided: gap to build (Islam, 2026-11-12). | S8 |
 | Mark all notifications read | app | pwa: MISSING (helper, no caller). Decided: gap to build (Islam, 2026-11-12). | S7 |
 
-QR is launch-blocking for the PWA, because without it students have no ID.
+QR is launch-blocking for the PWA: without row S12 there is no signed QR student card (Islam, 2026-11-12).
 
 ### Consumed by both, but complete in one only
 
