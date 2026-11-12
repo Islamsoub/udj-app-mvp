@@ -12,7 +12,7 @@ Every other path is the Expo app at the repo root.
 |---|---|
 | **BUILT** | A user can reach it. Backend: the route exists and is mounted. Client: a rendered page or component calls it, traced from the helper to its caller and on to a route file. The cell cites the caller. |
 | **PARTIAL — …** | A user can reach it, but part of it is missing: a parameter is ignored so data never shows up, a server value is recomputed, and so on. The cell cites the part that exists and the place where the gap shows. |
-| **N/A — …** | The product cannot have it by design, and the reason is in code or in CLAUDE.md. N/A never stands for "probably not wanted". |
+| **N/A — …** | The product cannot have it by design, and the reason is in code, in CLAUDE.md, or in a dated, attributed product decision recorded in this file. N/A never stands for "probably not wanted". |
 | **MISSING** | There is no code path. If a helper exists but nothing calls it, the cell reads `MISSING (helper <path:line>, no caller)`. When nobody has decided whether the gap is by design, it is still MISSING, never N/A (mission decision D3). |
 | **UNSURE — …** | Tracing did not settle it. The cell says what was checked and what is still unknown. |
 
