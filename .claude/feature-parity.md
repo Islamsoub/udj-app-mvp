@@ -126,9 +126,121 @@ counted against the rows below.
 
 ---
 
-## Admin portal
+## Admin portal (`/admin`)
 
-Rows: milestone 2 of this PR
+This section has its own table (mission decision D2). It does not feed the
+closing list, which compares the app with the PWA only.
+
+**App and PWA columns.** Every `/admin` handler runs `adminAuth`
+(`backend/src/middleware/adminAuth.ts:46`), except `POST /admin/auth/login`,
+`/refresh` and `/logout`, which authenticate staff credentials or a staff cookie.
+Neither student client calls any `/admin` path. A grep of `services/`, `app/`,
+`components/`, `hooks/`, `stores/`, `pwa/lib/`, `pwa/components/` and `pwa/app/`
+finds none, and the PWA proxy only forwards `student` and `news`
+(`pwa/app/api/backend/[...path]/route.ts:13`). So every app and pwa cell below is
+**N/A — auth boundary**.
+
+**RBAC notes.** The portal decides which pages a role sees in `PAGE_ACCESS`
+(`admin/lib/constants.ts:140-152`). Only the sidebar applies it
+(`admin/components/shell/sidebar.tsx:69`). Pages themselves are not guarded,
+except Admins, Audit and Settings (`AccessDenied`) and a few in-page `canWrite` /
+`canCorrect` checks. A cell says "RBAC: … is refused" wherever the portal shows
+an action to a role that the server's `rbac(...)` rejects. RBAC was not audited
+beyond that.
+
+**Count.** 63 handlers across 13 sub-routers. Each appears in exactly one row
+(see the index at the end).
+
+| # | Capability | backend | app | pwa | admin |
+|---|---|---|---|---|---|
+| | **`/admin/auth`, `backend/src/routes/admin/auth.ts`, mounted at `backend/src/routes/admin/index.ts:28`** | | | | |
+| AU1 | Admin login | BUILT. `POST /admin/auth/login`, `backend/src/routes/admin/auth.ts:86`. Roles: none (public). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useLogin` (`admin/hooks/use-auth.ts:20-23`), called from `admin/app/(auth)/login/page.tsx:26`. |
+| AU2 | Silent token refresh (cookie) | BUILT. `POST /admin/auth/refresh`, `backend/src/routes/admin/auth.ts:187`. Roles: none (refresh cookie). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. Single-flight `refreshTokens` in the 401 interceptor (`admin/lib/api.ts:44-51`). It runs on any hook's 401, and since the access token lives only in memory, the first request after a reload triggers it. It is not in `hooks/queries/`: `lib/api.ts` is the layer those hooks wrap. |
+| AU3 | Admin logout (revoke + clear cookie) | BUILT. `POST /admin/auth/logout`, `backend/src/routes/admin/auth.ts:239`. Roles: none (deliberately not behind `adminAuth`, `auth.ts:235-238`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useLogout` (`admin/hooks/use-auth.ts:31-37`), called from `admin/components/shell/avatar-menu.tsx:23` and `admin/components/shell/sidebar.tsx:62`. |
+| AU4 | Current admin identity | BUILT. `GET /admin/auth/me`, `backend/src/routes/admin/auth.ts:259`. Roles: `adminAuth` only. | N/A. Auth boundary. | N/A. Auth boundary. | MISSING. No hook and no caller. The identity, role included, comes from the login response (`admin/hooks/use-auth.ts:24-25`) and is persisted in localStorage (`admin/stores/auth-store.ts:32,43`). So a role change or deactivation made on the server only shows up in the portal after the next login. |
+| AU5 | Change own password | BUILT. `PATCH /admin/auth/password`, `backend/src/routes/admin/auth.ts:284`. Roles: `adminAuth` only. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useChangePassword` (`admin/hooks/use-auth.ts:44-47`), called from `admin/components/modals/password-modal.tsx:23`, opened from `admin/components/shell/avatar-menu.tsx:72`. |
+| | **`/admin/dashboard`, `dashboard.ts`, `index.ts:29`** | | | | |
+| DB1 | Dashboard KPIs | BUILT. `GET /admin/dashboard/stats`, `backend/src/routes/admin/dashboard.ts:24`. Roles: SUPER_ADMIN, REGISTRAR, FACULTY_ADMIN (`dashboard.ts:17-21`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useDashboardStats` (`admin/hooks/queries/use-dashboard.ts:8`), called from `admin/app/(dashboard)/page.tsx:86`. RBAC: the portal shows the dashboard to every role, NEWS_EDITOR included (`admin/lib/constants.ts:141`), but the server refuses NEWS_EDITOR. |
+| DB2 | Recent activity feed | BUILT. `GET /admin/dashboard/recent-activity`, `backend/src/routes/admin/dashboard.ts:168`. Roles: SUPER_ADMIN, REGISTRAR, FACULTY_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useRecentActivity` (`admin/hooks/queries/use-dashboard.ts:16`), called from `admin/app/(dashboard)/page.tsx:87`. RBAC: same as DB1, so NEWS_EDITOR is shown it and refused. |
+| | **`/admin/students`, `students.ts`, `index.ts:30`** | | | | |
+| ST1 | Student list (paginated, filters) | BUILT. `GET /admin/students`, `backend/src/routes/admin/students.ts:82`. Roles: SUPER_ADMIN, REGISTRAR, FACULTY_ADMIN (`students.ts:31-35`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useStudents` (`admin/hooks/queries/use-students.ts:20`), called from `admin/app/(dashboard)/students/page.tsx:92`, plus pickers and counts in `admin/app/(dashboard)/page.tsx:88`, `admin/app/(dashboard)/notifications/page.tsx:49-52`, `admin/app/(dashboard)/attendance/session/page.tsx:56` and `admin/app/(dashboard)/grades/[subjectId]/page.tsx:59`. RBAC: NEWS_EDITOR is shown the dashboard and the notifications page, which both call this, and is refused. |
+| ST2 | Student detail | BUILT. `GET /admin/students/:id`, `backend/src/routes/admin/students.ts:190`. Roles: SUPER_ADMIN, REGISTRAR, FACULTY_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useStudent` (`admin/hooks/queries/use-students.ts:28`), called from `admin/app/(dashboard)/students/[id]/page.tsx:131`. |
+| ST3 | Create student | BUILT. `POST /admin/students`, `backend/src/routes/admin/students.ts:271`. Roles: SUPER_ADMIN, REGISTRAR (`students.ts:36`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useCreateStudent` (`admin/hooks/queries/use-students.ts:36`), called from `admin/components/forms/student-form.tsx:54`, opened at `admin/app/(dashboard)/students/page.tsx:236`. RBAC: FACULTY_ADMIN sees the Students page (`admin/lib/constants.ts:142`) and the create button, which is not role-gated, and is refused. |
+| ST4 | Edit student | BUILT. `PATCH /admin/students/:id`, `backend/src/routes/admin/students.ts:342`. Roles: SUPER_ADMIN, REGISTRAR. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useUpdateStudent` (`admin/hooks/queries/use-students.ts:48`), called from `admin/components/forms/student-form.tsx:55`, opened at `admin/app/(dashboard)/students/[id]/page.tsx:373`. RBAC: FACULTY_ADMIN is shown the "Modifier" button, which is not gated by `canWrite` (`students/[id]/page.tsx:129`), and is refused. |
+| ST5 | Reset student password | BUILT. `POST /admin/students/:id/reset-password`, `backend/src/routes/admin/students.ts:393`. Roles: SUPER_ADMIN, REGISTRAR. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useResetStudentPassword` (`admin/hooks/queries/use-students.ts:62`), called from `admin/components/modals/reset-pw-modal.tsx:24`, opened at `admin/app/(dashboard)/students/[id]/page.tsx:362`. RBAC: FACULTY_ADMIN is shown the button, which is not gated, and is refused. |
+| ST6 | Change student status (suspend / graduate / reactivate) | BUILT. `PATCH /admin/students/:id/status`, `backend/src/routes/admin/students.ts:445`. Roles: SUPER_ADMIN, REGISTRAR. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. Built with a template path, which is why a plain grep misses it: `useUpdateStudentStatus` (`admin/hooks/queries/use-students.ts:69-74`), called from `admin/components/modals/status-modal.tsx:96`, opened at `admin/app/(dashboard)/students/[id]/page.tsx:292-298`. RBAC: FACULTY_ADMIN is shown it, not gated, and is refused. |
+| ST7 | Bulk import students (CSV) | BUILT. `POST /admin/students/import`, `backend/src/routes/admin/students.ts:511`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useImportStudents` (`admin/hooks/queries/use-students.ts:84`), called from `admin/app/(dashboard)/students/import/page.tsx:99`, linked at `admin/app/(dashboard)/students/page.tsx:232`. RBAC: REGISTRAR and FACULTY_ADMIN are shown the import button and page, and are refused. |
+| | **`/admin/schedule`, `schedule.ts`, `index.ts:31`** | | | | |
+| SC1 | Schedule conflict check | BUILT. `GET /admin/schedule/conflicts`, `backend/src/routes/admin/schedule.ts:107`. Roles: all four roles (`schedule.ts:13-18`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useScheduleConflicts` (`admin/hooks/queries/use-schedule.ts:31`), called from `admin/components/forms/schedule-form.tsx:97`. |
+| SC2 | Schedule list | BUILT. `GET /admin/schedule`, `backend/src/routes/admin/schedule.ts:151`. Roles: all four roles. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useSchedule` (`admin/hooks/queries/use-schedule.ts:19`), called from `admin/app/(dashboard)/schedule/page.tsx:66`, `admin/app/(dashboard)/attendance/session/page.tsx:61` and `admin/components/shell/context-bar.tsx:211`. |
+| SC3 | Create schedule entry | BUILT. `POST /admin/schedule`, `backend/src/routes/admin/schedule.ts:213`. Roles: SUPER_ADMIN, FACULTY_ADMIN (`schedule.ts:19`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useCreateScheduleEntry` (`admin/hooks/queries/use-schedule.ts:62`), called from `admin/components/forms/schedule-form.tsx:53`, opened at `admin/app/(dashboard)/schedule/page.tsx:144`. RBAC: REGISTRAR sees the Schedule page (`admin/lib/constants.ts:146`), the form is not gated, and REGISTRAR is refused. |
+| SC4 | Edit schedule entry | BUILT. `PATCH /admin/schedule/:id`, `backend/src/routes/admin/schedule.ts:262`. Roles: SUPER_ADMIN, FACULTY_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useUpdateScheduleEntry` (`admin/hooks/queries/use-schedule.ts:75`), called from `admin/components/forms/schedule-form.tsx:54`, opened at `admin/app/(dashboard)/schedule/page.tsx:107`. RBAC: same as SC3. |
+| SC5 | Delete schedule entry | BUILT. `DELETE /admin/schedule/:id`, `backend/src/routes/admin/schedule.ts:322`. Roles: SUPER_ADMIN, FACULTY_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useDeleteScheduleEntry` (`admin/hooks/queries/use-schedule.ts:89`), called from `admin/components/forms/schedule-form.tsx:55`. RBAC: same as SC3. |
+| | **`/admin/grades`, `grades.ts`, `index.ts:32`** | | | | |
+| GR1 | Grade sheet for a subject | BUILT. `GET /admin/grades`, `backend/src/routes/admin/grades.ts:71`. Roles: SUPER_ADMIN, REGISTRAR, FACULTY_ADMIN (`grades.ts:21-25`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useGrades` (`admin/hooks/queries/use-grades.ts:24`), called from `admin/app/(dashboard)/grades/[subjectId]/page.tsx:60`. |
+| GR2 | Edit one grade (before publication) | BUILT. `PATCH /admin/grades/:id`, `backend/src/routes/admin/grades.ts:109`. Roles: SUPER_ADMIN, REGISTRAR (`grades.ts:26`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useUpdateGrade` (`admin/hooks/queries/use-grades.ts:32`), called from `admin/app/(dashboard)/students/[id]/page.tsx:133`. Edits are gated by `canWrite` (`:129,169-170`), which matches the server. |
+| GR3 | Correct a published grade (audited) | BUILT. `POST /admin/grades/:id/change`, `backend/src/routes/admin/grades.ts:172`. Roles: SUPER_ADMIN, REGISTRAR. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useCorrectGrade` (`admin/hooks/queries/use-grades.ts:82`), called from `admin/components/modals/grade-correction-modal.tsx:44`, opened at `admin/app/(dashboard)/grades/[subjectId]/page.tsx:175` and `admin/app/(dashboard)/students/[id]/page.tsx:225`. Gated by `canCorrect` (`grades/[subjectId]/page.tsx:54,172`), which matches the server. |
+| GR4 | Bulk grade entry / import | BUILT. `POST /admin/grades/bulk`, `backend/src/routes/admin/grades.ts:242`. Roles: SUPER_ADMIN, REGISTRAR. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useBulkGrades` (`admin/hooks/queries/use-grades.ts:44`), called from `admin/app/(dashboard)/grades/[subjectId]/page.tsx:62,191` and `admin/components/modals/grade-import-modal.tsx:56`. RBAC: FACULTY_ADMIN sees Grades (`admin/lib/constants.ts:143`), the save button (`grades/[subjectId]/page.tsx:450`) is not role-gated, and FACULTY_ADMIN is refused. |
+| GR5 | Publish CC / NF results | BUILT. `POST /admin/grades/publish`, `backend/src/routes/admin/grades.ts:357`. Roles: SUPER_ADMIN, REGISTRAR. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `usePublishGrades` (`admin/hooks/queries/use-grades.ts:61`), called from `admin/app/(dashboard)/grades/page.tsx:48,93`. RBAC: FACULTY_ADMIN is shown the publish action, which is not role-gated, and is refused. |
+| | **`/admin/attendance`, `attendance.ts`, `index.ts:33`** | | | | |
+| AT1 | Attendance records list | BUILT. `GET /admin/attendance`, `backend/src/routes/admin/attendance.ts:87`. Roles: SUPER_ADMIN, REGISTRAR, FACULTY_ADMIN (`attendance.ts:61-65`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useAttendance` (`admin/hooks/queries/use-attendance.ts:15`), called from `admin/app/(dashboard)/attendance/page.tsx:68`, `admin/components/shell/bell-menu.tsx:17` and `admin/components/shell/sidebar.tsx:63`. RBAC: the top bar and sidebar render for every role, so NEWS_EDITOR's shell makes this call and is refused. |
+| AT2 | Attendance overview (by programme) | BUILT. `GET /admin/attendance/overview`, `backend/src/routes/admin/attendance.ts:129`. Roles: SUPER_ADMIN, REGISTRAR, FACULTY_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useAttendanceOverview` (`admin/hooks/queries/use-attendance-overview.ts:13`), called from `admin/app/(dashboard)/attendance/page.tsx:69`. |
+| AT3 | Pending justifications queue | BUILT. `GET /admin/attendance/pending-justifications`, `backend/src/routes/admin/attendance.ts:256`. Roles: SUPER_ADMIN, REGISTRAR, FACULTY_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | MISSING (helper `admin/hooks/queries/use-attendance.ts:23`, no caller). The attendance page lists justifications from AT1's data instead (`admin/app/(dashboard)/attendance/page.tsx:68`). |
+| AT4 | Record a session (roll call) | BUILT. `POST /admin/attendance/record`, `backend/src/routes/admin/attendance.ts:295`. Roles: SUPER_ADMIN, FACULTY_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useRecordSession` (`admin/hooks/queries/use-attendance.ts:34`), called from `admin/app/(dashboard)/attendance/session/page.tsx:49,117`. RBAC: REGISTRAR sees Attendance (`admin/lib/constants.ts:144`), the session page is not role-gated, and REGISTRAR is refused. |
+| AT5 | Approve / reject a justification | BUILT. `PATCH /admin/attendance/:id/justification`, `backend/src/routes/admin/attendance.ts:355`. Roles: SUPER_ADMIN, FACULTY_ADMIN, REGISTRAR. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. Built with a template path, which is why a plain grep misses it: `useDecideJustification` (`admin/hooks/queries/use-attendance.ts:49-56`), called from `admin/app/(dashboard)/attendance/page.tsx:71` and `admin/components/modals/doc-viewer.tsx:24` (rendered at `admin/app/(dashboard)/attendance/page.tsx:359`). |
+| | **`/admin/news/categories`, `categories.ts`, `index.ts:36`** | | | | |
+| NC1 | List news categories | BUILT. `GET /admin/news/categories`, `backend/src/routes/admin/categories.ts:55`. Roles: all four roles (`categories.ts:18-23`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useNewsCategories` (`admin/hooks/queries/use-news.ts:71-74`), called from `admin/app/(dashboard)/news/create/page.tsx:45` and `admin/app/(dashboard)/settings/page.tsx:128`. |
+| NC2 | Create category | BUILT. `POST /admin/news/categories`, `backend/src/routes/admin/categories.ts:73`. Roles: SUPER_ADMIN, NEWS_EDITOR (`categories.ts:24`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useCreateCategory` (`admin/hooks/queries/use-news.ts:79`), called from `admin/app/(dashboard)/settings/page.tsx:129`. Note: the Settings page is SUPER_ADMIN only (`admin/lib/constants.ts:151`, `settings/page.tsx:304`), so NEWS_EDITOR, whom the server allows, is never shown it. |
+| NC3 | Reorder categories | BUILT. `PATCH /admin/news/categories/reorder`, `backend/src/routes/admin/categories.ts:106`. Roles: SUPER_ADMIN, NEWS_EDITOR. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useReorderCategories` (`admin/hooks/queries/use-news.ts:107`), called from `admin/app/(dashboard)/settings/page.tsx:131`. Same Settings-page note as NC2. |
+| NC4 | Rename / edit category | BUILT. `PATCH /admin/news/categories/:id`, `backend/src/routes/admin/categories.ts:148`. Roles: SUPER_ADMIN, NEWS_EDITOR. | N/A. Auth boundary. | N/A. Auth boundary. | MISSING. No hook and no caller. `admin/hooks/queries/use-news.ts` has create, delete and reorder only. |
+| NC5 | Delete category | BUILT. `DELETE /admin/news/categories/:id`, `backend/src/routes/admin/categories.ts:180`. Roles: SUPER_ADMIN, NEWS_EDITOR. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useDeleteCategory` (`admin/hooks/queries/use-news.ts:93`), called from `admin/app/(dashboard)/settings/page.tsx:130`. Same Settings-page note as NC2. |
+| | **`/admin/news`, `news.ts`, `index.ts:37`** | | | | |
+| NW1 | News articles list | BUILT. `GET /admin/news`, `backend/src/routes/admin/news.ts:95`. Roles: all four roles (`news.ts:14-19`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useNews` (`admin/hooks/queries/use-news.ts:16`), called from `admin/app/(dashboard)/news/page.tsx:34`, `admin/app/(dashboard)/news/create/page.tsx:44` and `admin/components/shell/global-search.tsx:42`. |
+| NW2 | One article (admin view) | BUILT. `GET /admin/news/:id`, `backend/src/routes/admin/news.ts:108`. Roles: all four roles. | N/A. Auth boundary. | N/A. Auth boundary. | MISSING (helper `admin/hooks/queries/use-news.ts:24`, no caller). The edit page finds the article in NW1's list instead (`admin/app/(dashboard)/news/create/page.tsx:41-46`). |
+| NW3 | Create article | BUILT. `POST /admin/news`, `backend/src/routes/admin/news.ts:135`. Roles: SUPER_ADMIN, NEWS_EDITOR (`news.ts:20`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useCreateNews` (`admin/hooks/queries/use-news.ts:32`), called from `admin/app/(dashboard)/news/create/page.tsx:47` and `admin/app/(dashboard)/news/page.tsx:35`. RBAC: REGISTRAR sees News (`admin/lib/constants.ts:145`) and the create button (`news/page.tsx:76`), which is not role-gated, and is refused. |
+| NW4 | Edit article | BUILT. `PATCH /admin/news/:id`, `backend/src/routes/admin/news.ts:190`. Roles: SUPER_ADMIN, NEWS_EDITOR. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useUpdateNews` (`admin/hooks/queries/use-news.ts:43`), called from `admin/app/(dashboard)/news/create/page.tsx:48`. RBAC: same as NW3, so REGISTRAR is shown it and refused. |
+| NW5 | Delete article | BUILT. `DELETE /admin/news/:id`, `backend/src/routes/admin/news.ts:248`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useDeleteNews` (`admin/hooks/queries/use-news.ts:56`), called from `admin/components/modals/delete-news-modal.tsx:12`, opened at `admin/app/(dashboard)/news/page.tsx:177` and `admin/components/modals/news-reader.tsx:44`. RBAC: NEWS_EDITOR and REGISTRAR are shown delete, which is not gated, and are refused. |
+| | **`/admin/notifications`, `notifications.ts`, `index.ts:38`** | | | | |
+| NT1 | Send notification (targeted) | BUILT. `POST /admin/notifications/send`, `backend/src/routes/admin/notifications.ts:69`. Roles: SUPER_ADMIN, NEWS_EDITOR (`notifications.ts:18`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useSendNotification` (`admin/hooks/queries/use-notifications.ts:14`), called from `admin/app/(dashboard)/notifications/page.tsx:53,82`. RBAC: REGISTRAR sees Notifications (`admin/lib/constants.ts:148`), the composer is not role-gated, and REGISTRAR is refused. See ST1 for NEWS_EDITOR's recipient search on this page. |
+| NT2 | Sent-notification history | BUILT. `GET /admin/notifications/history`, `backend/src/routes/admin/notifications.ts:120`. Roles: all four roles (`notifications.ts:12-17`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useNotificationHistory` (`admin/hooks/queries/use-notifications.ts:28`), called from `admin/app/(dashboard)/notifications/page.tsx:54`. |
+| | **`/admin/users`, `users.ts`, `index.ts:39`** | | | | |
+| US1 | Admin accounts list | BUILT. `GET /admin/users`, `backend/src/routes/admin/users.ts:39`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useAdmins` (`admin/hooks/queries/use-admins.ts:9`), called from `admin/app/(dashboard)/admins/page.tsx:55`. The page is SUPER_ADMIN only (`admins/page.tsx:59`). |
+| US2 | Create admin account | BUILT. `POST /admin/users`, `backend/src/routes/admin/users.ts:66`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useCreateAdmin` (`admin/hooks/queries/use-admins.ts:16`), called from `admin/components/forms/admin-form.tsx:35`, opened at `admin/app/(dashboard)/admins/page.tsx:83`. |
+| US3 | Edit admin account | BUILT. `PATCH /admin/users/:id`, `backend/src/routes/admin/users.ts:110`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useUpdateAdmin` (`admin/hooks/queries/use-admins.ts:28`), called from `admin/app/(dashboard)/admins/page.tsx:57` and `admin/components/forms/admin-form.tsx:36`. |
+| US4 | Deactivate admin account | BUILT. `DELETE /admin/users/:id`, `backend/src/routes/admin/users.ts:158`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useDeactivateAdmin` (`admin/hooks/queries/use-admins.ts:44`), called from `admin/components/modals/deactivate-admin-modal.tsx:16`, opened at `admin/app/(dashboard)/admins/page.tsx:171`. |
+| | **`/admin/audit`, `audit.ts`, `index.ts:40`** | | | | |
+| AD1 | Audit log (paginated, filterable) | BUILT. `GET /admin/audit`, `backend/src/routes/admin/audit.ts:12`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. Called with the filters as query params, so a grep for the full path misses it: `useAudit` (`admin/hooks/queries/use-audit.ts:8-11`), called from `admin/app/(dashboard)/audit/page.tsx:106`. The page is SUPER_ADMIN only (`audit/page.tsx:126`). |
+| | **`/admin/settings`, `settings.ts`, `index.ts:41`** | | | | |
+| SE1 | Read system settings | BUILT. `GET /admin/settings`, `backend/src/routes/admin/settings.ts:23`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useSettings` (`admin/hooks/queries/use-settings.ts:9`), called from `admin/app/(dashboard)/settings/page.tsx:283`, and also from `admin/app/(dashboard)/attendance/page.tsx:70` and `admin/app/(dashboard)/grades/[subjectId]/page.tsx:61`. RBAC: REGISTRAR and FACULTY_ADMIN are shown the Attendance and Grades pages (`admin/lib/constants.ts:143-144`), whose settings read is refused. |
+| SE2 | Grade formula (CC / CF weights) | BUILT. `PATCH /admin/settings/grade-formula`, `backend/src/routes/admin/settings.ts:38`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useUpdateGradeFormula` (`admin/hooks/queries/use-settings.ts:17`), called from `admin/app/(dashboard)/settings/page.tsx:287`. |
+| SE3 | Attendance threshold | BUILT. `PATCH /admin/settings/attendance-threshold`, `backend/src/routes/admin/settings.ts:71`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useUpdateAttendanceThreshold` (`admin/hooks/queries/use-settings.ts:31`), called from `admin/app/(dashboard)/settings/page.tsx:288`. |
+| SE4 | Justification deadline (days) | BUILT. `PATCH /admin/settings/justification-deadline`, `backend/src/routes/admin/settings.ts:100`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useUpdateJustificationDeadline` (`admin/hooks/queries/use-settings.ts:48`), called from `admin/app/(dashboard)/settings/page.tsx:289`. |
+| SE5 | Automations toggles | BUILT. `PATCH /admin/settings/automations`, `backend/src/routes/admin/settings.ts:132`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | MISSING (helper `admin/hooks/queries/use-settings.ts:67`, no caller). No automations control is rendered in `admin/app` or `admin/components`. |
+| | **`/admin/faculties`, `/admin/programmes`, `/admin/semesters`, `/admin/subjects`, `academics.ts`, mounted at the `/admin` root, `index.ts:44`** | | | | |
+| AC1 | Faculties list | BUILT. `GET /admin/faculties`, `backend/src/routes/admin/academics.ts:23`. Roles: all four roles (`academics.ts:12-17`). | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useFaculties` (`admin/hooks/queries/use-academics.ts:11`), called from `admin/app/(dashboard)/academics/page.tsx:78`, `admin/app/(dashboard)/admins/page.tsx:56` and `admin/app/(dashboard)/notifications/page.tsx:47`. |
+| AC2 | Create faculty | BUILT. `POST /admin/faculties`, `backend/src/routes/admin/academics.ts:48`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useSaveFaculty` (no id → POST, `admin/hooks/queries/use-academics.ts:18-23`), called from `admin/components/forms/faculty-form.tsx:26`, opened at `admin/app/(dashboard)/academics/page.tsx:136`. RBAC: REGISTRAR and FACULTY_ADMIN see Academics (`admin/lib/constants.ts:147`), the add button is not role-gated, and they are refused. |
+| AC3 | Edit faculty | BUILT. `PATCH /admin/faculties/:id`, `backend/src/routes/admin/academics.ts:67`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useSaveFaculty` (id → PATCH, `admin/hooks/queries/use-academics.ts:18-23`), called from `admin/components/forms/faculty-form.tsx:26`, opened at `admin/app/(dashboard)/academics/page.tsx:165`. RBAC: same as AC2. |
+| AC4 | Programmes list | BUILT. `GET /admin/programmes`, `backend/src/routes/admin/academics.ts:90`. Roles: all four roles. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useProgrammes` (`admin/hooks/queries/use-academics.ts:38`), called from `admin/app/(dashboard)/academics/page.tsx:80` and `admin/app/(dashboard)/notifications/page.tsx:48`. |
+| AC5 | Create programme | BUILT. `POST /admin/programmes`, `backend/src/routes/admin/academics.ts:121`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useSaveProgramme` (no id → POST, `admin/hooks/queries/use-academics.ts:52-57`), called from `admin/components/forms/programme-form.tsx:29`, opened at `admin/app/(dashboard)/academics/page.tsx:136`. RBAC: same as AC2. |
+| AC6 | Edit programme | BUILT. `PATCH /admin/programmes/:id`, `backend/src/routes/admin/academics.ts:140`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useSaveProgramme` (id → PATCH, `admin/hooks/queries/use-academics.ts:52-57`), called from `admin/components/forms/programme-form.tsx:29`, opened at `admin/app/(dashboard)/academics/page.tsx:237`. RBAC: same as AC2. |
+| AC7 | Semesters list | BUILT. `GET /admin/semesters`, `backend/src/routes/admin/academics.ts:166`. Roles: all four roles. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useSemesters` (`admin/hooks/queries/use-academics.ts:67`), called from `admin/app/(dashboard)/academics/page.tsx:87`, `admin/app/(dashboard)/grades/page.tsx:34` and `admin/app/(dashboard)/grades/[subjectId]/page.tsx:58`. |
+| AC8 | Create semester | BUILT. `POST /admin/semesters`, `backend/src/routes/admin/academics.ts:185`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useSaveSemester` (no id → POST, `admin/hooks/queries/use-academics.ts:80-85`), called from `admin/components/forms/semester-form.tsx:29`, opened at `admin/app/(dashboard)/academics/page.tsx:136`. RBAC: same as AC2. |
+| AC9 | Edit semester (incl. set current) | BUILT. `PATCH /admin/semesters/:id`, `backend/src/routes/admin/academics.ts:218`. Roles: SUPER_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useSaveSemester` (id → PATCH, `admin/hooks/queries/use-academics.ts:80-85`), called from `admin/components/forms/semester-form.tsx:29` (opened at `admin/app/(dashboard)/academics/page.tsx:338`), `admin/app/(dashboard)/academics/page.tsx:88` and `admin/app/(dashboard)/settings/page.tsx:286`. RBAC: same as AC2 on the Academics page. |
+| AC10 | Subjects list | BUILT. `GET /admin/subjects`, `backend/src/routes/admin/academics.ts:262`. Roles: all four roles. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useSubjects` (`admin/hooks/queries/use-academics.ts:95`), called from `admin/app/(dashboard)/academics/page.tsx:84`, `admin/app/(dashboard)/attendance/session/page.tsx:48` and `admin/app/(dashboard)/grades/[subjectId]/page.tsx:56`. |
+| AC11 | Create subject | BUILT. `POST /admin/subjects`, `backend/src/routes/admin/academics.ts:306`. Roles: SUPER_ADMIN, FACULTY_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useSaveSubject` (no id → POST, `admin/hooks/queries/use-academics.ts:102-107`), called from `admin/components/forms/subject-form.tsx:27`, opened at `admin/app/(dashboard)/academics/page.tsx:136`. RBAC: REGISTRAR sees Academics (`admin/lib/constants.ts:147`), the button is not role-gated, and REGISTRAR is refused. |
+| AC12 | Edit subject | BUILT. `PATCH /admin/subjects/:id`, `backend/src/routes/admin/academics.ts:331`. Roles: SUPER_ADMIN, FACULTY_ADMIN. | N/A. Auth boundary. | N/A. Auth boundary. | BUILT. `useSaveSubject` (id → PATCH, `admin/hooks/queries/use-academics.ts:102-107`), called from `admin/components/forms/subject-form.tsx:27`, opened at `admin/app/(dashboard)/academics/page.tsx:283`. RBAC: same as AC11. |
+
+### Admin endpoints no client consumes
+
+No portal page calls these, and neither student client can (auth boundary).
+
+| Handler | Defined at | Row | Why |
+|---|---|---|---|
+| `GET /admin/auth/me` | `backend/src/routes/admin/auth.ts:259` | AU4 | no hook, no caller |
+| `GET /admin/attendance/pending-justifications` | `backend/src/routes/admin/attendance.ts:256` | AT3 | helper exists, no caller |
+| `PATCH /admin/news/categories/:id` | `backend/src/routes/admin/categories.ts:148` | NC4 | no hook, no caller |
+| `GET /admin/news/:id` | `backend/src/routes/admin/news.ts:108` | NW2 | helper exists, no caller |
+| `PATCH /admin/settings/automations` | `backend/src/routes/admin/settings.ts:132` | SE5 | helper exists, no caller |
 
 ---
 
@@ -202,6 +314,75 @@ None. All 18 have at least one consuming client.
 | `GET /news` | `backend/src/routes/news.ts:30` | N2 |
 | `GET /news/:id` | `backend/src/routes/news.ts:64` | N3 |
 
-`/admin` handlers: milestone 2 of this PR.
+</details>
+
+<details>
+<summary>63 admin handlers, each in exactly one row</summary>
+
+| Handler | Defined at | Row |
+|---|---|---|
+| `POST /admin/auth/login` | `backend/src/routes/admin/auth.ts:86` | AU1 |
+| `POST /admin/auth/refresh` | `backend/src/routes/admin/auth.ts:187` | AU2 |
+| `POST /admin/auth/logout` | `backend/src/routes/admin/auth.ts:239` | AU3 |
+| `GET /admin/auth/me` | `backend/src/routes/admin/auth.ts:259` | AU4 |
+| `PATCH /admin/auth/password` | `backend/src/routes/admin/auth.ts:284` | AU5 |
+| `GET /admin/dashboard/stats` | `backend/src/routes/admin/dashboard.ts:24` | DB1 |
+| `GET /admin/dashboard/recent-activity` | `backend/src/routes/admin/dashboard.ts:168` | DB2 |
+| `GET /admin/students` | `backend/src/routes/admin/students.ts:82` | ST1 |
+| `GET /admin/students/:id` | `backend/src/routes/admin/students.ts:190` | ST2 |
+| `POST /admin/students` | `backend/src/routes/admin/students.ts:271` | ST3 |
+| `PATCH /admin/students/:id` | `backend/src/routes/admin/students.ts:342` | ST4 |
+| `POST /admin/students/:id/reset-password` | `backend/src/routes/admin/students.ts:393` | ST5 |
+| `PATCH /admin/students/:id/status` | `backend/src/routes/admin/students.ts:445` | ST6 |
+| `POST /admin/students/import` | `backend/src/routes/admin/students.ts:511` | ST7 |
+| `GET /admin/schedule/conflicts` | `backend/src/routes/admin/schedule.ts:107` | SC1 |
+| `GET /admin/schedule` | `backend/src/routes/admin/schedule.ts:151` | SC2 |
+| `POST /admin/schedule` | `backend/src/routes/admin/schedule.ts:213` | SC3 |
+| `PATCH /admin/schedule/:id` | `backend/src/routes/admin/schedule.ts:262` | SC4 |
+| `DELETE /admin/schedule/:id` | `backend/src/routes/admin/schedule.ts:322` | SC5 |
+| `GET /admin/grades` | `backend/src/routes/admin/grades.ts:71` | GR1 |
+| `PATCH /admin/grades/:id` | `backend/src/routes/admin/grades.ts:109` | GR2 |
+| `POST /admin/grades/:id/change` | `backend/src/routes/admin/grades.ts:172` | GR3 |
+| `POST /admin/grades/bulk` | `backend/src/routes/admin/grades.ts:242` | GR4 |
+| `POST /admin/grades/publish` | `backend/src/routes/admin/grades.ts:357` | GR5 |
+| `GET /admin/attendance` | `backend/src/routes/admin/attendance.ts:87` | AT1 |
+| `GET /admin/attendance/overview` | `backend/src/routes/admin/attendance.ts:129` | AT2 |
+| `GET /admin/attendance/pending-justifications` | `backend/src/routes/admin/attendance.ts:256` | AT3 |
+| `POST /admin/attendance/record` | `backend/src/routes/admin/attendance.ts:295` | AT4 |
+| `PATCH /admin/attendance/:id/justification` | `backend/src/routes/admin/attendance.ts:355` | AT5 |
+| `GET /admin/news/categories` | `backend/src/routes/admin/categories.ts:55` | NC1 |
+| `POST /admin/news/categories` | `backend/src/routes/admin/categories.ts:73` | NC2 |
+| `PATCH /admin/news/categories/reorder` | `backend/src/routes/admin/categories.ts:106` | NC3 |
+| `PATCH /admin/news/categories/:id` | `backend/src/routes/admin/categories.ts:148` | NC4 |
+| `DELETE /admin/news/categories/:id` | `backend/src/routes/admin/categories.ts:180` | NC5 |
+| `GET /admin/news` | `backend/src/routes/admin/news.ts:95` | NW1 |
+| `GET /admin/news/:id` | `backend/src/routes/admin/news.ts:108` | NW2 |
+| `POST /admin/news` | `backend/src/routes/admin/news.ts:135` | NW3 |
+| `PATCH /admin/news/:id` | `backend/src/routes/admin/news.ts:190` | NW4 |
+| `DELETE /admin/news/:id` | `backend/src/routes/admin/news.ts:248` | NW5 |
+| `POST /admin/notifications/send` | `backend/src/routes/admin/notifications.ts:69` | NT1 |
+| `GET /admin/notifications/history` | `backend/src/routes/admin/notifications.ts:120` | NT2 |
+| `GET /admin/users` | `backend/src/routes/admin/users.ts:39` | US1 |
+| `POST /admin/users` | `backend/src/routes/admin/users.ts:66` | US2 |
+| `PATCH /admin/users/:id` | `backend/src/routes/admin/users.ts:110` | US3 |
+| `DELETE /admin/users/:id` | `backend/src/routes/admin/users.ts:158` | US4 |
+| `GET /admin/audit` | `backend/src/routes/admin/audit.ts:12` | AD1 |
+| `GET /admin/settings` | `backend/src/routes/admin/settings.ts:23` | SE1 |
+| `PATCH /admin/settings/grade-formula` | `backend/src/routes/admin/settings.ts:38` | SE2 |
+| `PATCH /admin/settings/attendance-threshold` | `backend/src/routes/admin/settings.ts:71` | SE3 |
+| `PATCH /admin/settings/justification-deadline` | `backend/src/routes/admin/settings.ts:100` | SE4 |
+| `PATCH /admin/settings/automations` | `backend/src/routes/admin/settings.ts:132` | SE5 |
+| `GET /admin/faculties` | `backend/src/routes/admin/academics.ts:23` | AC1 |
+| `POST /admin/faculties` | `backend/src/routes/admin/academics.ts:48` | AC2 |
+| `PATCH /admin/faculties/:id` | `backend/src/routes/admin/academics.ts:67` | AC3 |
+| `GET /admin/programmes` | `backend/src/routes/admin/academics.ts:90` | AC4 |
+| `POST /admin/programmes` | `backend/src/routes/admin/academics.ts:121` | AC5 |
+| `PATCH /admin/programmes/:id` | `backend/src/routes/admin/academics.ts:140` | AC6 |
+| `GET /admin/semesters` | `backend/src/routes/admin/academics.ts:166` | AC7 |
+| `POST /admin/semesters` | `backend/src/routes/admin/academics.ts:185` | AC8 |
+| `PATCH /admin/semesters/:id` | `backend/src/routes/admin/academics.ts:218` | AC9 |
+| `GET /admin/subjects` | `backend/src/routes/admin/academics.ts:262` | AC10 |
+| `POST /admin/subjects` | `backend/src/routes/admin/academics.ts:306` | AC11 |
+| `PATCH /admin/subjects/:id` | `backend/src/routes/admin/academics.ts:331` | AC12 |
 
 </details>
