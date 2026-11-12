@@ -39,6 +39,9 @@ ends as a branch and a pull request.
    touched with generated ones marked, what the builder flagged rather than
    decided, the reviewer's findings and whether they were fixed, where the run
    stopped and why, and what needs a human decision, written as a question.
+   It also says, for each milestone, whether it changed what a product can do, and
+   if so whether `.claude/feature-parity.md` was updated in the same pull request.
+   A capability change without that update is a finding, not a footnote.
 
 5. **A human merges.** No agent merges, ever. Merging develop deploys: Render
    rebuilds the backend, Vercel rebuilds the PWA.
@@ -56,6 +59,10 @@ ends as a branch and a pull request.
 - The deny list in settings.json stops the obvious destructive commands and
   nothing more. Argument patterns are guidance, not a boundary. The real
   safeguard is that builders never merge and origin is the backup.
+- If a milestone changes what a product can do (adds, removes or finishes a
+  capability, or moves a computation between server and client), the same pull
+  request updates `.claude/feature-parity.md`. A file nobody is required to touch
+  goes stale; the March task list is the proof.
 
 ## The room
 

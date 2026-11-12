@@ -20,6 +20,8 @@ Read first, every time:
 Then:
 - Branch from develop: feature/<milestone-slug>.
 - Touch only the paths the milestone declares.
+- If the milestone lists `.claude/feature-parity.md`, update the affected rows and
+  the audit note on each, citing `path:line` at your branch's HEAD.
 - Run the typecheck for that product before opening the PR:
     app      npx tsc --noEmit            (repo root)
     admin    npm run typecheck           (in admin/)

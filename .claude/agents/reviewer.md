@@ -18,6 +18,8 @@ Read first:
 
 Report, in this order:
 1. Does the diff meet the milestone's "Done when"? Yes or no, and why.
+   If the diff changes what a product can do and does not update
+   `.claude/feature-parity.md`, the milestone is not done.
 2. Paths outside the milestone's declared list. Name them. This alone is enough
    to reject.
 3. Defects, each with file and line, and the input or state that triggers it.
