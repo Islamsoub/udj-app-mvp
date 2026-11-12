@@ -19,6 +19,15 @@ import styles from './dashboard.module.css';
  * quick links, news — and that order is also the stagger order and the DOM
  * order, so the visual sequence, the focus order and the animation all come from
  * the same single arrangement rather than three that could drift apart.
+ *
+ * Placement (Dashboard Spec §1, §2) is owned here, by the grid, not by the
+ * cards: each card sits in a slot that says where it goes, so the cards stay
+ * placement-agnostic. At ≥1024 that is three tracks — next class, then GPA over
+ * Assiduité in one column, then Notifications — with Accès rapide and the news
+ * card each spanning a full row below. At 640–1023 Notifications takes its own
+ * full-width row under the first two. Below 640 everything is one column. Every
+ * arrangement keeps the DOM order above, so the reading order, the focus order
+ * and the stagger order do not change with the layout.
  */
 export function Dashboard() {
   const { t } = useI18n();
@@ -53,11 +62,26 @@ export function Dashboard() {
 
       <div className={styles.grid}>
         <NextClassCard index={0} {...shared} />
-        <GpaCard index={1} {...shared} />
-        <AttendanceCard index={2} {...shared} />
-        <NotificationsCard index={3} {...shared} />
-        <QuickLinksCard index={4} animate={animate} />
-        <NewsCard index={5} {...shared} />
+
+        {/* §2 ②: one grid cell holding two cards, GPA above Assiduité. */}
+        <div className={styles.slotColumn}>
+          <div className={styles.slotGpa}>
+            <GpaCard index={1} {...shared} />
+          </div>
+          <div className={styles.slotAttendance}>
+            <AttendanceCard index={2} {...shared} />
+          </div>
+        </div>
+
+        <div className={styles.slotNotifications}>
+          <NotificationsCard index={3} {...shared} />
+        </div>
+        <div className={`${styles.slotSpanAll} ${styles.slotQuickLinks}`}>
+          <QuickLinksCard index={4} animate={animate} />
+        </div>
+        <div className={styles.slotSpanAll}>
+          <NewsCard index={5} {...shared} />
+        </div>
       </div>
     </>
   );

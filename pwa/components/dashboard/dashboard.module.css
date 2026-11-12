@@ -32,15 +32,70 @@ html[lang="ar"] .heading {
 }
 
 /*
- * Two columns from 900px, one below. `auto-fit` with a minimum rather than a
- * fixed count so the cards reflow while the sidebar is collapsing, instead of
- * snapping at a breakpoint the sidebar animation passes through.
+ * Dashboard Spec §1 / §2: 1 column below 640, 2 from 640, 3 from 1024, gap 16,
+ * align-items start. The count is fixed per breakpoint, not `auto-fit`: the
+ * layout below places cards by column (GPA and Assiduité share column 2,
+ * Notifications is column 3), and a track count that follows the content
+ * width instead of the viewport went to 4 with the sidebar collapsed at 1440
+ * and left a hole in row 2. Collapsing the sidebar now only widens the tracks.
+ *
+ * §9 hardening: minmax(0, 1fr), not 1fr, so a long unbroken word can never
+ * widen a track past its share.
  */
 .grid {
   display: grid;
   gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/*
+ * Placement slots (Dashboard.tsx). The grid places the slots; the cards inside
+ * them stay placement-agnostic.
+ *
+ * §2 ②: GPA above Assiduité in one cell, gap 16. Assiduité is flex: 1 as the
+ * spec's reference build has it. Note that under the grid's align-items: start
+ * this column is only as tall as its two cards, so flex: 1 has no free space
+ * to fill and the card does not stretch to card ①'s bottom; the reference
+ * render shows the same (its Assiduité ends a few px above card ①).
+ */
+.slotColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.slotAttendance {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+/* §1: on tablet, Notifications spans both columns, on its own row. */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .slotNotifications {
+    grid-column: 1 / -1;
+  }
+}
+
+/* §2 ④ ⑤: Accès rapide and the news card each span every column. */
+@media (min-width: 640px) {
+  .slotSpanAll {
+    grid-column: 1 / -1;
+  }
 }
 
 /* ── Card ──────────────────────────────────────────────────────────────────── */
@@ -50,11 +105,22 @@ html[lang="ar"] .heading {
   display: flex;
   flex-direction: column;
   min-height: 148px;
-  padding: 16px;
+  /* §6 card base: padding 20. Two cards differ, below. */
+  padding: 20px;
   border: 1px solid var(--hair);
   border-radius: var(--r-lg);
   background: var(--surface);
   box-shadow: var(--shadow-card);
+}
+
+/* §6 ②: the GPA card's padding is 18 and Assiduité's is 16. */
+.slotGpa > .card {
+  padding: 18px;
+}
+
+.slotAttendance > .card {
+  flex: 1;
+  padding: 16px;
 }
 
 /*
@@ -99,25 +165,30 @@ html[lang="ar"] .heading {
 /* No :active scale on the card: §3 gives cards a hover lift and reserves the
    0.97 press for buttons. The retry button inside keeps its own. */
 
+/*
+ * §6 .card-head: a flex row, space-between, centred, 14 below. The title has
+ * no leading icon (§6). Accès rapide's heading sits 12 above its tiles, not 14
+ * (§6 ④ "h3 mb 12").
+ */
 .cardHeader {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
+  margin-bottom: 14px;
+}
+
+.slotQuickLinks .cardHeader {
   margin-bottom: 12px;
 }
 
 .cardTitle {
+  /* §9: a text column in a flex row can shrink. */
+  min-width: 0;
   margin: 0;
   font-size: 14px;
   font-weight: 700;
   color: var(--ink);
-}
-
-.cardIcon {
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  color: var(--ink3);
 }
 
 /*
