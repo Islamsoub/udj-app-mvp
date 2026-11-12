@@ -50,9 +50,10 @@ export function NextClassCard({ index, animate, online }: { index: number; anima
               <div className={styles.meta}>
                 <span className={styles.metaItem}>
                   <ClockIcon className={styles.metaIcon} />
-                  {/* .num: times stay on the Latin face in Arabic. fmtRange:
-                      and in start-to-end order there, too. */}
-                  <span className="num">
+                  {/* .mono: course times are DM Mono (Dashboard Spec §5), a
+                      Latin face in Arabic too. fmtRange: and in start-to-end
+                      order there. */}
+                  <span className="mono">
                     {fmtRange(next.entry.startTime, next.entry.endTime)}
                   </span>
                 </span>
