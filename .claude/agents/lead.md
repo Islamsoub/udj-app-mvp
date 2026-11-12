@@ -42,6 +42,8 @@ Rules for milestones:
 - Each one is reviewable in ten minutes. If it is not, it is two milestones.
 - Each declares its paths. A pull request touching anything outside that list
   is rejected, not argued about.
+- If a milestone changes what a product can do, add `.claude/feature-parity.md`
+  to its Paths and say which rows it changes.
 - Never invent user-facing copy. Copy is a Design decision — put it in Flags.
 - Create the mission folder and also an empty PROGRESS.md beside MISSION.md.
 
