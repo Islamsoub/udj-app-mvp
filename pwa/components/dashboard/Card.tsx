@@ -17,14 +17,19 @@ import styles from './dashboard.module.css';
  */
 export function Card({
   title,
-  icon,
   href,
   index,
   animate,
   children,
 }: {
   title: string;
-  icon: ReactNode;
+  /**
+   * @deprecated Not rendered. Dashboard Spec §6 draws card titles with no
+   * leading icon. The six cards still pass one; removing the prop from their
+   * call sites (and their now-unused icon imports) is in M3's paths, not M2's,
+   * of the 2026-11-12 design-conformance mission. Delete this prop then.
+   */
+  icon?: ReactNode;
   /** Set when the whole card navigates; drives the §3 hover lift. */
   href?: string;
   /** Position in §4's reading order, which is also its stagger delay. */
@@ -47,7 +52,6 @@ export function Card({
   return (
     <section className={className} style={style}>
       <div className={styles.cardHeader}>
-        <span className={styles.cardIcon}>{icon}</span>
         {/*
           h2: the page's h1 is the dashboard heading, so each card is a section
           below it. Keeps the document outline honest for §10.
