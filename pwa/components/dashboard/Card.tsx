@@ -25,9 +25,10 @@ export function Card({
   title: string;
   /**
    * @deprecated Not rendered. Dashboard Spec §6 draws card titles with no
-   * leading icon. The six cards still pass one; removing the prop from their
-   * call sites (and their now-unused icon imports) is in M3's paths, not M2's,
-   * of the 2026-11-12 design-conformance mission. Delete this prop then.
+   * leading icon. The six cards still pass one. M3 of the 2026-11-12
+   * design-conformance mission (which has Card.tsx and the six cards in its
+   * paths) removes it: the call-site props, their now-unused icon imports, and
+   * this prop.
    */
   icon?: ReactNode;
   /** Set when the whole card navigates; drives the §3 hover lift. */
