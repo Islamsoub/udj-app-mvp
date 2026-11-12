@@ -27,7 +27,8 @@ Then:
     admin    npm run typecheck           (in admin/)
     pwa      npm run typecheck           (in pwa/)
     backend  npx tsc --noEmit            (in backend/)
-  pwa/ has no CI job, so for the PWA this is the only check that will ever run.
+  CI runs the same typecheck for all four products, but run it here first:
+  CI is the backstop, not the check.
 - npm installs in this repo always use --legacy-peer-deps.
 
 Never:
