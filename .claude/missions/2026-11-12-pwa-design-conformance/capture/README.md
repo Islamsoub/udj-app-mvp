@@ -77,6 +77,8 @@ and no blocked off-origin request. Anything else exits 1 and prints `FAILURES:`.
 | `--hook <module.mjs>` | `export default async ({ page, context, screen, theme, lang, width, scenario, settle }) => {}` — runs before capture, for anything the flags do not cover (e.g. firing toasts). |
 | `--label <state>` | Overrides the state part of the file name. |
 | `--fixtures <dir>`, `--omit <file.json>` | Use another fixture root / pretend one fixture file is missing (used to prove fail-closed). |
+| `--min-free-mb <n>` | Stop cleanly (exit 3) when free memory is under `n` MB before the build, the server, Chrome or any shot. Default 300. See "Memory". |
+| `--overwrite` | Retake shots even if the manifest says they were taken with this build. |
 
 File names follow D6: `<screen>--<theme>--<lang>[--<width>][--<state>].png`.
 Width is omitted at 1440; state is omitted for `default`. With no `--label`,
@@ -176,9 +178,16 @@ node $CAP index --dir $MISSION/screenshots/mN
 ```
 
 Writes `mN/index.html`: one row per file name found in `before/` or `after/`
-(or in the folder itself, for `baseline/`), with before | after | pack
-screenshot | M0 spec render. A reference matches on the exact name, then
-without the state, then without the width.
+(or in the folder itself, for `baseline/`), with before | after | spec. The
+spec column is `reference/render/`: the spec page rendered by this harness at
+the capture's own width, theme and language. It matches on the exact name, then
+the same width without the state (captioned as the spec's loaded state). It
+never falls back to another width.
+
+Changed 2026-11-13: the "pack screenshot" column is gone. The pack's own
+screenshots are 1440 only, so every 834 and 390 row showed a desktop render
+shrunk to a thumbnail, which could not show whether a change moved toward the
+spec.
 
 ## Baseline (M0)
 
@@ -200,3 +209,60 @@ echo $?   # 1, with "no fixture for GET /api/backend/student/attendance"
 The harness stops the server it started, also on Ctrl-C (`taskkill /T /F` on
 Windows). If a run is killed hard, check `netstat -ano | grep :3199` and end
 that PID.
+
+## Memory (added 2026-11-13)
+
+On 2026-11-12 Claude Code killed two capture runs at ~0.07 GB free on this 5.8 GB
+machine. Three changes followed.
+
+**What is open at once.** One `next start` (node) and one headless Chrome for the
+whole run. Each shot opens one browser context and one page and closes both
+before the next; shots never run in parallel. Screenshots go straight to disk.
+`next build`, when not skipped, finishes before the server starts.
+
+**1. Memory check.** Before the build, the server, Chrome and every shot, free
+physical memory (`os.freemem()`) is compared with `--min-free-mb` (default 300).
+Below it the run closes Chrome and the server, lists the shots not taken and
+exits 3. 300 sits between the lowest free memory seen in normal runs here (439
+MB) and the ~70 MB the killed runs died at. It is deliberately not "free ≥ the
+next step's size": Windows trims other processes rather than letting free
+memory drop by the harness's footprint, so that rule would never start here.
+
+**2. Resume.** Each clean shot is recorded in `<out>/.capture-manifest.json`
+under a key built from the build (BUILD_ID plus its file's mtime, because
+`GIT_COMMIT_SHA` pins BUILD_ID across rebuilds), a hash of the fixtures, the
+hook file, the shot's options, the Chrome flags and `RENDER_VERSION`. A rerun
+skips a shot whose file exists with the same key. After a rebuild every key
+changes, so nothing stale is kept. Shots taken before 2026-11-13 have no
+manifest entry and are retaken if asked for. `--overwrite` retakes everything.
+`reference` does the same, keyed on a hash of the spec page's folder.
+
+**3. Chrome flags** (`CHROME_LOW_MEMORY_ARGS`). `--disable-gpu` gives almost all
+of the saving and changes anti-aliasing: against a capture without it, 5–15% of
+pixels differ, by up to 135/255, on text, shadows and curves. The layout is
+unchanged. So:
+- a before/after pair must be shot with the same flags. Retake a milestone's
+  "before" from the previous build; do not copy the previous milestone's
+  "after" (captures up to M3 were shot without the flag);
+- the other flags are pixel-identical (12 of 12 shots, 1 px of noise) and save
+  only ~20–30 MB.
+
+**Measured** on the M3 build, `--no-build`, one variant
+(`dashboard --themes dark --langs fr --widths 390 --scenario loading`), sampling
+the process tree every ~0.9 s, three runs each:
+
+| | peak working set | peak private | node | Chrome | processes | wall |
+|---|---|---|---|---|---|---|
+| before the flags | 696–707 MB | 532–582 MB | 214–215 | 482–492 | 10 | 4.2–5.2 s |
+| with all flags | 625–631 MB | 385–389 MB | 215–217 | 410–416 | 9 | 4.1–4.3 s |
+| flags without `--disable-gpu` | 667–680 MB | 523–566 MB | 216–217 | 453–464 | 9 | 4.1–4.2 s |
+
+- 12 shots in one run (with flags): private memory stays at 356–420 MB from the
+  first shot to the last. Nothing grows across shots.
+- `next build` plus one shot (warm cache, M0 worktree): 1,021 MB working set,
+  855 MB private, at the build. A cold first build in a new worktree was not
+  measured and is probably higher.
+- The stop was proven by holding free memory under 250 MB with a separate
+  allocator during a 12-shot run: it stopped before shot 2 with exit 3, no
+  server or headless Chrome was left, and the rerun took the other 11 and
+  skipped the first.

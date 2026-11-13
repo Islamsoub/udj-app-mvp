@@ -58,6 +58,15 @@ Rules that follow from it:
   branch, because that needs a force push and force pushes are denied.
 - **Merge order** is bottom-up. GitHub retargets the next PR when its base
   branch is merged and deleted.
+- **One milestone per run (Islam, 2026-11-13).** Stop after each milestone
+  and its review, and say it is ready to look at. On 2026-11-12 M1–M3 ran back
+  to back, so M3 was built on M1 and M2 before anyone had seen either.
+- **Paused before M4 (2026-11-13).** Islam is running and inspecting the PWA
+  himself first. Do not start M4 until he says so.
+- **Captures from M4 on** use the 2026-11-13 harness (capture/README.md
+  "Memory"). Its Chrome flags change anti-aliasing, so a milestone's "before"
+  is retaken from the previous milestone's build, never copied from its
+  "after".
 
 Branch names:
 
@@ -458,6 +467,15 @@ as a spec for those pages. Prototype-v1 is, for composition only (Flag 8).
     default at all three widths, light/dark × FR/AR). Amended 2026-11-12;
     Prochain cours added the same day after the M2 builder measured its
     skeleton 9-11 px short below 1024 (148 vs 157/159, meta row wraps).
+    **Amended 2026-11-13 (Islam's decision, option a): matching edges for
+    single-line content.** A difference caused only by a title wrapping to
+    more lines is accepted. Why: both remaining gaps (Notifications −3.09,
+    À la une −58.69 at 390 FR) come from loaded cards that are incomplete
+    against the spec, not from the skeletons. The spec's notification row is
+    title plus time and the time line is not built; the news card lacks its
+    category pill and thumbnail. When those cards are completed in their
+    milestone, the skeletons are re-matched against the complete card, with no
+    clamping. Do not tune a skeleton against content that is about to change.
   - Typecheck and build pass.
 
 ### 4. Dashboard: jade GPA hero card
@@ -507,6 +525,8 @@ as a spec for those pages. Prototype-v1 is, for composition only (Flag 8).
   - Screenshots in `default`, `empty`, `loading` and `error` at 1440, plus
     `default` at 390, all four combinations.
   - The hero's edges and circle mirror correctly in AR.
+  - (Amended 2026-11-13, same ruling as M3: matching edges for single-line
+    content; a difference caused only by wrapped text is accepted.)
   - The GPA skeleton overlays the loaded GPA card with matching edges at 1440,
     834 and 390. Amended 2026-11-12.
   - Typecheck and build pass.

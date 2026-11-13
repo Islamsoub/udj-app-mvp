@@ -15,6 +15,18 @@
  *     dead local port and PWA_PROXY_SECRET empty, so a leaked server-side call
  *     goes nowhere. No .env file is ever read by this script.
  *
+ * Memory (added 2026-11-13, after two runs were killed at 0.07 GB free):
+ *   - before the build, before Chrome starts and before every shot, free
+ *     physical memory is checked against --min-free-mb. Below it the run stops
+ *     cleanly: Chrome and the server are closed, the shots not taken are
+ *     listed, and the exit code is 3. Rerun the same command to resume.
+ *   - every shot taken is recorded in <out>/.capture-manifest.json with a key
+ *     made of the build ID, the fixtures and the shot's options. A rerun skips
+ *     a shot whose file exists and whose key is unchanged, so a run stopped at
+ *     22 of 24 takes only the last 2. A rebuild changes the key, so stale files
+ *     are retaken, never kept. --overwrite retakes everything.
+ *   - Chrome runs with CHROME_LOW_MEMORY_ARGS.
+ *
  * Subcommands:
  *   shoot      (default) capture PWA screens
  *   reference  render the spec pack's reference pages
@@ -22,9 +34,11 @@
  */
 
 import { spawn, spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync, copyFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -33,6 +47,41 @@ const DEFAULT_FIXTURES = path.join(HERE, 'fixtures');
 const DEFAULT_PLAYWRIGHT =
   'C:/Users/urohe/AppData/Local/npm-cache/_npx/e41f203b7505f1fb/node_modules/playwright';
 const CHROME_CHANNEL = 'chrome';
+
+/**
+ * Headless Chrome flags that cut its footprint (measured 2026-11-13, README
+ * "Memory"). --disable-gpu gives almost all of the saving (private memory
+ * ~560 → ~390 MB per shot) and changes anti-aliasing: 5–15% of pixels differ
+ * by up to 135/255 against a capture without it, layout unchanged. So a
+ * before/after pair must come from the same flags; RENDER_VERSION makes the
+ * manifest retake anything shot without them. The other flags are
+ * pixel-identical and save ~20–30 MB.
+ */
+const CHROME_LOW_MEMORY_ARGS = [
+  '--disable-gpu',
+  '--renderer-process-limit=1',
+  '--disable-features=site-per-process,IsolateOrigins,Translate,OptimizationHints,MediaRouter,AutofillServerCommunication',
+  '--disable-extensions',
+  '--disable-background-networking',
+  '--disable-component-update',
+  '--disable-default-apps',
+  '--disable-sync',
+  '--no-first-run',
+];
+
+/** Part of every manifest key: bump it when capture behaviour changes what a shot looks like. */
+const RENDER_VERSION = 1;
+
+/**
+ * Below this many MB of free physical memory (os.freemem) a run stops before
+ * its next step: build, server, Chrome, or shot. On the 5.8 GB machine
+ * (2026-11-13) the lowest free memory seen during normal runs was 439 MB, and
+ * the two runs killed on 2026-11-12 died at ~70 MB. 300 sits between the two.
+ * It is not "free ≥ the step's size": Windows trims other processes rather
+ * than letting free memory fall by the harness's footprint, so that rule would
+ * refuse to start on this machine at all. Override with --min-free-mb.
+ */
+const DEFAULT_MIN_FREE_MB = 300;
 
 const FIXED_TIME = '2026-11-10T09:15:00+03:00';
 const TIMEZONE = 'Africa/Djibouti';
@@ -93,7 +142,7 @@ function scenarioApplies(screen, scenario) {
 // ── CLI ───────────────────────────────────────────────────────────────────────
 
 const REPEATABLE = new Set(['click']);
-const FLAGS = new Set(['full-page', 'no-build', 'help']);
+const FLAGS = new Set(['full-page', 'no-build', 'help', 'overwrite']);
 
 function parseArgs(argv) {
   const out = { _: [] };
@@ -131,11 +180,90 @@ const USAGE = `Usage:
                    [--scenario default[,loading,...]] [--full-page] [--click <sel>]... [--hover <sel>]
                    [--press <sel>] [--focus <sel>] [--scroll <y>] [--hook <module.mjs>] [--label <state>]
                    [--fixtures <dir>] [--omit <fixture file>] [--plan <plan.json>]
-  node capture.mjs reference --spec-pack <design/spec-pack dir> --out <dir>
+                   [--min-free-mb ${DEFAULT_MIN_FREE_MB}] [--overwrite]
+  node capture.mjs reference --spec-pack <design/spec-pack dir> --out <dir> [--only <regex>]
+                   [--min-free-mb ${DEFAULT_MIN_FREE_MB}] [--overwrite]
+
+  Shots already taken with the same build and options are skipped; --overwrite retakes them.
+  Under --min-free-mb MB of free memory the run stops cleanly with exit code 3; rerun to resume.
   node capture.mjs index --dir <screenshots/mN dir> [--reference <screenshots/reference dir>]
 
 Screens: ${Object.keys(SCREENS).join(', ')}
 Scenarios: ${[...new Set([...DATA_SCENARIOS, ...LOGIN_SCENARIOS])].join(', ')}`;
+
+// ── Memory guard ──────────────────────────────────────────────────────────────
+
+/** Thrown when free memory is under the threshold. Caught by the subcommand, which closes everything and exits 3. */
+class LowMemoryStop extends Error {}
+
+const freeMb = () => Math.round(os.freemem() / 1048576);
+
+function minFreeMb(args) {
+  const v = args['min-free-mb'] === undefined ? DEFAULT_MIN_FREE_MB : Number(args['min-free-mb']);
+  if (!Number.isFinite(v) || v < 0) die(`--min-free-mb must be a number of MB, got "${args['min-free-mb']}"`);
+  return v;
+}
+
+function checkMemory(threshold, before) {
+  const free = freeMb();
+  if (free < threshold) {
+    throw new LowMemoryStop(`free memory is ${free} MB, under --min-free-mb ${threshold}; stopped before ${before}`);
+  }
+}
+
+/** Exit path for a low-memory stop: says what was not taken and how to resume. */
+function reportLowMemory(err, report, remaining) {
+  console.error(`\nSTOPPED (low memory): ${err.message}`);
+  if (remaining.length) {
+    console.error(`${remaining.length} shot(s) not taken:`);
+    for (const r of remaining) console.error(`  - ${r}`);
+  }
+  console.error('Free some memory and rerun the same command. Shots already taken are skipped.');
+  report.stopped = true;
+}
+
+// ── Resume manifest ───────────────────────────────────────────────────────────
+
+const MANIFEST = '.capture-manifest.json';
+const sha = (s) => createHash('sha256').update(s).digest('hex').slice(0, 16);
+
+function hashDir(dir) {
+  if (!existsSync(dir)) return 'none';
+  const h = createHash('sha256');
+  const walk = (d) => {
+    for (const f of readdirSync(d).sort()) {
+      const p = path.join(d, f);
+      if (statSync(p).isDirectory()) walk(p);
+      else h.update(path.relative(dir, p)).update(readFileSync(p));
+    }
+  };
+  walk(dir);
+  return h.digest('hex').slice(0, 16);
+}
+
+function hashFile(file) {
+  return existsSync(file) ? sha(readFileSync(file)) : 'none';
+}
+
+function loadManifest(dir) {
+  const file = path.join(dir, MANIFEST);
+  try {
+    return existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : {};
+  } catch {
+    return {}; // a corrupt manifest only means nothing is skipped
+  }
+}
+
+function recordShot(dir, name, key) {
+  const m = loadManifest(dir);
+  m[name] = key;
+  writeFileSync(path.join(dir, MANIFEST), JSON.stringify(m, null, 1));
+}
+
+/** True when `name` was taken before with the same key and the file is still there. */
+function alreadyTaken(dir, name, key) {
+  return existsSync(path.join(dir, name)) && loadManifest(dir)[name] === key;
+}
 
 // ── Playwright ────────────────────────────────────────────────────────────────
 
@@ -410,11 +538,9 @@ function normaliseJob(o, defaults = {}, baseDir = process.cwd()) {
   };
 }
 
-async function shootJob(browser, baseUrl, job, report) {
-  mkdirSync(job.out, { recursive: true });
-  const hook = job.hook ? (await import(pathToFileURL(job.hook).href)).default : null;
-  const origin = new URL(baseUrl).origin;
-
+/** Every shot a job asks for, in the order they are taken. */
+function planShots(job) {
+  const shots = [];
   for (const screen of job.screens)
     for (const scenario of job.scenarios) {
       if (!scenarioApplies(screen, scenario)) {
@@ -426,19 +552,53 @@ async function shootJob(browser, baseUrl, job, report) {
           for (const lang of job.langs) {
             const state = job.label ?? autoState(job, scenario);
             const name = fileName(screen, theme, lang, width, state);
-            const label = `${path.basename(job.out)}/${name}`;
-            const one = { ...job, screen, scenario };
-            const failuresBefore = report.failures.length;
-            try {
-              await shootOne(browser, origin, baseUrl, one, { screen, scenario, theme, lang, width, name, label, hook }, report);
-              if (report.failures.length === failuresBefore) console.log(`  ✓ ${label}`);
-              report.shots.push(path.join(job.out, name));
-            } catch (err) {
-              report.failures.push(`${label}: ${err.message.split('\n')[0]}`);
-              console.error(`  ✗ ${label}: ${err.message.split('\n')[0]}`);
-            }
+            shots.push({ job, screen, scenario, theme, lang, width, name, label: `${path.basename(job.out)}/${name}` });
           }
     }
+  return shots;
+}
+
+/** The manifest key: changes when the build, the fixtures, the hook or any option of the shot changes. */
+function shotKey(buildStamp, s, fixturesHash) {
+  const j = s.job;
+  return sha(
+    JSON.stringify({
+      v: RENDER_VERSION,
+      chrome: CHROME_LOW_MEMORY_ARGS,
+      build: buildStamp,
+      fixtures: fixturesHash,
+      hook: j.hook ? hashFile(j.hook) : null,
+      shot: [s.screen, s.scenario, s.theme, s.lang, s.width],
+      opts: [j.fullPage, j.click, j.hover, j.press, j.focus, j.scroll, j.omit, j.label],
+    })
+  );
+}
+
+async function takeShot(browser, baseUrl, s, report, run) {
+  const { job } = s;
+  mkdirSync(job.out, { recursive: true });
+  const key = run.buildStamp ? shotKey(run.buildStamp, s, run.fixturesHash(job.fixtures)) : null;
+  if (key && !run.overwrite && alreadyTaken(job.out, s.name, key)) {
+    console.log(`  = ${s.label} (already taken with this build; --overwrite to retake)`);
+    report.skipped.push(s.label);
+    return;
+  }
+  checkMemory(run.threshold, s.label);
+
+  const hook = job.hook ? await run.hook(job.hook) : null;
+  const failuresBefore = report.failures.length;
+  try {
+    await shootOne(browser, new URL(baseUrl).origin, baseUrl, { ...job, screen: s.screen, scenario: s.scenario }, { ...s, hook }, report);
+    if (report.failures.length === failuresBefore) {
+      console.log(`  ✓ ${s.label}`);
+      // Only a clean shot is recorded, so a failed one is retaken on resume.
+      if (key) recordShot(job.out, s.name, key);
+    }
+    report.shots.push(path.join(job.out, s.name));
+  } catch (err) {
+    report.failures.push(`${s.label}: ${err.message.split('\n')[0]}`);
+    console.error(`  ✗ ${s.label}: ${err.message.split('\n')[0]}`);
+  }
 }
 
 function autoState(job, scenario) {
@@ -550,43 +710,83 @@ async function cmdShoot(args) {
   const { plan: _p, pwa, port, 'base-url': base, 'no-build': noBuild, _: _rest, ...common } = args;
   const jobs = plan ? plan.map((p) => normaliseJob(p, common, path.dirname(planPath))) : [normaliseJob(common)];
 
+  const threshold = minFreeMb(common);
+  const report = newReport();
+  const planned = jobs.flatMap((job) => planShots(job));
+
   let baseUrl = base;
   let server = null;
-  if (pwa) {
-    const pwaDir = path.resolve(pwa);
-    if (existsSync(path.join(pwaDir, '.env.local'))) {
-      console.log('[note] pwa/.env.local exists; it is not read, and the process env set here overrides it.');
-    }
-    if (!noBuild) build(pwaDir);
-    server = await startServer(pwaDir, Number(port ?? 3199));
-    baseUrl = server.baseUrl;
-  }
-  if (!baseUrl) die('give --pwa <dir> or --base-url <url>\n\n' + USAGE);
-  const host = new URL(baseUrl).hostname;
-  if (host !== '127.0.0.1' && host !== 'localhost') die('--base-url must be localhost or 127.0.0.1');
-
-  const { chromium } = loadPlaywright();
-  const browser = await chromium.launch({ channel: CHROME_CHANNEL, headless: true });
-  const report = { shots: [], failures: [], warnings: [] };
+  let browser = null;
+  let i = 0;
   try {
-    for (const job of jobs) {
-      console.log(`[shoot] ${job.out}  screens=${job.screens.join(',')} scenario=${job.scenarios.join(',')} widths=${job.widths.join(',')}`);
-      await shootJob(browser, baseUrl, job, report);
+    let buildStamp = null;
+    if (pwa) {
+      const pwaDir = path.resolve(pwa);
+      if (existsSync(path.join(pwaDir, '.env.local'))) {
+        console.log('[note] pwa/.env.local exists; it is not read, and the process env set here overrides it.');
+      }
+      if (!noBuild) {
+        checkMemory(threshold, 'next build');
+        build(pwaDir);
+      }
+      checkMemory(threshold, 'next start');
+      server = await startServer(pwaDir, Number(port ?? 3199));
+      baseUrl = server.baseUrl;
+      // BUILD_ID alone is not enough: with GIT_COMMIT_SHA set it stays the same across rebuilds of edited code.
+      const idFile = path.join(pwaDir, '.next', 'BUILD_ID');
+      buildStamp = `${readFileSync(idFile, 'utf8').trim()}@${statSync(idFile).mtimeMs}`;
+    } else {
+      console.log('[note] --base-url: the build is unknown, so no shot is skipped as already taken.');
     }
+    if (!baseUrl) die('give --pwa <dir> or --base-url <url>\n\n' + USAGE);
+    const host = new URL(baseUrl).hostname;
+    if (host !== '127.0.0.1' && host !== 'localhost') die('--base-url must be localhost or 127.0.0.1');
+
+    const fixtureHashes = new Map();
+    const hooks = new Map();
+    const run = {
+      threshold,
+      buildStamp,
+      overwrite: Boolean(common.overwrite),
+      fixturesHash: (dir) => fixtureHashes.get(dir) ?? fixtureHashes.set(dir, hashDir(dir)).get(dir),
+      hook: async (file) => hooks.get(file) ?? hooks.set(file, (await import(pathToFileURL(file).href)).default).get(file),
+    };
+
+    const { chromium } = loadPlaywright();
+    checkMemory(threshold, 'Chrome');
+    browser = await chromium.launch({ channel: CHROME_CHANNEL, headless: true, args: CHROME_LOW_MEMORY_ARGS });
+    let lastJob = null;
+    for (; i < planned.length; i++) {
+      const s = planned[i];
+      if (s.job !== lastJob) {
+        lastJob = s.job;
+        console.log(`[shoot] ${s.job.out}  screens=${s.job.screens.join(',')} scenario=${s.job.scenarios.join(',')} widths=${s.job.widths.join(',')}`);
+      }
+      await takeShot(browser, baseUrl, s, report, run);
+    }
+  } catch (err) {
+    if (!(err instanceof LowMemoryStop)) throw err;
+    reportLowMemory(err, report, planned.slice(i).map((s) => s.label));
   } finally {
-    await browser.close();
+    await browser?.close();
     server?.stop();
   }
   return finish(report);
 }
 
+const newReport = () => ({ shots: [], skipped: [], failures: [], warnings: [], stopped: false });
+
 function finish(report) {
   for (const w of report.warnings) console.log(`  warn ${w}`);
-  console.log(`\n${report.shots.length} screenshot(s), ${report.failures.length} failure(s).`);
+  console.log(
+    `\n${report.shots.length} screenshot(s), ${report.skipped.length} skipped as already taken, ${report.failures.length} failure(s).`
+  );
   if (report.failures.length) {
     console.error('FAILURES:\n' + report.failures.map((f) => `  - ${f}`).join('\n'));
     process.exitCode = 1;
   }
+  // A low-memory stop outranks failures: the run is incomplete, and the fix is to resume, not to debug.
+  if (report.stopped) process.exitCode = 3;
 }
 
 // ── Reference renders ─────────────────────────────────────────────────────────
@@ -660,13 +860,51 @@ async function cmdReference(args) {
     `url($1${origin}/specs/pwa/dashboard/fonts/`
   );
 
+  const threshold = minFreeMb(args);
+  const overwrite = Boolean(args.overwrite);
+  const report = newReport();
+  const remaining = [];
+  let stop = null;
+  const dirHashes = new Map();
+  const pageKey = (name, width, url) => {
+    // The page's own folder (HTML, CSS, JS, fonts): a change to the spec pack retakes its renders.
+    const dir = path.dirname(path.join(pack, decodeURIComponent(url.split('?')[0])));
+    if (!dirHashes.has(dir)) dirHashes.set(dir, hashDir(dir));
+    return sha(JSON.stringify({ v: RENDER_VERSION, chrome: CHROME_LOW_MEMORY_ARGS, dir: dirHashes.get(dir), name, width, url }));
+  };
+
   const { chromium } = loadPlaywright();
-  const browser = await chromium.launch({ channel: CHROME_CHANNEL, headless: true });
-  const report = { shots: [], failures: [], warnings: [] };
+  try {
+    checkMemory(threshold, 'Chrome');
+  } catch (err) {
+    server.close();
+    if (!(err instanceof LowMemoryStop)) throw err;
+    reportLowMemory(err, report, []);
+    return finish(report);
+  }
+  const browser = await chromium.launch({ channel: CHROME_CHANNEL, headless: true, args: CHROME_LOW_MEMORY_ARGS });
 
   const only = args.only ? new RegExp(args.only) : null;
   const shot = async (name, width, url, after) => {
     if (only && !only.test(name)) return;
+    if (stop) {
+      remaining.push(`reference/render/${name}`);
+      return;
+    }
+    const key = pageKey(name, width, url);
+    if (!overwrite && alreadyTaken(renderDir, name, key)) {
+      console.log(`  = reference/render/${name} (already taken; --overwrite to retake)`);
+      report.skipped.push(name);
+      return;
+    }
+    try {
+      checkMemory(threshold, `reference/render/${name}`);
+    } catch (err) {
+      if (!(err instanceof LowMemoryStop)) throw err;
+      stop = err;
+      remaining.push(`reference/render/${name}`);
+      return;
+    }
     const context = await browser.newContext({
       viewport: { width, height: VIEWPORT_HEIGHT },
       deviceScaleFactor: 1,
@@ -693,6 +931,7 @@ async function cmdReference(args) {
       }
       await page.screenshot({ path: path.join(renderDir, name) });
       report.shots.push(name);
+      recordShot(renderDir, name, key);
       console.log(`  ✓ reference/render/${name}`);
     } catch (err) {
       report.failures.push(`${name}: ${err.message.split('\n')[0]}`);
@@ -756,6 +995,7 @@ async function cmdReference(args) {
     await browser.close();
     server.close();
   }
+  if (stop) reportLowMemory(stop, report, remaining);
   return finish(report);
 }
 
@@ -763,15 +1003,16 @@ async function cmdReference(args) {
 
 const pngs = (dir) => (existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.png')) : []);
 
-/** dashboard--light--fr--834--loading.png -> [itself, without state, without width and state] */
+/**
+ * dashboard--light--fr--834--loading.png -> [itself, the same width without state].
+ * Never another width: a 1440 render beside a 390 capture says nothing about the
+ * 390 layout. (1440 names carry no width, so "without state" keeps 1440 at 1440.)
+ */
 function referenceCandidates(name) {
   const parts = name.replace(/\.png$/, '').split('--');
   const [screen, theme, lang, ...rest] = parts;
   const width = rest.find((r) => /^\d+$/.test(r));
-  const out = [name];
-  out.push([screen, theme, lang, width].filter(Boolean).join('--') + '.png');
-  out.push([screen, theme, lang].join('--') + '.png');
-  return [...new Set(out)];
+  return [...new Set([name, [screen, theme, lang, width].filter(Boolean).join('--') + '.png'])];
 }
 
 function cmdIndex(args) {
@@ -789,17 +1030,29 @@ function cmdIndex(args) {
     }
     return null;
   };
-  const cell = (p, missing = 'none') =>
-    p ? `<td><a href="${encodeURI(rel(p))}"><img loading="lazy" src="${encodeURI(rel(p))}"></a><div class="cap">${path.basename(p)}</div></td>` : `<td class="none">${missing}</td>`;
+  const cell = (p, missing = 'none', note = '') =>
+    p
+      ? `<td><a href="${encodeURI(rel(p))}"><img loading="lazy" src="${encodeURI(rel(p))}"></a><div class="cap">${path.basename(p)}${note}</div></td>`
+      : `<td class="none">${missing}</td>`;
 
-  const heads = [...(hasPhases ? ['before', 'after'] : ['capture']), 'reference: spec pack screenshot', 'reference: M0 spec render'];
+  // The reference is the spec page rendered by this harness at the capture's own
+  // width (`reference` subcommand). The pack's own screenshots are 1440 only and
+  // are no longer shown: beside a 390 or 834 capture they compared nothing.
+  const refCell = (n) => {
+    const p = findRef('render', n);
+    if (!p) return cell(null, 'no spec render at this width');
+    const note = path.basename(p) === n ? '' : ' <em>(spec in its loaded state: the spec page has no such state)</em>';
+    return cell(p, '', note);
+  };
+
+  const heads = [...(hasPhases ? ['before', 'after'] : ['capture']), 'spec (rendered at the same width)'];
   const rows = names
     .map((n) => {
       const caps = columns.map((c) => {
         const p = path.join(dir, c, n);
         return cell(existsSync(p) ? p : null, 'missing');
       });
-      return `<tr><th colspan="${heads.length}">${n}</th></tr><tr>${caps.join('')}${cell(findRef('pack', n))}${cell(findRef('render', n))}</tr>`;
+      return `<tr><th colspan="${heads.length}">${n}</th></tr><tr>${caps.join('')}${refCell(n)}</tr>`;
     })
     .join('\n');
 
@@ -808,7 +1061,7 @@ function cmdIndex(args) {
 th{text-align:start;padding:16px 4px 4px;font:600 13px ui-monospace,monospace}td{vertical-align:top;padding:4px;width:${Math.floor(100 / heads.length)}%}
 img{width:100%;border:1px solid #ccc;background:#fff}.cap{font:11px ui-monospace,monospace;color:#555}.none{color:#999;text-align:center}
 thead th{position:sticky;top:0;background:#f4f4f4}</style>
-<h1>${path.basename(dir)}</h1><p>${names.length} capture(s). Reference match: exact name, then without state, then without width.</p>
+<h1>${path.basename(dir)}</h1><p>${names.length} capture(s). Spec column: the spec page rendered at the same width, theme and language; exact state when the spec page has it, otherwise its loaded state. Never a different width.</p>
 <table><thead><tr>${heads.map((h) => `<th>${h}</th>`).join('')}</tr></thead>
 ${rows}
 </table>`;

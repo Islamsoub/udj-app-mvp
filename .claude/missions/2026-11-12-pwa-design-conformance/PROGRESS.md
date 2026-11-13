@@ -588,3 +588,31 @@ I applied none of them. (b) and (c) would change the loaded card to fit a skelet
 
 ### Servers
 Each harness run stopped its own `next start` and Chrome. After the memory kill I checked with `netstat` and `Get-CimInstance`: nothing listens on 3299, and no headless Chrome or `next` process from this run is left. The `next dev` on 3199 (PID 2996) was not touched.
+
+---
+
+## 2026-11-13: decisions, harness memory fixes, M3 captures completed (orchestrator, no product code)
+
+### Decisions (Islam)
+- **M3/M4 skeleton matching: option (a).** Done-when now reads "matching edges for single-line content" (MISSION.md, M3 and M4). The two remaining gaps come from cards that are incomplete against the spec (notification time line; news category pill and thumbnail). The skeletons are re-matched when those cards are completed. No clamping, no tuning against content about to change.
+- **One milestone per run**, stop after each for a look. **Paused before M4**: Islam is inspecting the PWA himself first.
+
+### M3 open items closed
+- The two missing captures were taken: `m3/after/dashboard--dark--{fr,ar}--390--loading.png` (resume of the 2026-11-12 command, M3 build `tmwdsepxa`, unchanged).
+  - These two use the new Chrome flags. The other 22 M3 after shots do not, so anti-aliasing differs slightly between them. Layout is unaffected.
+- **Dark measured, not inferred.** Card heights at 390, loaded/loading, are identical in dark and light in both languages:
+  - FR: Prochain cours 169/169, Assiduité 157/157, Accès rapide 218/218, Notifications 315.84/312.75, À la une 352.38/293.69, GPA 166.75/148 (M4's).
+  - AR: 171/171, 157/157, 218/218, 318.84/315.75, 299.69/299.69, GPA 169.75/148.
+  - The remaining differences are the accepted wrapped-text ones and GPA, which is M4's.
+- M3's Done-when is met under the amended wording.
+- The reviewer's minor item stays open and undecided: the next-class time reads "10:00 11:30" with no "to".
+
+### Harness (capture/capture.mjs, README "Memory")
+- Free memory is checked before the build, the server, Chrome and every shot, with `--min-free-mb`, default 300. Below it the run stops cleanly with exit 3 and lists the shots not taken.
+- A resume manifest skips shots already taken with the same build and options. A rebuild invalidates it. `--overwrite` retakes everything.
+- Chrome low-memory flags. `--disable-gpu` changes anti-aliasing (layout unchanged), so from M4 on "before" is retaken, not copied.
+- Index pages: the pack-screenshot column is removed. The spec column is the harness's own render of the spec page at the capture's width, never another width. baseline, m1, m2 and m3 index pages were regenerated.
+- Measured, one variant: peak 625–631 MB working set and 385–389 MB private with the flags, against 696–707 / 532–582 before. Full table in README "Memory".
+
+### Servers
+Every run stopped its own `next start` and Chrome. After the last run nothing listens on 3299 and no headless Chrome is left.
