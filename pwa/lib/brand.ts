@@ -10,9 +10,12 @@
  * - LOGO_ON_NEUTRAL — the logo as drawn, for neutral surfaces (the sidebar's
  *   --surface, the booting screen's --bg, light or dark). Rendered as a plain
  *   <img>, so it keeps its own colours: here the Unipocket tile, a
- *   #1D9E75 → #0F6E56 gradient (--jade → --jade-text in the light theme) under a
- *   white U. The tile is a graphic, not text: white on #1D9E75 is 3.39:1, which
- *   passes the 3:1 non-text threshold (WCAG 1.4.11). The hexes live in the SVG
+ *   #149E5F → #0A3D2E gradient under a white U. Those are the stops of Claude
+ *   Design's sidebar mark (assets/unipocket-sidebar-mark.png, fitted along its
+ *   diagonal); #0A3D2E is jade-900, the dark --hero-bg end stop. #149E5F is not
+ *   a token. The tile is a graphic, not text: white on #149E5F, its lightest
+ *   point, is 3.45:1, which passes the 3:1 non-text threshold (WCAG 1.4.11),
+ *   measured 2026-11-13. The hexes live in the SVG
  *   file, never in a stylesheet. A plain <img>, not next/image: next/image goes
  *   through /_next/image, which public/sw.js does not cache, so the mark would
  *   break offline. Its corners come from the artwork itself, so no consumer

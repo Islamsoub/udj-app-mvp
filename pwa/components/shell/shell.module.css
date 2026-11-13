@@ -93,12 +93,31 @@
 /* ── Sidebar (§7) ──────────────────────────────────────────────────────────── */
 
 /*
- * Width is the only thing that animates, over --dur-base --ease-in-out (§7:
- * "resizing in place"). Because the content column is a flex sibling with
- * flex:1, its inline-start edge tracks that width continuously — the reflow is
- * the same transition, with no separate rule and no delay.
+ * The width animates over --dur-base --ease-in-out (§7: "resizing in place").
+ * Because the content column is a flex sibling with flex:1, its inline-start
+ * edge tracks that width continuously — the reflow is the same transition, with
+ * no separate rule and no delay.
+ *
+ * Everything else that moves while the rail resizes (the nav items' start
+ * padding, the collapse button's gap and its label's footprint) runs on that
+ * same --dur-base --ease-in-out, so the rail changes as one motion. Only the
+ * label opacity has its own, faster curve (see .navLabel).
+ *
+ * The local custom properties are the rail's geometry, from the spec
+ * (app.css:87-107): nav and footer padding 12 on the inline axis, nav items
+ * 0 12 with a 19px icon and a 12px gap. The collapsed nav item's padding is
+ * derived from them rather than written as a number, so it stays centred if any
+ * of them changes. No padding on the sidebar itself: the spec pads the head, the
+ * nav and the footer separately.
  */
 .sidebar {
+  --rail-collapsed-w: 72px;
+  --rail-border: 1px;
+  --rail-pad-inline: 12px;
+  --nav-item-pad: 12px;
+  --nav-icon: 19px;
+  --nav-gap: 12px;
+
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -110,23 +129,27 @@
   top: 0;
   block-size: 100vh;
   block-size: 100dvh;
-  padding: 16px 12px;
   background: var(--surface);
-  border-inline-end: 1px solid var(--hair);
+  border-inline-end: var(--rail-border) solid var(--hair);
   transition: width var(--dur-base) var(--ease-in-out);
 }
 
 .sidebarCollapsed {
-  width: 72px;
+  width: var(--rail-collapsed-w);
 }
 
+/*
+ * Spec .sidebar-head: padding 18 16, gap 10. The mark sits 16px from the
+ * inline-start edge in both rail states, so it never moves during the collapse.
+ * In the 72px rail that is the spec's own collapsed placement: 16px from the
+ * edge, 21px from the border.
+ */
 .brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 44px;
-  padding-inline: 10px;
-  margin-bottom: 20px;
+  padding: 18px 16px;
+  flex-shrink: 0;
   overflow: hidden;
 }
 
@@ -138,11 +161,11 @@
  *
  * 34px TALL, WIDTH FROM THE ARTWORK. The height is the spec's; `width: auto`
  * lets a non-square logo keep its proportions. `max-width: none` undoes
- * preflight's `img { max-width: 100% }`: in the collapsed rail the brand row's
- * content box is 27px (72px rail, less 12px sidebar padding and 10px row
- * padding each side, less the 1px border), so the preflight cap would squeeze
- * the tile to 27 x 34. Uncapped it runs 7px into the row's own inline-end
- * padding, which is inside the overflow: hidden padding box, so nothing clips.
+ * preflight's `img { max-width: 100% }`. The collapsed head's content box is
+ * 39px (72px rail, less the 1px border and 16px padding each side): the square
+ * tile fits, but a wider logo from another university would be squeezed by that
+ * cap. Uncapped, it runs into the head's own inline-end padding, which is inside
+ * the overflow: hidden padding box.
  *
  * NO border-radius. The tile's corners are in the artwork (rx 30 of 104, which
  * is 9.8px at 34px — the spec's r10). A clipping radius here would cut the
@@ -150,8 +173,7 @@
  *
  * THE SAME IN BOTH RAIL STATES. §7 animates the rail's width and fades the
  * labels; a mark that also resized would add a third motion the spec does not
- * ask for, in the one row the student is looking at while the rail moves. 34px
- * inside .brand's fixed 44px row leaves 5px clear above and below.
+ * ask for, in the one row the student is looking at while the rail moves.
  */
 .brandMark {
   flex-shrink: 0;
@@ -168,40 +190,61 @@
   white-space: nowrap;
 }
 
+/* Spec .sidebar-nav: padding 6 12, items 2px apart (its margin-bottom: 2px). */
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  padding: 6px var(--rail-pad-inline);
 }
 
 /*
- * 44px tall, so the target is met without padding games. `overflow: hidden`
- * is what stops the label from wrapping to a second line during the collapse:
- * the box narrows before the text has faded, and without it the word would
- * reflow and jump.
+ * Spec .nav-item (app.css:93-98): 44 tall, padding 0 12, radius 12, gap 12,
+ * 14/600. 44px tall, so the target is met without padding games.
+ * `overflow: hidden` is what stops the label from wrapping to a second line
+ * during the collapse: the box narrows before the text has faded, and without
+ * it the word would reflow and jump.
+ *
+ * COLLAPSED: CENTRED BY PADDING, NOT BY justify-content. The spec collapses with
+ * `padding: 0; justify-content: center`. Applied at the click, that puts each
+ * icon in the centre of the still-215px item: it leaps ~84px and then slides
+ * back across the rail as the width shrinks. Instead the icon stays at
+ * flex-start and the collapsed item's start padding is the value that centres
+ * it, (72 - 1 - 2 x 12 - 19) / 2 = 14px against 12px expanded. The end state is
+ * the spec's (the 19px icon centred in the 47px item); on the way there the icon
+ * moves 2px, on the width's own curve.
  */
 .navItem {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--nav-gap);
   min-height: 44px;
-  padding-inline: 10px;
-  border-radius: var(--r-sm);
+  padding-block: 0;
+  padding-inline: var(--nav-item-pad);
+  border-radius: var(--r-md);
   color: var(--ink2);
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
+    color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out),
+    padding-inline-start var(--dur-base) var(--ease-in-out);
 }
 
-/* §3: clickable elements gain a tinted background over --dur-fast. */
+.sidebarCollapsed .navItem {
+  padding-inline-start: calc(
+    (var(--rail-collapsed-w) - var(--rail-border) - 2 * var(--rail-pad-inline) - var(--nav-icon)) / 2
+  );
+}
+
+/* §3: clickable elements gain a tinted background over --dur-fast. Spec
+   .nav-item:hover: --surface2, with the text going to --ink. */
 .navItem:hover {
-  background: var(--jade-faint);
+  background: var(--surface2);
   color: var(--ink);
 }
 
@@ -214,16 +257,21 @@
  * §4: the clicked item tints to jade-faint and the previous one un-tints, both
  * over --dur-fast, running in parallel. That falls out of transitioning every
  * item on the same properties — the class simply moves between them.
+ *
+ * :hover is listed so the current page keeps its tint under the pointer, as in
+ * the spec, where .nav-item.active follows .nav-item:hover at equal
+ * specificity. Without it the hover rule above would grey the active item.
  */
-.navItemActive {
+.navItemActive,
+.navItemActive:hover {
   background: var(--jade-faint);
   color: var(--jade-text);
 }
 
 .navIcon {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: var(--nav-icon);
+  height: var(--nav-icon);
 }
 
 /*
@@ -236,6 +284,10 @@
  * length of the fade so it flips at the end, not the start — visibility is not
  * interpolable, it steps, and without the delay the text would vanish instantly
  * instead of fading.
+ *
+ * The other thing display:none does is free the label's space. Where that
+ * space matters it is freed separately: a hidden nav label leaves the flow
+ * (below), and the collapse button's label shrinks to nothing (.collapseLabel).
  */
 .navLabel {
   opacity: 1;
@@ -250,36 +302,63 @@
     visibility 0s linear var(--dur-fast);
 }
 
-.sidebarFooter {
-  margin-top: auto;
-  padding-top: 16px;
+/*
+ * A hidden nav label leaves the flow, pinned where it sat in the expanded item
+ * (start padding + icon + gap). It fades in place while the collapsed item's
+ * padding changes under it, and takes no space in the collapsed rail. The block
+ * axis is left to the static position, which the item's `align-items: center`
+ * already centres, and the item's `overflow: hidden` clips it.
+ */
+.navItem > .navLabelHidden {
+  position: absolute;
+  inset-inline-start: calc(var(--nav-item-pad) + var(--nav-icon) + var(--nav-gap));
 }
 
-/* The "Réduire" control. Same 44px target and press treatment as a nav item. */
+/* Spec .sidebar-foot: padding 12, a hairline above. */
+.sidebarFooter {
+  margin-top: auto;
+  padding: 12px var(--rail-pad-inline);
+  border-block-start: 1px solid var(--hair);
+}
+
+/*
+ * The "Réduire" control. Spec .collapse-btn (app.css:101-106): full width, 38
+ * tall, radius 12, --surface2, chevron and label centred 8px apart, 12/600;
+ * hover darkens the text to --ink and changes nothing else.
+ *
+ * 38px, NOT 44. The control spans the whole footer, so 38 constrains only its
+ * height: it is a 215 x 38 bar expanded and 47 x 38 collapsed, a forgiving
+ * target even for a finger, on a landscape tablet wide enough to show it. The
+ * 44px guideline is aimed at small square controls, where both dimensions are
+ * the problem. Do not raise it to 44 as a "fix".
+ */
 .collapseButton {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
-  min-height: 44px;
-  padding-inline: 10px;
+  height: 38px;
+  padding: 0;
   border: none;
-  border-radius: var(--r-sm);
-  background: none;
+  border-radius: var(--r-md);
+  background: var(--surface2);
   color: var(--ink2);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  text-align: start;
   white-space: nowrap;
   overflow: hidden;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
+  transition: color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out),
+    gap var(--dur-base) var(--ease-in-out);
+}
+
+.sidebarCollapsed .collapseButton {
+  gap: 0;
 }
 
 .collapseButton:hover {
-  background: var(--jade-faint);
   color: var(--ink);
 }
 
@@ -288,8 +367,44 @@
 }
 
 /*
- * §7: the chevron rotates 180° in sync with the width, so it shares --dur-base
- * and --ease-in-out rather than the faster curve the label fade uses.
+ * The collapse button's label. Collapsed, the chevron must sit alone in the
+ * centre of the 47px button, so the label may take no space; it must also still
+ * fade (§7), so neither display:none nor an instant exit from the flow will do.
+ * Leaving the flow at the click removes the label's width plus the 8px gap in
+ * one frame, and the centred chevron leaps ~26px AWAY from where it is going
+ * before sliding back (measured: the mission's PROGRESS.md).
+ *
+ * Instead the footprint shrinks continuously to zero, with the gap, on the
+ * width's own --dur-base --ease-in-out, so the chevron glides to the centre in
+ * one direction, in step with the rail. The label is a one-column grid whose
+ * track goes from 1fr to 0fr: in a box sized to its content, a fractional track
+ * is that fraction of the content, so the footprint is exactly the label's own
+ * width scaled by the remaining progress, in any language, and fr tracks
+ * interpolate in every engine. `minmax(0, …)` lets the track go below the
+ * text's min-content, and `overflow: hidden` clips the text as it narrows, by
+ * which time it has mostly faded. Opacity and visibility keep .navLabel's timing.
+ */
+.collapseLabel {
+  display: inline-grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.collapseLabel.navLabel {
+  transition: opacity var(--dur-fast) var(--ease-out), visibility 0s linear 0s,
+    grid-template-columns var(--dur-base) var(--ease-in-out);
+}
+
+.collapseLabel.navLabelHidden {
+  grid-template-columns: minmax(0, 0fr);
+  transition: opacity var(--dur-fast) var(--ease-out), visibility 0s linear var(--dur-fast),
+    grid-template-columns var(--dur-base) var(--ease-in-out);
+}
+
+/*
+ * §7: the chevron turns in sync with the width, so it shares --dur-base and
+ * --ease-in-out rather than the faster curve the label fade uses. 14px, as the
+ * spec draws it.
  *
  * The glyph points toward the inline-start edge, and `scaleX(-1)` mirrors it
  * along the inline axis in whichever direction the document runs — a rotate()
@@ -297,8 +412,8 @@
  */
 .chevron {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 14px;
+  height: 14px;
   transition: transform var(--dur-base) var(--ease-in-out);
 }
 
@@ -849,8 +964,8 @@ html[lang="ar"] .title {
 }
 
 .tabIcon {
-  width: 22px;
-  height: 22px;
+  width: 21px;
+  height: 21px;
 }
 
 .tabActive .tabIcon {
@@ -980,6 +1095,8 @@ html[lang="ar"] .pageHeading {
   .navLabel,
   .navLabelHidden,
   .collapseButton,
+  .collapseLabel.navLabel,
+  .collapseLabel.navLabelHidden,
   .chevron,
   .iconButton,
   .menuItem,

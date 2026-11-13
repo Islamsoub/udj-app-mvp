@@ -124,7 +124,7 @@ export function Sidebar({
           >
             <ChevronIcon className={`${styles.chevron} ${collapsed ? styles.chevronFlipped : ''}`} />
             <span
-              className={collapsed ? styles.navLabelHidden : styles.navLabel}
+              className={`${styles.collapseLabel} ${collapsed ? styles.navLabelHidden : styles.navLabel}`}
               aria-hidden="true"
             >
               {t('shell.collapse')}
