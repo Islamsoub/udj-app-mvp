@@ -1,0 +1,42 @@
+{
+  "semester": { "id": "sem-s3", "label": "S3", "academicYear": "2026-2027" },
+  "gpa": 12.2,
+  "mention": "Assez Bien",
+  "credits": { "earned": 13, "total": 19 },
+  "ccPublished": true,
+  "nfPublished": true,
+  "grades": [
+    {
+      "id": "grade-s3-alg",
+      "noteCc": 14,
+      "noteCf": 12,
+      "noteFinale": 12.8,
+      "isValidated": true,
+      "subject": { "id": "sub-inf201", "nameFr": "Algorithmique", "nameAr": "الخوارزميات", "code": "INF201", "coefficient": 4, "credits": 6 }
+    },
+    {
+      "id": "grade-s3-mat",
+      "noteCc": 9,
+      "noteCf": 8,
+      "noteFinale": 8.3,
+      "isValidated": true,
+      "subject": { "id": "sub-mat203", "nameFr": "Mathématiques L2", "nameAr": "الرياضيات - المستوى الثاني", "code": "MAT203", "coefficient": 4, "credits": 6 }
+    },
+    {
+      "id": "grade-s3-ang",
+      "noteCc": 15,
+      "noteCf": 14,
+      "noteFinale": 14.3,
+      "isValidated": true,
+      "subject": { "id": "sub-ang201", "nameFr": "Anglais technique", "nameAr": "الإنجليزية التقنية", "code": "ANG201", "coefficient": 2, "credits": 3 }
+    },
+    {
+      "id": "grade-s3-bdd",
+      "noteCc": 16,
+      "noteCf": 15,
+      "noteFinale": 15.3,
+      "isValidated": true,
+      "subject": { "id": "sub-inf210", "nameFr": "Bases de données", "nameAr": "قواعد البيانات", "code": "INF210", "coefficient": 3, "credits": 4 }
+    }
+  ]
+}

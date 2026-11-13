@@ -1,0 +1,15 @@
+{
+  "id": "news-bibliotheque",
+  "titleFr": "Nouvelle bibliothèque numérique disponible",
+  "titleAr": "مكتبة رقمية جديدة متوفرة",
+  "category": "scolarite",
+  "heroImageUrl": null,
+  "readTimeMinutes": 2,
+  "isUrgent": false,
+  "publishedAt": "2026-11-03T07:00:00.000Z",
+  "bodyFr": "L'université lance une bibliothèque numérique donnant accès à des milliers d'ouvrages et revues scientifiques, accessible avec votre compte étudiant.",
+  "bodyAr": "أطلقت الجامعة مكتبة رقمية تتيح آلاف الكتب والمجلات العلمية، يمكن الوصول إليها بحساب الطالب.",
+  "categoryId": "cat-scolarite",
+  "createdAt": "2026-11-02T12:00:00.000Z",
+  "updatedAt": "2026-11-03T07:00:00.000Z"
+}

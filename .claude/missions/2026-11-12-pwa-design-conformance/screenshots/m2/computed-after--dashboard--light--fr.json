@@ -1,0 +1,239 @@
+{
+  "collapsed": false,
+  "grid": {
+    "rect": {
+      "x": 264,
+      "y": 151,
+      "w": 1152,
+      "h": 836.4
+    },
+    "gridTemplateColumns": "373.328px 373.328px 373.344px",
+    "gap": "16px",
+    "alignItems": "start"
+  },
+  "items": [
+    {
+      "cls": "card cardLink cardEnter",
+      "rect": {
+        "x": 264,
+        "y": 151,
+        "w": 373.3,
+        "h": 148
+      },
+      "gridColumn": "auto",
+      "gridRow": "auto",
+      "display": "flex",
+      "flex": "0 1 auto"
+    },
+    {
+      "cls": "slotColumn",
+      "rect": {
+        "x": 653.3,
+        "y": 151,
+        "w": 373.3,
+        "h": 335.8
+      },
+      "gridColumn": "auto",
+      "gridRow": "auto",
+      "display": "flex",
+      "flex": "0 1 auto"
+    },
+    {
+      "cls": "slotNotifications",
+      "rect": {
+        "x": 1042.7,
+        "y": 151,
+        "w": 373.3,
+        "h": 235.9
+      },
+      "gridColumn": "auto",
+      "gridRow": "auto",
+      "display": "block",
+      "flex": "0 1 auto"
+    },
+    {
+      "cls": "slotSpanAll slotQuickLinks",
+      "rect": {
+        "x": 264,
+        "y": 502.8,
+        "w": 1152,
+        "h": 171
+      },
+      "gridColumn": "1 / -1",
+      "gridRow": "auto",
+      "display": "block",
+      "flex": "0 1 auto"
+    },
+    {
+      "cls": "slotSpanAll",
+      "rect": {
+        "x": 264,
+        "y": 689.8,
+        "w": 1152,
+        "h": 297.7
+      },
+      "gridColumn": "1 / -1",
+      "gridRow": "auto",
+      "display": "block",
+      "flex": "0 1 auto"
+    }
+  ],
+  "cards": [
+    {
+      "title": "Prochain cours",
+      "rect": {
+        "x": 264,
+        "y": 151,
+        "w": 373.3,
+        "h": 148
+      },
+      "padding": "20px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "14px",
+        "gap": "8px",
+        "justifyContent": "space-between",
+        "rect": {
+          "x": 285,
+          "y": 172,
+          "w": 331.3,
+          "h": 21
+        }
+      },
+      "hasIcon": false,
+      "titleMinWidth": "0px"
+    },
+    {
+      "title": "Moyenne générale",
+      "rect": {
+        "x": 653.3,
+        "y": 151,
+        "w": 373.3,
+        "h": 166.8
+      },
+      "padding": "18px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "14px",
+        "gap": "8px",
+        "justifyContent": "space-between",
+        "rect": {
+          "x": 672.3,
+          "y": 170,
+          "w": 335.3,
+          "h": 21
+        }
+      },
+      "hasIcon": false,
+      "titleMinWidth": "0px"
+    },
+    {
+      "title": "Assiduité",
+      "rect": {
+        "x": 653.3,
+        "y": 333.8,
+        "w": 373.3,
+        "h": 153
+      },
+      "padding": "16px",
+      "minHeight": "148px",
+      "flex": "1 1 0%",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "14px",
+        "gap": "8px",
+        "justifyContent": "space-between",
+        "rect": {
+          "x": 670.3,
+          "y": 350.8,
+          "w": 339.3,
+          "h": 21
+        }
+      },
+      "hasIcon": false,
+      "titleMinWidth": "0px"
+    },
+    {
+      "title": "Notifications",
+      "rect": {
+        "x": 1042.7,
+        "y": 151,
+        "w": 373.3,
+        "h": 235.9
+      },
+      "padding": "20px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "14px",
+        "gap": "8px",
+        "justifyContent": "space-between",
+        "rect": {
+          "x": 1063.7,
+          "y": 172,
+          "w": 331.3,
+          "h": 21
+        }
+      },
+      "hasIcon": false,
+      "titleMinWidth": "0px"
+    },
+    {
+      "title": "Accès rapide",
+      "rect": {
+        "x": 264,
+        "y": 502.8,
+        "w": 1152,
+        "h": 171
+      },
+      "padding": "20px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "12px",
+        "gap": "8px",
+        "justifyContent": "space-between",
+        "rect": {
+          "x": 285,
+          "y": 523.8,
+          "w": 1110,
+          "h": 21
+        }
+      },
+      "hasIcon": false,
+      "titleMinWidth": "0px"
+    },
+    {
+      "title": "À la une",
+      "rect": {
+        "x": 264,
+        "y": 689.8,
+        "w": 1152,
+        "h": 297.7
+      },
+      "padding": "20px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "14px",
+        "gap": "8px",
+        "justifyContent": "space-between",
+        "rect": {
+          "x": 285,
+          "y": 710.8,
+          "w": 1110,
+          "h": 21
+        }
+      },
+      "hasIcon": false,
+      "titleMinWidth": "0px"
+    }
+  ]
+}

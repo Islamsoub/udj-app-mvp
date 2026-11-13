@@ -1,0 +1,180 @@
+{
+  "overall": {
+    "total": 64,
+    "present": 55,
+    "absent": 8,
+    "justified": 1,
+    "partial": 0,
+    "percentage": 87,
+    "band": "ok",
+    "absencesLeft": 3
+  },
+  "subjects": [
+    {
+      "subject": { "id": "sub-inf305", "nameFr": "Réseaux informatiques", "nameAr": "الشبكات المعلوماتية", "code": "INF305" },
+      "total": 12,
+      "present": 11,
+      "absent": 1,
+      "justified": 0,
+      "partial": 0,
+      "percentage": 92,
+      "band": "ok",
+      "absencesLeft": 2,
+      "absences": [
+        {
+          "id": "abs-res-1013",
+          "date": "2026-10-13T05:00:00.000Z",
+          "status": "ABSENT",
+          "subjectName": "Réseaux informatiques",
+          "subjectNameAr": "الشبكات المعلوماتية",
+          "justificationUrl": null,
+          "justificationStatus": null,
+          "justificationNote": null,
+          "canSubmitJustification": false
+        }
+      ]
+    },
+    {
+      "subject": { "id": "sub-inf210", "nameFr": "Bases de données", "nameAr": "قواعد البيانات", "code": "INF210" },
+      "total": 14,
+      "present": 11,
+      "absent": 2,
+      "justified": 1,
+      "partial": 0,
+      "percentage": 79,
+      "band": "near",
+      "absencesLeft": 1,
+      "absences": [
+        {
+          "id": "abs-bdd-1108",
+          "date": "2026-11-08T07:00:00.000Z",
+          "status": "ABSENT",
+          "subjectName": "Bases de données",
+          "subjectNameAr": "قواعد البيانات",
+          "justificationUrl": null,
+          "justificationStatus": null,
+          "justificationNote": null,
+          "canSubmitJustification": true
+        },
+        {
+          "id": "abs-bdd-1029",
+          "date": "2026-10-29T05:00:00.000Z",
+          "status": "JUSTIFIED",
+          "subjectName": "Bases de données",
+          "subjectNameAr": "قواعد البيانات",
+          "justificationUrl": "/__fixtures/certificat-medical.pdf",
+          "justificationStatus": "APPROVED",
+          "justificationNote": "Grippe.",
+          "canSubmitJustification": false
+        },
+        {
+          "id": "abs-bdd-1018",
+          "date": "2026-10-18T07:00:00.000Z",
+          "status": "ABSENT",
+          "subjectName": "Bases de données",
+          "subjectNameAr": "قواعد البيانات",
+          "justificationUrl": null,
+          "justificationStatus": null,
+          "justificationNote": null,
+          "canSubmitJustification": false
+        }
+      ]
+    },
+    {
+      "subject": { "id": "sub-inf215", "nameFr": "Systèmes d'exploitation", "nameAr": "نظم التشغيل", "code": "INF215" },
+      "total": 14,
+      "present": 13,
+      "absent": 1,
+      "justified": 0,
+      "partial": 0,
+      "percentage": 93,
+      "band": "ok",
+      "absencesLeft": 2,
+      "absences": [
+        {
+          "id": "abs-sys-1020",
+          "date": "2026-10-20T07:00:00.000Z",
+          "status": "ABSENT",
+          "subjectName": "Systèmes d'exploitation",
+          "subjectNameAr": "نظم التشغيل",
+          "justificationUrl": "/__fixtures/justificatif.pdf",
+          "justificationStatus": "REJECTED",
+          "justificationNote": "Panne de véhicule.",
+          "canSubmitJustification": false
+        }
+      ]
+    },
+    {
+      "subject": { "id": "sub-sta202", "nameFr": "Statistiques L2", "nameAr": "الإحصاء - المستوى الثاني", "code": "STA202" },
+      "total": 11,
+      "present": 8,
+      "absent": 3,
+      "justified": 0,
+      "partial": 0,
+      "percentage": 72,
+      "band": "below",
+      "absencesLeft": 0,
+      "absences": [
+        {
+          "id": "abs-sta-1103",
+          "date": "2026-11-03T10:00:00.000Z",
+          "status": "ABSENT",
+          "subjectName": "Statistiques L2",
+          "subjectNameAr": "الإحصاء - المستوى الثاني",
+          "justificationUrl": "/__fixtures/certificat-medical.pdf",
+          "justificationStatus": "PENDING",
+          "justificationNote": "Consultation médicale.",
+          "canSubmitJustification": true
+        },
+        {
+          "id": "abs-sta-1027",
+          "date": "2026-10-27T10:00:00.000Z",
+          "status": "ABSENT",
+          "subjectName": "Statistiques L2",
+          "subjectNameAr": "الإحصاء - المستوى الثاني",
+          "justificationUrl": null,
+          "justificationStatus": null,
+          "justificationNote": null,
+          "canSubmitJustification": false
+        },
+        {
+          "id": "abs-sta-1013",
+          "date": "2026-10-13T10:00:00.000Z",
+          "status": "ABSENT",
+          "subjectName": "Statistiques L2",
+          "subjectNameAr": "الإحصاء - المستوى الثاني",
+          "justificationUrl": null,
+          "justificationStatus": null,
+          "justificationNote": null,
+          "canSubmitJustification": false
+        }
+      ]
+    },
+    {
+      "subject": { "id": "sub-phy301", "nameFr": "Physique quantique", "nameAr": "الفيزياء الكمية", "code": "PHY301" },
+      "total": 13,
+      "present": 12,
+      "absent": 1,
+      "justified": 0,
+      "partial": 0,
+      "percentage": 92,
+      "band": "ok",
+      "absencesLeft": 2,
+      "absences": [
+        {
+          "id": "abs-phy-1102",
+          "date": "2026-11-02T10:00:00.000Z",
+          "status": "ABSENT",
+          "subjectName": "Physique quantique",
+          "subjectNameAr": "الفيزياء الكمية",
+          "justificationUrl": null,
+          "justificationStatus": null,
+          "justificationNote": null,
+          "canSubmitJustification": false
+        }
+      ]
+    }
+  ],
+  "attendanceThreshold": 75,
+  "justificationDeadlineDays": 7
+}

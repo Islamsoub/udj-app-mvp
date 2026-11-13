@@ -1,0 +1,15 @@
+{
+  "overall": {
+    "total": 0,
+    "present": 0,
+    "absent": 0,
+    "justified": 0,
+    "partial": 0,
+    "percentage": null,
+    "band": "ok",
+    "absencesLeft": null
+  },
+  "subjects": [],
+  "attendanceThreshold": 75,
+  "justificationDeadlineDays": 7
+}

@@ -1,0 +1,239 @@
+{
+  "collapsed": true,
+  "grid": {
+    "rect": {
+      "x": 24,
+      "y": 145,
+      "w": 714,
+      "h": 846
+    },
+    "gridTemplateColumns": "349px 349px",
+    "gap": "16px",
+    "alignItems": "start"
+  },
+  "items": [
+    {
+      "cls": "card cardLink cardEnter",
+      "rect": {
+        "x": 389,
+        "y": 145,
+        "w": 349,
+        "h": 148
+      },
+      "gridColumn": "auto",
+      "gridRow": "auto",
+      "display": "flex",
+      "flex": "0 1 auto"
+    },
+    {
+      "cls": "slotColumn",
+      "rect": {
+        "x": 24,
+        "y": 145,
+        "w": 349,
+        "h": 317
+      },
+      "gridColumn": "auto",
+      "gridRow": "auto",
+      "display": "flex",
+      "flex": "0 1 auto"
+    },
+    {
+      "cls": "slotNotifications",
+      "rect": {
+        "x": 24,
+        "y": 478,
+        "w": 714,
+        "h": 155
+      },
+      "gridColumn": "1 / -1",
+      "gridRow": "auto",
+      "display": "block",
+      "flex": "0 1 auto"
+    },
+    {
+      "cls": "slotSpanAll slotQuickLinks",
+      "rect": {
+        "x": 24,
+        "y": 649,
+        "w": 714,
+        "h": 171
+      },
+      "gridColumn": "1 / -1",
+      "gridRow": "auto",
+      "display": "block",
+      "flex": "0 1 auto"
+    },
+    {
+      "cls": "slotSpanAll",
+      "rect": {
+        "x": 24,
+        "y": 836,
+        "w": 714,
+        "h": 155
+      },
+      "gridColumn": "1 / -1",
+      "gridRow": "auto",
+      "display": "block",
+      "flex": "0 1 auto"
+    }
+  ],
+  "cards": [
+    {
+      "title": "الحصة القادمة",
+      "rect": {
+        "x": 389,
+        "y": 145,
+        "w": 349,
+        "h": 148
+      },
+      "padding": "20px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "14px",
+        "gap": "8px",
+        "justifyContent": "space-between",
+        "rect": {
+          "x": 410,
+          "y": 166,
+          "w": 307,
+          "h": 21
+        }
+      },
+      "hasIcon": false,
+      "titleMinWidth": "0px"
+    },
+    {
+      "title": "المعدل العام",
+      "rect": {
+        "x": 24,
+        "y": 145,
+        "w": 349,
+        "h": 148
+      },
+      "padding": "18px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "14px",
+        "gap": "8px",
+        "justifyContent": "space-between",
+        "rect": {
+          "x": 43,
+          "y": 164,
+          "w": 311,
+          "h": 21
+        }
+      },
+      "hasIcon": false,
+      "titleMinWidth": "0px"
+    },
+    {
+      "title": "الحضور",
+      "rect": {
+        "x": 24,
+        "y": 309,
+        "w": 349,
+        "h": 153
+      },
+      "padding": "16px",
+      "minHeight": "148px",
+      "flex": "1 1 0%",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "14px",
+        "gap": "8px",
+        "justifyContent": "space-between",
+        "rect": {
+          "x": 41,
+          "y": 326,
+          "w": 315,
+          "h": 21
+        }
+      },
+      "hasIcon": false,
+      "titleMinWidth": "0px"
+    },
+    {
+      "title": "الإشعارات",
+      "rect": {
+        "x": 24,
+        "y": 478,
+        "w": 714,
+        "h": 155
+      },
+      "padding": "20px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "14px",
+        "gap": "8px",
+        "justifyContent": "space-between",
+        "rect": {
+          "x": 45,
+          "y": 499,
+          "w": 672,
+          "h": 21
+        }
+      },
+      "hasIcon": false,
+      "titleMinWidth": "0px"
+    },
+    {
+      "title": "وصول سريع",
+      "rect": {
+        "x": 24,
+        "y": 649,
+        "w": 714,
+        "h": 171
+      },
+      "padding": "20px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "12px",
+        "gap": "8px",
+        "justifyContent": "space-between",
+        "rect": {
+          "x": 45,
+          "y": 670,
+          "w": 672,
+          "h": 21
+        }
+      },
+      "hasIcon": false,
+      "titleMinWidth": "0px"
+    },
+    {
+      "title": "أبرز الأخبار",
+      "rect": {
+        "x": 24,
+        "y": 836,
+        "w": 714,
+        "h": 155
+      },
+      "padding": "20px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "14px",
+        "gap": "8px",
+        "justifyContent": "space-between",
+        "rect": {
+          "x": 45,
+          "y": 857,
+          "w": 672,
+          "h": 21
+        }
+      },
+      "hasIcon": false,
+      "titleMinWidth": "0px"
+    }
+  ]
+}

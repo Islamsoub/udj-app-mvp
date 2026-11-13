@@ -1,0 +1,115 @@
+{
+  "semesterId": "sem-s4",
+  "entries": [
+    {
+      "id": "slot-sun-ang",
+      "dayOfWeek": 0,
+      "startTime": "08:00",
+      "endTime": "09:00",
+      "room": "B08",
+      "professorName": "Mme. Fatouma Idriss",
+      "type": "TD",
+      "subject": { "id": "sub-ang201", "nameFr": "Anglais technique", "nameAr": "الإنجليزية التقنية", "code": "ANG201", "coefficient": 2 }
+    },
+    {
+      "id": "slot-sun-bdd",
+      "dayOfWeek": 0,
+      "startTime": "10:00",
+      "endTime": "12:00",
+      "room": "Labo Info 1",
+      "professorName": "Dr. Samira Aden",
+      "type": "TP",
+      "subject": { "id": "sub-inf210", "nameFr": "Bases de données", "nameAr": "قواعد البيانات", "code": "INF210", "coefficient": 3 }
+    },
+    {
+      "id": "slot-mon-mat",
+      "dayOfWeek": 1,
+      "startTime": "08:00",
+      "endTime": "09:30",
+      "room": "A05",
+      "professorName": "Dr. Ali Farah",
+      "type": "CM",
+      "subject": { "id": "sub-mat204", "nameFr": "Mathématiques L2", "nameAr": "الرياضيات - المستوى الثاني", "code": "MAT204", "coefficient": 4 }
+    },
+    {
+      "id": "slot-mon-phy",
+      "dayOfWeek": 1,
+      "startTime": "13:00",
+      "endTime": "14:30",
+      "room": "D04",
+      "professorName": "Dr. Houssein Robleh",
+      "type": "CM",
+      "subject": { "id": "sub-phy301", "nameFr": "Physique quantique", "nameAr": "الفيزياء الكمية", "code": "PHY301", "coefficient": 3 }
+    },
+    {
+      "id": "slot-tue-res",
+      "dayOfWeek": 2,
+      "startTime": "08:00",
+      "endTime": "09:30",
+      "room": "Labo Info 2",
+      "professorName": "Dr. Omar Hassan",
+      "type": "TP",
+      "subject": { "id": "sub-inf305", "nameFr": "Réseaux informatiques", "nameAr": "الشبكات المعلوماتية", "code": "INF305", "coefficient": 3 }
+    },
+    {
+      "id": "slot-tue-sys",
+      "dayOfWeek": 2,
+      "startTime": "10:00",
+      "endTime": "11:30",
+      "room": "Amphi A1",
+      "professorName": "Dr. Omar Hassan",
+      "type": "CM",
+      "subject": { "id": "sub-inf215", "nameFr": "Systèmes d'exploitation", "nameAr": "نظم التشغيل", "code": "INF215", "coefficient": 3 }
+    },
+    {
+      "id": "slot-tue-sta",
+      "dayOfWeek": 2,
+      "startTime": "13:00",
+      "endTime": "14:30",
+      "room": "B08",
+      "professorName": "Mme. Kadra Waberi",
+      "type": "TD",
+      "subject": { "id": "sub-sta202", "nameFr": "Statistiques L2", "nameAr": "الإحصاء - المستوى الثاني", "code": "STA202", "coefficient": 2 }
+    },
+    {
+      "id": "slot-wed-alg",
+      "dayOfWeek": 3,
+      "startTime": "09:00",
+      "endTime": "11:00",
+      "room": "C12",
+      "professorName": "Dr. Samira Aden",
+      "type": "CM",
+      "subject": { "id": "sub-inf303", "nameFr": "Algorithmique avancée", "nameAr": "الخوارزميات المتقدمة", "code": "INF303", "coefficient": 4 }
+    },
+    {
+      "id": "slot-thu-bdd",
+      "dayOfWeek": 4,
+      "startTime": "08:00",
+      "endTime": "10:00",
+      "room": "Labo Info 1",
+      "professorName": "Dr. Samira Aden",
+      "type": "TP",
+      "subject": { "id": "sub-inf210", "nameFr": "Bases de données", "nameAr": "قواعد البيانات", "code": "INF210", "coefficient": 3 }
+    },
+    {
+      "id": "slot-thu-mat",
+      "dayOfWeek": 4,
+      "startTime": "10:30",
+      "endTime": "12:00",
+      "room": "A05",
+      "professorName": "Dr. Ali Farah",
+      "type": "TD",
+      "subject": { "id": "sub-mat204", "nameFr": "Mathématiques L2", "nameAr": "الرياضيات - المستوى الثاني", "code": "MAT204", "coefficient": 4 }
+    },
+    {
+      "id": "slot-thu-phy",
+      "dayOfWeek": 4,
+      "startTime": "14:00",
+      "endTime": "15:30",
+      "room": "D04",
+      "professorName": "Dr. Houssein Robleh",
+      "type": "TD",
+      "subject": { "id": "sub-phy301", "nameFr": "Physique quantique", "nameAr": "الفيزياء الكمية", "code": "PHY301", "coefficient": 3 }
+    }
+  ]
+}

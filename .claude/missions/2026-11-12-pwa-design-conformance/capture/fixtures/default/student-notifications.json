@@ -1,0 +1,35 @@
+{
+  "unreadCount": 2,
+  "notifications": [
+    {
+      "id": "notif-grades-res",
+      "type": "GRADES",
+      "titleFr": "Vos notes de Réseaux sont publiées",
+      "titleAr": "تم نشر درجات مادة الشبكات",
+      "bodyFr": "Vos notes de Réseaux sont publiées",
+      "bodyAr": "تم نشر درجات مادة الشبكات",
+      "isRead": false,
+      "createdAt": "2026-11-10T06:12:00.000Z"
+    },
+    {
+      "id": "notif-att-sta",
+      "type": "ATTENDANCE",
+      "titleFr": "Statistiques L2 : limite d'absences dépassée — présence 72 %, seuil 75 %",
+      "titleAr": "الإحصاء L2: تم تجاوز حد الغياب — الحضور 72٪، الحد الأدنى 75٪",
+      "bodyFr": "Statistiques L2 : limite d'absences dépassée — présence 72 %, seuil 75 %",
+      "bodyAr": "الإحصاء L2: تم تجاوز حد الغياب — الحضور 72٪، الحد الأدنى 75٪",
+      "isRead": false,
+      "createdAt": "2026-11-09T11:40:00.000Z"
+    },
+    {
+      "id": "notif-sched-exams",
+      "type": "SCHEDULE",
+      "titleFr": "Calendrier des examens S2 publié",
+      "titleAr": "تم نشر جدول امتحانات الفصل الثاني",
+      "bodyFr": "Calendrier des examens S2 publié",
+      "bodyAr": "تم نشر جدول امتحانات الفصل الثاني",
+      "isRead": true,
+      "createdAt": "2026-11-09T05:30:00.000Z"
+    }
+  ]
+}

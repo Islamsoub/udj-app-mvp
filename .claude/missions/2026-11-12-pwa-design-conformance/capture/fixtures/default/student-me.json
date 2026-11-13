@@ -1,0 +1,43 @@
+{
+  "id": "fixture-student",
+  "firstName": "Amina",
+  "lastName": "Moussa",
+  "studentIdDisplay": "UDJ-2024-0451",
+  "email": "amina.moussa@example.invalid",
+  "photoUrl": null,
+  "currentSemester": 4,
+  "status": "ACTIVE",
+  "programme": {
+    "id": "prog-linfo",
+    "nameFr": "Licence Informatique",
+    "nameAr": "إجازة في المعلوماتية",
+    "code": "LINFO",
+    "level": "LICENCE",
+    "durationSemesters": 6,
+    "totalCredits": 180
+  },
+  "faculty": {
+    "id": "fac-sciences",
+    "nameFr": "Faculté des Sciences",
+    "nameAr": "كلية العلوم",
+    "code": "FS",
+    "email": "scolarite.sciences@example.invalid",
+    "phone": "+253 00 00 00 00",
+    "address": "Campus universitaire, Djibouti",
+    "hours": "08:00 – 12:30"
+  },
+  "stats": {
+    "gpa": 12.3,
+    "mention": "Assez Bien",
+    "semesterCredits": { "earned": 18, "total": 21 },
+    "totalCredits": { "earned": 85, "total": 180 },
+    "attendancePercentage": 87
+  },
+  "preferences": {
+    "notifGrades": true,
+    "notifCourses": true,
+    "notifAttendance": false,
+    "quietHoursStart": null,
+    "quietHoursEnd": null
+  }
+}

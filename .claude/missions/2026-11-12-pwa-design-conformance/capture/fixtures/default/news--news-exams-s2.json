@@ -1,0 +1,15 @@
+{
+  "id": "news-exams-s2",
+  "titleFr": "Calendrier des examens du semestre 2 publié",
+  "titleAr": "تم نشر جدول امتحانات الفصل الثاني",
+  "category": "official",
+  "heroImageUrl": "/__fixtures/hero-jade.png",
+  "readTimeMinutes": 2,
+  "isUrgent": false,
+  "publishedAt": "2026-11-10T05:00:00.000Z",
+  "bodyFr": "Le calendrier officiel des examens du second semestre est désormais disponible sur votre espace étudiant. Les convocations individuelles seront envoyées une semaine avant chaque épreuve. Merci de vérifier vos salles d'affectation avant le jour J.",
+  "bodyAr": "الجدول الرسمي لامتحانات الفصل الثاني متوفر الآن على فضائك الطلابي. سترسل الاستدعاءات الفردية أسبوعاً قبل كل امتحان. يرجى التحقق من قاعة الامتحان قبل الموعد.",
+  "categoryId": "cat-official",
+  "createdAt": "2026-11-09T14:00:00.000Z",
+  "updatedAt": "2026-11-10T05:00:00.000Z"
+}

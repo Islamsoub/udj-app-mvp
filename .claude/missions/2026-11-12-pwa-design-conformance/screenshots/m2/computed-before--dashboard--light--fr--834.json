@@ -1,0 +1,252 @@
+{
+  "collapsed": true,
+  "grid": {
+    "rect": {
+      "x": 96,
+      "y": 145,
+      "w": 714,
+      "h": 745.5
+    },
+    "gridTemplateColumns": "349px 349px",
+    "gap": "16px",
+    "alignItems": "start"
+  },
+  "items": [
+    {
+      "cls": "card cardLink cardEnter",
+      "rect": {
+        "x": 96,
+        "y": 145,
+        "w": 349,
+        "h": 148
+      },
+      "gridColumn": "auto",
+      "gridRow": "auto",
+      "display": "flex",
+      "flex": "0 1 auto"
+    },
+    {
+      "cls": "card cardLink cardEnter",
+      "rect": {
+        "x": 461,
+        "y": 145,
+        "w": 349,
+        "h": 160.8
+      },
+      "gridColumn": "auto",
+      "gridRow": "auto",
+      "display": "flex",
+      "flex": "0 1 auto"
+    },
+    {
+      "cls": "card cardLink cardEnter",
+      "rect": {
+        "x": 96,
+        "y": 321.8,
+        "w": 349,
+        "h": 151
+      },
+      "gridColumn": "auto",
+      "gridRow": "auto",
+      "display": "flex",
+      "flex": "0 1 auto"
+    },
+    {
+      "cls": "card cardEnter",
+      "rect": {
+        "x": 461,
+        "y": 321.8,
+        "w": 349,
+        "h": 225.9
+      },
+      "gridColumn": "auto",
+      "gridRow": "auto",
+      "display": "flex",
+      "flex": "0 1 auto"
+    },
+    {
+      "cls": "card cardEnter",
+      "rect": {
+        "x": 96,
+        "y": 563.7,
+        "w": 349,
+        "h": 163
+      },
+      "gridColumn": "auto",
+      "gridRow": "auto",
+      "display": "flex",
+      "flex": "0 1 auto"
+    },
+    {
+      "cls": "card cardLink cardEnter",
+      "rect": {
+        "x": 461,
+        "y": 563.7,
+        "w": 349,
+        "h": 326.8
+      },
+      "gridColumn": "auto",
+      "gridRow": "auto",
+      "display": "flex",
+      "flex": "0 1 auto"
+    }
+  ],
+  "cards": [
+    {
+      "title": "Prochain cours",
+      "rect": {
+        "x": 96,
+        "y": 145,
+        "w": 349,
+        "h": 148
+      },
+      "padding": "16px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "12px",
+        "gap": "8px",
+        "justifyContent": "normal",
+        "rect": {
+          "x": 113,
+          "y": 162,
+          "w": 315,
+          "h": 21
+        }
+      },
+      "hasIcon": true,
+      "titleMinWidth": "auto"
+    },
+    {
+      "title": "Moyenne générale",
+      "rect": {
+        "x": 461,
+        "y": 145,
+        "w": 349,
+        "h": 160.8
+      },
+      "padding": "16px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "12px",
+        "gap": "8px",
+        "justifyContent": "normal",
+        "rect": {
+          "x": 478,
+          "y": 162,
+          "w": 315,
+          "h": 21
+        }
+      },
+      "hasIcon": true,
+      "titleMinWidth": "auto"
+    },
+    {
+      "title": "Assiduité",
+      "rect": {
+        "x": 96,
+        "y": 321.8,
+        "w": 349,
+        "h": 151
+      },
+      "padding": "16px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "12px",
+        "gap": "8px",
+        "justifyContent": "normal",
+        "rect": {
+          "x": 113,
+          "y": 338.8,
+          "w": 315,
+          "h": 21
+        }
+      },
+      "hasIcon": true,
+      "titleMinWidth": "auto"
+    },
+    {
+      "title": "Notifications",
+      "rect": {
+        "x": 461,
+        "y": 321.8,
+        "w": 349,
+        "h": 225.9
+      },
+      "padding": "16px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "12px",
+        "gap": "8px",
+        "justifyContent": "normal",
+        "rect": {
+          "x": 478,
+          "y": 338.8,
+          "w": 315,
+          "h": 21
+        }
+      },
+      "hasIcon": true,
+      "titleMinWidth": "auto"
+    },
+    {
+      "title": "Accès rapide",
+      "rect": {
+        "x": 96,
+        "y": 563.7,
+        "w": 349,
+        "h": 163
+      },
+      "padding": "16px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "12px",
+        "gap": "8px",
+        "justifyContent": "normal",
+        "rect": {
+          "x": 113,
+          "y": 580.7,
+          "w": 315,
+          "h": 21
+        }
+      },
+      "hasIcon": true,
+      "titleMinWidth": "auto"
+    },
+    {
+      "title": "À la une",
+      "rect": {
+        "x": 461,
+        "y": 563.7,
+        "w": 349,
+        "h": 326.8
+      },
+      "padding": "16px",
+      "minHeight": "148px",
+      "flex": "0 1 auto",
+      "borderRadius": "16px",
+      "header": {
+        "marginBottom": "12px",
+        "gap": "8px",
+        "justifyContent": "normal",
+        "rect": {
+          "x": 478,
+          "y": 580.7,
+          "w": 315,
+          "h": 21
+        }
+      },
+      "hasIcon": true,
+      "titleMinWidth": "auto"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "articles": [
+    {
+      "id": "news-exams-s2",
+      "titleFr": "Calendrier des examens du semestre 2 publié",
+      "titleAr": "تم نشر جدول امتحانات الفصل الثاني",
+      "category": "official",
+      "heroImageUrl": "/__fixtures/hero-jade.png",
+      "readTimeMinutes": 2,
+      "isUrgent": false,
+      "publishedAt": "2026-11-10T05:00:00.000Z"
+    },
+    {
+      "id": "news-portes-ouvertes",
+      "titleFr": "Journée portes ouvertes — Faculté des Sciences",
+      "titleAr": "اليوم المفتوح — كلية العلوم",
+      "category": "events",
+      "heroImageUrl": "/__fixtures/hero-sand.png",
+      "readTimeMinutes": 3,
+      "isUrgent": false,
+      "publishedAt": "2026-11-08T06:30:00.000Z"
+    },
+    {
+      "id": "news-bibliotheque",
+      "titleFr": "Nouvelle bibliothèque numérique disponible",
+      "titleAr": "مكتبة رقمية جديدة متوفرة",
+      "category": "scolarite",
+      "heroImageUrl": null,
+      "readTimeMinutes": 2,
+      "isUrgent": false,
+      "publishedAt": "2026-11-03T07:00:00.000Z"
+    },
+    {
+      "id": "news-inscriptions-s2",
+      "titleFr": "Inscriptions administratives S2 — dates limites",
+      "titleAr": "التسجيلات الإدارية للفصل الثاني — الموعد النهائي",
+      "category": "official",
+      "heroImageUrl": null,
+      "readTimeMinutes": 1,
+      "isUrgent": false,
+      "publishedAt": "2026-10-29T08:00:00.000Z"
+    }
+  ]
+}

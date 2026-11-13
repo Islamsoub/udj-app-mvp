@@ -1,0 +1,1277 @@
+diff --git a/pwa/components/dashboard/AttendanceCard.tsx b/pwa/components/dashboard/AttendanceCard.tsx
+index 56a5598..cd22e28 100644
+--- a/pwa/components/dashboard/AttendanceCard.tsx
++++ b/pwa/components/dashboard/AttendanceCard.tsx
+@@ -9,7 +9,6 @@ import { useI18n, type I18nValue } from '@/lib/i18n';
+ import type { Lang } from '@/lib/i18n-shared';
+ import { Card, CardStates, EmptyState } from './Card';
+ import { Interpolated } from './Interpolated';
+-import { AttendanceIcon } from './icons';
+ import { Ring } from './Ring';
+ import { useCardData } from './useCardData';
+ import styles from './dashboard.module.css';
+@@ -62,7 +61,6 @@ export function AttendanceCard({ index, animate, online }: { index: number; anim
+   return (
+     <Card
+       title={t('dashboard.attendance.title')}
+-      icon={<AttendanceIcon />}
+       href="/attendance"
+       index={index}
+       animate={animate}
+@@ -97,6 +95,7 @@ export function AttendanceCard({ index, animate, online }: { index: number; anim
+                 percentage={percentage}
+                 band={overall.band}
+                 label={t('dashboard.attendance.title') + ' ' + percentText(percentage)}
++                caption={t('dashboard.attendance.rate_caption')}
+               />
+               <div className={styles.attendanceText}>
+                 <p className={styles.stateText}>
+diff --git a/pwa/components/dashboard/Card.tsx b/pwa/components/dashboard/Card.tsx
+index a93a480..8a001b8 100644
+--- a/pwa/components/dashboard/Card.tsx
++++ b/pwa/components/dashboard/Card.tsx
+@@ -22,15 +22,8 @@ export function Card({
+   animate,
+   children,
+ }: {
++  /** Dashboard Spec §6: a card title has no leading icon. */
+   title: string;
+-  /**
+-   * @deprecated Not rendered. Dashboard Spec §6 draws card titles with no
+-   * leading icon. The six cards still pass one. M3 of the 2026-11-12
+-   * design-conformance mission (which has Card.tsx and the six cards in its
+-   * paths) removes it: the call-site props, their now-unused icon imports, and
+-   * this prop.
+-   */
+-  icon?: ReactNode;
+   /** Set when the whole card navigates; drives the §3 hover lift. */
+   href?: string;
+   /** Position in §4's reading order, which is also its stagger delay. */
+diff --git a/pwa/components/dashboard/GpaCard.tsx b/pwa/components/dashboard/GpaCard.tsx
+index d803ec9..f16f804 100644
+--- a/pwa/components/dashboard/GpaCard.tsx
++++ b/pwa/components/dashboard/GpaCard.tsx
+@@ -6,7 +6,6 @@ import type { SemesterRef, SemesterSummary } from '@/lib/api-types';
+ import { fmtRatio, fmtScaled } from '@/lib/bidi';
+ import { useI18n } from '@/lib/i18n';
+ import { Card, CardStates, EmptyState } from './Card';
+-import { GpaIcon } from './icons';
+ import { Interpolated } from './Interpolated';
+ import { useCardData } from './useCardData';
+ import styles from './dashboard.module.css';
+@@ -55,7 +54,6 @@ export function GpaCard({ index, animate, online }: { index: number; animate: bo
+   return (
+     <Card
+       title={t('dashboard.gpa.title')}
+-      icon={<GpaIcon />}
+       href="/grades"
+       index={index}
+       animate={animate}
+diff --git a/pwa/components/dashboard/NewsCard.tsx b/pwa/components/dashboard/NewsCard.tsx
+index ba35c0d..0e0c57e 100644
+--- a/pwa/components/dashboard/NewsCard.tsx
++++ b/pwa/components/dashboard/NewsCard.tsx
+@@ -1,13 +1,13 @@
+ 'use client';
+ 
+ import { ArticleTags } from '@/components/news/ArticleMeta';
++import newsStyles from '@/components/news/news.module.css';
+ import { getNews } from '@/lib/api-client';
+ import type { NewsListResponse } from '@/lib/api-types';
+ import { isolateLtrRuns } from '@/lib/bidi';
+ import { useI18n } from '@/lib/i18n';
+ import { Card, CardStates, EmptyState } from './Card';
+ import { Interpolated } from './Interpolated';
+-import { NewsIcon } from './icons';
+ import { useCardData } from './useCardData';
+ import styles from './dashboard.module.css';
+ 
+@@ -28,7 +28,6 @@ export function NewsCard({ index, animate, online }: { index: number; animate: b
+   return (
+     <Card
+       title={t('dashboard.news.title')}
+-      icon={<NewsIcon />}
+       href="/news"
+       index={index}
+       animate={animate}
+@@ -36,12 +35,32 @@ export function NewsCard({ index, animate, online }: { index: number; animate: b
+       <CardStates
+         state={state}
+         skeleton={
+-          <div className={styles.skeletonStack}>
+-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineWide}`} />
+-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineShort}`} />
+-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineWide}`} />
+-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineShort}`} />
+-          </div>
++          /*
++           * The loaded list's own boxes, emptied: PREVIEW_LIMIT items, each a
++           * category pill, a title line and a meta line. The pill frame is
++           * ArticleTags' own .tags and .pill boxes (read from news.module.css,
++           * not restyled), so its height follows the real pill. The text lines
++           * are one line of ghost text each, in the loaded line's type and font
++           * mix (see .skeletonTextLine). A title that wraps adds its extra
++           * lines (see PROGRESS.md).
++           */
++          <ul className={styles.newsList}>
++            {Array.from({ length: PREVIEW_LIMIT }, (_, i) => (
++              <li key={i} className={styles.newsItem}>
++                <span className={newsStyles.tags}>
++                  <span className={`${newsStyles.pill} ${styles.skeleton} ${styles.skeletonPillShape}`}>
++                    <span className={`${styles.skeletonGhost} ${styles.skeletonGhostTag}`}>{'\u00a0'}</span>
++                  </span>
++                </span>
++                <span className={`${styles.newsTitle} ${styles.skeletonTextLine} ${styles.skeletonW70}`}>{'\u00a0'}</span>
++                {/* The meta line holds a .num figure ("2 min de lecture"). */}
++                <span className={`${styles.newsMeta} ${styles.skeletonTextLine} ${styles.skeletonW20}`}>
++                  <span className="num">0</span>
++                  {'\u00a0'}
++                </span>
++              </li>
++            ))}
++          </ul>
+         }
+       >
+         {(data) =>
+diff --git a/pwa/components/dashboard/NextClassCard.tsx b/pwa/components/dashboard/NextClassCard.tsx
+index 552d5c3..c85a048 100644
+--- a/pwa/components/dashboard/NextClassCard.tsx
++++ b/pwa/components/dashboard/NextClassCard.tsx
+@@ -3,7 +3,7 @@
+ import { useEffect, useState } from 'react';
+ import { getSchedule } from '@/lib/api-client';
+ import type { ScheduleResponse } from '@/lib/api-types';
+-import { fmtRange } from '@/lib/bidi';
++import { fmtLtr } from '@/lib/bidi';
+ import { useI18n } from '@/lib/i18n';
+ import { Card, CardStates, EmptyState } from './Card';
+ import { ClockIcon, PersonIcon, PinIcon } from './icons';
+@@ -19,7 +19,6 @@ export function NextClassCard({ index, animate, online }: { index: number; anima
+   return (
+     <Card
+       title={t('dashboard.next_class.title')}
+-      icon={<ClockIcon />}
+       href="/schedule"
+       index={index}
+       animate={animate}
+@@ -27,10 +26,32 @@ export function NextClassCard({ index, animate, online }: { index: number; anima
+       <CardStates
+         state={state}
+         skeleton={
+-          <div className={styles.skeletonStack}>
+-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineMedium}`} />
+-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineShort}`} />
+-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineWide}`} />
++          /*
++           * The loaded card's own boxes, emptied: the pill keeps its padding,
++           * the row its rail, gap and padding, and every text line is one line
++           * of ghost text in the loaded line's type and font mix (see
++           * .skeletonTextLine). The skeleton is therefore as tall as the loaded
++           * card, because §9's ellipsis keeps the subject and meta to one line.
++           */
++          <div className={styles.nextClass}>
++            <span className={`${styles.countdownPill} ${styles.skeleton}`}>
++              {/* The countdown text holds a .num figure ("Dans 45 min"). */}
++              <span className={`${styles.skeletonGhost} ${styles.skeletonGhostPill}`}>
++                <span className="num">0</span>
++                {'\u00a0'}
++              </span>
++            </span>
++            <div className={styles.classRow}>
++              <span className={`${styles.classRail} ${styles.skeleton}`} />
++              <div className={styles.classBody}>
++                <span className={`${styles.subjectName} ${styles.skeletonTextLine} ${styles.skeletonW70}`}>{'\u00a0'}</span>
++                <span className={`${styles.classMeta} ${styles.skeletonTextLine} ${styles.skeletonW40}`}>{'\u00a0'}</span>
++              </div>
++              <div className={`${styles.classTime} mono`}>
++                <span className={`${styles.skeletonTextLine} ${styles.skeletonTimeLine}`}>{'\u00a0'}</span>
++                <span className={`${styles.skeletonTextLine} ${styles.skeletonTimeLine}`}>{'\u00a0'}</span>
++              </div>
++            </div>
+           </div>
+         }
+       >
+@@ -41,30 +62,37 @@ export function NextClassCard({ index, animate, online }: { index: number; anima
+           const subject = lang === 'ar' ? next.entry.subject.nameAr : next.entry.subject.nameFr;
+ 
+           return (
+-            <div>
+-              <div className={styles.nextClassTop}>
+-                <p className={styles.subjectName}>{subject}</p>
+-                <Countdown startsAt={next.startsAt} startTime={next.entry.startTime} />
+-              </div>
++            <div className={styles.nextClass}>
++              <Countdown startsAt={next.startsAt} startTime={next.entry.startTime} />
++
++              {/* §6 ①: one .mini-class row. The card still shows the next
++                  class only (Flag 1). */}
++              <div className={styles.classRow}>
++                {/* Decorative. The payload carries no course colour, so the
++                    rail is jade for every course (see PROGRESS.md). */}
++                <span className={styles.classRail} aria-hidden="true" />
++
++                <div className={styles.classBody}>
++                  <p className={styles.subjectName}>{subject}</p>
++                  <p className={styles.classMeta}>
++                    <span className={styles.metaItem}>
++                      <PinIcon className={styles.metaIcon} />
++                      <span className={styles.metaText}>{fmtLtr(next.entry.room)}</span>
++                    </span>
++                    <span className={`${styles.metaItem} ${styles.metaItemShrink}`}>
++                      <PersonIcon className={styles.metaIcon} />
++                      <span className={styles.metaText}>{next.entry.professorName}</span>
++                    </span>
++                  </p>
++                </div>
+ 
+-              <div className={styles.meta}>
+-                <span className={styles.metaItem}>
+-                  <ClockIcon className={styles.metaIcon} />
+-                  {/* .mono: course times are DM Mono (Dashboard Spec §5), a
+-                      Latin face in Arabic too. fmtRange: and in start-to-end
+-                      order there. */}
+-                  <span className="mono">
+-                    {fmtRange(next.entry.startTime, next.entry.endTime)}
+-                  </span>
+-                </span>
+-                <span className={styles.metaItem}>
+-                  <PinIcon className={styles.metaIcon} />
+-                  {next.entry.room}
+-                </span>
+-                <span className={styles.metaItem}>
+-                  <PersonIcon className={styles.metaIcon} />
+-                  {next.entry.professorName}
+-                </span>
++                {/* §5: course times are DM Mono, ink2, lh 1.5, end-aligned, on
++                    two lines (start over end). .mono keeps them on the Latin
++                    face in Arabic; fmtLtr keeps each time in order. */}
++                <p className={`${styles.classTime} mono`}>
++                  <span className={styles.classTimeLine}>{fmtLtr(next.entry.startTime)}</span>
++                  <span className={styles.classTimeLine}>{fmtLtr(next.entry.endTime)}</span>
++                </p>
+               </div>
+             </div>
+           );
+@@ -109,7 +137,11 @@ function Countdown({ startsAt, startTime }: { startsAt: number; startTime: strin
+ 
+   return (
+     <span className={styles.countdownPill}>
+-      <CountdownText parts={parts} startTime={startTime} t={t} />
++      {/* §6 ①: a 13 px clock, gap 6. */}
++      <ClockIcon className={styles.countdownIcon} />
++      <span>
++        <CountdownText parts={parts} startTime={startTime} t={t} />
++      </span>
+     </span>
+   );
+ }
+diff --git a/pwa/components/dashboard/NotificationsCard.tsx b/pwa/components/dashboard/NotificationsCard.tsx
+index 3734b33..2b717cd 100644
+--- a/pwa/components/dashboard/NotificationsCard.tsx
++++ b/pwa/components/dashboard/NotificationsCard.tsx
+@@ -6,13 +6,40 @@ import { isolateLtrRuns } from '@/lib/bidi';
+ import { useI18n } from '@/lib/i18n';
+ import { Card, CardStates, EmptyState } from './Card';
+ import { Interpolated } from './Interpolated';
+-import { BellIcon } from './icons';
++import { BellIcon, NotifAttendanceIcon, NotifExamIcon, NotifGradesIcon } from './icons';
+ import { useCardData } from './useCardData';
+ import styles from './dashboard.module.css';
+ 
+ /** Enough to fill the card without turning it into the notifications screen. */
+ const PREVIEW_LIMIT = 3;
+ 
++type IconComponent = (props: { className?: string }) => React.ReactElement;
++
++/**
++ * Dashboard Spec §6 ③: the chip is coloured per type. The spec draws three:
++ * grades (jade-faint / jade-text), attendance (warning-bg) and the exam
++ * calendar (exam-bg / exam). SCHEDULE takes the calendar chip, because the
++ * spec's exam-calendar notice is a schedule notice.
++ *
++ * Icon on chip, light / dark (WCAG 2.x, chip composited on --surface):
++ *   grades      --jade-text   5.54 : 1 / 6.34 : 1
++ *   attendance  --warning-ink 5.73 : 1 / 6.05 : 1
++ *   schedule    --exam        3.64 : 1 / 4.19 : 1
++ * --warning, the spec's attendance icon colour, is 1.93 : 1 in light, under the
++ * 3 : 1 a graphic needs, so the attendance glyph takes --warning-ink as the
++ * ring's near stroke does (OVERRIDES R2-near-ring).
++ *
++ * Any other type (GENERAL, NEWS, or one added later) has no spec chip and falls
++ * back to the base jade chip with the bell. Flagged in PROGRESS.md.
++ */
++const CHIP: Record<string, { tone: string; Icon: IconComponent }> = {
++  GRADES: { tone: styles.chipGrades, Icon: NotifGradesIcon },
++  ATTENDANCE: { tone: styles.chipAttendance, Icon: NotifAttendanceIcon },
++  SCHEDULE: { tone: styles.chipSchedule, Icon: NotifExamIcon },
++};
++
++const FALLBACK_CHIP = { tone: styles.chipGrades, Icon: BellIcon };
++
+ /**
+  * Unread count plus a short preview.
+  *
+@@ -25,14 +52,34 @@ export function NotificationsCard({ index, animate, online }: { index: number; a
+   const state = useCardData<NotificationsResponse>(() => getNotifications(PREVIEW_LIMIT), online);
+ 
+   return (
+-    <Card title={t('dashboard.notifications.title')} icon={<BellIcon />} index={index} animate={animate}>
++    <Card title={t('dashboard.notifications.title')} index={index} animate={animate}>
+       <CardStates
+         state={state}
+         skeleton={
+-          <div className={styles.skeletonStack}>
+-            <div className={`${styles.skeleton} ${styles.skeletonHero}`} />
+-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineWide}`} />
+-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineMedium}`} />
++          /*
++           * The loaded card's own boxes, emptied: the count and caption are one
++           * line of ghost text each, in their own type and font mix (see
++           * .skeletonTextLine), and each of the
++           * PREVIEW_LIMIT rows keeps its padding, hairline, gap and chip, with
++           * one title line. So the skeleton's height is the loaded card's
++           * whenever the server returns PREVIEW_LIMIT one-line titles. A title
++           * that wraps adds its extra lines (see PROGRESS.md).
++           */
++          <div>
++            <span className={`${styles.unreadCount} ${styles.skeletonTextLine} ${styles.skeletonCount} num`}>0</span>
++            {/* The caption holds a .num figure ("2 non lues"). */}
++            <span className={`${styles.notificationCaption} ${styles.skeletonTextLine} ${styles.skeletonW40}`}>
++              <span className="num">0</span>
++              {'\u00a0'}
++            </span>
++            <ul className={styles.notificationList}>
++              {Array.from({ length: PREVIEW_LIMIT }, (_, i) => (
++                <li key={i} className={styles.notificationItem}>
++                  <span className={`${styles.notificationChip} ${styles.skeleton}`} />
++                  <span className={`${styles.notificationText} ${styles.skeletonTextLine} ${styles.skeletonW70}`}>{'\u00a0'}</span>
++                </li>
++              ))}
++            </ul>
+           </div>
+         }
+       >
+@@ -44,7 +91,7 @@ export function NotificationsCard({ index, animate, online }: { index: number; a
+           return (
+             <div>
+               <div className={`${styles.unreadCount} num`}>{data.unreadCount}</div>
+-              <p className={styles.heroCaption}>
++              <p className={styles.notificationCaption}>
+                 {data.unreadCount === 1 ? (
+                   // Singular gets its own string: "1 non lues" is not French.
+                   t('dashboard.notifications.unread_one')
+@@ -57,16 +104,25 @@ export function NotificationsCard({ index, animate, online }: { index: number; a
+               </p>
+ 
+               <ul className={styles.notificationList}>
+-                {data.notifications.map((notification) => (
+-                  <li key={notification.id} className={styles.notificationItem}>
+-                    {/* The dot marks unread; the count above says how many, so
+-                        the dot is decorative rather than a second announcement. */}
+-                    {!notification.isRead && <span className={styles.unreadDot} aria-hidden="true" />}
+-                    <span className={notification.isRead ? undefined : styles.notificationTitle}>
+-                      {isolateLtrRuns(lang === 'ar' ? notification.titleAr : notification.titleFr)}
+-                    </span>
+-                  </li>
+-                ))}
++                {data.notifications.map((notification) => {
++                  const { tone, Icon } = CHIP[notification.type] ?? FALLBACK_CHIP;
++                  return (
++                    <li key={notification.id} className={styles.notificationItem}>
++                      <span className={`${styles.notificationChip} ${tone}`} aria-hidden="true">
++                        <Icon className={styles.notificationChipIcon} />
++                      </span>
++                      <span
++                        className={`${styles.notificationText} ${notification.isRead ? '' : styles.notificationTitle}`}
++                      >
++                        {isolateLtrRuns(lang === 'ar' ? notification.titleAr : notification.titleFr)}
++                      </span>
++                      {/* The dot marks unread; the count above says how many, so
++                          the dot is decorative rather than a second announcement.
++                          The chip now holds the row's start, so it sits at the end. */}
++                      {!notification.isRead && <span className={styles.unreadDot} aria-hidden="true" />}
++                    </li>
++                  );
++                })}
+               </ul>
+             </div>
+           );
+diff --git a/pwa/components/dashboard/QuickLinksCard.tsx b/pwa/components/dashboard/QuickLinksCard.tsx
+index 66a7eeb..b6bec59 100644
+--- a/pwa/components/dashboard/QuickLinksCard.tsx
++++ b/pwa/components/dashboard/QuickLinksCard.tsx
+@@ -4,7 +4,7 @@ import Link from 'next/link';
+ import { useI18n } from '@/lib/i18n';
+ import type { TranslationKey } from '@/lib/i18n-types';
+ import { Card } from './Card';
+-import { AttendanceIcon, CalendarIcon, ChartIcon, GridIcon, NewsIcon } from './icons';
++import { AttendanceIcon, CalendarIcon, ChartIcon, NewsIcon } from './icons';
+ import styles from './dashboard.module.css';
+ 
+ /**
+@@ -36,12 +36,16 @@ export function QuickLinksCard({ index, animate }: { index: number; animate: boo
+   const { t } = useI18n();
+ 
+   return (
+-    <Card title={t('dashboard.quick_links.title')} icon={<GridIcon />} index={index} animate={animate}>
++    <Card title={t('dashboard.quick_links.title')} index={index} animate={animate}>
+       <div className={styles.quickGrid}>
+         {LINKS.map(({ href, labelKey, Icon }) => (
+           <Link key={href} href={href} className={styles.quickLink}>
+-            <Icon className={styles.quickIcon} />
+-            {t(labelKey)}
++            {/* §6 ④: the glyph sits on its own 36 px tile. */}
++            <span className={styles.quickIconTile} aria-hidden="true">
++              <Icon className={styles.quickIcon} />
++            </span>
++            {/* §9: a text column in a flex row can shrink, and wraps normally. */}
++            <span className={styles.quickLabel}>{t(labelKey)}</span>
+           </Link>
+         ))}
+       </div>
+diff --git a/pwa/components/dashboard/Ring.tsx b/pwa/components/dashboard/Ring.tsx
+index 26f7756..c09597a 100644
+--- a/pwa/components/dashboard/Ring.tsx
++++ b/pwa/components/dashboard/Ring.tsx
+@@ -2,12 +2,13 @@
+ 
+ import { useState } from 'react';
+ import type { AttendanceBand } from '@/lib/api-types';
+-import { percentText } from '@/lib/bidi';
++import { fmtPercent } from '@/lib/bidi';
+ import { takeOnce } from './session-flags';
+ import styles from './dashboard.module.css';
+ 
+-const SIZE = 84;
+-const STROKE = 8;
++/** Dashboard Spec §6 ②: an 88 px gauge whose ring is 9 px thick (hole inset 9). */
++const SIZE = 88;
++const STROKE = 9;
+ const RADIUS = (SIZE - STROKE) / 2;
+ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+ 
+@@ -33,15 +34,25 @@ const STROKE_CLASS: Record<AttendanceBand, string> = {
+  * The stroke follows the server's overall `band` (ROUND2-CLOSEOUT §3, A3),
+  * never a comparison of `percentage` with the threshold. The colour only
+  * repeats what the card's words already say; it is never the sole signal.
++ *
++ * The value and its caption ("TAUX", §6 ②) sit in HTML over the SVG rather
++ * than in an SVG <text>: the caption is a word, so it must take the active
++ * language's face, and the value must go through fmtPercent like every other
++ * visible percentage. The wrapper is the one image a screen reader meets; the
++ * label it announces already holds the value.
+  */
+ export function Ring({
+   percentage,
+   band,
+   label,
++  caption,
+ }: {
+   percentage: number;
+   band: AttendanceBand;
++  /** The accessible name: the card title and the value. */
+   label: string;
++  /** The word under the value, "TAUX". */
++  caption: string;
+ }) {
+   const [filling] = useState(() => takeOnce('dashboard_ring_attendance'));
+ 
+@@ -49,41 +60,32 @@ export function Ring({
+   const offset = CIRCUMFERENCE * (1 - clamped / 100);
+ 
+   return (
+-    <svg
+-      className={styles.ring}
+-      viewBox={`0 0 ${SIZE} ${SIZE}`}
+-      role="img"
+-      aria-label={label}
+-      style={
+-        {
+-          '--ring-circumference': `${CIRCUMFERENCE}`,
+-          '--ring-offset': `${offset}`,
+-        } as React.CSSProperties
+-      }
+-    >
+-      <circle className={styles.ringTrack} cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} strokeWidth={STROKE} />
+-      <circle
+-        className={`${styles.ringValue} ${STROKE_CLASS[band]} ${filling ? styles.ringFilling : ''}`}
+-        cx={SIZE / 2}
+-        cy={SIZE / 2}
+-        r={RADIUS}
+-        strokeWidth={STROKE}
+-      />
+-      {/*
+-        The percentage sits inside the ring. `.num` keeps it on the Latin face in
+-        Arabic, per the design-system rule that every number does.
+-      */}
+-      <text
+-        className={`${styles.ringLabel} num`}
+-        x="50%"
+-        y="50%"
+-        textAnchor="middle"
+-        dominantBaseline="central"
++    <div className={styles.ring} role="img" aria-label={label}>
++      <svg
++        className={styles.ringSvg}
++        viewBox={`0 0 ${SIZE} ${SIZE}`}
++        aria-hidden="true"
++        style={
++          {
++            '--ring-circumference': `${CIRCUMFERENCE}`,
++            '--ring-offset': `${offset}`,
++          } as React.CSSProperties
++        }
+       >
+-        {/* An SVG <text> cannot hold a <bdi>, and does not need one: with no
+-            Arabic letter before it in the element, "92%" keeps its order. */}
+-        {percentText(clamped)}
+-      </text>
+-    </svg>
++        <circle className={styles.ringTrack} cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} strokeWidth={STROKE} />
++        <circle
++          className={`${styles.ringValue} ${STROKE_CLASS[band]} ${filling ? styles.ringFilling : ''}`}
++          cx={SIZE / 2}
++          cy={SIZE / 2}
++          r={RADIUS}
++          strokeWidth={STROKE}
++        />
++      </svg>
++      <div className={styles.ringHole} aria-hidden="true">
++        {/* `.num`: the figure stays on the Latin face in Arabic. */}
++        <span className={`${styles.ringLabel} num`}>{fmtPercent(clamped)}</span>
++        <span className={styles.ringCaption}>{caption}</span>
++      </div>
++    </div>
+   );
+ }
+diff --git a/pwa/components/dashboard/dashboard.module.css b/pwa/components/dashboard/dashboard.module.css
+index b5b1356..a73f80e 100644
+--- a/pwa/components/dashboard/dashboard.module.css
++++ b/pwa/components/dashboard/dashboard.module.css
+@@ -313,8 +313,8 @@ html[lang="ar"] .heading {
+ }
+ 
+ .skeletonRing {
+-  width: 84px;
+-  height: 84px;
++  width: 88px;
++  height: 88px;
+   border-radius: 50%;
+ }
+ 
+@@ -386,68 +386,171 @@ html[lang="ar"] .heading {
+   transform: scale(0.97);
+ }
+ 
+-/* ── Next class ────────────────────────────────────────────────────────────── */
++/* ── Next class (§6 ①) ─────────────────────────────────────────────────────── */
+ 
+-.nextClassTop {
++/*
++ * The countdown pill, then one .mini-class row. A flex column, so the pill is
++ * a flex item rather than an inline box: an inline-flex pill in a line box
++ * would take that line's strut and sit taller than its own 28 px.
++ */
++.nextClass {
+   display: flex;
++  flex-direction: column;
+   align-items: flex-start;
+-  justify-content: space-between;
+-  gap: 12px;
+-}
+-
+-.subjectName {
+-  margin: 0;
+-  font-size: 13.5px;
+-  font-weight: 700;
+-  line-height: 1.3;
+-  color: var(--ink);
+ }
+ 
+ /*
++ * §6 ①: inline-flex, gap 6, padding 5 11, pill radius, mb 14, with a 13 px
++ * clock. background-color, not the shorthand, so the skeleton's shimmer image
++ * survives on the same box.
++ *
+  * §9: the pill swaps its text every 60s with NO transition. There is
+  * deliberately no `transition` or `animation` on this rule — a ticking timer
+  * that animates draws the eye away from whatever the student is actually doing.
+  */
+ .countdownPill {
+-  flex-shrink: 0;
++  display: inline-flex;
++  align-items: center;
++  gap: 6px;
++  margin-bottom: 14px;
+   padding: 5px 11px;
+   border-radius: 9999px;
+-  background: var(--jade-faint);
++  background-color: var(--jade-faint);
+   color: var(--jade-text);
+   font-size: 12px;
+   font-weight: 700;
++  line-height: 1.5;
+   white-space: nowrap;
+ }
+ 
+-.meta {
++.countdownIcon {
++  flex-shrink: 0;
++  width: 13px;
++  height: 13px;
++}
++
++/*
++ * §6 ①: flex, gap 12, padding 12 0, border-top hair; the first row has no
++ * border and no top padding. The card shows one row, which is always that
++ * first row.
++ */
++.classRow {
+   display: flex;
+-  flex-wrap: wrap;
+-  gap: 6px 12px;
+-  margin-top: 10px;
++  align-self: stretch;
++  align-items: flex-start;
++  gap: 12px;
++  padding: 0 0 12px;
++}
++
++/*
++ * §6 ①: the 4×38 rail. §6 gives r4; on a 4 px bar any radius from 2 up draws
++ * the same fully rounded ends, so the pill radius is used rather than a raw
++ * 4px. The payload carries no course colour, so the rail is jade for every
++ * course (Flagged in PROGRESS.md). Decorative: the subject name says which
++ * course it is.
++ */
++.classRail {
++  flex-shrink: 0;
++  width: 4px;
++  height: 38px;
++  border-radius: 9999px;
++  background-color: var(--jade);
++}
++
++/* §9: the course body is a text column that can shrink. */
++.classBody {
++  flex: 1;
++  min-width: 0;
++}
++
++/* §5 13.5/700 lh 1.3. §9: course titles truncate instead of pushing the time
++   column out. */
++.subjectName {
++  margin: 0;
++  overflow: hidden;
++  font-size: 13.5px;
++  font-weight: 700;
++  line-height: 1.3;
++  color: var(--ink);
++  text-overflow: ellipsis;
++  white-space: nowrap;
++}
++
++/*
++ * §5 room line: 12/400 ink2, mt 2. The built card also shows the lecturer; it
++ * stays (content does not change), on the same line, and is the part that
++ * truncates when the line is short, so the row keeps the rail's 38 px.
++ */
++.classMeta {
++  display: flex;
++  gap: 12px;
++  min-width: 0;
++  margin: 2px 0 0;
+   font-size: 12px;
++  line-height: 1.5;
+   color: var(--ink2);
++  white-space: nowrap;
+ }
+ 
+ .metaItem {
+   display: inline-flex;
++  flex-shrink: 0;
+   align-items: center;
+   gap: 5px;
++  min-width: 0;
++}
++
++.metaItemShrink {
++  flex-shrink: 1;
++}
++
++.metaText {
++  min-width: 0;
++  overflow: hidden;
++  text-overflow: ellipsis;
+ }
+ 
+ .metaIcon {
++  flex-shrink: 0;
+   width: 14px;
+   height: 14px;
+   color: var(--ink3);
+ }
+ 
++/* §5 course times: DM Mono (.mono in the markup) 12/400 ink2, lh 1.5,
++   end-aligned, two lines; §6 ①: pushed to the end. */
++.classTime {
++  display: flex;
++  flex-direction: column;
++  flex-shrink: 0;
++  align-items: flex-end;
++  margin: 0;
++  margin-inline-start: auto;
++  font-size: 12px;
++  line-height: 1.5;
++  color: var(--ink2);
++  text-align: end;
++}
++
++.classTimeLine {
++  display: block;
++}
++
+ /* ── Hero stats ────────────────────────────────────────────────────────────── */
+ 
++/* §6 ② .gauge-wrap: the ring and its text, gap 16; 12 below 380 (§9). */
+ .heroRow {
+   display: flex;
+   align-items: center;
+   gap: 16px;
+ }
+ 
++@media (max-width: 379px) {
++  .heroRow {
++    gap: 12px;
++  }
++}
++
+ .heroValue {
+   display: flex;
+   align-items: baseline;
+@@ -488,10 +591,19 @@ html[lang="ar"] .heading {
+ 
+ /* ── Attendance ring (§5) ──────────────────────────────────────────────────── */
+ 
++/* §6 ②: an 88 px gauge, 9 px ring (Ring.tsx draws the stroke). */
+ .ring {
++  position: relative;
+   flex-shrink: 0;
+-  width: 84px;
+-  height: 84px;
++  width: 88px;
++  height: 88px;
++}
++
++.ringSvg {
++  position: absolute;
++  inset: 0;
++  width: 100%;
++  height: 100%;
+   /*
+    * The SVG is drawn with 0% at 12 o'clock going clockwise. Rotating -90deg puts
+    * the start there; the sweep direction is not mirrored in RTL because a gauge
+@@ -500,6 +612,16 @@ html[lang="ar"] .heading {
+   transform: rotate(-90deg);
+ }
+ 
++/* §6 ② .hole: inset 9 (the ring's thickness), value over caption, centred. */
++.ringHole {
++  position: absolute;
++  inset: 9px;
++  display: flex;
++  flex-direction: column;
++  align-items: center;
++  justify-content: center;
++}
++
+ .ringTrack {
+   fill: none;
+   stroke: var(--sunken);
+@@ -612,16 +734,28 @@ html[lang="ar"] .heading {
+   white-space: nowrap;
+ }
+ 
+-/* Counter-rotated so the label reads horizontally inside the rotated SVG. */
++/* §5 gauge value: 18/800. */
+ .ringLabel {
+   font-size: 18px;
+   font-weight: 800;
+-  fill: var(--ink);
+-  transform: rotate(90deg);
+-  transform-origin: center;
++  line-height: 1.2;
++  color: var(--ink);
+ }
+ 
+-/* ── Notifications ─────────────────────────────────────────────────────────── */
++/*
++ * §5 "TAUX": 9.5/600. The spec's --ink3 is under AA and must not carry text
++ * (CLAUDE.md, MISSION C4), so it is --ink2: 5.49 : 1 light / 6.78 : 1 dark on
++ * --surface. The word is the spec's, in capitals in both locale files, so no
++ * text-transform and no tracking to reset in Arabic.
++ */
++.ringCaption {
++  font-size: 9.5px;
++  font-weight: 600;
++  line-height: 1.2;
++  color: var(--ink2);
++}
++
++/* ── Notifications (§6 ③) ─────────────────────────────────────────────────── */
+ 
+ .unreadCount {
+   font-size: 34px;
+@@ -631,29 +765,85 @@ html[lang="ar"] .heading {
+   color: var(--ink);
+ }
+ 
++/* The unread line under the count. Its own rule rather than the GPA card's
++   .heroCaption, so the line height the skeleton reproduces is stated here. */
++.notificationCaption {
++  margin: 8px 0 0;
++  font-size: 12.5px;
++  line-height: 1.5;
++  color: var(--ink2);
++}
++
++/* The reference build's row list: a column, gap 2. */
+ .notificationList {
+   display: flex;
+   flex-direction: column;
+-  gap: 8px;
++  gap: 2px;
+   margin: 12px 0 0;
+   padding: 0;
+   list-style: none;
+ }
+ 
++/* §6 ③: flex, gap 10, padding 10 0, a hairline on every row, the first too. */
+ .notificationItem {
+   display: flex;
+   align-items: flex-start;
+-  gap: 8px;
++  gap: 10px;
++  padding: 10px 0;
++  border-top: 1px solid var(--hair);
+   font-size: 13px;
+   line-height: 1.35;
+   color: var(--ink2);
+ }
+ 
++/*
++ * §6 ③: a 32×32 chip, r8, with a 15 px icon, coloured per type. The tints and
++ * the measured icon ratios are in NotificationsCard.tsx, beside the type map.
++ * background-color, not the shorthand, so the skeleton's shimmer image
++ * survives on the same box.
++ */
++.notificationChip {
++  display: flex;
++  flex-shrink: 0;
++  align-items: center;
++  justify-content: center;
++  width: 32px;
++  height: 32px;
++  border-radius: var(--r-sm);
++}
++
++.notificationChipIcon {
++  width: 15px;
++  height: 15px;
++}
++
++.chipGrades {
++  background-color: var(--jade-faint);
++  color: var(--jade-text);
++}
++
++.chipAttendance {
++  background-color: var(--warning-bg);
++  color: var(--warning-ink);
++}
++
++.chipSchedule {
++  background-color: var(--exam-bg);
++  color: var(--exam);
++}
++
++/* §9: the notification text column can shrink. */
++.notificationText {
++  flex: 1;
++  min-width: 0;
++}
++
++/* Centred on the title's first line: half of one line box less half the dot. */
+ .unreadDot {
+   flex-shrink: 0;
+   width: 6px;
+   height: 6px;
+-  margin-top: 5px;
++  margin-top: calc((1lh - 6px) / 2);
+   border-radius: 50%;
+   background: var(--jade);
+ }
+@@ -663,34 +853,57 @@ html[lang="ar"] .heading {
+   font-weight: 600;
+ }
+ 
+-/* ── Quick links ───────────────────────────────────────────────────────────── */
++/* ── Quick links (§6 ④) ────────────────────────────────────────────────────── */
+ 
++/*
++ * Grid gap 12. Two columns as built: §1's three from 640 is Flagged (M2
++ * Flagged 4), because three columns over the four built links leaves a 3 + 1
++ * row. §9: minmax(0, 1fr) tracks, and one column below 380.
++ */
+ .quickGrid {
+   display: grid;
+-  grid-template-columns: repeat(2, 1fr);
+-  gap: 8px;
++  grid-template-columns: repeat(2, minmax(0, 1fr));
++  gap: 12px;
++}
++
++@media (max-width: 379px) {
++  .quickGrid {
++    grid-template-columns: minmax(0, 1fr);
++  }
+ }
+ 
++/*
++ * §6 ④ .qlink: flex, gap 11, padding 13 14, r16, 1 px hair, on --surface.
++ * Hover: border jade, fill jade-faint, text jade-text. The 1 px lift and the
++ * deeper shadow stay: foundations §3 gives quick-link tiles that lift, and M7
++ * owns the state rules. The press scale is M7's to remove.
++ */
+ .quickLink {
+   display: flex;
+   align-items: center;
+-  gap: 8px;
++  gap: 11px;
++  min-width: 0;
+   min-height: 44px;
+-  padding-inline: 10px;
+-  border-radius: var(--r-sm);
+-  background: var(--surface2);
++  padding: 13px 14px;
++  border: 1px solid var(--hair);
++  border-radius: var(--r-lg);
++  background: var(--surface);
+   color: var(--ink);
+   font-size: 13px;
+   font-weight: 700;
+   text-decoration: none;
+   cursor: pointer;
+   transition: background var(--dur-fast) var(--ease-out),
++    border-color var(--dur-fast) var(--ease-out),
++    color var(--dur-fast) var(--ease-out),
+     transform var(--dur-fast) var(--ease-out),
+     box-shadow var(--dur-fast) var(--ease-out);
+ }
+ 
+ .quickLink:hover {
++  border-color: var(--jade);
+   background: var(--jade-faint);
++  color: var(--jade-text);
+   transform: translateY(-1px);
+   box-shadow: var(--shadow-lg);
+ }
+@@ -699,19 +912,43 @@ html[lang="ar"] .heading {
+   transform: scale(0.97);
+ }
+ 
+-.quickIcon {
++/*
++ * §6 ④: a 36×36 icon tile, r10. There is no 10 px radius token, so it takes
++ * --r-sm (8) (Flagged). The tile is jade-faint / jade-text on all four built
++ * links: the spec's per-tile tints belong to its three action tiles (Flag 2),
++ * not to these destinations. jade-text on the tile: 5.54 : 1 light / 6.34 : 1
++ * dark (composited on --surface).
++ */
++.quickIconTile {
++  display: flex;
+   flex-shrink: 0;
+-  width: 16px;
+-  height: 16px;
++  align-items: center;
++  justify-content: center;
++  width: 36px;
++  height: 36px;
++  border-radius: var(--r-sm);
++  background: var(--jade-faint);
+   color: var(--jade-text);
+ }
+ 
+-/* ── News ──────────────────────────────────────────────────────────────────── */
++/* §6 ④: svg 18, stroke 1.8 (icons.tsx). */
++.quickIcon {
++  width: 18px;
++  height: 18px;
++}
++
++/* §9: the tile text can shrink; it wraps normally. */
++.quickLabel {
++  min-width: 0;
++}
++
++/* ── News (§6 ⑤) ───────────────────────────────────────────────────────────── */
+ 
++/* §6 ⑤: the list has gap 10. */
+ .newsList {
+   display: flex;
+   flex-direction: column;
+-  gap: 12px;
++  gap: 10px;
+   margin: 0;
+   padding: 0;
+   list-style: none;
+@@ -732,9 +969,98 @@ html[lang="ar"] .heading {
+ 
+ .newsMeta {
+   font-size: 12px;
++  line-height: 1.5;
+   color: var(--ink2);
+ }
+ 
++/* ── Card skeletons: Prochain cours, Notifications, À la une ───────────────── */
++
++/*
++ * These three skeletons are built from their loaded card's own boxes (the
++ * pill, the row, the chip, the list items, each with its padding, gap and
++ * hairline) and stand empty lines in for the text. The rules below come after
++ * the boxes they reuse, so on a box that carries both, the skeleton wins.
++ *
++ * A text line is combined with the loaded line's own class and holds one line
++ * of invisible ghost text in the same font mix as the loaded line: a no-break
++ * space in the body face, plus a `.num` figure where the loaded line has one.
++ * Its line box is then computed exactly as the loaded line's is. That matters
++ * in Arabic: a Plus Jakarta figure inside a Noto Naskh line sits at a different
++ * baseline offset and makes the line box 2-3 px taller than its line-height,
++ * which a fixed one-line-height box would miss. The shimmer bar is drawn over
++ * it, centred; --skeleton-w sets its length.
++ */
++.skeletonTextLine {
++  position: relative;
++  display: block;
++  color: transparent;
++  white-space: nowrap;
++}
++
++.skeletonTextLine::before {
++  content: '';
++  position: absolute;
++  inset-block-start: calc(50% - 0.375em);
++  inset-inline-start: 0;
++  width: var(--skeleton-w, 100%);
++  height: 0.75em;
++  border-radius: var(--r-sm);
++  background-image: linear-gradient(
++    90deg,
++    var(--sunken) 0%,
++    var(--surface2) 20%,
++    var(--sunken) 40%,
++    var(--sunken) 100%
++  );
++  background-size: 300% 100%;
++  animation: shimmer 900ms linear infinite;
++}
++
++.skeletonW20 {
++  --skeleton-w: 20%;
++}
++
++.skeletonW40 {
++  --skeleton-w: 40%;
++}
++
++.skeletonW70 {
++  --skeleton-w: 70%;
++}
++
++/* The unread count: a figure, not a sentence. */
++.skeletonCount {
++  --skeleton-w: 1.4em;
++}
++
++/* "10:00": five DM Mono advances (the time column is .mono). */
++.skeletonTimeLine {
++  width: 5ch;
++}
++
++/*
++ * The inside of a skeleton box that is itself the shimmer (the countdown pill,
++ * a news category pill): the same invisible ghost text, so the box keeps its
++ * loaded height, at a width close to the loaded label's.
++ */
++.skeletonGhost {
++  color: transparent;
++  white-space: nowrap;
++}
++
++.skeletonGhostPill {
++  width: 8em;
++}
++
++.skeletonGhostTag {
++  width: 4em;
++}
++
++/* .skeleton's r8, put back to the pill the box really is. */
++.skeletonPillShape {
++  border-radius: 9999px;
++}
++
+ /* ── Focus ring (§3, §10) ──────────────────────────────────────────────────── */
+ 
+ .cardTitleLink:focus-visible,
+@@ -761,7 +1087,8 @@ html[lang="ar"] .heading {
+     animation: none;
+   }
+ 
+-  .skeleton {
++  .skeleton,
++  .skeletonTextLine::before {
+     background-image: none;
+     background-color: var(--sunken);
+     animation: none;
+diff --git a/pwa/components/dashboard/icons.tsx b/pwa/components/dashboard/icons.tsx
+index f9855d3..5b19f36 100644
+--- a/pwa/components/dashboard/icons.tsx
++++ b/pwa/components/dashboard/icons.tsx
+@@ -1,10 +1,12 @@
+ /**
+- * Card header and inline glyphs — stroke-only, sized by CSS, coloured by
+- * `currentColor`. Same reasoning as the shell's icon set.
++ * Inline glyphs inside the dashboard cards — stroke-only, sized by CSS,
++ * coloured by `currentColor`. Same reasoning as the shell's icon set. Card
++ * titles carry no icon (Dashboard Spec §6).
+  */
+ 
+ type IconProps = { className?: string };
+ 
++/** Dashboard Spec §7: the quick-access icons use stroke 1.8. */
+ const strokeProps = {
+   fill: 'none',
+   stroke: 'currentColor',
+@@ -13,7 +15,10 @@ const strokeProps = {
+   strokeLinejoin: 'round' as const,
+ };
+ 
+-/** Clock — next class, and the time row. */
++/** Dashboard Spec §7: utility icons (the notification chips) use stroke 2. */
++const utilityStrokeProps = { ...strokeProps, strokeWidth: 2 };
++
++/** Clock — the countdown pill, and the meta row. */
+ export function ClockIcon({ className }: IconProps) {
+   return (
+     <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
+@@ -23,49 +28,64 @@ export function ClockIcon({ className }: IconProps) {
+   );
+ }
+ 
+-/** Mortarboard — the GPA card. */
+-export function GpaIcon({ className }: IconProps) {
++/** Check in a circle — the attendance quick link. */
++export function AttendanceIcon({ className }: IconProps) {
+   return (
+     <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
+-      <path d="M12 4 2.5 9 12 14l9.5-5z" />
+-      <path d="M6.5 11.5V16c0 1.4 2.5 2.5 5.5 2.5s5.5-1.1 5.5-2.5v-4.5" />
++      <circle cx="12" cy="12" r="9" />
++      <path d="m8.5 12 2.5 2.5 4.5-5" />
+     </svg>
+   );
+ }
+ 
+-/** Check in a circle — attendance. */
+-export function AttendanceIcon({ className }: IconProps) {
++/*
++ * The notification-row chips (Dashboard Spec §6 ③, icons/notif-*.svg). The
++ * paths are the spec's; the C2PA metadata in those files is not copied.
++ */
++
++/** Layers — a grades notification (icons/notif-grades.svg). */
++export function NotifGradesIcon({ className }: IconProps) {
+   return (
+-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
++    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...utilityStrokeProps}>
++      <path d="M12 2l9 5-9 5-9-5 9-5z" />
++    </svg>
++  );
++}
++
++/** Clock — an attendance notification (icons/notif-attendance.svg). */
++export function NotifAttendanceIcon({ className }: IconProps) {
++  return (
++    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...utilityStrokeProps}>
+       <circle cx="12" cy="12" r="9" />
+-      <path d="m8.5 12 2.5 2.5 4.5-5" />
++      <path d="M12 7v5l3 3" />
+     </svg>
+   );
+ }
+ 
+-/** Bell — the notifications card. Not the topbar bell, which is out of scope. */
+-export function BellIcon({ className }: IconProps) {
++/** Calendar — a schedule or exam-calendar notification (icons/notif-exam.svg). */
++export function NotifExamIcon({ className }: IconProps) {
+   return (
+-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
+-      <path d="M18 8.5a6 6 0 1 0-12 0c0 5-2 6.5-2 6.5h16s-2-1.5-2-6.5z" />
+-      <path d="M10.5 19a2 2 0 0 0 3 0" />
++    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...utilityStrokeProps}>
++      <rect x="3" y="4" width="18" height="16" rx="2" />
++      <path d="M3 9h18" />
+     </svg>
+   );
+ }
+ 
+-/** Grid — quick links. */
+-export function GridIcon({ className }: IconProps) {
++/**
++ * Bell — a notification of any other type (GENERAL, NEWS). The spec draws no
++ * chip for those; the glyph is the bell from bell-states.html.
++ */
++export function BellIcon({ className }: IconProps) {
+   return (
+-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
+-      <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
+-      <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
+-      <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
+-      <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
++    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...utilityStrokeProps}>
++      <path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6" />
++      <path d="M10 20a2 2 0 0 0 4 0" />
+     </svg>
+   );
+ }
+ 
+-/** Newspaper — the news card. */
++/** Newspaper — the news quick link. */
+ export function NewsIcon({ className }: IconProps) {
+   return (
+     <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
+diff --git a/pwa/locales/ar.json b/pwa/locales/ar.json
+index 2361084..8d8c1fb 100644
+--- a/pwa/locales/ar.json
++++ b/pwa/locales/ar.json
+@@ -92,6 +92,7 @@
+     },
+     "attendance": {
+       "title": "الحضور",
++      "rate_caption": "النسبة",
+       "empty": "لا توجد حصص مسجّلة حالياً.",
+       "sessions": "حضرت {{present}} حصة من أصل {{total}}",
+       "threshold": "الحد الأدنى: {{threshold}}",
+diff --git a/pwa/locales/fr.json b/pwa/locales/fr.json
+index d47922f..0379e70 100644
+--- a/pwa/locales/fr.json
++++ b/pwa/locales/fr.json
+@@ -92,6 +92,7 @@
+     },
+     "attendance": {
+       "title": "Assiduité",
++      "rate_caption": "TAUX",
+       "empty": "Aucune séance enregistrée pour le moment.",
+       "sessions": "{{present}} séances suivies sur {{total}}",
+       "threshold": "Seuil : {{threshold}}",

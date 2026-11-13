@@ -1,0 +1,6 @@
+[
+  { "out": "../../screenshots/baseline", "scenario": "default" },
+  { "out": "../../screenshots/baseline", "screens": "dashboard", "widths": "834,390" },
+  { "out": "../../screenshots/baseline", "screens": "dashboard", "scenario": "loading,empty,error,offline" },
+  { "out": "../../screenshots/baseline", "screens": "login", "scenario": "error-credentials,rate-limit,locked" }
+]

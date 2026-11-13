@@ -1,0 +1,50 @@
+{
+  "semester": { "id": "sem-s4", "label": "S4", "academicYear": "2026-2027" },
+  "gpa": 12.3,
+  "mention": "Assez Bien",
+  "credits": { "earned": 18, "total": 21 },
+  "ccPublished": true,
+  "nfPublished": true,
+  "grades": [
+    {
+      "id": "grade-s4-res",
+      "noteCc": 13,
+      "noteCf": 12,
+      "noteFinale": 12.3,
+      "isValidated": true,
+      "subject": { "id": "sub-inf305", "nameFr": "Réseaux informatiques", "nameAr": "الشبكات المعلوماتية", "code": "INF305", "coefficient": 3, "credits": 4 }
+    },
+    {
+      "id": "grade-s4-sys",
+      "noteCc": 11,
+      "noteCf": 13,
+      "noteFinale": 12.4,
+      "isValidated": true,
+      "subject": { "id": "sub-inf215", "nameFr": "Systèmes d'exploitation", "nameAr": "نظم التشغيل", "code": "INF215", "coefficient": 3, "credits": 4 }
+    },
+    {
+      "id": "grade-s4-sta",
+      "noteCc": 10,
+      "noteCf": 9,
+      "noteFinale": 9.3,
+      "isValidated": true,
+      "subject": { "id": "sub-sta202", "nameFr": "Statistiques L2", "nameAr": "الإحصاء - المستوى الثاني", "code": "STA202", "coefficient": 2, "credits": 3 }
+    },
+    {
+      "id": "grade-s4-phy",
+      "noteCc": 12,
+      "noteCf": 11,
+      "noteFinale": 11.3,
+      "isValidated": true,
+      "subject": { "id": "sub-phy301", "nameFr": "Physique quantique", "nameAr": "الفيزياء الكمية", "code": "PHY301", "coefficient": 3, "credits": 4 }
+    },
+    {
+      "id": "grade-s4-alg",
+      "noteCc": 15,
+      "noteCf": 14.3,
+      "noteFinale": 14.5,
+      "isValidated": true,
+      "subject": { "id": "sub-inf303", "nameFr": "Algorithmique avancée", "nameAr": "الخوارزميات المتقدمة", "code": "INF303", "coefficient": 4, "credits": 6 }
+    }
+  ]
+}

@@ -1,0 +1,234 @@
+diff --git a/pwa/components/dashboard/Card.tsx b/pwa/components/dashboard/Card.tsx
+index b7dd571..a93a480 100644
+--- a/pwa/components/dashboard/Card.tsx
++++ b/pwa/components/dashboard/Card.tsx
+@@ -17,14 +17,20 @@ import styles from './dashboard.module.css';
+  */
+ export function Card({
+   title,
+-  icon,
+   href,
+   index,
+   animate,
+   children,
+ }: {
+   title: string;
+-  icon: ReactNode;
++  /**
++   * @deprecated Not rendered. Dashboard Spec §6 draws card titles with no
++   * leading icon. The six cards still pass one. M3 of the 2026-11-12
++   * design-conformance mission (which has Card.tsx and the six cards in its
++   * paths) removes it: the call-site props, their now-unused icon imports, and
++   * this prop.
++   */
++  icon?: ReactNode;
+   /** Set when the whole card navigates; drives the §3 hover lift. */
+   href?: string;
+   /** Position in §4's reading order, which is also its stagger delay. */
+@@ -47,7 +53,6 @@ export function Card({
+   return (
+     <section className={className} style={style}>
+       <div className={styles.cardHeader}>
+-        <span className={styles.cardIcon}>{icon}</span>
+         {/*
+           h2: the page's h1 is the dashboard heading, so each card is a section
+           below it. Keeps the document outline honest for §10.
+diff --git a/pwa/components/dashboard/Dashboard.tsx b/pwa/components/dashboard/Dashboard.tsx
+index be2ec04..b6cb679 100644
+--- a/pwa/components/dashboard/Dashboard.tsx
++++ b/pwa/components/dashboard/Dashboard.tsx
+@@ -19,6 +19,15 @@ import styles from './dashboard.module.css';
+  * quick links, news — and that order is also the stagger order and the DOM
+  * order, so the visual sequence, the focus order and the animation all come from
+  * the same single arrangement rather than three that could drift apart.
++ *
++ * Placement (Dashboard Spec §1, §2) is owned here, by the grid, not by the
++ * cards: each card sits in a slot that says where it goes, so the cards stay
++ * placement-agnostic. At ≥1024 that is three tracks — next class, then GPA over
++ * Assiduité in one column, then Notifications — with Accès rapide and the news
++ * card each spanning a full row below. At 640–1023 Notifications takes its own
++ * full-width row under the first two. Below 640 everything is one column. Every
++ * arrangement keeps the DOM order above, so the reading order, the focus order
++ * and the stagger order do not change with the layout.
+  */
+ export function Dashboard() {
+   const { t } = useI18n();
+@@ -53,11 +62,26 @@ export function Dashboard() {
+ 
+       <div className={styles.grid}>
+         <NextClassCard index={0} {...shared} />
+-        <GpaCard index={1} {...shared} />
+-        <AttendanceCard index={2} {...shared} />
+-        <NotificationsCard index={3} {...shared} />
+-        <QuickLinksCard index={4} animate={animate} />
+-        <NewsCard index={5} {...shared} />
++
++        {/* §2 ②: one grid cell holding two cards, GPA above Assiduité. */}
++        <div className={styles.slotColumn}>
++          <div className={styles.slotGpa}>
++            <GpaCard index={1} {...shared} />
++          </div>
++          <div className={styles.slotAttendance}>
++            <AttendanceCard index={2} {...shared} />
++          </div>
++        </div>
++
++        <div className={styles.slotNotifications}>
++          <NotificationsCard index={3} {...shared} />
++        </div>
++        <div className={`${styles.slotSpanAll} ${styles.slotQuickLinks}`}>
++          <QuickLinksCard index={4} animate={animate} />
++        </div>
++        <div className={styles.slotSpanAll}>
++          <NewsCard index={5} {...shared} />
++        </div>
+       </div>
+     </>
+   );
+diff --git a/pwa/components/dashboard/dashboard.module.css b/pwa/components/dashboard/dashboard.module.css
+index 0e2f3dc..b5b1356 100644
+--- a/pwa/components/dashboard/dashboard.module.css
++++ b/pwa/components/dashboard/dashboard.module.css
+@@ -32,17 +32,72 @@ html[lang="ar"] .heading {
+ }
+ 
+ /*
+- * Two columns from 900px, one below. `auto-fit` with a minimum rather than a
+- * fixed count so the cards reflow while the sidebar is collapsing, instead of
+- * snapping at a breakpoint the sidebar animation passes through.
++ * Dashboard Spec §1 / §2: 1 column below 640, 2 from 640, 3 from 1024, gap 16,
++ * align-items start. The count is fixed per breakpoint, not `auto-fit`: the
++ * layout below places cards by column (GPA and Assiduité share column 2,
++ * Notifications is column 3), and a track count that follows the content
++ * width instead of the viewport went to 4 with the sidebar collapsed at 1440
++ * and left a hole in row 2. Collapsing the sidebar now only widens the tracks.
++ *
++ * §9 hardening: minmax(0, 1fr), not 1fr, so a long unbroken word can never
++ * widen a track past its share.
+  */
+ .grid {
+   display: grid;
+   gap: 16px;
+-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
++  grid-template-columns: minmax(0, 1fr);
+   align-items: start;
+ }
+ 
++@media (min-width: 640px) {
++  .grid {
++    grid-template-columns: repeat(2, minmax(0, 1fr));
++  }
++}
++
++@media (min-width: 1024px) {
++  .grid {
++    grid-template-columns: repeat(3, minmax(0, 1fr));
++  }
++}
++
++/*
++ * Placement slots (Dashboard.tsx). The grid places the slots; the cards inside
++ * them stay placement-agnostic.
++ *
++ * §2 ②: GPA above Assiduité in one cell, gap 16. Assiduité is flex: 1 as the
++ * spec's reference build has it. Note that under the grid's align-items: start
++ * this column is only as tall as its two cards, so flex: 1 has no free space
++ * to fill and the card does not stretch to card ①'s bottom; the reference
++ * render shows the same (its Assiduité ends a few px above card ①).
++ */
++.slotColumn {
++  display: flex;
++  flex-direction: column;
++  gap: 16px;
++  min-width: 0;
++}
++
++.slotAttendance {
++  display: flex;
++  flex: 1;
++  flex-direction: column;
++}
++
++/* §1: on tablet, Notifications spans both columns, on its own row. */
++@media (min-width: 640px) and (max-width: 1023px) {
++  .slotNotifications {
++    grid-column: 1 / -1;
++  }
++}
++
++/* §2 ④ ⑤: Accès rapide and the news card each span every column. */
++@media (min-width: 640px) {
++  .slotSpanAll {
++    grid-column: 1 / -1;
++  }
++}
++
+ /* ── Card ──────────────────────────────────────────────────────────────────── */
+ 
+ .card {
+@@ -50,13 +105,24 @@ html[lang="ar"] .heading {
+   display: flex;
+   flex-direction: column;
+   min-height: 148px;
+-  padding: 16px;
++  /* §6 card base: padding 20. Two cards differ, below. */
++  padding: 20px;
+   border: 1px solid var(--hair);
+   border-radius: var(--r-lg);
+   background: var(--surface);
+   box-shadow: var(--shadow-card);
+ }
+ 
++/* §6 ②: the GPA card's padding is 18 and Assiduité's is 16. */
++.slotGpa > .card {
++  padding: 18px;
++}
++
++.slotAttendance > .card {
++  flex: 1;
++  padding: 16px;
++}
++
+ /*
+  * §3: clickable cards lift 1px and deepen to --shadow-lg over --dur-fast.
+  * Applied only to cards that actually navigate — a hover response on a card
+@@ -99,27 +165,32 @@ html[lang="ar"] .heading {
+ /* No :active scale on the card: §3 gives cards a hover lift and reserves the
+    0.97 press for buttons. The retry button inside keeps its own. */
+ 
++/*
++ * §6 .card-head: a flex row, space-between, centred, 14 below. The title has
++ * no leading icon (§6). Accès rapide's heading sits 12 above its tiles, not 14
++ * (§6 ④ "h3 mb 12").
++ */
+ .cardHeader {
+   display: flex;
+   align-items: center;
++  justify-content: space-between;
+   gap: 8px;
++  margin-bottom: 14px;
++}
++
++.slotQuickLinks .cardHeader {
+   margin-bottom: 12px;
+ }
+ 
+ .cardTitle {
++  /* §9: a text column in a flex row can shrink. */
++  min-width: 0;
+   margin: 0;
+   font-size: 14px;
+   font-weight: 700;
+   color: var(--ink);
+ }
+ 
+-.cardIcon {
+-  flex-shrink: 0;
+-  width: 16px;
+-  height: 16px;
+-  color: var(--ink3);
+-}
+-
+ /*
+  * The body is a single grid cell that every state shares. Stacking them is what
+  * makes §5's "crossfade into real content" possible — the outgoing skeleton and

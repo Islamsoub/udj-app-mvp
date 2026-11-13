@@ -1,0 +1,9 @@
+{
+  "semester": { "id": "sem-s4", "label": "S4", "academicYear": "2026-2027" },
+  "gpa": null,
+  "mention": null,
+  "credits": { "earned": 0, "total": 21 },
+  "ccPublished": false,
+  "nfPublished": false,
+  "grades": []
+}

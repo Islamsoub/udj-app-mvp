@@ -1,0 +1,20 @@
+{
+  "semesters": [
+    {
+      "id": "sem-s3",
+      "label": "S3",
+      "academicYear": "2026-2027",
+      "gpa": 12.2,
+      "mention": "Assez Bien",
+      "credits": { "earned": 13, "total": 19 }
+    },
+    {
+      "id": "sem-s4",
+      "label": "S4",
+      "academicYear": "2026-2027",
+      "gpa": 12.3,
+      "mention": "Assez Bien",
+      "credits": { "earned": 18, "total": 21 }
+    }
+  ]
+}
