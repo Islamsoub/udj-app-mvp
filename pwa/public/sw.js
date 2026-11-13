@@ -6,7 +6,7 @@
  *   Navigations (HTML)          network first, cache fallback, then /offline.html
  *   Shell warm fetches          network, stored as that route's shell (see below)
  *   /_next/static/*, /fonts/*,  cache first
- *   /logo.svg, /icons/*,
+ *   /brand/*, /icons/*,
  *   /manifest.json
  *   /api/*                      NEVER — not read, not written, not intercepted
  *   everything else             not intercepted (RSC payloads, sw.js)
@@ -64,7 +64,7 @@
  * VERSION is the one name every cache is derived from. It combines the build id
  * from the script URL with CACHE_SCHEMA, so a deploy gets fresh caches and
  * `activate` deletes every cache that is not current. Per-build caches are also
- * what makes cache-first safe for the few unhashed assets (/fonts, /logo.svg,
+ * what makes cache-first safe for the few unhashed assets (/fonts, /brand,
  * /icons, /manifest.json): they cannot outlive the build that put them there.
  *
  * DEBUGGING: Chrome DevTools → Application → Service workers (state, update,
@@ -95,7 +95,7 @@
 const KILL_SWITCH = false;
 
 /** Bump when the caching rules in this file change, to discard caches built under the old rules. */
-const CACHE_SCHEMA = 2;
+const CACHE_SCHEMA = 3;
 
 /** Set by the page's registration URL. 'local' only if the file is registered without one. */
 const BUILD = new URL(self.location.href).searchParams.get('build') || 'local';
@@ -125,13 +125,20 @@ const VARIANT_PATTERN = /^(fr|ar)\|(light|dark|system)$/;
 
 /**
  * Fetched at install, so the offline page works even if the student never
- * opened it: the page itself, the logo it masks, and the faces it sets in —
- * and so an installed app opened offline can still read its own manifest and
- * the icons it names. Keep the icon list in step with public/manifest.json.
+ * opened it: the page itself, the reversed logo it masks, and the faces it sets
+ * in. The logo the shell draws (sidebar, booting screen) is here too, so a
+ * cached shell still shows its mark offline. And so an installed app opened
+ * offline can still read its own manifest and the icons it names. Keep the icon
+ * list in step with public/manifest.json.
+ *
+ * The two /brand/ entries are LOGO_ON_COLOUR and LOGO_ON_NEUTRAL from
+ * lib/brand.ts, written out by hand because a service worker cannot import it.
+ * Change them together.
  */
 const PRECACHE_URLS = [
   OFFLINE_URL,
-  '/logo.svg',
+  '/brand/logo-on-colour.svg',
+  '/brand/logo-on-neutral.svg',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -248,7 +255,7 @@ function isStaticAsset(url) {
     url.pathname.startsWith('/_next/static/') ||
     url.pathname.startsWith('/fonts/') ||
     url.pathname.startsWith('/icons/') ||
-    url.pathname === '/logo.svg' ||
+    url.pathname.startsWith('/brand/') ||
     url.pathname === '/manifest.json'
   );
 }

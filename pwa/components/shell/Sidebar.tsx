@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { LOGO_ON_NEUTRAL } from '@/lib/brand';
 import { useI18n } from '@/lib/i18n';
 import { NAV_ITEMS, isActivePath } from './nav-items';
 import { ChevronIcon, NavIcon } from './icons';
@@ -44,15 +45,24 @@ export function Sidebar({
           sidebar names the application nowhere at all.
 
           The visible span is therefore aria-hidden and the name lives on the
-          mark, which is exactly what the nav links below do: the accessible
-          name on the element that survives the collapse, the visible text
-          hidden from assistive tech so it is never announced twice. One
-          "Unipocket", in both states and throughout the animation between them.
+          mark, as the <img>'s alt, which is exactly what the nav links below
+          do: the accessible name on the element that survives the collapse,
+          the visible text hidden from assistive tech so it is never announced
+          twice. One "Unipocket", in both states and throughout the animation
+          between them.
+
+          LOGO_ON_NEUTRAL (lib/brand.ts) as drawn, so the university's own
+          colours show. A plain <img>, not next/image, which would route it
+          through /_next/image where the service worker cannot cache it. The
+          width/height attributes reserve the 34px box before the file loads;
+          .brandMark keeps the height and lets the width follow the artwork.
         */}
-        <span
-          className={`${styles.logoMark} ${styles.brandMark}`}
-          role="img"
-          aria-label={t('app.name')}
+        <img
+          className={styles.brandMark}
+          src={LOGO_ON_NEUTRAL}
+          alt={t('app.name')}
+          width={34}
+          height={34}
         />
         <span
           className={`${styles.brandName} ${collapsed ? styles.navLabelHidden : styles.navLabel}`}

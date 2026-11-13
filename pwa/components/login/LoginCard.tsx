@@ -18,15 +18,15 @@ export function LoginCard() {
           <div className={`${styles.blob} ${styles.blobStart}`} aria-hidden="true" />
           <div className={`${styles.blob} ${styles.blobEnd}`} aria-hidden="true" />
           {/*
-            The real mark, copied from assets/icons/Logo.svg (which the native
-            app imports — read only, never edited). Served as an SVG file rather
-            than inlined so it stays sharp at any size and on any pixel density.
+            The university's reversed logo, LOGO_ON_COLOUR (lib/brand.ts),
+            served as an SVG file rather than inlined so it stays sharp at any
+            size and pixel density, and so another university swaps the file
+            rather than this component.
 
-            Drawn as a MASK coloured --hero-mark, the way the shell draws it,
-            not as an <img>: the file's paths are white, which is what both
-            themes use today, but the token keeps the colour decided in
-            globals.css alone. The file itself is shared with the native app
-            and stays untouched.
+            Drawn as a MASK coloured --hero-mark, not as an <img>: the file
+            supplies only the shape, and the token keeps the colour decided in
+            globals.css alone. The stylesheet reads the file through
+            --logo-on-colour (see login.module.css .mark).
 
             aria-hidden — decorative. The hero's <h1> underneath names the
             university and the document title carries "Unipocket", so the mark

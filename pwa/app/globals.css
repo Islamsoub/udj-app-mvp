@@ -141,6 +141,13 @@
 
   --sidebar-w: 240px;
 
+  /* The reversed logo, for stylesheets that mask it (login.module.css .mark).
+     A file, not a colour, so it is declared once here and not per theme. Kept
+     in step with LOGO_ON_COLOUR in lib/brand.ts, the per-university swap point
+     whose comment lists the two files that cannot read either. Root-absolute,
+     so it resolves the same from any stylesheet that reads it. */
+  --logo-on-colour: url('/brand/logo-on-colour.svg');
+
   --r-sm: 8px;
   --r-md: 12px;
   --r-lg: 16px;
