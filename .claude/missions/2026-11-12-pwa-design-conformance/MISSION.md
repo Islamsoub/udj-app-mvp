@@ -64,9 +64,10 @@ Rules that follow from it:
 - **Paused before M4 (2026-11-13).** Islam is running and inspecting the PWA
   himself first. Do not start M4 until he says so.
 - **Captures from M4 on** use the 2026-11-13 harness (capture/README.md
-  "Memory"). Its Chrome flags change anti-aliasing, so a milestone's "before"
-  is retaken from the previous milestone's build, never copied from its
-  "after".
+  "Memory": memory check, resume, Chrome flags). Its flags are
+  pixel-identical to earlier captures; `--disable-gpu` was tried and removed
+  because it changed anti-aliasing (Islam, 2026-11-13). Every capture in this
+  mission is on one renderer.
 
 Branch names:
 
@@ -447,7 +448,10 @@ as a spec for those pages. Prototype-v1 is, for composition only (Flag 8).
     `.card { min-height: 148px }`, an M2 rule the spec does not have, if
     matching the loaded footprints requires it, and records why in
     PROGRESS.md (amended 2026-11-12, M2 re-review).
-  - `pwa/locales/fr.json`, `pwa/locales/ar.json`: the "TAUX" key only
+  - `pwa/locales/fr.json`, `pwa/locales/ar.json`: the "TAUX" key only, and
+    `dashboard.next_class.time_to` (amended 2026-11-13, Islam: the
+    screen-reader connector between the next-class start and end times,
+    "à" / "إلى", from the M3 reviewer's minor finding)
   - `<MISSION>/PROGRESS.md`, `<MISSION>/screenshots/m3/**`
 - Notes:
   - The quick-link set stays the built four nav links. The spec's three action

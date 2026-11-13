@@ -49,16 +49,16 @@ const DEFAULT_PLAYWRIGHT =
 const CHROME_CHANNEL = 'chrome';
 
 /**
- * Headless Chrome flags that cut its footprint (measured 2026-11-13, README
- * "Memory"). --disable-gpu gives almost all of the saving (private memory
- * ~560 → ~390 MB per shot) and changes anti-aliasing: 5–15% of pixels differ
- * by up to 135/255 against a capture without it, layout unchanged. So a
- * before/after pair must come from the same flags; RENDER_VERSION makes the
- * manifest retake anything shot without them. The other flags are
- * pixel-identical and save ~20–30 MB.
+ * Headless Chrome flags that cut its footprint by ~20–30 MB and change no
+ * pixel (12 of 12 shots identical to captures without them; measured
+ * 2026-11-13, README "Memory").
+ *
+ * --disable-gpu is deliberately NOT here. It would save ~170 MB private, but
+ * it changes anti-aliasing on 5–15% of pixels (up to 135/255), which is the
+ * wrong cost for a harness whose purpose is judging small visual differences,
+ * and the machine has the headroom without it (Islam, 2026-11-13).
  */
 const CHROME_LOW_MEMORY_ARGS = [
-  '--disable-gpu',
   '--renderer-process-limit=1',
   '--disable-features=site-per-process,IsolateOrigins,Translate,OptimizationHints,MediaRouter,AutofillServerCommunication',
   '--disable-extensions',

@@ -1,0 +1,75 @@
+diff --git a/pwa/components/dashboard/NextClassCard.tsx b/pwa/components/dashboard/NextClassCard.tsx
+index c85a048..c0b4565 100644
+--- a/pwa/components/dashboard/NextClassCard.tsx
++++ b/pwa/components/dashboard/NextClassCard.tsx
+@@ -88,9 +88,12 @@ export function NextClassCard({ index, animate, online }: { index: number; anima
+ 
+                 {/* §5: course times are DM Mono, ink2, lh 1.5, end-aligned, on
+                     two lines (start over end). .mono keeps them on the Latin
+-                    face in Arabic; fmtLtr keeps each time in order. */}
++                    face in Arabic; fmtLtr keeps each time in order. The
++                    hidden connector makes a screen reader say "10:00 à 11:30"
++                    ("إلى" in Arabic); nothing visible changes. */}
+                 <p className={`${styles.classTime} mono`}>
+                   <span className={styles.classTimeLine}>{fmtLtr(next.entry.startTime)}</span>
++                  <span className={styles.srOnly}> {t('dashboard.next_class.time_to')} </span>
+                   <span className={styles.classTimeLine}>{fmtLtr(next.entry.endTime)}</span>
+                 </p>
+               </div>
+diff --git a/pwa/components/dashboard/dashboard.module.css b/pwa/components/dashboard/dashboard.module.css
+index a73f80e..a3cfda2 100644
+--- a/pwa/components/dashboard/dashboard.module.css
++++ b/pwa/components/dashboard/dashboard.module.css
+@@ -536,6 +536,24 @@ html[lang="ar"] .heading {
+   display: block;
+ }
+ 
++/*
++ * Screen-reader-only text: the "à" / "إلى" between the start and end times.
++ * The two-line time column has no visible connector (§5), so without it a
++ * screen reader reads "10:00 11:30". Absolutely positioned, so it takes no
++ * part in the column's flex layout. Same rule as shell.module.css .srOnly.
++ */
++.srOnly {
++  position: absolute;
++  width: 1px;
++  height: 1px;
++  padding: 0;
++  margin: -1px;
++  overflow: hidden;
++  clip-path: inset(50%);
++  white-space: nowrap;
++  border: 0;
++}
++
+ /* ── Hero stats ────────────────────────────────────────────────────────────── */
+ 
+ /* §6 ② .gauge-wrap: the ring and its text, gap 16; 12 below 380 (§9). */
+diff --git a/pwa/locales/ar.json b/pwa/locales/ar.json
+index 8d8c1fb..87b0c66 100644
+--- a/pwa/locales/ar.json
++++ b/pwa/locales/ar.json
+@@ -81,7 +81,8 @@
+       "starting_now": "الآن",
+       "in_minutes": "بعد {{count}} دقيقة",
+       "today_at": "اليوم · {{time}}",
+-      "in_days": "بعد {{count}} يوم"
++      "in_days": "بعد {{count}} يوم",
++      "time_to": "إلى"
+     },
+     "gpa": {
+       "title": "المعدل العام",
+diff --git a/pwa/locales/fr.json b/pwa/locales/fr.json
+index 0379e70..da302a0 100644
+--- a/pwa/locales/fr.json
++++ b/pwa/locales/fr.json
+@@ -81,7 +81,8 @@
+       "starting_now": "Maintenant",
+       "in_minutes": "Dans {{count}} min",
+       "today_at": "Aujourd'hui · {{time}}",
+-      "in_days": "Dans {{count}} j"
++      "in_days": "Dans {{count}} j",
++      "time_to": "à"
+     },
+     "gpa": {
+       "title": "Moyenne générale",

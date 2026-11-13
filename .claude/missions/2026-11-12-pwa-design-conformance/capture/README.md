@@ -237,15 +237,15 @@ changes, so nothing stale is kept. Shots taken before 2026-11-13 have no
 manifest entry and are retaken if asked for. `--overwrite` retakes everything.
 `reference` does the same, keyed on a hash of the spec page's folder.
 
-**3. Chrome flags** (`CHROME_LOW_MEMORY_ARGS`). `--disable-gpu` gives almost all
-of the saving and changes anti-aliasing: against a capture without it, 5–15% of
-pixels differ, by up to 135/255, on text, shadows and curves. The layout is
-unchanged. So:
-- a before/after pair must be shot with the same flags. Retake a milestone's
-  "before" from the previous build; do not copy the previous milestone's
-  "after" (captures up to M3 were shot without the flag);
-- the other flags are pixel-identical (12 of 12 shots, 1 px of noise) and save
-  only ~20–30 MB.
+**3. Chrome flags** (`CHROME_LOW_MEMORY_ARGS`). They are pixel-identical to a
+capture without them (12 of 12 shots, 1–2 px of run-to-run noise) and save
+~20–30 MB. All captures in this mission are on that one renderer.
+
+`--disable-gpu` was tried and **removed** (Islam, 2026-11-13). It saved ~170 MB
+private, but changed anti-aliasing on 5–15% of pixels by up to 135/255 on
+text, shadows and curves. That is the wrong cost for a harness whose purpose is
+judging small visual differences, and the machine has the headroom without it.
+The two captures briefly taken with it were retaken.
 
 **Measured** on the M3 build, `--no-build`, one variant
 (`dashboard --themes dark --langs fr --widths 390 --scenario loading`), sampling
@@ -253,12 +253,13 @@ the process tree every ~0.9 s, three runs each:
 
 | | peak working set | peak private | node | Chrome | processes | wall |
 |---|---|---|---|---|---|---|
-| before the flags | 696–707 MB | 532–582 MB | 214–215 | 482–492 | 10 | 4.2–5.2 s |
-| with all flags | 625–631 MB | 385–389 MB | 215–217 | 410–416 | 9 | 4.1–4.3 s |
-| flags without `--disable-gpu` | 667–680 MB | 523–566 MB | 216–217 | 453–464 | 9 | 4.1–4.2 s |
+| no flags (before 2026-11-13) | 696–707 MB | 532–582 MB | 214–215 | 482–492 | 10 | 4.2–5.2 s |
+| **current flags** | **667–680 MB** | **523–566 MB** | 216–217 | 453–464 | 9 | 4.1–4.2 s |
+| current + `--disable-gpu` (rejected) | 625–631 MB | 385–389 MB | 215–217 | 410–416 | 9 | 4.1–4.3 s |
 
-- 12 shots in one run (with flags): private memory stays at 356–420 MB from the
-  first shot to the last. Nothing grows across shots.
+- 12 shots in one run, current flags: private memory stays at 586–674 MB from
+  the first shot to the last (peak working set 699 MB). Nothing grows across
+  shots.
 - `next build` plus one shot (warm cache, M0 worktree): 1,021 MB working set,
   855 MB private, at the build. A cold first build in a new worktree was not
   measured and is probably higher.

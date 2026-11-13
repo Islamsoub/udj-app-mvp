@@ -616,3 +616,13 @@ Each harness run stopped its own `next start` and Chrome. After the memory kill 
 
 ### Servers
 Every run stopped its own `next start` and Chrome. After the last run nothing listens on 3299 and no headless Chrome is left.
+
+### Later on 2026-11-13 (Islam's follow-up)
+- **`--disable-gpu` removed from the harness.** It changed anti-aliasing on 5–15% of pixels, which is the wrong cost for judging small visual differences, and the headroom is there without it. The other flags stay: they change no pixel and save ~20–30 MB. The measured peak for one variant with the current flags is 667–680 MB working set and 523–566 MB private (README "Memory").
+- **One renderer again.** The only captures ever taken with `--disable-gpu` were the two `m3/after/dashboard--dark--{fr,ar}--390--loading.png` shots from earlier today, and both were retaken. No other capture or reference render used the flag. With the current flags, a 12-shot recapture matches the existing captures pixel for pixel, within 1–2 px of run-to-run noise.
+- **M3 fix round: screen-reader connector** (commit `914041c` on `feature/pwa-dc-03-dashboard-card-internals`, pushed, PR #7). A visually hidden "à" / "إلى" sits between the next-class start and end times. It added the key `dashboard.next_class.time_to` in both locales; the M3 paths were amended in MISSION.md.
+  - Accessibility tree, all 8 combinations at 1440 and 390: "10:00 à 11:30" in French and "10:00 إلى 11:30" in Arabic.
+  - Visual: 12 of 12 dashboard captures (1440/834/390 × light/dark × FR/AR) are identical to the previous M3 build, within 1–2 px of noise.
+  - Typecheck passes, and the build passes as part of the harness run.
+  - Diff: `diff-3-fix-sr-connector.patch`. Reviewer: no findings. It meets the goal, stays inside the declared paths and breaks no CLAUDE.md rule. It noted this is the PWA's third copy of the same `.srOnly` rule, which follows the one-module-per-folder pattern.
+- M3 has no open items left. M4 is not started and stays paused.
