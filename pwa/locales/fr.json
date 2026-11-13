@@ -81,7 +81,8 @@
       "starting_now": "Maintenant",
       "in_minutes": "Dans {{count}} min",
       "today_at": "Aujourd'hui · {{time}}",
-      "in_days": "Dans {{count}} j"
+      "in_days": "Dans {{count}} j",
+      "time_to": "à"
     },
     "gpa": {
       "title": "Moyenne générale",

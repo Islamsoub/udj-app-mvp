@@ -81,7 +81,8 @@
       "starting_now": "الآن",
       "in_minutes": "بعد {{count}} دقيقة",
       "today_at": "اليوم · {{time}}",
-      "in_days": "بعد {{count}} يوم"
+      "in_days": "بعد {{count}} يوم",
+      "time_to": "إلى"
     },
     "gpa": {
       "title": "المعدل العام",

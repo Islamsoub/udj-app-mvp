@@ -88,9 +88,12 @@ export function NextClassCard({ index, animate, online }: { index: number; anima
 
                 {/* §5: course times are DM Mono, ink2, lh 1.5, end-aligned, on
                     two lines (start over end). .mono keeps them on the Latin
-                    face in Arabic; fmtLtr keeps each time in order. */}
+                    face in Arabic; fmtLtr keeps each time in order. The
+                    hidden connector makes a screen reader say "10:00 à 11:30"
+                    ("إلى" in Arabic); nothing visible changes. */}
                 <p className={`${styles.classTime} mono`}>
                   <span className={styles.classTimeLine}>{fmtLtr(next.entry.startTime)}</span>
+                  <span className={styles.srOnly}> {t('dashboard.next_class.time_to')} </span>
                   <span className={styles.classTimeLine}>{fmtLtr(next.entry.endTime)}</span>
                 </p>
               </div>
