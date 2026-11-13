@@ -77,39 +77,48 @@
 }
 
 /*
- * The Unipocket mark.
+ * The university's reversed logo — LOGO_ON_COLOUR in lib/brand.ts, read here
+ * through --logo-on-colour (app/globals.css). public/offline.html copies this
+ * rule by hand and must keep the same values.
  *
- * CENTRING. Tailwind's preflight sets `img, svg, video, … { display: block }`,
- * so this is a block-level box. `text-align: center` on the hero only centres
- * INLINE content within a line box — a block with a definite width ignores it
- * and sits at the inline-start edge of its containing block, which is why the
- * placeholder rendered hard against the hero's 32px padding. `margin-inline:
- * auto` is the block-centring mechanism: the browser splits the leftover inline
- * space equally between the two sides. Symmetric, so it is centring rather than
- * a nudge in one direction, and logical, so Arabic needs no separate rule.
+ * CENTRING. A <span> made block-level. `text-align: center` on the hero only
+ * centres INLINE content within a line box; a block with a definite width
+ * ignores it and sits at the inline-start edge. `margin-inline: auto` is the
+ * block-centring mechanism: the browser splits the leftover inline space
+ * equally between the two sides. Symmetric and logical, so Arabic needs no
+ * separate rule.
  *
- * SIZE. 92px tall, which is what the native app's own login screen uses
- * (app/(auth)/login.tsx renders it 63x92). `width: auto` lets the intrinsic
- * 99x143 viewBox set the width — 63.7px — so the portrait proportions are kept
- * and nothing is squashed into a square or cropped.
+ * SIZE, FROM THE PWA LOGIN SPEC (specs/pwa/login/source/login-screen.html:95).
+ * The spec draws unipocket-icon-foreground.png in a 64 x 64 box. That PNG is
+ * 1024 square with the U's alpha bounding box at 493 x 531, so the visible U is
+ * 30.8 x 33.2px. This box is the U alone: 33.2px tall at the reversed file's own
+ * viewBox ratio, 74.15 / 79.88, so the mask fills it edge to edge.
  *
- * COLOUR. --hero-mark, through a mask — the shell's .logoMark technique. The
- * file's paths happen to be white, which both themes now want; the mask keeps
- * the file untouched (the native app shares it) and still takes the colour from
- * the token, so a theme can change it in globals.css alone. A masked
- * box has no intrinsic size, so the 99:143 ratio is declared and the height
- * alone sets the size — the same 63.7 x 92 box the <img> had.
+ * POSITION. The PNG's transparent padding is not in this box, so the block
+ * margins stand in for it. Start: 15.4px, the padding above the glyph (247 of
+ * 1024 at 64px), which puts the U's top edge 55.4px below the hero's top, as in
+ * the spec. End: 31.4px, which puts the <h1>'s baseline 143px below the hero's
+ * top, where the spec render has it in French at 1440. It is more than the
+ * PNG's 15.4px bottom padding because the spec's <img> is inline: below it sit
+ * that padding AND the descent of its line box, which a block box does not
+ * have. Both values are measured, not derived; re-measure if the hero's padding
+ * or the <h1>'s type changes.
+ *
+ * COLOUR. --hero-mark, through a mask. The file supplies the shape (alpha only)
+ * and the token the colour, so a theme can change it in globals.css alone and
+ * another university's reversed logo needs no colour of its own.
  */
 .mark {
   position: relative;
   display: block;
-  height: 92px;
-  aspect-ratio: 99 / 143;
+  height: 33.2px;
+  aspect-ratio: 74.15 / 79.88;
+  margin-block: 15.4px 31.4px;
   margin-inline: auto;
   /* White on the hero in both themes — see --hero-mark. */
   background-color: var(--hero-mark);
-  -webkit-mask-image: url('/logo.svg');
-  mask-image: url('/logo.svg');
+  -webkit-mask-image: var(--logo-on-colour);
+  mask-image: var(--logo-on-colour);
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
   -webkit-mask-position: center;

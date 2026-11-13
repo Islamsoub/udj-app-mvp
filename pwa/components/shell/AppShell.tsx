@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { logout } from '@/lib/auth-client';
+import { LOGO_ON_NEUTRAL } from '@/lib/brand';
 import { onSessionExpired } from '@/lib/auth-token';
 import {
   endOfflineSession,
@@ -287,9 +288,14 @@ function Booting({ label }: { label: string }) {
         student what is happening. Labelling the mark would prepend "Unipocket"
         to that announcement — the app's own name read out as part of a progress
         message, in a state that lasts a moment and may end in a redirect to
-        /login. The name is not information the student is missing here.
+        /login. The name is not information the student is missing here, so
+        alt="" — an empty alt takes the <img> out of the accessibility tree.
+
+        LOGO_ON_NEUTRAL (lib/brand.ts), as the sidebar draws it: a plain <img>,
+        not next/image, so the service worker can cache it. The width/height
+        attributes reserve the 40px box before the file loads.
       */}
-      <span className={`${styles.logoMark} ${styles.bootingMark}`} aria-hidden="true" />
+      <img className={styles.bootingMark} src={LOGO_ON_NEUTRAL} alt="" width={40} height={40} />
       <span className={styles.bootingSpinner} aria-hidden="true" />
       <span>{label}</span>
     </div>

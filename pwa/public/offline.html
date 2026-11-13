@@ -2,6 +2,9 @@
 <!--
   Offline fallback — served by public/sw.js when a navigation fails and no copy
   of that route is cached. Precached at install, with the logo and fonts it uses.
+  The logo is the reversed one, /brand/logo-on-colour.svg (LOGO_ON_COLOUR in
+  lib/brand.ts). This page never loads globals.css, so it cannot read
+  --logo-on-colour: its .mark names the file by hand, and must change with it.
 
   WHY A STATIC FILE, AND WHY THE STYLES ARE COPIED HERE. Nothing hashed can be
   relied on when this page is shown: the app's CSS chunk is a build artefact
@@ -99,8 +102,8 @@
   .blob { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.04); pointer-events: none; }
   .blob-start { width: 180px; height: 180px; top: -70px; inset-inline-start: -40px; }
   .blob-end { width: 160px; height: 160px; top: -50px; inset-inline-end: -50px; }
-  .mark { position: relative; display: block; height: 92px; aspect-ratio: 99 / 143; margin-inline: auto; background-color: var(--hero-mark);
-    -webkit-mask: url('/logo.svg') center / contain no-repeat; mask: url('/logo.svg') center / contain no-repeat; }
+  .mark { position: relative; display: block; height: 33.2px; aspect-ratio: 74.15 / 79.88; margin-block: 15.4px 31.4px; margin-inline: auto; background-color: var(--hero-mark);
+    -webkit-mask: url('/brand/logo-on-colour.svg') center / contain no-repeat; mask: url('/brand/logo-on-colour.svg') center / contain no-repeat; }
   .brand { position: relative; margin: 14px 0 0; font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
   .tagline { position: relative; margin: 5px 0 0; font-size: 13.5px; font-weight: 500; color: var(--hero-ink); }
   .body { padding: 28px 28px 30px; }
