@@ -2,12 +2,13 @@
 
 import { useState } from 'react';
 import type { AttendanceBand } from '@/lib/api-types';
-import { percentText } from '@/lib/bidi';
+import { fmtPercent } from '@/lib/bidi';
 import { takeOnce } from './session-flags';
 import styles from './dashboard.module.css';
 
-const SIZE = 84;
-const STROKE = 8;
+/** Dashboard Spec §6 ②: an 88 px gauge whose ring is 9 px thick (hole inset 9). */
+const SIZE = 88;
+const STROKE = 9;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
@@ -33,15 +34,25 @@ const STROKE_CLASS: Record<AttendanceBand, string> = {
  * The stroke follows the server's overall `band` (ROUND2-CLOSEOUT §3, A3),
  * never a comparison of `percentage` with the threshold. The colour only
  * repeats what the card's words already say; it is never the sole signal.
+ *
+ * The value and its caption ("TAUX", §6 ②) sit in HTML over the SVG rather
+ * than in an SVG <text>: the caption is a word, so it must take the active
+ * language's face, and the value must go through fmtPercent like every other
+ * visible percentage. The wrapper is the one image a screen reader meets; the
+ * label it announces already holds the value.
  */
 export function Ring({
   percentage,
   band,
   label,
+  caption,
 }: {
   percentage: number;
   band: AttendanceBand;
+  /** The accessible name: the card title and the value. */
   label: string;
+  /** The word under the value, "TAUX". */
+  caption: string;
 }) {
   const [filling] = useState(() => takeOnce('dashboard_ring_attendance'));
 
@@ -49,41 +60,32 @@ export function Ring({
   const offset = CIRCUMFERENCE * (1 - clamped / 100);
 
   return (
-    <svg
-      className={styles.ring}
-      viewBox={`0 0 ${SIZE} ${SIZE}`}
-      role="img"
-      aria-label={label}
-      style={
-        {
-          '--ring-circumference': `${CIRCUMFERENCE}`,
-          '--ring-offset': `${offset}`,
-        } as React.CSSProperties
-      }
-    >
-      <circle className={styles.ringTrack} cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} strokeWidth={STROKE} />
-      <circle
-        className={`${styles.ringValue} ${STROKE_CLASS[band]} ${filling ? styles.ringFilling : ''}`}
-        cx={SIZE / 2}
-        cy={SIZE / 2}
-        r={RADIUS}
-        strokeWidth={STROKE}
-      />
-      {/*
-        The percentage sits inside the ring. `.num` keeps it on the Latin face in
-        Arabic, per the design-system rule that every number does.
-      */}
-      <text
-        className={`${styles.ringLabel} num`}
-        x="50%"
-        y="50%"
-        textAnchor="middle"
-        dominantBaseline="central"
+    <div className={styles.ring} role="img" aria-label={label}>
+      <svg
+        className={styles.ringSvg}
+        viewBox={`0 0 ${SIZE} ${SIZE}`}
+        aria-hidden="true"
+        style={
+          {
+            '--ring-circumference': `${CIRCUMFERENCE}`,
+            '--ring-offset': `${offset}`,
+          } as React.CSSProperties
+        }
       >
-        {/* An SVG <text> cannot hold a <bdi>, and does not need one: with no
-            Arabic letter before it in the element, "92%" keeps its order. */}
-        {percentText(clamped)}
-      </text>
-    </svg>
+        <circle className={styles.ringTrack} cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} strokeWidth={STROKE} />
+        <circle
+          className={`${styles.ringValue} ${STROKE_CLASS[band]} ${filling ? styles.ringFilling : ''}`}
+          cx={SIZE / 2}
+          cy={SIZE / 2}
+          r={RADIUS}
+          strokeWidth={STROKE}
+        />
+      </svg>
+      <div className={styles.ringHole} aria-hidden="true">
+        {/* `.num`: the figure stays on the Latin face in Arabic. */}
+        <span className={`${styles.ringLabel} num`}>{fmtPercent(clamped)}</span>
+        <span className={styles.ringCaption}>{caption}</span>
+      </div>
+    </div>
   );
 }

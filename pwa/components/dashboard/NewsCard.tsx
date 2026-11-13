@@ -1,13 +1,13 @@
 'use client';
 
 import { ArticleTags } from '@/components/news/ArticleMeta';
+import newsStyles from '@/components/news/news.module.css';
 import { getNews } from '@/lib/api-client';
 import type { NewsListResponse } from '@/lib/api-types';
 import { isolateLtrRuns } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { Card, CardStates, EmptyState } from './Card';
 import { Interpolated } from './Interpolated';
-import { NewsIcon } from './icons';
 import { useCardData } from './useCardData';
 import styles from './dashboard.module.css';
 
@@ -28,7 +28,6 @@ export function NewsCard({ index, animate, online }: { index: number; animate: b
   return (
     <Card
       title={t('dashboard.news.title')}
-      icon={<NewsIcon />}
       href="/news"
       index={index}
       animate={animate}
@@ -36,12 +35,32 @@ export function NewsCard({ index, animate, online }: { index: number; animate: b
       <CardStates
         state={state}
         skeleton={
-          <div className={styles.skeletonStack}>
-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineWide}`} />
-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineShort}`} />
-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineWide}`} />
-            <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineShort}`} />
-          </div>
+          /*
+           * The loaded list's own boxes, emptied: PREVIEW_LIMIT items, each a
+           * category pill, a title line and a meta line. The pill frame is
+           * ArticleTags' own .tags and .pill boxes (read from news.module.css,
+           * not restyled), so its height follows the real pill. The text lines
+           * are one line of ghost text each, in the loaded line's type and font
+           * mix (see .skeletonTextLine). A title that wraps adds its extra
+           * lines (see PROGRESS.md).
+           */
+          <ul className={styles.newsList}>
+            {Array.from({ length: PREVIEW_LIMIT }, (_, i) => (
+              <li key={i} className={styles.newsItem}>
+                <span className={newsStyles.tags}>
+                  <span className={`${newsStyles.pill} ${styles.skeleton} ${styles.skeletonPillShape}`}>
+                    <span className={`${styles.skeletonGhost} ${styles.skeletonGhostTag}`}>{'\u00a0'}</span>
+                  </span>
+                </span>
+                <span className={`${styles.newsTitle} ${styles.skeletonTextLine} ${styles.skeletonW70}`}>{'\u00a0'}</span>
+                {/* The meta line holds a .num figure ("2 min de lecture"). */}
+                <span className={`${styles.newsMeta} ${styles.skeletonTextLine} ${styles.skeletonW20}`}>
+                  <span className="num">0</span>
+                  {'\u00a0'}
+                </span>
+              </li>
+            ))}
+          </ul>
         }
       >
         {(data) =>

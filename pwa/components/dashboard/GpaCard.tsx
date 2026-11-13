@@ -6,7 +6,6 @@ import type { SemesterRef, SemesterSummary } from '@/lib/api-types';
 import { fmtRatio, fmtScaled } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { Card, CardStates, EmptyState } from './Card';
-import { GpaIcon } from './icons';
 import { Interpolated } from './Interpolated';
 import { useCardData } from './useCardData';
 import styles from './dashboard.module.css';
@@ -55,7 +54,6 @@ export function GpaCard({ index, animate, online }: { index: number; animate: bo
   return (
     <Card
       title={t('dashboard.gpa.title')}
-      icon={<GpaIcon />}
       href="/grades"
       index={index}
       animate={animate}

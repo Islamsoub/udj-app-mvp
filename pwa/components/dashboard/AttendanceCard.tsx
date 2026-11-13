@@ -9,7 +9,6 @@ import { useI18n, type I18nValue } from '@/lib/i18n';
 import type { Lang } from '@/lib/i18n-shared';
 import { Card, CardStates, EmptyState } from './Card';
 import { Interpolated } from './Interpolated';
-import { AttendanceIcon } from './icons';
 import { Ring } from './Ring';
 import { useCardData } from './useCardData';
 import styles from './dashboard.module.css';
@@ -62,7 +61,6 @@ export function AttendanceCard({ index, animate, online }: { index: number; anim
   return (
     <Card
       title={t('dashboard.attendance.title')}
-      icon={<AttendanceIcon />}
       href="/attendance"
       index={index}
       animate={animate}
@@ -97,6 +95,7 @@ export function AttendanceCard({ index, animate, online }: { index: number; anim
                 percentage={percentage}
                 band={overall.band}
                 label={t('dashboard.attendance.title') + ' ' + percentText(percentage)}
+                caption={t('dashboard.attendance.rate_caption')}
               />
               <div className={styles.attendanceText}>
                 <p className={styles.stateText}>

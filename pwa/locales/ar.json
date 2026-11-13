@@ -81,7 +81,8 @@
       "starting_now": "الآن",
       "in_minutes": "بعد {{count}} دقيقة",
       "today_at": "اليوم · {{time}}",
-      "in_days": "بعد {{count}} يوم"
+      "in_days": "بعد {{count}} يوم",
+      "time_to": "إلى"
     },
     "gpa": {
       "title": "المعدل العام",
@@ -92,6 +93,7 @@
     },
     "attendance": {
       "title": "الحضور",
+      "rate_caption": "النسبة",
       "empty": "لا توجد حصص مسجّلة حالياً.",
       "sessions": "حضرت {{present}} حصة من أصل {{total}}",
       "threshold": "الحد الأدنى: {{threshold}}",

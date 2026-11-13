@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n-types';
 import { Card } from './Card';
-import { AttendanceIcon, CalendarIcon, ChartIcon, GridIcon, NewsIcon } from './icons';
+import { AttendanceIcon, CalendarIcon, ChartIcon, NewsIcon } from './icons';
 import styles from './dashboard.module.css';
 
 /**
@@ -36,12 +36,16 @@ export function QuickLinksCard({ index, animate }: { index: number; animate: boo
   const { t } = useI18n();
 
   return (
-    <Card title={t('dashboard.quick_links.title')} icon={<GridIcon />} index={index} animate={animate}>
+    <Card title={t('dashboard.quick_links.title')} index={index} animate={animate}>
       <div className={styles.quickGrid}>
         {LINKS.map(({ href, labelKey, Icon }) => (
           <Link key={href} href={href} className={styles.quickLink}>
-            <Icon className={styles.quickIcon} />
-            {t(labelKey)}
+            {/* §6 ④: the glyph sits on its own 36 px tile. */}
+            <span className={styles.quickIconTile} aria-hidden="true">
+              <Icon className={styles.quickIcon} />
+            </span>
+            {/* §9: a text column in a flex row can shrink, and wraps normally. */}
+            <span className={styles.quickLabel}>{t(labelKey)}</span>
           </Link>
         ))}
       </div>
