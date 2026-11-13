@@ -42,8 +42,9 @@ function num(value: number): ReactNode {
 }
 
 /**
- * Assiduité, with the §5 gauge, the Seuil label and the line under the ring
- * (ROUND2-CLOSEOUT §3 and §5).
+ * The attendance card (titled Présence, the destination's name; the spec's
+ * card says Assiduité, see design-known-divergences.md), with the §5 gauge, the
+ * Seuil label and the line under the ring (ROUND2-CLOSEOUT §3 and §5).
  *
  * `overall` is null when no semester is marked current, and `percentage` is
  * separately null when no session lengths could be resolved. Either way there is

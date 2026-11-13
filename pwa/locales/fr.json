@@ -46,16 +46,16 @@
   },
   "nav": {
     "dashboard": "Accueil",
-    "schedule": "Emploi du temps",
+    "schedule": "Planning",
     "grades": "Notes",
-    "attendance": "Assiduité",
+    "attendance": "Présence",
     "news": "Actualités",
     "profile": "Profil",
     "tab": {
       "dashboard": "Accueil",
       "schedule": "Planning",
       "grades": "Notes",
-      "attendance": "Assiduité",
+      "attendance": "Présence",
       "news": "Actualités"
     }
   },
@@ -91,7 +91,7 @@
       "pending": "{{semester}} en attente"
     },
     "attendance": {
-      "title": "Assiduité",
+      "title": "Présence",
       "empty": "Aucune séance enregistrée pour le moment.",
       "sessions": "{{present}} séances suivies sur {{total}}",
       "threshold": "Seuil : {{threshold}}",
@@ -198,7 +198,7 @@
     }
   },
   "schedule": {
-    "heading": "Emploi du temps",
+    "heading": "Planning",
     "legend": "CM : cours magistral · TD : travaux dirigés · TP : travaux pratiques",
     "today_label": "Aujourd'hui",
     "other_week_notice": "L'emploi du temps affiché est celui en vigueur actuellement, reporté sur cette semaine.",
@@ -256,7 +256,7 @@
     }
   },
   "attendance": {
-    "heading": "Assiduité",
+    "heading": "Présence",
     "hero": {
       "label": "Présence ce semestre",
       "ring_label": "Présence : {{value}}",

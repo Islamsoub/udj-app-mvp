@@ -17,21 +17,23 @@ export interface NavItem {
   readonly path: string;
   readonly labelKey: TranslationKey;
   /**
-   * The short label the mobile tab bar shows, and whether the item is in the
-   * tab bar at all: an item without one is not. Five tabs at 390px leave about
-   * 78px each, where "Emploi du temps" truncated; the sidebar and the page
-   * title keep the full label.
+   * The label the mobile tab bar shows, and whether the item is in the tab bar
+   * at all: an item without one is not (Profile). It is a separate key because
+   * five tabs at 390px leave about 78px each. In French every tab label now
+   * equals its sidebar label (schedule is "Planning" in both), but Arabic still
+   * uses a shorter tab label for schedule than its sidebar one, and any
+   * language's longer sidebar wording can be given a short tab form here.
    */
   readonly tabLabelKey?: TranslationKey;
   /** Which glyph in components/shell/icons.tsx renders it. */
-  readonly icon: 'home' | 'calendar' | 'chart' | 'check' | 'news' | 'user';
+  readonly icon: 'home' | 'calendar' | 'chart' | 'clock' | 'news' | 'user';
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
   { path: '/', labelKey: 'nav.dashboard', tabLabelKey: 'nav.tab.dashboard', icon: 'home' },
   { path: '/schedule', labelKey: 'nav.schedule', tabLabelKey: 'nav.tab.schedule', icon: 'calendar' },
   { path: '/grades', labelKey: 'nav.grades', tabLabelKey: 'nav.tab.grades', icon: 'chart' },
-  { path: '/attendance', labelKey: 'nav.attendance', tabLabelKey: 'nav.tab.attendance', icon: 'check' },
+  { path: '/attendance', labelKey: 'nav.attendance', tabLabelKey: 'nav.tab.attendance', icon: 'clock' },
   { path: '/news', labelKey: 'nav.news', tabLabelKey: 'nav.tab.news', icon: 'news' },
   // Not in the tab bar: on mobile, Profile opens from the avatar menu.
   { path: '/profile', labelKey: 'nav.profile', icon: 'user' },
