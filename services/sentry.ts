@@ -34,7 +34,10 @@ export function redact(value: string): string {
 }
 
 // Breadcrumb data, request bodies and frame vars are arbitrary JSON-ish input.
-// Bound the walk so a deep object cannot make beforeSend expensive.
+// Bound the walk so a deep object cannot make beforeSend expensive. An object
+// nested at or beyond MAX_DEPTH is replaced whole with REDACTED: losing a deep
+// subtree from a crash report is the right trade against shipping it unscrubbed.
+// A string at that depth is still scrubbed by redact(), not replaced whole.
 const MAX_DEPTH = 6;
 
 // `copies` maps each source object to its redacted copy. A repeated reference
@@ -51,7 +54,7 @@ function redactDeep(
 
   const cached = copies.get(value);
   if (cached !== undefined) return cached;
-  if (depth >= MAX_DEPTH) return value;
+  if (depth >= MAX_DEPTH) return REDACTED;
 
   if (Array.isArray(value)) {
     const out: unknown[] = [];
