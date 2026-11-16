@@ -33,22 +33,36 @@ export function redact(value: string): string {
     .replace(STUDENT_ID_RE, REDACTED);
 }
 
-// Breadcrumb data is arbitrary JSON-ish input. Bound the walk so a deep or
-// cyclic object cannot make beforeSend expensive or recurse forever.
+// Breadcrumb data, request bodies and frame vars are arbitrary JSON-ish input.
+// Bound the walk so a deep object cannot make beforeSend expensive.
 const MAX_DEPTH = 6;
 
-function redactDeep(value: unknown, depth = 0, seen = new WeakSet<object>()): unknown {
+// `copies` maps each source object to its redacted copy. A repeated reference
+// (the same object under two keys) gets the same redacted copy, never the
+// original. The copy is registered before its children are walked, so a cycle
+// resolves to the in-progress copy instead of recursing.
+function redactDeep(
+  value: unknown,
+  depth = 0,
+  copies = new WeakMap<object, unknown>(),
+): unknown {
   if (typeof value === 'string') return redact(value);
   if (value === null || typeof value !== 'object') return value;
-  if (depth >= MAX_DEPTH || seen.has(value)) return value;
-  seen.add(value);
+
+  const cached = copies.get(value);
+  if (cached !== undefined) return cached;
+  if (depth >= MAX_DEPTH) return value;
 
   if (Array.isArray(value)) {
-    return value.map((item) => redactDeep(item, depth + 1, seen));
+    const out: unknown[] = [];
+    copies.set(value, out);
+    for (const item of value) out.push(redactDeep(item, depth + 1, copies));
+    return out;
   }
   const out: Record<string, unknown> = {};
+  copies.set(value, out);
   for (const [key, item] of Object.entries(value)) {
-    out[key] = redactDeep(item, depth + 1, seen);
+    out[key] = redactDeep(item, depth + 1, copies);
   }
   return out;
 }
@@ -67,6 +81,11 @@ export const scrubEvent: BeforeSend = (event) => {
       if (typeof exception.value === 'string') {
         exception.value = redact(exception.value);
       }
+      for (const frame of exception.stacktrace?.frames ?? []) {
+        if (frame.vars) {
+          frame.vars = redactDeep(frame.vars) as typeof frame.vars;
+        }
+      }
     }
 
     for (const crumb of event.breadcrumbs ?? []) {
@@ -78,8 +97,20 @@ export const scrubEvent: BeforeSend = (event) => {
       }
     }
 
-    if (event.request && typeof event.request.url === 'string') {
-      event.request.url = redact(event.request.url);
+    const request = event.request;
+    if (request) {
+      if (typeof request.url === 'string') {
+        request.url = redact(request.url);
+      }
+      if (request.headers) {
+        request.headers = redactDeep(request.headers) as typeof request.headers;
+      }
+      if (request.query_string) {
+        request.query_string = redactDeep(request.query_string) as typeof request.query_string;
+      }
+      if (request.data !== undefined) {
+        request.data = redactDeep(request.data);
+      }
     }
 
     return event;
