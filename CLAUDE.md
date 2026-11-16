@@ -325,8 +325,11 @@ Initialized in services/sentry.ts via `initSentry()`.
 - `enabled: !__DEV__` — reports ONLY in production/preview builds, never in dev.
 - `sendDefaultPii: false` — no personally identifiable info attached.
 - `tracesSampleRate: 0.2` — 20% performance-transaction sampling.
-- `beforeSend` hook — strips student ID/PII from events before they leave the
-  device (aligns with the "No PII in logs" P0 security rule).
+- `beforeSend` hook — replaces student IDs (UDJ-YYYY-NNNN), bearer tokens and
+  JWTs with `[redacted]` in the event message, exception values, breadcrumb
+  messages/data and request URL; returns the event unchanged if scrubbing throws.
+  Names and grades are not scrubbed.
+- `beforeBreadcrumb` hook — drops `console` breadcrumbs.
 - Global error boundary: the `ErrorBoundary` named export in app/_layout.tsx is
   the Expo Router error screen; runtime crashes are captured by Sentry and
   surfaced through it.
