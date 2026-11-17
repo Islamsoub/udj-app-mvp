@@ -32,7 +32,7 @@ export function Card({
    * card that is not itself a link. Not combined with `href`: a link inside a
    * card that is one link already would be two targets for one click.
    */
-  action?: { href: string; label: string };
+  action?: { href: string; label: string } | { onClick: () => void; label: string };
   /** Layout hooks from the grid (span, padding override). */
   className?: string;
   /** Position in §4's reading order, which is also its stagger delay. */
@@ -80,11 +80,16 @@ export function Card({
             title
           )}
         </h2>
-        {action && (
-          <Link href={action.href} className={styles.seeAll}>
-            {action.label}
-          </Link>
-        )}
+        {action &&
+          ('href' in action ? (
+            <Link href={action.href} className={styles.seeAll}>
+              {action.label}
+            </Link>
+          ) : (
+            <button type="button" className={`${styles.seeAll} ${styles.seeAllButton}`} onClick={action.onClick}>
+              {action.label}
+            </button>
+          ))}
       </div>
       <div className={styles.cardBody}>{children}</div>
     </section>

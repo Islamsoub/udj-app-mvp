@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
+import { NotificationsPopover } from '@/components/notifications/NotificationsPopover';
+import notifStyles from '@/components/notifications/notifications.module.css';
 import { useI18n } from '@/lib/i18n';
 import { initialsOf } from '@/lib/student';
 import { AvatarIcon, BellIcon, ChevronDownIcon, LogoutIcon, NavIcon } from './icons';
@@ -19,31 +21,33 @@ import styles from './shell.module.css';
  * Bell before avatar: §10's focus order runs topbar actions start to end.
  */
 export function Topbar({ title, onLogout }: { title: string; onLogout: () => void }) {
-  const { t, plural } = useI18n();
-  const { me, unreadCount } = useStudent();
+  const { t } = useI18n();
+  const { me, notificationsOpen, setNotificationsOpen } = useStudent();
+  const [avatarOpen, setAvatarOpen] = useState(false);
 
-  const unread = unreadCount ?? 0;
   const initials = me ? initialsOf(me.firstName, me.lastName) : '';
+
+  /*
+   * One popover at a time (dashboard.html:157-158): opening the notifications —
+   * from the bell or from the dashboard card's "Tout voir" — closes the avatar
+   * menu, and opening the avatar menu closes the notifications.
+   */
+  useEffect(() => {
+    if (notificationsOpen) setAvatarOpen(false);
+  }, [notificationsOpen]);
 
   return (
     <header className={styles.topbar}>
       <PageTitle title={title} />
       <div className={styles.topbarActions}>
-        {/*
-          No action yet: the notification panel is a later mission. A real
-          button, so it is focusable and announced, and its name carries the
-          unread count the dot shows — the dot itself is decorative.
-        */}
-        <button
-          type="button"
-          className={`${styles.bellButton} ${styles.hitSlop}`}
-          aria-label={plural('shell.notifications', unread).replace(/\{\{count\}\}/g, String(unread))}
-        >
-          <BellIcon />
-          {unread > 0 && <span className={styles.badgeDot} aria-hidden="true" />}
-        </button>
+        <BellMenu open={notificationsOpen} onOpenChange={setNotificationsOpen} />
 
         <AvatarMenu
+          open={avatarOpen}
+          onOpenChange={(open) => {
+            setAvatarOpen(open);
+            if (open) setNotificationsOpen(false);
+          }}
           onLogout={onLogout}
           initials={initials}
           label={t('shell.account')}
@@ -56,6 +60,90 @@ export function Topbar({ title, onLogout }: { title: string; onLogout: () => voi
 }
 
 /**
+ * The bell and its notifications popover (bell-states.html; app.css:128).
+ *
+ * Its name carries the unread count the dot shows — the dot itself is
+ * decorative. aria-haspopup="dialog": the panel holds a list of rows and a
+ * button, which is a dialog's content, not a menu's.
+ *
+ * Closes on Escape, returning focus to the bell; on a click outside it and the
+ * bell, handing focus back to the bell unless the click landed on another
+ * control, which keeps it; and when a row takes the student to its section,
+ * where the route change moves focus.
+ */
+function BellMenu({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { plural, dir } = useI18n();
+  const { unreadCount } = useStudent();
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const bellRef = useRef<HTMLButtonElement>(null);
+  const panelId = useId();
+  const labelId = useId();
+
+  const unread = unreadCount ?? 0;
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (wrapRef.current?.contains(event.target as Node)) return;
+      const hadFocus = wrapRef.current?.contains(document.activeElement) ?? false;
+      onOpenChange(false);
+      if (hadFocus) {
+        // After the click has moved focus wherever it moves it. A real control
+        // (tabIndex >= 0) keeps it; anywhere else — the page body, or <main>,
+        // which is tabIndex -1 as the skip link's target and takes focus from
+        // any click inside it — hands it back to the bell.
+        window.setTimeout(() => {
+          const el = document.activeElement as HTMLElement | null;
+          if (!el || el === document.body || el.tabIndex < 0) bellRef.current?.focus();
+        }, 0);
+      }
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        onOpenChange(false);
+        bellRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [open, onOpenChange]);
+
+  return (
+    <div
+      ref={wrapRef}
+      className={notifStyles.bellWrap}
+      // The panel grows from its top inline-end corner — the same dir-derived
+      // origin as the avatar menu and the progress sweep.
+      style={{ '--sweep-origin': dir === 'rtl' ? 'left' : 'right' } as React.CSSProperties}
+    >
+      <button
+        ref={bellRef}
+        type="button"
+        className={`${styles.bellButton} ${styles.hitSlop}`}
+        aria-label={plural('shell.notifications', unread).replace(/\{\{count\}\}/g, String(unread))}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        aria-controls={open ? panelId : undefined}
+        onClick={() => onOpenChange(!open)}
+      >
+        <BellIcon />
+        {unread > 0 && <span className={styles.badgeDot} aria-hidden="true" />}
+      </button>
+
+      {open && <NotificationsPopover id={panelId} labelId={labelId} onNavigate={() => onOpenChange(false)} />}
+    </div>
+  );
+}
+
+/**
  * §5 popover: closes on outside click, on Escape, or on selecting an item, and
  * §3 returns focus to the trigger on close.
  *
@@ -64,12 +152,16 @@ export function Topbar({ title, onLogout }: { title: string; onLogout: () => voi
  * change their mind about.
  */
 function AvatarMenu({
+  open,
+  onOpenChange,
   onLogout,
   initials,
   label,
   profileLabel,
   logoutLabel,
 }: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onLogout: () => void;
   /** Empty until /student/me has answered, and when it never does. */
   initials: string;
@@ -78,7 +170,7 @@ function AvatarMenu({
   logoutLabel: string;
 }) {
   const { dir } = useI18n();
-  const [open, setOpen] = useState(false);
+  const setOpen = onOpenChange;
   const wrapRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const firstItemRef = useRef<HTMLAnchorElement>(null);
@@ -125,7 +217,7 @@ function AvatarMenu({
         ref={triggerRef}
         type="button"
         className={`${styles.avatarButton} ${styles.hitSlop}`}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(!open)}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={label}

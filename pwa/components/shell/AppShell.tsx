@@ -245,7 +245,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         /student/me and one /student/notifications from here. Inside the authed
         branch, so neither request goes out before the session gate opens.
       */}
-      <StudentProvider online={online}>
+      <StudentProvider
+        online={online}
+        // A refused mark-as-read has already been rolled back; this says so.
+        onMarkReadFailed={() => setToast(t('notifications.mark_failed'))}
+      >
         <div className={styles.column}>
           <Topbar title={title} onLogout={handleLogout} />
           <OfflineBanner offline={!online} staleSince={staleSince} />
