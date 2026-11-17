@@ -456,6 +456,25 @@
 }
 
 /*
+ * app.css:111-112. The same 640 / 1024 thresholds as useLayoutMode's tablet and
+ * desktop modes. Height follows the padding: 73px base, 77px tablet, 81px
+ * desktop (the 40px avatar trigger, the padding, the 1px border).
+ */
+@media (min-width: 640px) {
+  .topbar {
+    padding-block: 18px;
+    padding-inline: 32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .topbar {
+    padding-block: 20px;
+    padding-inline: 48px;
+  }
+}
+
+/*
  * §4: the page title crossfades over --dur-fast. Both the outgoing and incoming
  * titles are on screen at once, stacked in this grid cell, so it is a genuine
  * crossfade and not a fade-out-then-in with a blank frame between.
