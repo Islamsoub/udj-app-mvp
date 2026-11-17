@@ -121,7 +121,9 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form className="mt-5" onSubmit={onSubmit} noValidate>
+          {/* method="post": if hydration ever fails, the native fallback
+              submit must not put the password in the URL, history and logs. */}
+          <form className="mt-5" method="post" onSubmit={onSubmit} noValidate>
             <div className="mb-[14px]">
               <FField label="Adresse e-mail" error={errors.email?.message}>
                 <TextInput
