@@ -479,16 +479,35 @@
  * titles are on screen at once, stacked in this grid cell, so it is a genuine
  * crossfade and not a fade-out-then-in with a blank frame between.
  */
+/*
+ * Height: Design's .page-title is an <h1> with no margin reset, so it carries
+ * the browser's default h1 margin, 0.67em above and below (12.73px at 19px),
+ * and line-height: normal. That 49.4px box is taller than the 40px avatar
+ * trigger, so the TITLE sets Design's bar height: 82.4 / 86.4 / 90.4px at the
+ * three paddings. This stack reproduces both halves:
+ *
+ *   margin-block: 0.67em — the h1 default. The 19px is declared here rather
+ *     than on .title so the em resolves at the title's size, as the browser's
+ *     own rule does. .title inherits it; its size is unchanged.
+ *   line-height: normal (on .title) — Tailwind's preflight sets 1.5 on <html>
+ *     for the whole PWA, which made this 28.5px tall instead of Design's 24px;
+ *     with the margin alone the bar would land 4.5px too tall.
+ *
+ * Both crossfade layers sit in this one grid cell, so the margin is outside
+ * the cell and the crossfade is untouched.
+ */
 .titleStack {
   display: grid;
   min-width: 0;
+  margin-block: 0.67em;
+  /* app.css:113 .page-title, verbatim. */
+  font-size: 19px;
 }
 
 .title {
   grid-area: 1 / 1;
   margin: 0;
-  /* app.css:113 .page-title, verbatim. */
-  font-size: 19px;
+  line-height: normal;
   font-weight: 800;
   letter-spacing: -0.3px;
   white-space: nowrap;
