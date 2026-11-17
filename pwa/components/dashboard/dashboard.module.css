@@ -9,7 +9,7 @@
    ───────────────────────────────────────────────────────────────────────────── */
 
 /*
- * Welcome block — app.css:165-167, verbatim. The 24px under it is the inline
+ * Welcome block — app.css:165-168, verbatim. The 24px under it is the inline
  * margin-bottom on .welcome in dashboard.html:81.
  */
 .welcome {
@@ -22,6 +22,13 @@
   font-weight: 800;
   letter-spacing: -0.4px;
   color: var(--ink);
+}
+
+/* app.css:168. The loading bar is 1em tall, so it grows with the heading. */
+@media (min-width: 1024px) {
+  .welcomeTitle {
+    font-size: 28px;
+  }
 }
 
 .welcomeName {

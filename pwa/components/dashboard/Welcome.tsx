@@ -9,7 +9,7 @@ import { Interpolated } from './Interpolated';
 import styles from './dashboard.module.css';
 
 /**
- * The dashboard's welcome block (app.css:165-167): "Bonjour, {firstName}" with
+ * The dashboard's welcome block (app.css:165-168): "Bonjour, {firstName}" with
  * the name in jade, then the programme and the semester.
  *
  * It is the page's only <h1>. The topbar's title is a label that shows "Accueil"
