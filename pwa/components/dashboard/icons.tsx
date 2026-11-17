@@ -3,8 +3,9 @@
  * Same reasoning as the shell's icon set: inline, so they take the colour of
  * whatever tint they sit on and nothing can 404 offline.
  *
- * Two stroke weights, as Design draws them: the notification chips at 2
- * (dashboard.html:111-113), the quick-link tiles at 1.8 (dashboard.html:119-121).
+ * Two stroke weights, as Design draws them: 2 for the countdown clock and the
+ * notification bell, 1.8 for the quick-link tiles (dashboard.html:119-121). The
+ * other notification chips use the sidebar's section icons (shell/icons.tsx).
  */
 
 type IconProps = { className?: string };
@@ -19,7 +20,7 @@ const strokeProps = {
 
 const chipStrokeProps = { ...strokeProps, strokeWidth: 2 };
 
-/** Clock — the countdown pill, and the ATTENDANCE notification chip. */
+/** Clock — the countdown pill. */
 export function ClockIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...chipStrokeProps}>
@@ -29,36 +30,7 @@ export function ClockIcon({ className }: IconProps) {
   );
 }
 
-/** Layers — the GRADES notification chip (dashboard.html:111). */
-export function LayersIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...chipStrokeProps}>
-      <path d="M12 2l9 5-9 5-9-5 9-5z" />
-    </svg>
-  );
-}
-
-/** Calendar — the SCHEDULE notification chip (dashboard.html:113). */
-export function CalendarChipIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...chipStrokeProps}>
-      <rect x="3" y="4" width="18" height="16" rx="2" />
-      <path d="M3 9h18" />
-    </svg>
-  );
-}
-
-/** Newspaper — the NEWS notification chip. Design has no NEWS row. */
-export function NewsIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...chipStrokeProps}>
-      <rect x="3.5" y="5" width="17" height="14" rx="2.5" />
-      <path d="M7 9.5h6M7 13h10M7 16h10" />
-    </svg>
-  );
-}
-
-/** Bell — the GENERAL notification chip. Design has no GENERAL row. */
+/** Bell — the GENERAL notification chip, the one type with no sidebar section. */
 export function BellIcon({ className }: IconProps) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...chipStrokeProps}>
