@@ -349,11 +349,6 @@ html[lang="ar"] .welcomeTitle {
   width: 40%;
 }
 
-.skeletonHero {
-  width: 96px;
-  height: 34px;
-}
-
 .skeletonRing {
   flex-shrink: 0;
   width: 88px;
@@ -668,13 +663,6 @@ html[lang="ar"] .heroJadeLabel {
   background: var(--hero-chip-hover);
 }
 
-/* The Notifications card's caption under its count. */
-.heroCaption {
-  margin: 8px 0 0;
-  font-size: 12.5px;
-  color: var(--ink2);
-}
-
 /* ── Attendance gauge (app.css:184-192) ────────────────────────────────────── */
 
 /* app.css:184; 12px below 380px (hardening.css:11). */
@@ -848,118 +836,333 @@ html[lang="ar"] .heroJadeLabel {
   white-space: nowrap;
 }
 
-/* ── Notifications ─────────────────────────────────────────────────────────── */
+/* ── Notifications (dashboard.html:110-114; app.css:131-135) ─────────────────── */
 
-.unreadCount {
-  font-size: 34px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--ink);
-}
-
-.notificationList {
+/* dashboard.html:110: rows 2px apart. */
+.notifList {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: 12px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.notificationItem {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 12.5px;
-  line-height: 1.4;
-  color: var(--ink2);
-}
-
-.unreadDot {
-  flex-shrink: 0;
-  width: 6px;
-  height: 6px;
-  margin-top: 5px;
-  border-radius: 50%;
-  background: var(--jade);
-}
-
-.notificationTitle {
-  color: var(--ink);
-  font-weight: 600;
-}
-
-/* ── Quick links ───────────────────────────────────────────────────────────── */
-
-.quickGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
-.quickLink {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding-inline: 10px;
-  border-radius: var(--r-sm);
-  background: var(--surface2);
-  color: var(--ink);
-  font-size: 12.5px;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
-}
-
-.quickLink:hover {
-  background: var(--jade-faint);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
-}
-
-.quickLink:active {
-  transform: scale(0.97);
-}
-
-.quickIcon {
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  color: var(--jade-text);
-}
-
-/* ── News ──────────────────────────────────────────────────────────────────── */
-
-.newsList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  gap: 2px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.newsItem {
+/* app.css:131 with dashboard.html's inline 10px 0: no inline padding inside a
+   card. The hairline above every row, the first included, is .notif-row's own
+   border-top — the inline style overrides only the padding. */
+.notifRow {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--hair);
 }
 
-.newsTitle {
+/* app.css:132-133: 32px, --r-sm, a 15px glyph. Tint per type below. */
+.notifChip {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+}
+
+.notifChipIcon {
+  width: 15px;
+  height: 15px;
+}
+
+/*
+ * Graphics on their tints, light / dark (3:1 needed; decorative anyway — the
+ * title carries the meaning):
+ *   GRADES      --jade-text   on --jade-faint  5.56 / 6.31
+ *   ATTENDANCE  --warning-ink on --warning-bg  5.74 / 6.08  (Design: --warning, 1.93 in light)
+ *   SCHEDULE    --exam        on --exam-bg     3.65 / 4.18
+ *   NEWS        --info        on --info-bg     3.21 / 4.15
+ *   GENERAL     --ink2        on --sunken      neutral
+ */
+.chipGrades {
+  background: var(--jade-faint);
+  color: var(--jade-text);
+}
+
+.chipAttendance {
+  background: var(--warning-bg);
+  color: var(--warning-ink);
+}
+
+.chipSchedule {
+  background: var(--exam-bg);
+  color: var(--exam);
+}
+
+.chipNews {
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.chipGeneral {
+  background: var(--sunken);
+  color: var(--ink2);
+}
+
+.notifText {
+  min-width: 0;
+}
+
+/* app.css:134. */
+.notifTitle {
+  margin: 0;
   font-size: 13px;
   font-weight: 600;
   line-height: 1.35;
   color: var(--ink);
 }
 
-.newsMeta {
+/*
+ * app.css:135: 11.5px, 2px below the title. Design writes it in --ink3, which
+ * the PWA reserves for non-text (under AA, CLAUDE.md), so it is --ink2 here —
+ * recorded in design-known-divergences.md. Mono applies to the HH:MM figure
+ * only (the `.mono` inside): "Hier" and weekday names are words, and DM Mono has
+ * no Arabic glyphs.
+ */
+.notifTime {
+  margin: 2px 0 0;
   font-size: 11.5px;
   color: var(--ink2);
+}
+
+/* ── Accès rapide (dashboard.html:117-123; app.css:200-207; hardening.css) ──── */
+
+/* dashboard.html:118: 12px under the heading, not the shared 14. */
+.quickCard .cardHeader {
+  margin-bottom: 12px;
+}
+
+/* app.css:200-201 with hardening.css:5-6 and 11: 2 columns, 3 from 640px, 1
+   below 380px; minmax(0, 1fr) so a long title cannot widen its track. */
+.quickGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .quickGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 379px) {
+  .quickGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* app.css:202. */
+.quickLink {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 13px 14px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--ink);
+  text-align: start;
+  text-decoration: none;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+/* app.css:203. */
+.quickLink:hover {
+  border-color: var(--jade);
+  background: var(--jade-faint);
+  color: var(--jade-text);
+}
+
+.quickLink:active {
+  transform: scale(0.97);
+}
+
+/* app.css:204: 36px, radius 10px. Tints per dashboard.html:119-121. */
+.quickSquare {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+/* app.css:205. */
+.quickIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* dashboard.html:119's #9a5b06 is not a token; --warning-ink is the PWA's dark
+   amber (5.74 / 6.08 on the tint). */
+.quickToneWarning {
+  background: var(--warning-bg);
+  color: var(--warning-ink);
+}
+
+/* Graphic on its tint: 3.21 / 4.15. */
+.quickToneInfo {
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.quickToneJade {
+  background: var(--jade-faint);
+  color: var(--jade-text);
+}
+
+/* app.css:206; nowrap and min-width 0 from hardening.css:9. */
+.quickText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.quickTitle {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* app.css:207. Stays --ink2 on hover, as in Design. */
+.quickSmall {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+
+.quickSmallSkeleton {
+  display: block;
+  width: 70px;
+  height: 11px;
+  margin-top: 2px;
+}
+
+/* ── Actualités récentes (dashboard.html:126-130; app.css:471-484) ──────────── */
+
+/* dashboard.html:126: articles 10px apart. */
+.articleList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* app.css:476 .article-card2 — the whole row is the link. */
+.articleCard {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  color: var(--ink);
+  text-decoration: none;
+  transition: box-shadow var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+
+/* §3: a clickable card lifts 1px and deepens to --shadow-lg. */
+.articleCard:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+/*
+ * app.css:477: 56px, --r-md, Design's stripes. Doubled class so it outranks the
+ * news frame's own size and stripes whatever order the two modules load in.
+ */
+.articleThumb.articleThumb {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  aspect-ratio: auto;
+  border-radius: var(--r-md);
+  background: repeating-linear-gradient(
+    45deg,
+    var(--surface2),
+    var(--surface2) 6px,
+    var(--sunken) 6px,
+    var(--sunken) 12px
+  );
+}
+
+/* Design's placeholder is the stripes alone. */
+.articleThumb svg {
+  display: none;
+}
+
+.articleThumbSkeleton {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-md);
+}
+
+/* app.css:478. */
+.articleBody {
+  flex: 1;
+  min-width: 0;
+}
+
+/* app.css:479: pills at the start, the date at the end. */
+.articleTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.articleTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* app.css:471 .cat-pill's size, over the shared pill's colours. Compound so it
+   beats the news module's .pill whichever loads last. */
+.articleTop .catPill {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/*
+ * app.css:480 .ac-time: 12px. Design's --ink3 is under AA for text, so --ink2
+ * (recorded in design-known-divergences.md).
+ */
+.articleDate {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--ink2);
+  white-space: nowrap;
+}
+
+/* app.css:482. */
+.articleTitle {
+  display: block;
+  margin-top: 6px;
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 /* ── Focus ring (§3, §10) ──────────────────────────────────────────────────── */
@@ -968,7 +1171,8 @@ html[lang="ar"] .heroJadeLabel {
 .seeAll:focus-visible,
 .mentionBadge:focus-visible,
 .retryButton:focus-visible,
-.quickLink:focus-visible {
+.quickLink:focus-visible,
+.articleCard:focus-visible {
   outline: 2px solid var(--jade);
   outline-offset: 2px;
 }
@@ -1004,6 +1208,7 @@ html[lang="ar"] .heroJadeLabel {
 
   .cardLink,
   .quickLink,
+  .articleCard,
   .retryButton {
     transition-duration: var(--dur-instant);
     transition-timing-function: linear;
@@ -1016,7 +1221,8 @@ html[lang="ar"] .heroJadeLabel {
   }
 
   .cardLink:hover,
-  .quickLink:hover {
+  .quickLink:hover,
+  .articleCard:hover {
     transform: none;
   }
 
