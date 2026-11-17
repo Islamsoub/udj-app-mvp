@@ -233,6 +233,14 @@ html[lang="ar"] .welcomeTitle {
   text-decoration: underline;
 }
 
+/* The same link look on a button ("Tout voir" opens the bell's popover). */
+.seeAllButton {
+  border: none;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
 /*
  * The body is a single grid cell that every state shares. Stacking them is what
  * makes §5's "crossfade into real content" possible — the outgoing skeleton and
@@ -858,54 +866,12 @@ html[lang="ar"] .heroJadeLabel {
   border-top: 1px solid var(--hair);
 }
 
-/* app.css:132-133: 32px, --r-sm, a 15px glyph. Tint per type below. */
-.notifChip {
-  display: flex;
+/* The skeleton's chip-sized block (the real chip is components/notifications). */
+.notifChipSkeleton {
   flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
   width: 32px;
   height: 32px;
   border-radius: var(--r-sm);
-}
-
-.notifChipIcon {
-  width: 15px;
-  height: 15px;
-}
-
-/*
- * Graphics on their tints, light / dark (3:1 needed; decorative anyway — the
- * title carries the meaning):
- *   GRADES      --jade-text   on --jade-faint  5.56 / 6.31
- *   ATTENDANCE  --warning-ink on --warning-bg  5.74 / 6.08  (Design: --warning, 1.93 in light)
- *   SCHEDULE    --exam        on --exam-bg     3.65 / 4.18
- *   NEWS        --info        on --info-bg     3.21 / 4.15
- *   GENERAL     --ink2        on --sunken      neutral
- */
-.chipGrades {
-  background: var(--jade-faint);
-  color: var(--jade-text);
-}
-
-.chipAttendance {
-  background: var(--warning-bg);
-  color: var(--warning-ink);
-}
-
-.chipSchedule {
-  background: var(--exam-bg);
-  color: var(--exam);
-}
-
-.chipNews {
-  background: var(--info-bg);
-  color: var(--info);
-}
-
-.chipGeneral {
-  background: var(--sunken);
-  color: var(--ink2);
 }
 
 .notifText {

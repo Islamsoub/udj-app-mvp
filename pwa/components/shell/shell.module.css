@@ -588,8 +588,11 @@ html[lang="ar"] .title {
   }
 }
 
-/* app.css:114 .topbar-right: 10px between the bell and the avatar. */
+/* app.css:114 .topbar-right: 10px between the bell and the avatar.
+   position: relative makes it the notification panel's anchor on a phone,
+   where the bell's own wrapper steps aside (notifications.module.css). */
 .topbarActions {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;

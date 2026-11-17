@@ -391,6 +391,10 @@ export const getNotifications = (limit?: number, offset?: number) =>
 export const markAllNotificationsRead = () =>
   patchJson<MarkAllReadResponse>('/student/notifications/read-all');
 
+/** Marks one notification read. The server checks it belongs to this student. */
+export const markNotificationRead = (id: string) =>
+  patchJson<{ success: boolean }>(`/student/notifications/${encodeURIComponent(id)}/read`);
+
 export const updatePreferences = (payload: PreferencesPayload) =>
   patchJson<StudentPreferences>('/student/preferences', payload);
 

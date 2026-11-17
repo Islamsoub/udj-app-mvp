@@ -1,0 +1,431 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Notifications — the typed chip shared by the dashboard card and the topbar
+   popover, and the popover itself (design/spec-pack/specs/pwa/dashboard/
+   bell-states.html, "NEW popover rules", with css/app.css:128-135).
+
+   Logical properties only; no [dir="rtl"] selector.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Chip (app.css:132-133) ────────────────────────────────────────────────── */
+
+.chip {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+}
+
+.chipIcon {
+  width: 15px;
+  height: 15px;
+}
+
+/*
+ * Graphics on their tints, light / dark (3:1 needed; decorative anyway — the
+ * title carries the meaning):
+ *   GRADES      --jade-text   on --jade-faint  5.56 / 6.31
+ *   ATTENDANCE  --warning-ink on --warning-bg  5.74 / 6.08  (Design: --warning, 1.93 in light)
+ *   SCHEDULE    --exam        on --exam-bg     3.65 / 4.18
+ *   NEWS        --info        on --info-bg     3.21 / 4.15
+ *   GENERAL     --ink2        on --sunken      neutral
+ */
+.chipGrades {
+  background: var(--jade-faint);
+  color: var(--jade-text);
+}
+
+.chipAttendance {
+  background: var(--warning-bg);
+  color: var(--warning-ink);
+}
+
+.chipSchedule {
+  background: var(--exam-bg);
+  color: var(--exam);
+}
+
+.chipNews {
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.chipGeneral {
+  background: var(--sunken);
+  color: var(--ink2);
+}
+
+/* ── Anchoring ─────────────────────────────────────────────────────────────── */
+
+/*
+ * app.css:128: the panel hangs 8px under the bell, its end edge on the bell's.
+ * That anchor is this wrapper. Below 640px the bell sits about 80px in from the
+ * screen's end, and a 320px panel ending there would run off the other side —
+ * so on a phone the wrapper stops being the anchor and the topbar's actions
+ * (.topbarActions, position: relative in shell.module.css) take over: the panel
+ * then ends where the avatar ends, 24px in from the screen edge, and is never
+ * wider than the screen minus 24px on each side.
+ */
+.bellWrap {
+  position: relative;
+}
+
+@media (max-width: 639px) {
+  .bellWrap {
+    position: static;
+  }
+}
+
+/* ── Panel (app.css:128) ───────────────────────────────────────────────────── */
+
+.panel {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  width: 320px;
+  max-width: calc(100vw - 48px);
+  overflow: hidden;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  color: var(--ink);
+  text-align: start;
+  /* Same entrance as the avatar menu (§5 popover). */
+  transform-origin: top var(--sweep-origin, right);
+  animation: panelIn var(--dur-fast) var(--ease-out);
+}
+
+.panel:focus {
+  outline: none;
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+}
+
+/* ── Header (.np-head) ─────────────────────────────────────────────────────── */
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 10px;
+}
+
+.title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* .np-count: mono figure on the jade tint (5.56 / 6.31). */
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: var(--jade-faint);
+  color: var(--jade-text);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/*
+ * .np-markall. Two departures, both for contrast (design-known-divergences.md):
+ * Design's hover turns the text --jade-hover, which is under AA as text, so the
+ * hover underlines instead; and its disabled colour is --ink3, reserved for
+ * non-text in the PWA, so a disabled button is --ink2.
+ */
+.markAll {
+  margin-inline-start: auto;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  color: var(--jade-text);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.markAll:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.markAll:disabled {
+  color: var(--ink2);
+  cursor: default;
+}
+
+/* ── Strips (.np-strip) ────────────────────────────────────────────────────── */
+
+.strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 12px 8px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: var(--warning-bg);
+  font-size: 12px;
+  color: var(--ink);
+}
+
+.stripDot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--warning);
+}
+
+.stripError {
+  background: var(--danger-bg);
+}
+
+.stripError .stripDot {
+  background: var(--danger);
+}
+
+/* ── List and rows (.np-list, .notif-row) ──────────────────────────────────── */
+
+.list {
+  max-height: 420px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+/* app.css:131: 10px 16px, a hairline above each. A button, so the whole row
+   marks the notification read and opens its section. */
+.row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-top: 1px solid var(--hair);
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.row:hover {
+  background: var(--surface2);
+}
+
+.rowBody {
+  flex: 1;
+  min-width: 0;
+}
+
+/* app.css:134; .notif-row.unread / .read. */
+.rowTitle {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.unread .rowTitle {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.read .rowTitle {
+  font-weight: 500;
+  color: var(--ink2);
+}
+
+/* app.css:135 at --ink2 (Design: --ink3, under AA for text). */
+.rowTime {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--ink2);
+}
+
+/* .np-dot. Decorative: "Non lue" is in the row's text for assistive tech. */
+.dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--jade);
+}
+
+/* ── Skeleton (.np-sk) ─────────────────────────────────────────────────────── */
+
+.sk {
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--hair);
+}
+
+.skLines {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.skBlock {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--sunken) 0%, var(--surface2) 50%, var(--sunken) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.skChip {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.skTitle {
+  width: 82%;
+  height: 11px;
+}
+
+.skTime {
+  width: 28%;
+  height: 9px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ── Empty / error / offline (.np-state) ───────────────────────────────────── */
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 24px 26px;
+  border-top: 1px solid var(--hair);
+  text-align: center;
+}
+
+/* Icon only, so --ink3 is within its rule. */
+.stateIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 12px;
+  border-radius: 50%;
+  background: var(--surface2);
+  color: var(--ink3);
+}
+
+.stateIcon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.stateIconError {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.stateTitle {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.stateBody {
+  max-width: 240px;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink2);
+}
+
+/* app.css:219-220 .btn-ghost. */
+.retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  margin-top: 14px;
+  padding: 0 14px;
+  border: 1px solid var(--hair2);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--ink2);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.retry:hover {
+  border-color: var(--jade);
+  color: var(--jade-text);
+}
+
+/* ── Focus and motion ──────────────────────────────────────────────────────── */
+
+.markAll:focus-visible,
+.row:focus-visible,
+.retry:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: -2px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation-duration: var(--dur-instant);
+    animation-timing-function: linear;
+  }
+
+  .skBlock {
+    animation: none;
+  }
+
+  .row {
+    transition-duration: var(--dur-instant);
+  }
+}

@@ -39,8 +39,13 @@ const STORE = 'cache';
  * the query params it may carry; a request with any other param is not cached
  * at all rather than cached under a key nobody will look up.
  *
- * Never cached: /auth/*, /student/notifications, /student/preferences, /news,
- * and any request that is not a GET (the justification upload included).
+ * Never cached: /auth/*, /student/preferences, /news, and any request that is
+ * not a GET (the justification upload included, and the notifications'
+ * mark-as-read PATCHes).
+ *
+ * /student/notifications is cached so the topbar bell keeps its dot and its
+ * popover shows the last list offline. Its `limit` and `offset` are part of the
+ * key; the shell always asks for the same page, so there is one entry.
  *
  * ── QR TOKENS MUST NEVER BE ADDED HERE ──────────────────────────────────────
  * If a rotating QR / student-card token endpoint lands, it stays off this list.
@@ -53,6 +58,7 @@ const CACHEABLE = new Map<string, readonly string[]>([
   ['/student/schedule', ['semesterId']],
   ['/student/grades', ['semesterId', 'allSemesters']],
   ['/student/attendance', []],
+  ['/student/notifications', ['limit', 'offset']],
 ]);
 
 /** One stored response. `path` is the normalised key, and the store's keyPath. */
@@ -513,6 +519,15 @@ export function forgetServed(): void {
   if (served.size === 0) return;
   served.clear();
   publish();
+}
+
+/**
+ * Whether the last answer for `key` came from the store rather than the
+ * network — read right after a request settles, by a caller that has to say
+ * so on screen (the notification popover's "liste du dernier chargement").
+ */
+export function isServedFromCache(key: string): boolean {
+  return served.has(key);
 }
 
 /** For useSyncExternalStore. */

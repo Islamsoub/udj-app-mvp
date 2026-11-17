@@ -77,6 +77,30 @@
       "other": "Notifications, {{count}} non lues"
     }
   },
+  "bell": {
+    "title": "Notifications",
+    "count": {
+      "zero": "0 non lue",
+      "one": "1 non lue",
+      "two": "{{count}} non lues",
+      "few": "{{count}} non lues",
+      "many": "{{count}} non lues",
+      "other": "{{count}} non lues"
+    },
+    "mark_all": "Tout marquer comme lu",
+    "loading": "Chargement des notifications…",
+    "empty_title": "Aucune notification",
+    "empty_body": "Les nouvelles notes, absences et annonces apparaîtront ici.",
+    "error_title": "Impossible de charger les notifications",
+    "error_body": "Vérifiez votre connexion puis réessayez.",
+    "strip_error": "Actualisation impossible — liste du dernier chargement.",
+    "strip_offline": "Hors ligne — notifications enregistrées.",
+    "offline_title": "Notifications indisponibles hors ligne",
+    "offline_body": "Elles s'afficheront dès le retour du réseau."
+  },
+  "notifications": {
+    "mark_failed": "Impossible de marquer comme lu. Réessayez."
+  },
   "dashboard": {
     "heading": "Accueil",
     "welcome": {
@@ -143,7 +167,8 @@
       "title": "Notifications",
       "none": "Aucune nouvelle notification.",
       "yesterday": "Hier",
-      "unread_sr": ", non lue"
+      "unread_sr": ", non lue",
+      "see_all": "Tout voir"
     },
     "quick_links": {
       "title": "Accès rapide",
