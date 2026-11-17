@@ -89,25 +89,33 @@
       "error": "Impossible de charger cette section.",
       "offline": "Indisponible hors ligne."
     },
-    "next_class": {
-      "title": "Prochain cours",
-      "empty": "Aucun cours à venir cette semaine.",
-      "starting_now": "Maintenant",
-      "in_minutes": "Dans {{count}} min",
-      "today_at": "Aujourd'hui · {{time}}",
-      "in_days": "Dans {{count}} j"
+    "today": {
+      "title": "Aujourd'hui · {{weekday}} {{day}} {{month}}",
+      "see_all": "Voir tout",
+      "none": "Aucun cours aujourd'hui.",
+      "pill": {
+        "now": "Prochain cours : maintenant",
+        "minutes": "Prochain cours dans {{count}} min",
+        "today_at": "Prochain cours à {{time}}",
+        "days": {
+          "zero": "Prochain cours aujourd'hui",
+          "one": "Prochain cours demain",
+          "two": "Prochain cours dans {{count}} jours",
+          "few": "Prochain cours dans {{count}} jours",
+          "many": "Prochain cours dans {{count}} jours",
+          "other": "Prochain cours dans {{count}} jours"
+        }
+      }
     },
     "gpa": {
       "title": "Moyenne générale",
-      "scale": "/ 20",
-      "empty_title": "Résultats non publiés",
       "empty_body": "Votre moyenne apparaîtra ici dès la publication de vos notes.",
-      "pending": "{{semester}} en attente"
+      "pending": "{{semester}} en attente",
+      "scale_short": "/20"
     },
     "attendance": {
       "title": "Présence",
       "empty": "Aucune séance enregistrée pour le moment.",
-      "sessions": "{{present}} séances suivies sur {{total}}",
       "threshold": "Seuil : {{threshold}}",
       "ok": "Toutes les matières au-dessus du seuil",
       "near": {
@@ -128,7 +136,8 @@
         "few": "+ {{k}} autres matières",
         "many": "+ {{k}} autres matières",
         "other": "+ {{k}} autres matières"
-      }
+      },
+      "rate": "TAUX"
     },
     "notifications": {
       "title": "Notifications",

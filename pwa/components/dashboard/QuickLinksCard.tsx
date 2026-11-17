@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n-types';
 import { Card } from './Card';
-import { AttendanceIcon, CalendarIcon, ChartIcon, GridIcon, NewsIcon } from './icons';
+import { AttendanceIcon, CalendarIcon, ChartIcon, NewsIcon } from './icons';
 import styles from './dashboard.module.css';
 
 /**
@@ -32,11 +32,19 @@ const LINKS: readonly {
  * It still takes its place in the §4 stagger, because the entrance is about the
  * page assembling, not about data arriving.
  */
-export function QuickLinksCard({ index, animate }: { index: number; animate: boolean }) {
+export function QuickLinksCard({
+  index,
+  animate,
+  className,
+}: {
+  index: number;
+  animate: boolean;
+  className?: string;
+}) {
   const { t } = useI18n();
 
   return (
-    <Card title={t('dashboard.quick_links.title')} icon={<GridIcon />} index={index} animate={animate}>
+    <Card title={t('dashboard.quick_links.title')} className={className} index={index} animate={animate}>
       <div className={styles.quickGrid}>
         {LINKS.map(({ href, labelKey, Icon }) => (
           <Link key={href} href={href} className={styles.quickLink}>

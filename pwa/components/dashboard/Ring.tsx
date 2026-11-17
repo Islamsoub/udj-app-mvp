@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import type { AttendanceBand } from '@/lib/api-types';
 import { percentText } from '@/lib/bidi';
+import { useI18n } from '@/lib/i18n';
 import { takeOnce } from './session-flags';
 import styles from './dashboard.module.css';
 
-const SIZE = 84;
-const STROKE = 8;
+/* app.css:185-186: an 88px gauge whose hole is inset 9px, so the band is 9px. */
+const SIZE = 88;
+const STROKE = 9;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
@@ -18,7 +20,11 @@ const STROKE_CLASS: Record<AttendanceBand, string> = {
 };
 
 /**
- * The attendance gauge (§5).
+ * The attendance gauge (§5; drawn to app.css:184-188).
+ *
+ * Design draws it with a conic-gradient; this is an SVG stroke of the same
+ * geometry, because a stroke can animate its fill from 0 and a gradient stop
+ * cannot. Square ends, as a conic band has.
  *
  * Fills from 0% to its value once, on first paint of the view, over --dur-slow
  * with --ease-in-out, and does not replay when the student navigates back in the
@@ -43,47 +49,42 @@ export function Ring({
   band: AttendanceBand;
   label: string;
 }) {
+  const { t } = useI18n();
   const [filling] = useState(() => takeOnce('dashboard_ring_attendance'));
 
   const clamped = Math.max(0, Math.min(100, percentage));
   const offset = CIRCUMFERENCE * (1 - clamped / 100);
 
   return (
-    <svg
-      className={styles.ring}
-      viewBox={`0 0 ${SIZE} ${SIZE}`}
-      role="img"
-      aria-label={label}
-      style={
-        {
-          '--ring-circumference': `${CIRCUMFERENCE}`,
-          '--ring-offset': `${offset}`,
-        } as React.CSSProperties
-      }
-    >
-      <circle className={styles.ringTrack} cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} strokeWidth={STROKE} />
-      <circle
-        className={`${styles.ringValue} ${STROKE_CLASS[band]} ${filling ? styles.ringFilling : ''}`}
-        cx={SIZE / 2}
-        cy={SIZE / 2}
-        r={RADIUS}
-        strokeWidth={STROKE}
-      />
-      {/*
-        The percentage sits inside the ring. `.num` keeps it on the Latin face in
-        Arabic, per the design-system rule that every number does.
-      */}
-      <text
-        className={`${styles.ringLabel} num`}
-        x="50%"
-        y="50%"
-        textAnchor="middle"
-        dominantBaseline="central"
+    <div className={styles.gauge} role="img" aria-label={label}>
+      <svg
+        className={styles.ring}
+        viewBox={`0 0 ${SIZE} ${SIZE}`}
+        aria-hidden="true"
+        style={
+          {
+            '--ring-circumference': `${CIRCUMFERENCE}`,
+            '--ring-offset': `${offset}`,
+          } as React.CSSProperties
+        }
       >
-        {/* An SVG <text> cannot hold a <bdi>, and does not need one: with no
-            Arabic letter before it in the element, "92%" keeps its order. */}
-        {percentText(clamped)}
-      </text>
-    </svg>
+        <circle className={styles.ringTrack} cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} strokeWidth={STROKE} />
+        <circle
+          className={`${styles.ringValue} ${STROKE_CLASS[band]} ${filling ? styles.ringFilling : ''}`}
+          cx={SIZE / 2}
+          cy={SIZE / 2}
+          r={RADIUS}
+          strokeWidth={STROKE}
+        />
+      </svg>
+      {/* app.css:187-188, the hole: the figure over "TAUX". The figure is in
+          `.num` and isolated LTR, so "87%" keeps its order in Arabic. */}
+      <span className={styles.gaugeHole} aria-hidden="true">
+        <b className={`${styles.gaugeFigure} num`}>
+          <bdi dir="ltr">{percentText(clamped)}</bdi>
+        </b>
+        <small className={styles.gaugeCaption}>{t('dashboard.attendance.rate')}</small>
+      </span>
+    </div>
   );
 }

@@ -9,7 +9,6 @@ import { useI18n, type I18nValue } from '@/lib/i18n';
 import type { Lang } from '@/lib/i18n-shared';
 import { Card, CardStates, EmptyState } from './Card';
 import { Interpolated } from './Interpolated';
-import { AttendanceIcon } from './icons';
 import { Ring } from './Ring';
 import { useCardData } from './useCardData';
 import styles from './dashboard.module.css';
@@ -56,22 +55,32 @@ function num(value: number): ReactNode {
  * never compared against: the response has already passed
  * checkAttendanceContract inside getAttendance, so `band` is always present.
  */
-export function AttendanceCard({ index, animate, online }: { index: number; animate: boolean; online: boolean }) {
+export function AttendanceCard({
+  index,
+  animate,
+  online,
+  className,
+}: {
+  index: number;
+  animate: boolean;
+  online: boolean;
+  className?: string;
+}) {
   const { t, plural, lang } = useI18n();
   const state = useCardData<AttendanceResponse>(() => getAttendance(), online);
 
   return (
     <Card
       title={t('dashboard.attendance.title')}
-      icon={<AttendanceIcon />}
       href="/attendance"
+      className={className}
       index={index}
       animate={animate}
     >
       <CardStates
         state={state}
         skeleton={
-          <div className={styles.skeletonRow}>
+          <div className={styles.gaugeWrap}>
             <div className={`${styles.skeleton} ${styles.skeletonRing}`} />
             <div className={styles.skeletonStack} style={{ flex: 1 }}>
               <div className={`${styles.skeleton} ${styles.skeletonLine} ${styles.skeletonLineWide}`} />
@@ -93,34 +102,26 @@ export function AttendanceCard({ index, animate, online }: { index: number; anim
           const percentage = overall.percentage;
 
           return (
-            <div className={styles.heroRow}>
+            <div className={styles.gaugeWrap}>
               <Ring
                 percentage={percentage}
                 band={overall.band}
                 label={t('dashboard.attendance.title') + ' ' + percentText(percentage)}
               />
-              <div className={styles.attendanceText}>
-                <p className={styles.stateText}>
-                  {/* Interpolated, not t(...) with params: the two counts have to
-                      land on the Latin face without taking the Arabic words with
-                      them. */}
+              {/* app.css:189-192 .attend-note: the Seuil label in the overall
+                  band's colour, then the worst-subject line in its own. Design
+                  has no sessions sentence here; the attendance screen keeps it. */}
+              <p className={styles.attendNote}>
+                <strong className={`${styles.attendanceThreshold} ${THRESHOLD_TONE[overall.band]}`}>
                   <Interpolated
-                    template={t('dashboard.attendance.sessions')}
-                    values={{ present: overall.present, total: overall.total }}
+                    template={t('dashboard.attendance.threshold')}
+                    values={{ threshold: fmtPercent(data.attendanceThreshold) }}
                   />
-                </p>
-                <p className={styles.stateText}>
-                  <strong className={`${styles.attendanceThreshold} ${THRESHOLD_TONE[overall.band]}`}>
-                    <Interpolated
-                      template={t('dashboard.attendance.threshold')}
-                      values={{ threshold: fmtPercent(data.attendanceThreshold) }}
-                    />
-                  </strong>
-                  <span className={`${styles.attendanceLine} ${LINE_TONE[line.kind]}`}>
-                    <LineText line={line} lang={lang} t={t} plural={plural} />
-                  </span>
-                </p>
-              </div>
+                </strong>
+                <span className={`${styles.attendanceLine} ${LINE_TONE[line.kind]}`}>
+                  <LineText line={line} lang={lang} t={t} plural={plural} />
+                </span>
+              </p>
             </div>
           );
         }}

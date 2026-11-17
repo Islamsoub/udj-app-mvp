@@ -7,7 +7,6 @@ import { isolateLtrRuns } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { Card, CardStates, EmptyState } from './Card';
 import { Interpolated } from './Interpolated';
-import { NewsIcon } from './icons';
 import { useCardData } from './useCardData';
 import styles from './dashboard.module.css';
 
@@ -21,14 +20,24 @@ const PREVIEW_LIMIT = 3;
  * to the card, so nesting six more links inside a link would be both invalid
  * HTML and six more tab stops for one destination.
  */
-export function NewsCard({ index, animate, online }: { index: number; animate: boolean; online: boolean }) {
+export function NewsCard({
+  index,
+  animate,
+  online,
+  className,
+}: {
+  index: number;
+  animate: boolean;
+  online: boolean;
+  className?: string;
+}) {
   const { t, lang } = useI18n();
   const state = useCardData<NewsListResponse>(() => getNews({ limit: PREVIEW_LIMIT }), online);
 
   return (
     <Card
       title={t('dashboard.news.title')}
-      icon={<NewsIcon />}
+      className={className}
       href="/news"
       index={index}
       animate={animate}

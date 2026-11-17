@@ -559,31 +559,14 @@ html[lang="ar"] .detailType .typePill {
   color: var(--ink2);
 }
 
-/* The type's colour as a rule down the inline-start edge of the body.
-   Named per type rather than taken from currentColor: the .typeX `color` is the
-   darker ink meant for text, and a bar stays on the status hue — it needs 3:1,
-   not 4.5:1. */
+/* The type's colour as a rule down the inline-start edge of the body. The
+   colour comes inline from course-type.ts's typeRailColor — the status hue,
+   shared with the dashboard's class rail. */
 .dayRule {
   flex-shrink: 0;
   width: 3px;
   border: 0;
   border-radius: 9999px;
-}
-
-.dayRule.typeCm {
-  background: var(--info);
-}
-
-.dayRule.typeTd {
-  background: var(--jade-text);
-}
-
-.dayRule.typeTp {
-  background: var(--warning);
-}
-
-.dayRule.typeExam {
-  background: var(--exam);
 }
 
 .dayBody {

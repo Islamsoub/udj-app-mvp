@@ -71,6 +71,31 @@ export function findNextClass(entries: readonly ScheduleEntry[], now: number): N
   return best;
 }
 
+/**
+ * Every class on today's weekday, earliest first — the Aujourd'hui card's list.
+ *
+ * All of today's, including those already over: the card is the day's agenda,
+ * and a class that ended at 10:00 is still one the student had. The pill, not
+ * the list, answers "what next".
+ *
+ * The same weekday rules as findNextClass (lib/teaching-week): an entry on a day
+ * the schedule screen does not draw is never listed, and an entry whose start
+ * time cannot be read is dropped rather than sorted to an arbitrary place.
+ * Ties on start time fall back to the end time, so the order is stable.
+ */
+export function todaysClasses(entries: readonly ScheduleEntry[], now: number): ScheduleEntry[] {
+  const weekday = new Date(now).getDay();
+  if (!isTeachingDay(weekday)) return [];
+
+  return entries
+    .filter((entry) => entry.dayOfWeek === weekday && minutesOf(entry.startTime) !== null)
+    .sort(
+      (a, b) =>
+        (minutesOf(a.startTime) ?? 0) - (minutesOf(b.startTime) ?? 0) ||
+        (minutesOf(a.endTime) ?? 0) - (minutesOf(b.endTime) ?? 0)
+    );
+}
+
 /** How the countdown pill should be phrased, as a key plus its interpolations. */
 export type CountdownParts =
   | { kind: 'now' }

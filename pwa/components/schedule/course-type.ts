@@ -42,6 +42,23 @@ const TYPE_LABELS: Record<CourseType, TranslationKey> = {
   EXAM: 'schedule.type.exam',
 };
 
+/**
+ * The type's colour as a bar — the schedule's day-list rule and the dashboard's
+ * class rail. The status hue, not the darker text ink the .typeX classes carry:
+ * a bar is a graphic and needs 3:1, not 4.5:1. One map, so the two screens
+ * cannot paint the same class two colours.
+ */
+const TYPE_RAIL: Record<CourseType, string> = {
+  CM: 'var(--info)',
+  TD: 'var(--jade-text)',
+  TP: 'var(--warning)',
+  EXAM: 'var(--exam)',
+};
+
+export function typeRailColor(type: CourseType): string {
+  return TYPE_RAIL[type];
+}
+
 /** Narrows the API's free-form `type` string, defaulting to the commonest. */
 export function courseType(raw: string): CourseType {
   const upper = raw.toUpperCase();

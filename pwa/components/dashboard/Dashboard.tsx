@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import { useOnline } from '@/components/shell/useOnline';
 import { AttendanceCard } from './AttendanceCard';
-import { GpaCard } from './GpaCard';
+import { AverageHero } from './AverageHero';
 import { NewsCard } from './NewsCard';
-import { NextClassCard } from './NextClassCard';
 import { NotificationsCard } from './NotificationsCard';
 import { QuickLinksCard } from './QuickLinksCard';
+import { TodayCard } from './TodayCard';
 import { takeOnce } from './session-flags';
 import { Welcome } from './Welcome';
 import styles from './dashboard.module.css';
@@ -50,13 +50,28 @@ export function Dashboard() {
       */}
       <Welcome />
 
+      {/*
+        app.css:154-159 with hardening.css:2-4. One column, then two from 640px,
+        then three from 1024px:
+
+          >= 1024   Aujourd'hui | average over attendance | Notifications
+          640-1023  Aujourd'hui | average over attendance
+                    Notifications, full width
+          both      Quick links, full width; News, full width
+          < 640     everything in one column, in DOM order
+
+        The DOM order IS the one-column reading order, the focus order and the
+        stagger order, so the three cannot drift apart.
+      */}
       <div className={styles.grid}>
-        <NextClassCard index={0} {...shared} />
-        <GpaCard index={1} {...shared} />
-        <AttendanceCard index={2} {...shared} />
-        <NotificationsCard index={3} animate={animate} />
-        <QuickLinksCard index={4} animate={animate} />
-        <NewsCard index={5} {...shared} />
+        <TodayCard index={0} {...shared} />
+        <div className={styles.stack}>
+          <AverageHero index={1} {...shared} />
+          <AttendanceCard index={2} {...shared} className={styles.attendanceCard} />
+        </div>
+        <NotificationsCard index={3} animate={animate} className={styles.notifCard} />
+        <QuickLinksCard index={4} animate={animate} className={styles.spanAll} />
+        <NewsCard index={5} {...shared} className={styles.spanAll} />
       </div>
     </>
   );

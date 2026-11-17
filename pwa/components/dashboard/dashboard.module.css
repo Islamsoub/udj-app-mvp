@@ -80,15 +80,60 @@ html[lang="ar"] .welcomeTitle {
 }
 
 /*
- * Two columns from 900px, one below. `auto-fit` with a minimum rather than a
- * fixed count so the cards reflow while the sidebar is collapsing, instead of
- * snapping at a breakpoint the sidebar animation passes through.
+ * app.css:154-159, with hardening.css:2-4's minmax(0, 1fr): a track never grows
+ * past its share to fit a long unbreakable word. Breakpoints are the viewport's
+ * 640 / 1024, the same as useLayoutMode, so the grid changes column count at
+ * the moment the sidebar changes mode.
  */
 .grid {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   align-items: start;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* app.css:159 .span-all: Quick links and News. */
+  .spanAll {
+    grid-column: 1 / -1;
+  }
+}
+
+/* app.css:158 .dash-notif-card: alone on its row between 640 and 1023, so it
+   takes the row rather than leaving half of it empty. */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .notifCard {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* dashboard.html:94: the average hero over the attendance card, 16px apart,
+   in one grid cell. */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* dashboard.html:101: 16px padding and flex: 1. Under the grid's
+   align-items: start the stack is only as tall as its content, so, as in
+   Design, flex: 1 has nothing to fill unless the row is stretched.
+   Compound with .card so it beats .card's 20px wherever the two rules sit in
+   this file; on its own it lost to source order. */
+.card.attendanceCard {
+  flex: 1;
+  padding: 16px;
 }
 
 /* ── Card ──────────────────────────────────────────────────────────────────── */
@@ -97,8 +142,8 @@ html[lang="ar"] .welcomeTitle {
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 148px;
-  padding: 16px;
+  /* app.css:153 .card. */
+  padding: 20px;
   border: 1px solid var(--hair);
   border-radius: var(--r-lg);
   background: var(--surface);
@@ -150,32 +195,42 @@ html[lang="ar"] .welcomeTitle {
 .cardHeader {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  justify-content: space-between;
+  gap: 12px;
+  /* app.css:160-162: 14px under the heading, with or without "Voir tout". */
+  margin-bottom: 14px;
 }
 
+/* app.css:160 .card h3. */
 .cardTitle {
+  min-width: 0;
   margin: 0;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink2);
+  color: var(--ink);
 }
 
-/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
-   because mirroring belongs to logical properties; letter-spacing belongs to
-   the script. Arabic letters join, and tracking pulls them apart in either
-   direction. This is not a breach of that rule, so do not remove it as one. */
-html[lang="ar"] .cardTitle {
-  letter-spacing: normal;
-}
-
-.cardIcon {
+/*
+ * app.css:161 .see-all, at the end of the heading row; nowrap per
+ * hardening.css:7. Raised above a stretched card link should the two ever meet.
+ * Its line is 12.5px; the 44px target comes from padding pulled back by an
+ * equal negative margin, so the row's height does not change.
+ */
+.seeAll {
+  position: relative;
+  z-index: 2;
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  color: var(--ink3);
+  margin-block: -14px;
+  padding-block: 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--jade-text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.seeAll:hover {
+  text-decoration: underline;
 }
 
 /*
@@ -300,15 +355,24 @@ html[lang="ar"] .cardTitle {
 }
 
 .skeletonRing {
-  width: 84px;
-  height: 84px;
+  flex-shrink: 0;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
 }
 
-.skeletonRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+/* The countdown pill's and the mention badge's footprint. */
+.skeletonPill {
+  width: 170px;
+  height: 26px;
+  margin-bottom: 14px;
+  border-radius: 9999px;
+}
+
+/* The hero's 32px value. */
+.skeletonHeroValue {
+  width: 120px;
+  height: 32px;
 }
 
 /* ── Empty / error / offline (§5, §8) ──────────────────────────────────────── */
@@ -373,31 +437,20 @@ html[lang="ar"] .cardTitle {
   transform: scale(0.97);
 }
 
-/* ── Next class ────────────────────────────────────────────────────────────── */
-
-.nextClassTop {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.subjectName {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.3;
-  color: var(--ink);
-}
+/* ── Aujourd'hui (app.css:170-177, hardening.css:9-10) ─────────────────────── */
 
 /*
- * §9: the pill swaps its text every 60s with NO transition. There is
- * deliberately no `transition` or `animation` on this rule — a ticking timer
- * that animates draws the eye away from whatever the student is actually doing.
+ * app.css:177 .countdown. §9: the text swaps every minute with NO transition.
+ * There is deliberately no `transition` or `animation` here: a ticking timer
+ * that animates draws the eye away from whatever the student is doing.
  */
-.countdownPill {
-  flex-shrink: 0;
-  padding: 4px 10px;
+.countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  margin: 0 0 14px;
+  padding: 5px 11px;
   border-radius: 9999px;
   background: var(--jade-faint);
   color: var(--jade-text);
@@ -406,83 +459,252 @@ html[lang="ar"] .cardTitle {
   white-space: nowrap;
 }
 
-.meta {
+.countdownIcon {
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+}
+
+.miniList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* app.css:170-171: rows divided by a hairline; the first has neither. */
+.miniClass {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px 12px;
-  margin-top: 10px;
-  font-size: 12.5px;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--hair);
+}
+
+.miniClass:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+/* app.css:172: 4 x 38. The colour arrives inline: the class type's. */
+.miniRail {
+  flex-shrink: 0;
+  width: 4px;
+  height: 38px;
+  border-radius: 4px;
+}
+
+.miniBody {
+  flex: 1;
+  min-width: 0;
+}
+
+/* app.css:174, cut with "…" when long. hardening.css:10 sets the overflow and
+   the ellipsis but not nowrap, without which a long name wraps instead. */
+.miniSubject {
+  margin: 0;
+  overflow: hidden;
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.miniRoom {
+  margin: 2px 0 0;
+  font-size: 12px;
   color: var(--ink2);
 }
 
-.metaItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.metaIcon {
-  width: 14px;
-  height: 14px;
-  color: var(--ink3);
-}
-
-/* ── Hero stats ────────────────────────────────────────────────────────────── */
-
-.heroRow {
+/* app.css:176: mono 12px, start over end, at the inline end. */
+.miniTime {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
+  flex-shrink: 0;
+  margin: 0;
+  margin-inline-start: auto;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink2);
+  text-align: end;
 }
 
-.heroValue {
+/* ── Moyenne générale: jade hero (app.css:380-385, dashboard.html:95-100) ──── */
+
+.heroJade {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  /* dashboard.html:95: 18px here, not .hero-jade's 22. */
+  padding: 18px;
+  border-radius: 22px;
+  background: var(--hero-card-bg);
+  box-shadow: var(--shadow-hero);
+  color: var(--hero-ink);
+}
+
+/* app.css:381: decorative, in the top inline-end corner. */
+.heroDepth {
+  position: absolute;
+  top: -48px;
+  inset-inline-end: -48px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: var(--hero-circle);
+  pointer-events: none;
+}
+
+/* app.css:382 .hj-label. */
+.heroJadeLabel {
+  position: relative;
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--hero-ink);
+}
+
+/* Keyed on language, not direction: Arabic letters join, and tracking pulls
+   them apart. Not a breach of the no-[dir="rtl"] rule. */
+html[lang="ar"] .heroJadeLabel {
+  letter-spacing: normal;
+}
+
+/* app.css:383 .hj-value at the dashboard's 32px. A flex row so fmtScaled's
+   group and the semester sit on one baseline. */
+.heroJadeValue {
+  position: relative;
   display: flex;
   align-items: baseline;
-  gap: 4px;
-}
-
-.heroNumber {
-  font-size: 34px;
-  font-weight: 800;
+  margin: 6px 0 0;
+  font-size: 32px;
+  font-weight: 500;
   line-height: 1;
-  letter-spacing: -0.03em;
-  color: var(--ink);
+  color: var(--hero-ink);
 }
 
-.heroScale {
+/* app.css:384 .suf. Solid --hero-ink, as everything on the hero. */
+.heroJadeSuffix {
+  font-size: 17px;
+  font-weight: 400;
+  white-space: pre;
+}
+
+/* app.css:385 .mention-badge: the link to /grades, as in Design. */
+.mentionBadge {
+  position: relative;
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  background: var(--hero-badge);
+  color: var(--hero-ink);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.mentionBadge:hover {
+  background: var(--hero-chip-hover);
+}
+
+.mentionDot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* "S3 en attente", under the badge. Solid ink: 85% white would be 3.74:1. */
+.heroJadeNote {
+  position: relative;
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--hero-ink);
+}
+
+/* No published average: a plain sentence where the figure would be. */
+.heroJadeNone {
+  position: relative;
+  margin: 8px 0 0;
   font-size: 14px;
   font-weight: 600;
-  color: var(--ink2);
+  line-height: 1.45;
+  color: var(--hero-ink);
 }
 
+/* The shared states on jade: hero ink for the words, a white shimmer for the
+   skeleton, and the retry button on the chip wash. */
+.heroJade .stateText,
+.heroJade .stateTitle {
+  color: var(--hero-ink);
+}
+
+.heroJade .skeleton {
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, .14) 0%,
+    rgba(255, 255, 255, .26) 20%,
+    rgba(255, 255, 255, .14) 40%,
+    rgba(255, 255, 255, .14) 100%
+  );
+}
+
+.heroJade .retryButton {
+  border-color: transparent;
+  background: var(--hero-chip);
+  color: var(--hero-ink);
+}
+
+.heroJade .retryButton:hover {
+  background: var(--hero-chip-hover);
+}
+
+/* The Notifications card's caption under its count. */
 .heroCaption {
   margin: 8px 0 0;
   font-size: 12.5px;
   color: var(--ink2);
 }
 
-.mention {
-  display: inline-flex;
+/* ── Attendance gauge (app.css:184-192) ────────────────────────────────────── */
+
+/* app.css:184; 12px below 380px (hardening.css:11). */
+.gaugeWrap {
+  display: flex;
   align-items: center;
-  margin-top: 8px;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  background: var(--jade-faint);
-  color: var(--jade-text);
-  font-size: 12px;
-  font-weight: 700;
+  gap: 16px;
 }
 
-/* ── Attendance ring (§5) ──────────────────────────────────────────────────── */
+@media (max-width: 379px) {
+  .gaugeWrap {
+    gap: 12px;
+  }
+}
+
+.gauge {
+  position: relative;
+  flex-shrink: 0;
+  width: 88px;
+  height: 88px;
+}
 
 .ring {
-  flex-shrink: 0;
-  width: 84px;
-  height: 84px;
+  display: block;
+  width: 88px;
+  height: 88px;
   /*
    * The SVG is drawn with 0% at 12 o'clock going clockwise. Rotating -90deg puts
    * the start there; the sweep direction is not mirrored in RTL because a gauge
-   * is a dial, not a line of text — clockwise means "more" in both directions.
+   * is a dial, not a line of text: clockwise means "more" in both directions.
    */
   transform: rotate(-90deg);
 }
@@ -494,22 +716,21 @@ html[lang="ar"] .cardTitle {
 
 /*
  * §5: fills from 0% to its value once, on first paint of the view, over
- * --dur-slow with --ease-in-out.
+ * --dur-slow with --ease-in-out. Square ends, like Design's conic band.
  *
- * Done with stroke-dashoffset in CSS rather than in JS so that
- * prefers-reduced-motion can switch it off with one rule and leave the final
- * value rendered — the number stays correct, only the travel goes.
+ * stroke-dashoffset in CSS rather than JS, so prefers-reduced-motion can switch
+ * it off with one rule and leave the final value rendered.
  */
 .ringValue {
   fill: none;
-  stroke-linecap: round;
+  stroke-linecap: butt;
   stroke-dasharray: var(--ring-circumference);
   stroke-dashoffset: var(--ring-offset);
 }
 
 /*
- * ROUND2-CLOSEOUT §3 (A3): the stroke follows the server's overall band.
- * Measured on --surface, light / dark:
+ * ROUND2-CLOSEOUT §3 (A3), and dashboard.html:166's ATT_RING: the stroke
+ * follows the server's overall band. Measured on --surface, light / dark:
  *   ok     --jade         3.39 : 1 / 6.17 : 1
  *   near   --warning-ink  6.39 : 1 / 8.36 : 1
  *   below  --danger       3.76 : 1 / 5.56 : 1
@@ -537,22 +758,49 @@ html[lang="ar"] .cardTitle {
   }
 }
 
-/*
- * The text beside the ring: the sessions sentence, then the Seuil label and the
- * line under it (ROUND2-CLOSEOUT §3). min-width: 0 lets a long subject name
- * wrap instead of pushing the column past the card.
- */
-.attendanceText {
+/* app.css:187, the hole: inset 9px, so the 9px band shows around it. */
+.gaugeHole {
+  position: absolute;
+  inset: 9px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+/* app.css:188. */
+.gaugeFigure {
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: var(--ink);
 }
 
 /*
- * The Seuil label follows the overall band (§3, A2). On --surface, light /
- * dark: --jade-text 6.20 / 8.34, --warning-ink 6.39 / 8.36, --danger-ink
- * 6.54 / 7.59 (--jade-text measured for this rule; the other two are §3's).
+ * "TAUX". Design sets it in --ink3; the PWA reserves --ink3 for non-text (it is
+ * under AA, CLAUDE.md), so the word takes --ink2. Recorded in
+ * .claude/design-known-divergences.md.
+ */
+.gaugeCaption {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+
+/* app.css:189: the note beside the ring. */
+.attendNote {
+  min-width: 0;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
+/*
+ * The Seuil label follows the overall band (§3, A2; app.css:190). On --surface,
+ * light / dark: --jade-text 6.20 / 8.34, --warning-ink 6.39 / 8.36,
+ * --danger-ink 6.54 / 7.59.
  */
 .attendanceThreshold {
   font-weight: 700;
@@ -571,13 +819,14 @@ html[lang="ar"] .cardTitle {
 }
 
 /*
- * The line under the ring (§3). Its words carry the state on their own (§10:
- * colour is never the only signal); the colour repeats it. --ink2 (5.49 / 6.78
- * on --surface) for ok and term-over-ok, --warning-ink for near, --danger-ink
- * for below and term-over-below — the same measured inks as the Seuil label.
+ * The worst-subject line (§3; app.css:192 .worst). Its words carry the state on
+ * their own (§10: colour is never the only signal); the colour repeats it.
+ * --ink2 (5.49 / 6.78 on --surface) for ok and term-over-ok, --warning-ink for
+ * near, --danger-ink for below and term-over-below.
  */
 .attendanceLine {
   display: block;
+  margin-top: 2px;
 }
 
 .attendanceLineOk {
@@ -597,15 +846,6 @@ html[lang="ar"] .cardTitle {
 /* §5's "+ {k}" suffix stays on one line; it inherits the sentence's colour. */
 .attendanceOthers {
   white-space: nowrap;
-}
-
-/* Counter-rotated so the label reads horizontally inside the rotated SVG. */
-.ringLabel {
-  font-size: 17px;
-  font-weight: 800;
-  fill: var(--ink);
-  transform: rotate(90deg);
-  transform-origin: center;
 }
 
 /* ── Notifications ─────────────────────────────────────────────────────────── */
@@ -725,6 +965,8 @@ html[lang="ar"] .cardTitle {
 /* ── Focus ring (§3, §10) ──────────────────────────────────────────────────── */
 
 .cardTitleLink:focus-visible,
+.seeAll:focus-visible,
+.mentionBadge:focus-visible,
 .retryButton:focus-visible,
 .quickLink:focus-visible {
   outline: 2px solid var(--jade);
@@ -752,6 +994,12 @@ html[lang="ar"] .cardTitle {
     background-image: none;
     background-color: var(--sunken);
     animation: none;
+  }
+
+  /* Outranks the rule above on the jade hero, so restated with its own tone. */
+  .heroJade .skeleton {
+    background-image: none;
+    background-color: rgba(255, 255, 255, .14);
   }
 
   .cardLink,
