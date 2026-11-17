@@ -17,6 +17,7 @@ import { OfflineBanner } from './OfflineBanner';
 import { ProgressBar } from './ProgressBar';
 import { SessionExpiredModal } from './SessionExpiredModal';
 import { SessionWaiting } from './SessionWaiting';
+import { StudentProvider } from './StudentContext';
 import { Sidebar } from './Sidebar';
 import { TabBar } from './TabBar';
 import { Toast } from './Toast';
@@ -238,23 +239,31 @@ export function AppShell({ children }: { children: ReactNode }) {
         />
       )}
 
-      <div className={styles.column}>
-        <Topbar title={title} onLogout={handleLogout} />
-        <OfflineBanner offline={!online} staleSince={staleSince} />
+      {/*
+        Around the topbar AND the page: the topbar's initials and unread dot,
+        the dashboard greeting and its Notifications card all read one
+        /student/me and one /student/notifications from here. Inside the authed
+        branch, so neither request goes out before the session gate opens.
+      */}
+      <StudentProvider online={online}>
+        <div className={styles.column}>
+          <Topbar title={title} onLogout={handleLogout} />
+          <OfflineBanner offline={!online} staleSince={staleSince} />
 
-        {/* Sits at the top edge of the content area, per §4. */}
-        <ProgressBar pathname={pathname} />
+          {/* Sits at the top edge of the content area, per §4. */}
+          <ProgressBar pathname={pathname} />
 
-        <main
-          id="main-content"
-          className={`${styles.content} ${isMobile ? styles.contentMobile : ''}`}
-          // The skip link's target. -1 so it can receive focus programmatically
-          // without joining the tab order itself.
-          tabIndex={-1}
-        >
-          {children}
-        </main>
-      </div>
+          <main
+            id="main-content"
+            className={`${styles.content} ${isMobile ? styles.contentMobile : ''}`}
+            // The skip link's target. -1 so it can receive focus programmatically
+            // without joining the tab order itself.
+            tabIndex={-1}
+          >
+            {children}
+          </main>
+        </div>
+      </StudentProvider>
 
       {isMobile && <TabBar pathname={pathname} />}
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useI18n } from '@/lib/i18n';
 import { useOnline } from '@/components/shell/useOnline';
 import { AttendanceCard } from './AttendanceCard';
 import { GpaCard } from './GpaCard';
@@ -10,6 +9,7 @@ import { NextClassCard } from './NextClassCard';
 import { NotificationsCard } from './NotificationsCard';
 import { QuickLinksCard } from './QuickLinksCard';
 import { takeOnce } from './session-flags';
+import { Welcome } from './Welcome';
 import styles from './dashboard.module.css';
 
 /**
@@ -21,7 +21,6 @@ import styles from './dashboard.module.css';
  * the same single arrangement rather than three that could drift apart.
  */
 export function Dashboard() {
-  const { t } = useI18n();
   const { online } = useOnline();
 
   /*
@@ -47,15 +46,15 @@ export function Dashboard() {
       {/*
         §10 puts the page heading after the topbar actions in the reading order,
         which is here in the content area. The topbar's crossfading title is a
-        label, not a heading, so this is the page's only h1.
+        label, not a heading, so the welcome block's h1 is the page's only one.
       */}
-      <h1 className={styles.heading}>{t('dashboard.heading')}</h1>
+      <Welcome />
 
       <div className={styles.grid}>
         <NextClassCard index={0} {...shared} />
         <GpaCard index={1} {...shared} />
         <AttendanceCard index={2} {...shared} />
-        <NotificationsCard index={3} {...shared} />
+        <NotificationsCard index={3} animate={animate} />
         <QuickLinksCard index={4} animate={animate} />
         <NewsCard index={5} {...shared} />
       </div>

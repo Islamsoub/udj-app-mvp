@@ -423,35 +423,114 @@
 
 /* ── Topbar ────────────────────────────────────────────────────────────────── */
 
+/*
+ * app.css:110. Content-driven height: Design sets padding, not a height, so the
+ * bar is as tall as its tallest child (the avatar trigger) plus 16px above and
+ * below.
+ *
+ * Sticky because the DOCUMENT scrolls — .shell is min-height:100vh with no
+ * inner scroller — so a relative bar left with the page and the blur below had
+ * nothing to frost. No ancestor sets overflow, which is what lets sticky work
+ * here; adding one to .shell or .column would silently turn it off again.
+ * z-index 20 is Design's.
+ *
+ * The page's own --bg (not Design's hex, see CLAUDE.md: the PWA palette is its
+ * own) at 88%, frosted. -webkit-backdrop-filter for iOS Safari before 18, the
+ * same prefixed-pair pattern as the logo mask in login.module.css.
+ */
 .topbar {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  height: 64px;
   flex-shrink: 0;
+  padding-block: 16px;
   padding-inline: 24px;
-  background: var(--surface);
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   border-block-end: 1px solid var(--hair);
+}
+
+/*
+ * app.css:111-112. The same 640 / 1024 thresholds as useLayoutMode's tablet and
+ * desktop modes. Height follows the padding: 73px base, 77px tablet, 81px
+ * desktop (the 40px avatar trigger, the padding, the 1px border).
+ */
+@media (min-width: 640px) {
+  .topbar {
+    padding-block: 18px;
+    padding-inline: 32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .topbar {
+    padding-block: 20px;
+    padding-inline: 48px;
+  }
 }
 
 /*
  * §4: the page title crossfades over --dur-fast. Both the outgoing and incoming
  * titles are on screen at once, stacked in this grid cell, so it is a genuine
  * crossfade and not a fade-out-then-in with a blank frame between.
+ *
+ * HEIGHT — the bar keeps Design's height while the title is drawn larger.
+ *
+ * Design's .page-title is a 19px <h1> with no margin reset: the browser's
+ * 0.67em margin above and below, and line-height: normal. That box (49.4px in
+ * Latin, 57.4px in Arabic, where Noto Naskh's normal line is taller) is taller
+ * than the 40px avatar trigger, so it is what sets Design's bar height.
+ *
+ * The title is now 22px (a recorded divergence, below), but the bar must not
+ * grow. Shrinking a margin to compensate cannot do it: the 19 -> 22px growth of
+ * a `normal` line box is 3.8px in Latin and 5px in Arabic, so one margin is
+ * right for at most one script, and per-language margins would be hand-tuned
+ * constants that break when either font's metrics change.
+ *
+ * So the box is kept at its source. ::before is an invisible strut in the
+ * same grid cell, built exactly like Design's h1 — 19px, weight 800,
+ * line-height normal, 0.67em above and below — in whatever font the page is
+ * using. The cell takes the strut's height in every script; the 22px title,
+ * shorter than that box, is centred in it and no longer sets the height.
+ * Tailwind's preflight puts line-height 1.5 on <html>; `normal` here and on
+ * .title undoes it, as Design has no such reset.
+ *
+ * The crossfade is untouched: both title layers and the strut share the one
+ * grid cell, and the strut never changes, so the bar cannot move during a fade.
  */
 .titleStack {
   display: grid;
+  align-items: center;
   min-width: 0;
+  font-weight: 800;
+}
+
+.titleStack::before {
+  /* A zero-width space gives the strut a line box; the empty alt text keeps
+     it out of the accessibility tree. */
+  content: '\200B' / '';
+  grid-area: 1 / 1;
+  /* app.css:113 .page-title — Design's size, kept for the box only. */
+  font-size: 19px;
+  line-height: normal;
+  padding-block: 0.67em;
+  visibility: hidden;
 }
 
 .title {
   grid-area: 1 / 1;
   margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
+  /* Divergence from app.css:113's 19px — see
+     .claude/design-known-divergences.md. Sized to sit with the 24/28px
+     welcome heading below it. */
+  font-size: 22px;
+  line-height: normal;
+  letter-spacing: -0.3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -484,10 +563,11 @@ html[lang="ar"] .title {
   }
 }
 
+/* app.css:114 .topbar-right: 10px between the bell and the avatar. */
 .topbarActions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
@@ -521,36 +601,128 @@ html[lang="ar"] .title {
   }
 }
 
-/* ── Icon buttons (topbar avatar) ──────────────────────────────────────────── */
+/* ── Topbar buttons: bell and avatar (app.css:115-121) ─────────────────────── */
 
-.iconButton {
+/*
+ * The hitSlop equivalent. Both buttons keep Design's drawn size — the bell is a
+ * 38px circle, the avatar trigger 40px tall — and this transparent layer
+ * extends what can be clicked to at least 44x44 around it, the way hitSlop does
+ * in the app. Each inset is (size - 44px) / 2 when that is negative and 0
+ * otherwise: the avatar trigger, already wider than 44px, grows only in height.
+ * Percent insets resolve against the button itself, its containing block.
+ *
+ * Grows the hit area, not the box: the 10px gap between the two stays 10px on
+ * screen, and the extended areas (3px + 2px into it) still do not overlap.
+ */
+.hitSlop::after {
+  content: '';
+  position: absolute;
+  inset-block: min(0px, calc((100% - 44px) / 2));
+  inset-inline: min(0px, calc((100% - 44px) / 2));
+}
+
+/* app.css:115-117 .icon-btn. */
+.bellButton {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
   padding: 0;
   border: none;
-  border-radius: var(--r-sm);
-  background: none;
+  border-radius: 50%;
+  background: var(--surface2);
   color: var(--ink2);
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out),
     color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
 }
 
-.iconButton:hover {
+.bellButton:hover {
   background: var(--jade-faint);
-  color: var(--ink);
+  color: var(--jade-text);
 }
 
-.iconButton:active {
+.bellButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+/*
+ * app.css:118 .badge-dot. Decorative: the button's accessible name already says
+ * how many are unread, so the dot is not a second announcement.
+ */
+.badgeDot {
+  position: absolute;
+  top: 6px;
+  inset-inline-end: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--danger);
+  border: 1.5px solid var(--surface2);
+}
+
+/* app.css:119 .avatar-btn. */
+.avatarButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform var(--dur-instant) var(--ease-out);
+}
+
+/* app.css:120 .avatar. */
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  /*
+   * --jade-faint over an OPAQUE --bg, not over whatever is behind the bar.
+   * Both are translucent (--jade-faint is 10% jade, the bar 88% --bg), so with
+   * the faint tint alone, content scrolling under the bar showed through the
+   * disc: measured in light, the initials fell from 5.06:1 to 4.36 over --ink2
+   * text and 4.03 over solid --ink, under AA for 13px. At rest the bar is
+   * exactly --bg, so this is pixel-identical to Design until something scrolls
+   * beneath it, and the initials then hold 5.06 (light) / 6.94 (dark).
+   */
+  background: linear-gradient(var(--jade-faint), var(--jade-faint)), var(--bg);
+  color: var(--jade-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* The placeholder glyph, until /student/me has answered or when it cannot. */
+.avatar svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* app.css:121 .avatar-btn svg. Decorative, so --ink3 is within its rule. */
+.avatarChevron {
+  width: 13px;
+  height: 13px;
+  color: var(--ink3);
+}
+
+.bellButton:active,
+.avatarButton:active {
   transform: scale(0.97);
-}
-
-.iconButton svg {
-  width: 22px;
-  height: 22px;
 }
 
 /* ── Avatar menu (§5 popover) ──────────────────────────────────────────────── */
@@ -1054,7 +1226,8 @@ html[lang="ar"] .pageHeading {
 /* 2px jade, 2px offset, :focus-visible only — never on a mouse click. */
 .navItem:focus-visible,
 .collapseButton:focus-visible,
-.iconButton:focus-visible,
+.bellButton:focus-visible,
+.avatarButton:focus-visible,
 .menuItem:focus-visible,
 .buttonPrimary:focus-visible,
 .buttonSecondary:focus-visible,
@@ -1098,7 +1271,8 @@ html[lang="ar"] .pageHeading {
   .collapseLabel.navLabel,
   .collapseLabel.navLabelHidden,
   .chevron,
-  .iconButton,
+  .bellButton,
+  .avatarButton,
   .menuItem,
   .banner,
   .bannerHidden,
@@ -1124,7 +1298,8 @@ html[lang="ar"] .pageHeading {
 
   .navItem:active,
   .collapseButton:active,
-  .iconButton:active,
+  .bellButton:active,
+  .avatarButton:active,
   .menuItem:active,
   .buttonPrimary:active,
   .buttonSecondary:active,

@@ -67,10 +67,24 @@
     "account": "Mon compte",
     "logout": "Se déconnecter",
     "restoring_session": "Connexion à votre espace…",
-    "placeholder": "Cet écran arrive bientôt."
+    "placeholder": "Cet écran arrive bientôt.",
+    "notifications": {
+      "zero": "Notifications",
+      "one": "Notifications, 1 non lue",
+      "two": "Notifications, {{count}} non lues",
+      "few": "Notifications, {{count}} non lues",
+      "many": "Notifications, {{count}} non lues",
+      "other": "Notifications, {{count}} non lues"
+    }
   },
   "dashboard": {
     "heading": "Accueil",
+    "welcome": {
+      "greeting": "Bonjour, {{name}}",
+      "greeting_anonymous": "Bonjour",
+      "programme": "{{level}} {{programme}} · Semestre {{semester}}",
+      "programme_no_level": "{{programme}} · Semestre {{semester}}"
+    },
     "state": {
       "error": "Impossible de charger cette section.",
       "offline": "Indisponible hors ligne."

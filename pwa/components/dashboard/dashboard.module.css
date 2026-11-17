@@ -8,17 +8,75 @@
    grid, the card internals and the ring all mirror from `dir` on <html> alone.
    ───────────────────────────────────────────────────────────────────────────── */
 
-.heading {
-  margin: 0 0 20px;
+/*
+ * Welcome block — app.css:165-168, verbatim. The 24px under it is the inline
+ * margin-bottom on .welcome in dashboard.html:81.
+ */
+.welcome {
+  margin-block-end: 24px;
+}
+
+.welcomeTitle {
+  margin: 0;
   font-size: 24px;
   font-weight: 800;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.4px;
   color: var(--ink);
 }
 
+/* app.css:168. The loading bar is 1em tall, so it grows with the heading. */
+@media (min-width: 1024px) {
+  .welcomeTitle {
+    font-size: 28px;
+  }
+}
+
+.welcomeName {
+  color: var(--jade-text);
+}
+
+.welcomeSubtitle {
+  margin: 5px 0 0;
+  font-size: 14px;
+  color: var(--ink2);
+}
+
 /* Arabic: no tracking — see the note at .cardTitle. */
-html[lang="ar"] .heading {
+html[lang="ar"] .welcomeTitle {
   letter-spacing: normal;
+}
+
+/*
+ * Loading: one bar per line, 1em tall inside elements that keep their own font
+ * size and line height, so the block is the same height before and after the
+ * name arrives and the grid below does not jump.
+ */
+.welcomeSkeletonTitle,
+.welcomeSkeletonSubtitle {
+  display: inline-block;
+  height: 1em;
+  vertical-align: middle;
+}
+
+.welcomeSkeletonTitle {
+  width: 220px;
+}
+
+.welcomeSkeletonSubtitle {
+  width: 260px;
+}
+
+/* Visually hidden, still read — the loading heading's text. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /*

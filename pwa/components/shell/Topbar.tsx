@@ -3,23 +3,49 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
-import { AvatarIcon, LogoutIcon, NavIcon } from './icons';
+import { initialsOf } from '@/lib/student';
+import { AvatarIcon, BellIcon, ChevronDownIcon, LogoutIcon, NavIcon } from './icons';
 import { PageTitle } from './PageTitle';
+import { useStudent } from './StudentContext';
 import styles from './shell.module.css';
 
 /**
- * Page title plus the avatar menu. No notification bell — out of scope here, and
- * the §10 focus order accommodates it landing before the avatar later.
+ * Page title, the notification bell, and the avatar menu (app.css:113-121).
+ *
+ * The title stays the route's own name — "Accueil" on the dashboard, not
+ * Design's "Tableau de bord" (.claude/design-known-divergences.md). Only its
+ * type follows Design.
+ *
+ * Bell before avatar: §10's focus order runs topbar actions start to end.
  */
 export function Topbar({ title, onLogout }: { title: string; onLogout: () => void }) {
-  const { t } = useI18n();
+  const { t, plural } = useI18n();
+  const { me, unreadCount } = useStudent();
+
+  const unread = unreadCount ?? 0;
+  const initials = me ? initialsOf(me.firstName, me.lastName) : '';
 
   return (
     <header className={styles.topbar}>
       <PageTitle title={title} />
       <div className={styles.topbarActions}>
+        {/*
+          No action yet: the notification panel is a later mission. A real
+          button, so it is focusable and announced, and its name carries the
+          unread count the dot shows — the dot itself is decorative.
+        */}
+        <button
+          type="button"
+          className={`${styles.bellButton} ${styles.hitSlop}`}
+          aria-label={plural('shell.notifications', unread).replace(/\{\{count\}\}/g, String(unread))}
+        >
+          <BellIcon />
+          {unread > 0 && <span className={styles.badgeDot} aria-hidden="true" />}
+        </button>
+
         <AvatarMenu
           onLogout={onLogout}
+          initials={initials}
           label={t('shell.account')}
           profileLabel={t('nav.profile')}
           logoutLabel={t('shell.logout')}
@@ -39,11 +65,14 @@ export function Topbar({ title, onLogout }: { title: string; onLogout: () => voi
  */
 function AvatarMenu({
   onLogout,
+  initials,
   label,
   profileLabel,
   logoutLabel,
 }: {
   onLogout: () => void;
+  /** Empty until /student/me has answered, and when it never does. */
+  initials: string;
   label: string;
   profileLabel: string;
   logoutLabel: string;
@@ -95,13 +124,21 @@ function AvatarMenu({
       <button
         ref={triggerRef}
         type="button"
-        className={styles.iconButton}
+        className={`${styles.avatarButton} ${styles.hitSlop}`}
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={label}
       >
-        <AvatarIcon />
+        <span className={styles.avatar} aria-hidden="true">
+          {/*
+            <bdi>: the initials take their own script's direction, isolated
+            from the page's. Latin initials stay "AM" on an Arabic page, and
+            Arabic ones read right to left as Arabic does — see initialsOf.
+          */}
+          {initials ? <bdi>{initials}</bdi> : <AvatarIcon />}
+        </span>
+        <ChevronDownIcon className={styles.avatarChevron} />
       </button>
 
       {open && (

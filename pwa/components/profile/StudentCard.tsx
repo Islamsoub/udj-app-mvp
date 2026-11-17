@@ -7,6 +7,7 @@ import type { MeResponse } from '@/lib/api-types';
 import { fmtPercent, fmtRatio } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n-types';
+import { initialsOf, levelKeyFor } from '@/lib/student';
 import styles from './profile.module.css';
 
 /**
@@ -63,7 +64,7 @@ export function StudentCard({
             <span className={`${styles.code} num`}>{me.programme.code}</span>
           </Fact>
           <Fact label={t('profile.studies.level')}>
-            {t(LEVEL_KEY[me.programme.level] ?? 'profile.level.unknown')}
+            {t(levelKeyFor(me.programme.level) ?? 'profile.level.unknown')}
           </Fact>
           <Fact label={t('profile.studies.semester')}>
             <Interpolated
@@ -215,7 +216,7 @@ function Avatar({
   lastName: string;
 }) {
   const [failed, setFailed] = useState(false);
-  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const initials = initialsOf(firstName, lastName);
 
   return (
     <div className={styles.avatar} aria-hidden="true">
@@ -223,7 +224,7 @@ function Avatar({
         // A plain <img>: an external host, and a fixed-size box around it.
         <img className={styles.avatarImg} src={photoUrl} alt="" onError={() => setFailed(true)} />
       ) : (
-        <span className={styles.avatarInitials}>{initials}</span>
+        <bdi className={styles.avatarInitials}>{initials}</bdi>
       )}
     </div>
   );
@@ -240,9 +241,3 @@ const STATUS_CLASS: Record<string, string> = {
   SUSPENDED: styles.statusSuspended,
 };
 
-const LEVEL_KEY: Record<string, TranslationKey> = {
-  DUT: 'profile.level.dut',
-  LICENCE: 'profile.level.licence',
-  MASTER: 'profile.level.master',
-  DOCTORAT: 'profile.level.doctorat',
-};
