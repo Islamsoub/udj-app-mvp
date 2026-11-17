@@ -27,11 +27,19 @@ const PLACEHOLDER = /\{\{(\w+)\}\}/g;
 export function Interpolated({
   template,
   values,
+  renderValue = renderNumber,
 }: {
   template: string;
   /** A node as well as a string or number, so a value can arrive already
    *  formatted — a percentage or a range from lib/bidi, isolated as LTR. */
   values: Record<string, ReactNode>;
+  /**
+   * How each substituted value is wrapped. The default is the `.num` span
+   * described above. A sentence that interpolates words — a name, a programme —
+   * passes its own, because those must keep the language's font: `.num` would
+   * put an Arabic programme name on a face with no Arabic glyphs.
+   */
+  renderValue?: (name: string, value: ReactNode) => ReactNode;
 }) {
   const parts: ReactNode[] = [];
   let lastIndex = 0;
@@ -49,11 +57,7 @@ export function Interpolated({
     const name = match[1];
     const value = Object.prototype.hasOwnProperty.call(values, name) ? values[name] : match[0];
 
-    parts.push(
-      <span key={parts.length} className="num">
-        {value}
-      </span>
-    );
+    parts.push(<Fragment key={parts.length}>{renderValue(name, value)}</Fragment>);
 
     lastIndex = match.index + match[0].length;
   }
@@ -63,4 +67,8 @@ export function Interpolated({
   }
 
   return <>{parts}</>;
+}
+
+function renderNumber(_name: string, value: ReactNode): ReactNode {
+  return <span className="num">{value}</span>;
 }

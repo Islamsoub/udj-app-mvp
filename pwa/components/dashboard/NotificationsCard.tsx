@@ -1,28 +1,28 @@
 'use client';
 
-import { getNotifications } from '@/lib/api-client';
-import type { NotificationsResponse } from '@/lib/api-types';
+import { useStudent } from '@/components/shell/StudentContext';
 import { isolateLtrRuns } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { Card, CardStates, EmptyState } from './Card';
 import { Interpolated } from './Interpolated';
 import { BellIcon } from './icons';
-import { useCardData } from './useCardData';
 import styles from './dashboard.module.css';
-
-/** Enough to fill the card without turning it into the notifications screen. */
-const PREVIEW_LIMIT = 3;
 
 /**
  * Unread count plus a short preview.
  *
+ * Renders the shell's GET /student/notifications rather than making its own:
+ * the topbar bell needs the same unread count on every route, and one response
+ * read in two places cannot disagree with itself. The shell asks for
+ * NOTIFICATIONS_PREVIEW_LIMIT, which is what this card shows.
+ *
  * Not a link: there is no notifications route in this milestone, and a card that
  * lifts on hover but goes nowhere is a broken promise. It gains an href when
- * that screen exists. The topbar bell and its popover are out of scope here.
+ * that screen exists.
  */
-export function NotificationsCard({ index, animate, online }: { index: number; animate: boolean; online: boolean }) {
+export function NotificationsCard({ index, animate }: { index: number; animate: boolean }) {
   const { t, lang } = useI18n();
-  const state = useCardData<NotificationsResponse>(() => getNotifications(PREVIEW_LIMIT), online);
+  const { notificationsState: state } = useStudent();
 
   return (
     <Card title={t('dashboard.notifications.title')} icon={<BellIcon />} index={index} animate={animate}>

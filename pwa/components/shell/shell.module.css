@@ -449,9 +449,10 @@
 .title {
   grid-area: 1 / 1;
   margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: -0.2px;
+  /* app.css:113 .page-title, verbatim. */
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -484,10 +485,11 @@ html[lang="ar"] .title {
   }
 }
 
+/* app.css:114 .topbar-right: 10px between the bell and the avatar. */
 .topbarActions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
@@ -521,36 +523,119 @@ html[lang="ar"] .title {
   }
 }
 
-/* ── Icon buttons (topbar avatar) ──────────────────────────────────────────── */
+/* ── Topbar buttons: bell and avatar (app.css:115-121) ─────────────────────── */
 
-.iconButton {
+/*
+ * The hitSlop equivalent. Both buttons keep Design's drawn size — the bell is a
+ * 38px circle, the avatar trigger 40px tall — and this transparent layer
+ * extends what can be clicked to at least 44x44 around it, the way hitSlop does
+ * in the app. Each inset is (size - 44px) / 2 when that is negative and 0
+ * otherwise: the avatar trigger, already wider than 44px, grows only in height.
+ * Percent insets resolve against the button itself, its containing block.
+ *
+ * Grows the hit area, not the box: the 10px gap between the two stays 10px on
+ * screen, and the extended areas (3px + 2px into it) still do not overlap.
+ */
+.hitSlop::after {
+  content: '';
+  position: absolute;
+  inset-block: min(0px, calc((100% - 44px) / 2));
+  inset-inline: min(0px, calc((100% - 44px) / 2));
+}
+
+/* app.css:115-117 .icon-btn. */
+.bellButton {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
   padding: 0;
   border: none;
-  border-radius: var(--r-sm);
-  background: none;
+  border-radius: 50%;
+  background: var(--surface2);
   color: var(--ink2);
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out),
     color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
 }
 
-.iconButton:hover {
+.bellButton:hover {
   background: var(--jade-faint);
-  color: var(--ink);
+  color: var(--jade-text);
 }
 
-.iconButton:active {
+.bellButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+/*
+ * app.css:118 .badge-dot. Decorative: the button's accessible name already says
+ * how many are unread, so the dot is not a second announcement.
+ */
+.badgeDot {
+  position: absolute;
+  top: 6px;
+  inset-inline-end: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--danger);
+  border: 1.5px solid var(--surface2);
+}
+
+/* app.css:119 .avatar-btn. */
+.avatarButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform var(--dur-instant) var(--ease-out);
+}
+
+/* app.css:120 .avatar. */
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  background: var(--jade-faint);
+  color: var(--jade-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* The placeholder glyph, until /student/me has answered or when it cannot. */
+.avatar svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* app.css:121 .avatar-btn svg. Decorative, so --ink3 is within its rule. */
+.avatarChevron {
+  width: 13px;
+  height: 13px;
+  color: var(--ink3);
+}
+
+.bellButton:active,
+.avatarButton:active {
   transform: scale(0.97);
-}
-
-.iconButton svg {
-  width: 22px;
-  height: 22px;
 }
 
 /* ── Avatar menu (§5 popover) ──────────────────────────────────────────────── */
@@ -1054,7 +1139,8 @@ html[lang="ar"] .pageHeading {
 /* 2px jade, 2px offset, :focus-visible only — never on a mouse click. */
 .navItem:focus-visible,
 .collapseButton:focus-visible,
-.iconButton:focus-visible,
+.bellButton:focus-visible,
+.avatarButton:focus-visible,
 .menuItem:focus-visible,
 .buttonPrimary:focus-visible,
 .buttonSecondary:focus-visible,
@@ -1098,7 +1184,8 @@ html[lang="ar"] .pageHeading {
   .collapseLabel.navLabel,
   .collapseLabel.navLabelHidden,
   .chevron,
-  .iconButton,
+  .bellButton,
+  .avatarButton,
   .menuItem,
   .banner,
   .bannerHidden,
@@ -1124,7 +1211,8 @@ html[lang="ar"] .pageHeading {
 
   .navItem:active,
   .collapseButton:active,
-  .iconButton:active,
+  .bellButton:active,
+  .avatarButton:active,
   .menuItem:active,
   .buttonPrimary:active,
   .buttonSecondary:active,

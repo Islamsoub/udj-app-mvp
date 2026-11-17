@@ -176,6 +176,32 @@ export function ChevronIcon({ className }: IconProps) {
   );
 }
 
+/**
+ * The topbar bell, dashboard.html:56 path for path. Stroke 2 like the spec, so
+ * chevronStrokeProps rather than the shared 1.8. Not the dashboard card's bell,
+ * which is drawn to that card's own spec.
+ */
+export function BellIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...chevronStrokeProps}>
+      <path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6" />
+      <path d="M10 20a2 2 0 0 0 4 0" />
+    </svg>
+  );
+}
+
+/**
+ * The avatar trigger's chevron, dashboard.html:65. Points down, so it is the
+ * same in both directions and is never mirrored.
+ */
+export function ChevronDownIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...chevronStrokeProps}>
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
 /** Avatar placeholder in the topbar. No photo endpoint is wired up yet. */
 export function AvatarIcon({ className }: IconProps) {
   return (

@@ -67,10 +67,24 @@
     "account": "حسابي",
     "logout": "تسجيل الخروج",
     "restoring_session": "جارٍ الاتصال بفضائك…",
-    "placeholder": "هذه الشاشة قادمة قريباً."
+    "placeholder": "هذه الشاشة قادمة قريباً.",
+    "notifications": {
+      "zero": "الإشعارات",
+      "one": "الإشعارات، إشعار واحد غير مقروء",
+      "two": "الإشعارات، إشعاران غير مقروءين",
+      "few": "الإشعارات، {{count}} إشعارات غير مقروءة",
+      "many": "الإشعارات، {{count}} إشعارًا غير مقروء",
+      "other": "الإشعارات، {{count}} إشعار غير مقروء"
+    }
   },
   "dashboard": {
     "heading": "الرئيسية",
+    "welcome": {
+      "greeting": "مرحباً، {{name}}",
+      "greeting_anonymous": "مرحباً",
+      "programme": "{{level}} في {{programme}} · الفصل {{semester}}",
+      "programme_no_level": "{{programme}} · الفصل {{semester}}"
+    },
     "state": {
       "error": "تعذّر تحميل هذا القسم.",
       "offline": "غير متاح دون اتصال."
