@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { DM_Mono, Plus_Jakarta_Sans } from 'next/font/google';
+import { connection } from 'next/server';
 import { QueryProvider } from '@/components/providers/query-provider';
 import { ToastProvider } from '@/components/providers/toast-provider';
 import { ModalProvider } from '@/components/providers/modal-provider';
@@ -26,7 +27,11 @@ export const metadata: Metadata = {
     "Portail d'administration Unipocket : étudiants, notes, présence, actualités, emploi du temps.",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  // Render every route per request. The CSP nonce (proxy.ts) is applied while
+  // rendering, so a page prerendered at build time would ship its inline
+  // scripts without one, be blocked, and never hydrate.
+  await connection();
   return (
     <html lang="fr" className={`${jakarta.variable} ${dmMono.variable}`}>
       <body>
