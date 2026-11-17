@@ -3,7 +3,7 @@
 The design checker must not report anything on this list. Each one has been
 seen and decided. Remove an entry when it is actually fixed.
 
-Last reviewed: 2026-11-13
+Last reviewed: 2026-11-17
 
 | Where | Spec says | Built says | Decision |
 |---|---|---|---|
@@ -16,3 +16,4 @@ Last reviewed: 2026-11-13
 | First nav item and dashboard title (PWA) | "Tableau de bord" / "لوحة التحكم" | "Accueil" / "الرئيسية" | Product owner, 2026-11-13: keep Accueil. |
 | Dashboard attendance card title (PWA) | "Assiduité" (`dashboard.html:101`) | "Présence" | Product owner, 2026-11-13. The mobile app says "Présence" and is the authority for wording; the card now carries the same name as its destination (sidebar, tab bar, topbar and `/attendance` heading). FR only; Arabic unchanged. |
 | Schedule label, sidebar (PWA) | "Emploi du temps" (`dashboard.html:27`) | "Planning", in the sidebar, the tab bar, the topbar title and the `/schedule` heading | Product owner, 2026-11-13. Too long for the rail. FR only; Arabic unchanged. |
+| Topbar page title size (PWA) | 19px (`.page-title`, `css/app.css:113`) | 22px, FR and AR, at every width | Product owner, 2026-11-17. At 19px the title read too small next to the dashboard's welcome heading (24px, 28px from 1024px). Size only: weight 800 and letter-spacing -0.3px are Design's. The bar's HEIGHT still follows Design: an invisible strut in `.titleStack` (`pwa/components/shell/shell.module.css`) keeps Design's 19px h1 box, so the bar stays 82.4 / 86.4 / 90.4px (FR) and 90.4 / 94.4 / 98.4px (AR) at the three paddings. A checker comparing the bar's height should find no difference; one comparing the title's font size will, and that is this entry. |

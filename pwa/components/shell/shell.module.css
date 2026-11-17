@@ -478,37 +478,58 @@
  * §4: the page title crossfades over --dur-fast. Both the outgoing and incoming
  * titles are on screen at once, stacked in this grid cell, so it is a genuine
  * crossfade and not a fade-out-then-in with a blank frame between.
- */
-/*
- * Height: Design's .page-title is an <h1> with no margin reset, so it carries
- * the browser's default h1 margin, 0.67em above and below (12.73px at 19px),
- * and line-height: normal. That 49.4px box is taller than the 40px avatar
- * trigger, so the TITLE sets Design's bar height: 82.4 / 86.4 / 90.4px at the
- * three paddings. This stack reproduces both halves:
  *
- *   margin-block: 0.67em — the h1 default. The 19px is declared here rather
- *     than on .title so the em resolves at the title's size, as the browser's
- *     own rule does. .title inherits it; its size is unchanged.
- *   line-height: normal (on .title) — Tailwind's preflight sets 1.5 on <html>
- *     for the whole PWA, which made this 28.5px tall instead of Design's 24px;
- *     with the margin alone the bar would land 4.5px too tall.
+ * HEIGHT — the bar keeps Design's height while the title is drawn larger.
  *
- * Both crossfade layers sit in this one grid cell, so the margin is outside
- * the cell and the crossfade is untouched.
+ * Design's .page-title is a 19px <h1> with no margin reset: the browser's
+ * 0.67em margin above and below, and line-height: normal. That box (49.4px in
+ * Latin, 57.4px in Arabic, where Noto Naskh's normal line is taller) is taller
+ * than the 40px avatar trigger, so it is what sets Design's bar height.
+ *
+ * The title is now 22px (a recorded divergence, below), but the bar must not
+ * grow. Shrinking a margin to compensate cannot do it: the 19 -> 22px growth of
+ * a `normal` line box is 3.8px in Latin and 5px in Arabic, so one margin is
+ * right for at most one script, and per-language margins would be hand-tuned
+ * constants that break when either font's metrics change.
+ *
+ * So the box is kept at its source. ::before is an invisible strut in the
+ * same grid cell, built exactly like Design's h1 — 19px, weight 800,
+ * line-height normal, 0.67em above and below — in whatever font the page is
+ * using. The cell takes the strut's height in every script; the 22px title,
+ * shorter than that box, is centred in it and no longer sets the height.
+ * Tailwind's preflight puts line-height 1.5 on <html>; `normal` here and on
+ * .title undoes it, as Design has no such reset.
+ *
+ * The crossfade is untouched: both title layers and the strut share the one
+ * grid cell, and the strut never changes, so the bar cannot move during a fade.
  */
 .titleStack {
   display: grid;
+  align-items: center;
   min-width: 0;
-  margin-block: 0.67em;
-  /* app.css:113 .page-title, verbatim. */
+  font-weight: 800;
+}
+
+.titleStack::before {
+  /* A zero-width space gives the strut a line box; the empty alt text keeps
+     it out of the accessibility tree. */
+  content: '\200B' / '';
+  grid-area: 1 / 1;
+  /* app.css:113 .page-title — Design's size, kept for the box only. */
   font-size: 19px;
+  line-height: normal;
+  padding-block: 0.67em;
+  visibility: hidden;
 }
 
 .title {
   grid-area: 1 / 1;
   margin: 0;
+  /* Divergence from app.css:113's 19px — see
+     .claude/design-known-divergences.md. Sized to sit with the 24/28px
+     welcome heading below it. */
+  font-size: 22px;
   line-height: normal;
-  font-weight: 800;
   letter-spacing: -0.3px;
   white-space: nowrap;
   overflow: hidden;
