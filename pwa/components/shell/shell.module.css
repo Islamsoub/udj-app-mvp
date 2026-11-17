@@ -423,16 +423,35 @@
 
 /* ── Topbar ────────────────────────────────────────────────────────────────── */
 
+/*
+ * app.css:110. Content-driven height: Design sets padding, not a height, so the
+ * bar is as tall as its tallest child (the avatar trigger) plus 16px above and
+ * below.
+ *
+ * Sticky because the DOCUMENT scrolls — .shell is min-height:100vh with no
+ * inner scroller — so a relative bar left with the page and the blur below had
+ * nothing to frost. No ancestor sets overflow, which is what lets sticky work
+ * here; adding one to .shell or .column would silently turn it off again.
+ * z-index 20 is Design's.
+ *
+ * The page's own --bg (not Design's hex, see CLAUDE.md: the PWA palette is its
+ * own) at 88%, frosted. -webkit-backdrop-filter for iOS Safari before 18, the
+ * same prefixed-pair pattern as the logo mask in login.module.css.
+ */
 .topbar {
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  height: 64px;
   flex-shrink: 0;
+  padding-block: 16px;
   padding-inline: 24px;
-  background: var(--surface);
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   border-block-end: 1px solid var(--hair);
 }
 
@@ -612,7 +631,16 @@ html[lang="ar"] .title {
   width: 36px;
   height: 36px;
   border-radius: 9999px;
-  background: var(--jade-faint);
+  /*
+   * --jade-faint over an OPAQUE --bg, not over whatever is behind the bar.
+   * Both are translucent (--jade-faint is 10% jade, the bar 88% --bg), so with
+   * the faint tint alone, content scrolling under the bar showed through the
+   * disc: measured in light, the initials fell from 5.06:1 to 4.36 over --ink2
+   * text and 4.03 over solid --ink, under AA for 13px. At rest the bar is
+   * exactly --bg, so this is pixel-identical to Design until something scrolls
+   * beneath it, and the initials then hold 5.06 (light) / 6.94 (dark).
+   */
+  background: linear-gradient(var(--jade-faint), var(--jade-faint)), var(--bg);
   color: var(--jade-text);
   font-family: var(--font-sans);
   font-size: 13px;
