@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react';
 import { attendanceLine, type AttendanceLine } from '@/components/attendance/model';
-import { getAttendance } from '@/lib/api-client';
 import type { AttendanceBand, AttendanceResponse } from '@/lib/api-types';
 import { fmtPercent, fmtPhrase, percentText } from '@/lib/bidi';
 import { useI18n, type I18nValue } from '@/lib/i18n';
@@ -10,7 +9,7 @@ import type { Lang } from '@/lib/i18n-shared';
 import { Card, CardStates, EmptyState } from './Card';
 import { Interpolated } from './Interpolated';
 import { Ring } from './Ring';
-import { useCardData } from './useCardData';
+import type { CardState } from './useCardData';
 import styles from './dashboard.module.css';
 
 /** The Seuil label's colour, from the server's overall band (§3, A2). */
@@ -58,16 +57,17 @@ function num(value: number): ReactNode {
 export function AttendanceCard({
   index,
   animate,
-  online,
+  state,
   className,
 }: {
   index: number;
   animate: boolean;
-  online: boolean;
+  /** The dashboard's one GET /student/attendance, shared with the Justifier
+   *  tile in Accès rapide so the two never disagree or double the request. */
+  state: CardState<AttendanceResponse>;
   className?: string;
 }) {
   const { t, plural, lang } = useI18n();
-  const state = useCardData<AttendanceResponse>(() => getAttendance(), online);
 
   return (
     <Card

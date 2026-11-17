@@ -268,9 +268,11 @@ html[lang="ar"] .heading {
   color: var(--info-ink);
 }
 
+/* Design's cat-academique (app.css:474), with --warning-ink for its hardcoded
+   brown: 5.74 : 1 light, 6.08 : 1 dark on the tint over --surface. */
 .pillScolarite {
-  background: var(--exam-bg);
-  color: var(--exam-ink);
+  background: var(--warning-bg);
+  color: var(--warning-ink);
 }
 
 .pillNeutral {

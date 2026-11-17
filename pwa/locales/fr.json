@@ -141,17 +141,34 @@
     },
     "notifications": {
       "title": "Notifications",
-      "unread": "{{count}} non lues",
-      "unread_one": "1 non lue",
-      "none": "Aucune nouvelle notification."
+      "none": "Aucune nouvelle notification.",
+      "yesterday": "Hier",
+      "unread_sr": ", non lue"
     },
     "quick_links": {
-      "title": "Accès rapide"
+      "title": "Accès rapide",
+      "justify": {
+        "title": "Justifier une absence",
+        "pending": "{{count}} en attente",
+        "none": "Aucune en attente"
+      },
+      "simulate": {
+        "title": "Simuler ma moyenne",
+        "small": "Calculatrice"
+      },
+      "schedule": {
+        "title": "Mon planning",
+        "small": "Semaine en cours"
+      }
     },
     "news": {
-      "title": "À la une",
+      "title": "Actualités récentes",
       "empty": "Aucune actualité pour le moment.",
-      "read_time": "{{count}} min de lecture"
+      "see_all": "Voir tout"
+    },
+    "date": {
+      "day_month": "{{day}} {{month}}",
+      "day_month_year": "{{day}} {{month}} {{year}}"
     }
   },
   "grades": {

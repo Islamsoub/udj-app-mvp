@@ -141,17 +141,34 @@
     },
     "notifications": {
       "title": "الإشعارات",
-      "unread": "{{count}} غير مقروءة",
-      "unread_one": "إشعار واحد غير مقروء",
-      "none": "لا توجد إشعارات جديدة."
+      "none": "لا توجد إشعارات جديدة.",
+      "yesterday": "أمس",
+      "unread_sr": "، غير مقروء"
     },
     "quick_links": {
-      "title": "وصول سريع"
+      "title": "روابط سريعة",
+      "justify": {
+        "title": "تبرير غياب",
+        "pending": "{{count}} قيد الانتظار",
+        "none": "لا شيء قيد الانتظار"
+      },
+      "simulate": {
+        "title": "محاكاة معدلي",
+        "small": "الحاسبة"
+      },
+      "schedule": {
+        "title": "جدولي",
+        "small": "هذا الأسبوع"
+      }
     },
     "news": {
-      "title": "أبرز الأخبار",
+      "title": "آخر الأخبار",
       "empty": "لا توجد أخبار حالياً.",
-      "read_time": "{{count}} دقيقة قراءة"
+      "see_all": "عرض الكل"
+    },
+    "date": {
+      "day_month": "{{day}} {{month}}",
+      "day_month_year": "{{day}} {{month}} {{year}}"
     }
   },
   "grades": {

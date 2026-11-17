@@ -39,14 +39,36 @@
   flex-direction: column;
 }
 
+/*
+ * app.css:137-139: 24px, 32px from 640px, 48px from 1024px, where the content
+ * also stops at 1200px and centres in the column. The same 640 / 1024 as
+ * useLayoutMode, so the margins change when the sidebar changes mode.
+ * box-sizing makes the 1200 include the padding, as Design's does.
+ */
 .content {
   flex: 1;
+  box-sizing: border-box;
+  width: 100%;
   padding: 24px;
-  /* Clears the fixed tab bar on mobile so the last row is never trapped under
-     it. Falls back to the plain value where env() is unsupported. */
-  padding-bottom: 24px;
 }
 
+@media (min-width: 640px) {
+  .content {
+    padding: 32px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .content {
+    max-width: 1200px;
+    margin-inline: auto;
+    padding: 48px;
+  }
+}
+
+/* Clears the fixed tab bar on mobile so the last row is never trapped under
+   it: the bar's 72px plus the page's own 24px, plus the home-indicator inset.
+   Applied by AppShell below 640px only, so it never meets the rules above. */
 .contentMobile {
   padding-bottom: calc(72px + 24px + env(safe-area-inset-bottom, 0px));
 }

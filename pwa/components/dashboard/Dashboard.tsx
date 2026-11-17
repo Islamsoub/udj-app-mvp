@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useOnline } from '@/components/shell/useOnline';
+import { getAttendance } from '@/lib/api-client';
+import type { AttendanceResponse } from '@/lib/api-types';
 import { AttendanceCard } from './AttendanceCard';
 import { AverageHero } from './AverageHero';
 import { NewsCard } from './NewsCard';
@@ -9,6 +11,7 @@ import { NotificationsCard } from './NotificationsCard';
 import { QuickLinksCard } from './QuickLinksCard';
 import { TodayCard } from './TodayCard';
 import { takeOnce } from './session-flags';
+import { useCardData } from './useCardData';
 import { Welcome } from './Welcome';
 import styles from './dashboard.module.css';
 
@@ -41,6 +44,14 @@ export function Dashboard() {
    */
   const shared = { animate, online };
 
+  /*
+   * One attendance request for two readers: the Présence card and the
+   * "Justifier une absence" tile, whose pending count comes from the same
+   * absences. Fetched here rather than in either card so they cannot show two
+   * different answers, and the endpoint is not asked twice per visit.
+   */
+  const attendance = useCardData<AttendanceResponse>(() => getAttendance(), online);
+
   return (
     <>
       {/*
@@ -67,10 +78,10 @@ export function Dashboard() {
         <TodayCard index={0} {...shared} />
         <div className={styles.stack}>
           <AverageHero index={1} {...shared} />
-          <AttendanceCard index={2} {...shared} className={styles.attendanceCard} />
+          <AttendanceCard index={2} animate={animate} state={attendance} className={styles.attendanceCard} />
         </div>
         <NotificationsCard index={3} animate={animate} className={styles.notifCard} />
-        <QuickLinksCard index={4} animate={animate} className={styles.spanAll} />
+        <QuickLinksCard index={4} animate={animate} attendance={attendance} className={styles.spanAll} />
         <NewsCard index={5} {...shared} className={styles.spanAll} />
       </div>
     </>
