@@ -17,16 +17,24 @@ import styles from './dashboard.module.css';
  */
 export function Card({
   title,
-  icon,
   href,
+  action,
+  className: extraClass,
   index,
   animate,
   children,
 }: {
-  title: string;
-  icon: ReactNode;
+  title: ReactNode;
   /** Set when the whole card navigates; drives the §3 hover lift. */
   href?: string;
+  /**
+   * A "Voir tout" link at the end of the heading row (app.css:161-162), for a
+   * card that is not itself a link. Not combined with `href`: a link inside a
+   * card that is one link already would be two targets for one click.
+   */
+  action?: { href: string; label: string };
+  /** Layout hooks from the grid (span, padding override). */
+  className?: string;
   /** Position in §4's reading order, which is also its stagger delay. */
   index: number;
   animate: boolean;
@@ -36,6 +44,7 @@ export function Card({
     styles.card,
     href ? styles.cardLink : '',
     animate ? styles.cardEnter : '',
+    extraClass ?? '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -46,8 +55,9 @@ export function Card({
 
   return (
     <section className={className} style={style}>
+      {/* app.css:161-163: the heading and, when there is one, "Voir tout" at the
+          end of the same row. No icon — Design's card headings have none. */}
       <div className={styles.cardHeader}>
-        <span className={styles.cardIcon}>{icon}</span>
         {/*
           h2: the page's h1 is the dashboard heading, so each card is a section
           below it. Keeps the document outline honest for §10.
@@ -70,6 +80,11 @@ export function Card({
             title
           )}
         </h2>
+        {action && (
+          <Link href={action.href} className={styles.seeAll}>
+            {action.label}
+          </Link>
+        )}
       </div>
       <div className={styles.cardBody}>{children}</div>
     </section>

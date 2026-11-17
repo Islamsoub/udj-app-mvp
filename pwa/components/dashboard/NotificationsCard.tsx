@@ -5,7 +5,6 @@ import { isolateLtrRuns } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { Card, CardStates, EmptyState } from './Card';
 import { Interpolated } from './Interpolated';
-import { BellIcon } from './icons';
 import styles from './dashboard.module.css';
 
 /**
@@ -20,12 +19,20 @@ import styles from './dashboard.module.css';
  * lifts on hover but goes nowhere is a broken promise. It gains an href when
  * that screen exists.
  */
-export function NotificationsCard({ index, animate }: { index: number; animate: boolean }) {
+export function NotificationsCard({
+  index,
+  animate,
+  className,
+}: {
+  index: number;
+  animate: boolean;
+  className?: string;
+}) {
   const { t, lang } = useI18n();
   const { notificationsState: state } = useStudent();
 
   return (
-    <Card title={t('dashboard.notifications.title')} icon={<BellIcon />} index={index} animate={animate}>
+    <Card title={t('dashboard.notifications.title')} className={className} index={index} animate={animate}>
       <CardStates
         state={state}
         skeleton={

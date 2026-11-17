@@ -512,7 +512,10 @@
 
 .titleStack::before {
   /* A zero-width space gives the strut a line box; the empty alt text keeps
-     it out of the accessibility tree. */
+     it out of the accessibility tree. The plain declaration first: a browser
+     without alt-text syntax (Safari before 17.4) drops the second line as
+     invalid and keeps this one, so it still draws the strut. */
+  content: '\200B';
   content: '\200B' / '';
   grid-area: 1 / 1;
   /* app.css:113 .page-title — Design's size, kept for the box only. */

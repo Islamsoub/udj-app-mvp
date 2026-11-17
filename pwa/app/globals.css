@@ -227,6 +227,35 @@
   --hero-chip: rgba(10, 61, 46, .40);
   --hero-chip-hover: rgba(10, 61, 46, .50);
 
+  /* The dashboard's jade hero card (app.css:380, .hero-jade): Design's
+     --hero-start -> --hero-end at 150deg, the SAME stops in both themes — unlike
+     --hero-bg, which darkens in dark. Text on it is --hero-ink, solid: white is
+     4.53:1 on the bare start stop and 6.20:1 on the end stop. Design's
+     85%-white secondary text would be 3.74:1, so nothing on the hero is drawn
+     at reduced opacity.
+     THE HERO IS NOT AA AT EVERY PIXEL. The decorative circle (--hero-circle)
+     sits in the top inline-end corner and lightens what is under it; the
+     gradient is physical, so in Arabic the circle covers the lightest corner
+     (4.02:1 at worst there). Text passes under the circle only when the card is
+     narrow or a sentence runs full width. Measured on the built dashboard,
+     2026-11-17: at a 1024px viewport (235px card) the label is 4.42:1 in French
+     and "· S2" 4.40:1 in Arabic; a full-width sentence (no average yet, or an
+     error) is 4.41-4.48:1 in Arabic at 800-1280px. Everything else is >= 4.5:1.
+     Open: same trade-off as the login hero's circle (--hero-bg). */
+  --hero-card-bg: linear-gradient(150deg, #168666, #0F6E56);
+  --hero-circle: rgba(255, 255, 255, .07);
+  /* The mention badge on that hero: a black wash that darkens it, so its white
+     label gains contrast — 5.43:1 even over the start stop under the circle. */
+  --hero-badge: rgba(0, 0, 0, .16);
+  --shadow-hero: 0 14px 30px rgba(15, 110, 86, .30);
+  /* Mention dots on the badge (prototype-v1 MENTIONS). Decorative: the mention
+     is always written beside its dot, so these carry no information alone. */
+  --mention-tres-bien: #7DF3C4;
+  --mention-bien: #9CC7F5;
+  --mention-assez-bien: #FFD27D;
+  --mention-passable: #C7D2DB;
+  --mention-insuffisant: #FFB4B4;
+
   --shadow-card: 0 2px 10px rgba(30, 35, 31, .06);
   --shadow-lg: 0 12px 32px rgba(30, 35, 31, .12);
   --shadow-panel: 0 0 0 1px rgba(30, 35, 31, .04), -12px 0 32px rgba(30, 35, 31, .10);
@@ -294,6 +323,18 @@
      at rest, 10.03–10.17:1 on hover. */
   --hero-chip: rgba(10, 61, 46, .40);
   --hero-chip-hover: rgba(10, 61, 46, .50);
+
+  /* The dashboard hero keeps Design's light stops in dark too (app.css:15 does
+     not redefine --hero-start/--hero-end), so every ratio is as in light. */
+  --hero-card-bg: linear-gradient(150deg, #168666, #0F6E56);
+  --hero-circle: rgba(255, 255, 255, .07);
+  --hero-badge: rgba(0, 0, 0, .16);
+  --shadow-hero: 0 14px 30px rgba(15, 110, 86, .30);
+  --mention-tres-bien: #7DF3C4;
+  --mention-bien: #9CC7F5;
+  --mention-assez-bien: #FFD27D;
+  --mention-passable: #C7D2DB;
+  --mention-insuffisant: #FFB4B4;
 
   /* A 1px light ring does the edge work a shadow cannot on a dark page; the
      black blur underneath gives the lift. */

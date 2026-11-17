@@ -2,7 +2,7 @@
 
 import type { ScheduleEntry } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
-import { courseType, typeClass, typeLabelKey } from './course-type';
+import { courseType, typeClass, typeLabelKey, typeRailColor } from './course-type';
 import { Crossfade } from './Crossfade';
 import { RoomIcon, ProfessorIcon } from './icons';
 import { entriesForDay } from './week';
@@ -65,7 +65,11 @@ export function DayList({
                   {/* The type's colour as a rule down the inline-start edge —
                       mirrored by `dir`, and never the only signal: the code sits
                       beside the subject name. */}
-                  <span className={`${styles.dayRule} ${typeClass(type)}`} aria-hidden="true" />
+                  <span
+                    className={styles.dayRule}
+                    style={{ background: typeRailColor(type) }}
+                    aria-hidden="true"
+                  />
 
                   <span className={styles.dayBody}>
                     <span className={styles.dayTop} aria-hidden="true">
