@@ -90,3 +90,25 @@
     transition-timing-function: linear;
   }
 }
+
+/*
+ * Compact: the prototype's .segmented / .seg-btn, value for value —
+ * track --surface2, 3px padding, 2px gap; options 34px tall, 0 16px, 13px/700.
+ * The pill's inset follows the padding so it still sits inside the track.
+ */
+.compact {
+  gap: 2px;
+  padding: 3px;
+  background: var(--surface2);
+}
+
+.compact .pill {
+  inset-block: 3px;
+}
+
+.compact .option {
+  min-height: 0;
+  height: 34px;
+  padding-inline: 16px;
+  font-size: 13px;
+}

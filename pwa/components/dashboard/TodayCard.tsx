@@ -1,7 +1,13 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
-import { courseType, typeLabelKey, typeRailColor } from '@/components/schedule/course-type';
+import { courseType, typeLabelKey } from '@/components/schedule/course-type';
+import {
+  buildSubjectColorMap,
+  subjectStyle,
+  subjectSwatch,
+  type SubjectSwatch,
+} from '@/lib/subject-colors';
 import { getSchedule } from '@/lib/api-client';
 import type { ScheduleEntry, ScheduleResponse } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
@@ -69,6 +75,9 @@ export function TodayCard({
       >
         {(data) => {
           const today = todaysClasses(data.entries, now);
+          // From the whole timetable, not today's classes: the same input as
+          // the schedule screen and the app, so a subject is one colour in all.
+          const colors = buildSubjectColorMap(data.entries);
           const next = findNextClass(data.entries, now);
 
           return (
@@ -82,7 +91,11 @@ export function TodayCard({
               ) : (
                 <ul className={styles.miniList}>
                   {today.map((entry) => (
-                    <MiniClass key={entry.id} entry={entry} />
+                    <MiniClass
+                      key={entry.id}
+                      entry={entry}
+                      swatch={subjectSwatch(colors, entry.subject.nameFr)}
+                    />
                   ))}
                 </ul>
               )}
@@ -185,8 +198,8 @@ function CountdownPill({ parts, startTime }: { parts: CountdownParts; startTime:
   );
 }
 
-/** One row (app.css:170-176): type rail, subject over room, times stacked. */
-function MiniClass({ entry }: { entry: ScheduleEntry }) {
+/** One row (app.css:170-176): subject rail, subject over room, times stacked. */
+function MiniClass({ entry, swatch }: { entry: ScheduleEntry; swatch: SubjectSwatch }) {
   const { t, lang } = useI18n();
   const type = courseType(entry.type);
   const subject = lang === 'ar' ? entry.subject.nameAr : entry.subject.nameFr;
@@ -194,11 +207,15 @@ function MiniClass({ entry }: { entry: ScheduleEntry }) {
   return (
     <li className={styles.miniClass}>
       {/*
-        The API carries no subject colour, so the rail takes the class TYPE's
-        colour, from the same map as the schedule screen's day list. Decorative:
-        the type is also in the row's accessible text below, never colour alone.
+        The SUBJECT's colour, from the mobile app's palette (lib/subject-colors),
+        the same as the schedule screen's block and day row. Decorative: the
+        subject is named beside it, never colour alone.
       */}
-      <span className={styles.miniRail} style={{ background: typeRailColor(type) }} aria-hidden="true" />
+      <span
+        className={`${styles.miniRail} subject-color`}
+        style={{ ...subjectStyle(swatch), background: 'var(--subj)' }}
+        aria-hidden="true"
+      />
       <div className={styles.miniBody}>
         {/* title: the full name on hover when the line is cut with "…". */}
         <p className={styles.miniSubject} title={subject}>

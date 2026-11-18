@@ -283,7 +283,8 @@
       "next_day": "اليوم التالي",
       "this_week": "هذا الأسبوع",
       "today": "اليوم",
-      "week_of": "أسبوع {{day}} {{month}} {{year}}",
+      "week_of": "أسبوع {{day}} {{month}}",
+      "week_of_year": "أسبوع {{day}} {{month}} {{year}}",
       "day_of": "{{weekday}} {{day}} {{month}} {{year}}"
     },
     "days": {

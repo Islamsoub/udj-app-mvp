@@ -3,9 +3,10 @@
 import type { ScheduleEntry } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
 import { DAY_SHORT_KEYS } from './CourseDetail';
-import { courseType, typeClass, typeLabelKey } from './course-type';
+import { courseType, typeLabelKey } from './course-type';
 import { Crossfade } from './Crossfade';
 import { TEACHING_DAYS, dateForDay, formatTime, sameDay } from '@/lib/teaching-week';
+import { subjectStyle, subjectSwatch, type SubjectColorMap } from '@/lib/subject-colors';
 import { HOUR_PX, blockBox, entriesForDay, hourMarks, timeBounds } from './week';
 import styles from './schedule.module.css';
 
@@ -29,11 +30,14 @@ export function WeekGrid({
   entries,
   weekStart,
   today,
+  colors,
   onSelect,
 }: {
   entries: ScheduleEntry[];
   weekStart: Date;
   today: Date;
+  /** Built from the whole timetable, so a subject keeps its colour every week. */
+  colors: SubjectColorMap;
   onSelect: (entry: ScheduleEntry) => void;
 }) {
   const { t, lang } = useI18n();
@@ -89,14 +93,14 @@ export function WeekGrid({
           ))}
         </div>
 
+        {/* Today is marked in the header cell only; every column body is
+            drawn the same, so today's cards and rules look like any other
+            day's. */}
         {TEACHING_DAYS.map((day) => {
-          const date = dateForDay(weekStart, day);
-          const isToday = sameDay(date, today);
-
           return (
             <div
               key={day}
-              className={`${styles.dayColumn} ${isToday ? styles.dayColumnToday : ''}`}
+              className={styles.dayColumn}
               // The hour rules are a repeating gradient rather than N elements:
               // the spacing is uniform by construction, so there is nothing for
               // a list of divs to get wrong.
@@ -118,8 +122,16 @@ export function WeekGrid({
                     <button
                       key={entry.id}
                       type="button"
-                      className={`${styles.block} ${typeClass(type)}`}
-                      style={{ top: `${box.top}px`, height: `${box.height}px` }}
+                      className={`${styles.block} subject-color`}
+                      style={
+                        {
+                          ...subjectStyle(subjectSwatch(colors, entry.subject.nameFr)),
+                          // The time slot, exactly. The card's own inset inside
+                          // it is the stylesheet's (.block, --card-inset).
+                          '--slot-top': `${box.top}px`,
+                          '--slot-height': `${box.height}px`,
+                        } as React.CSSProperties
+                      }
                       onClick={() => onSelect(entry)}
                       /*
                        * The visible text is fragmented into type, subject and

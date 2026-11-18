@@ -3,8 +3,10 @@
    day list, and the course detail panel's body.
 
    Every colour, radius, shadow, duration and easing is a token from
-   app/globals.css. No new ones: the four class types reuse the existing semantic
-   hues (--info, --jade, --warning, --exam) with their matching *-bg tints.
+   app/globals.css. The one exception is a class's colour, which is its
+   SUBJECT's, from the mobile app's palette: lib/subject-colors.ts sets it inline
+   and the global .subject-color rule exposes it as --subj (border, rail),
+   --subj-tint (fill) and --subj-ink (text drawn in the subject's colour).
 
    Logical properties only: no `left`/`right`, no `[dir="rtl"]` selector. The
    week is a CSS grid, and grid tracks follow `dir`, so Arabic puts the gutter
@@ -15,17 +17,16 @@
    set from `dir` in JS, per §6.
    ───────────────────────────────────────────────────────────────────────────── */
 
-.heading {
-  margin: 0 0 20px;
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  color: var(--ink);
-}
-
-/* Arabic: no tracking — see the note at .dayName. */
-html[lang="ar"] .heading {
-  letter-spacing: normal;
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /*
@@ -35,6 +36,9 @@ html[lang="ar"] .heading {
  */
 .screen {
   display: grid;
+  /* The toolbar lays itself out by the width it actually has, which the
+     sidebar's mode changes without the viewport changing. */
+  container: schedule / inline-size;
 }
 
 .viewport:focus {
@@ -47,31 +51,79 @@ html[lang="ar"] .heading {
   border-radius: var(--r-md);
 }
 
-/* ── Toolbar ───────────────────────────────────────────────────────────────── */
+/* ── Toolbar (prototype .sched-toolbar) ───────────────────────────────────── */
 
+/*
+ * Narrow first: a wrapping row, the zones in order, nothing wider than the
+ * screen. The StateLayers column already puts 16px between its children, so
+ * 4px more makes the prototype's margin-bottom: 20px.
+ */
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  margin-bottom: 4px;
 }
 
+/* Below 640px the switch is not rendered (ScheduleView), and an empty zone must
+   not take a gap. */
+.toolbarStart:empty {
+  display: none;
+}
+
+.toolbarStart,
+.toolbarEnd {
+  display: flex;
+  align-items: center;
+}
+
+/*
+ * Wide enough for all three zones: a 1fr auto 1fr grid, so the navigation sits
+ * on the row's true centre. The outer tracks are `1fr` (min auto), not
+ * minmax(0, 1fr): if a zone ever outgrew its half, the navigation moves off
+ * centre rather than drawing over it.
+ */
+@container schedule (min-width: 600px) {
+  .toolbar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+  }
+
+  .toolbarStart {
+    justify-self: start;
+  }
+
+  .toolbarEnd {
+    justify-self: end;
+  }
+
+  .toolbarStart:empty {
+    display: block;
+  }
+}
+
+/* Prototype .weeknav. */
 .nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 6px;
 }
 
+/* Prototype .wn-btn: 34px round on --surface2, --ink2 chevron. */
 .navButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--hair2);
-  border-radius: var(--r-sm);
-  background: var(--surface);
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--surface2);
   color: var(--ink2);
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out),
@@ -90,8 +142,8 @@ html[lang="ar"] .heading {
 }
 
 .navIcon {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   /* Points toward the inline-end; --chevron-flip mirrors that for Arabic. */
   transform: scaleX(var(--chevron-flip, 1));
 }
@@ -102,37 +154,40 @@ html[lang="ar"] .heading {
   transform: scaleX(calc(var(--chevron-flip, 1) * -1));
 }
 
+/* Prototype .weeknav .lbl: 13.5px / 700, at least 150px, centred. */
 .navLabel {
-  min-width: 13ch;
+  min-width: 150px;
   margin: 0;
-  padding-inline: 8px;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 700;
   text-align: center;
   color: var(--ink);
 }
 
+/* Prototype .btn-ghost, in the print button's place. */
 .todayButton {
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  margin-inline-start: 4px;
-  padding-inline: 14px;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
   border: 1px solid var(--hair2);
-  border-radius: var(--r-sm);
+  border-radius: 9999px;
   background: var(--surface);
-  color: var(--jade-text);
+  color: var(--ink2);
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12.5px;
+  font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
+  transition: border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
     transform var(--dur-instant) var(--ease-out);
 }
 
 .todayButton:hover:not(:disabled) {
-  background: var(--jade-faint);
+  border-color: var(--jade);
+  color: var(--jade-text);
 }
 
 .todayButton:active:not(:disabled) {
@@ -201,8 +256,9 @@ html[lang="ar"] .heading {
   border-inline-start: 1px solid var(--hair);
 }
 
-/* Today's column, marked here and on the body below. Paired with
-   aria-current="date" so the tint is never the only signal (§10). */
+/* Today, marked on its header cell only — the column body below is drawn like
+   every other day's. Paired with aria-current="date" so the tint is never the
+   only signal (§10). Jade text on this tint: 5.13:1 light, 5.66:1 dark. */
 .dayHeadToday {
   background: var(--jade-faint);
 }
@@ -244,9 +300,7 @@ html[lang="ar"] .dayName {
 
 /*
  * Hour labels sit ON their rule, so each is pulled up by half its own line to
- * read as marking the line rather than the space beneath it. The first one would
- * otherwise be clipped by the grid's top edge, which is why the gutter is not
- * overflow-hidden.
+ * read as marking the line rather than the space beneath it.
  */
 .gutterLabel {
   position: absolute;
@@ -255,6 +309,21 @@ html[lang="ar"] .dayName {
   font-size: 11px;
   font-weight: 600;
   color: var(--ink2);
+}
+
+/*
+ * The two ends have no room for that. The first hour's rule IS the header's
+ * bottom border, so a centred first label straddled it and read as cut in half;
+ * the last one straddled the legend's top border the same way. Both are pushed
+ * inside the grid instead, 3px clear of the border, and every label between
+ * them stays centred on its rule. Vertical only, so nothing here mirrors.
+ */
+.gutterLabel:first-child {
+  transform: translateY(3px);
+}
+
+.gutterLabel:last-child {
+  transform: translateY(calc(-100% - 3px));
 }
 
 .dayColumn {
@@ -275,27 +344,30 @@ html[lang="ar"] .dayName {
   );
 }
 
-.dayColumnToday {
-  background-color: var(--jade-faint);
-}
-
 /* ── Course blocks ─────────────────────────────────────────────────────────── */
 
 /*
- * Absolutely positioned from real minutes. `inset-inline` handles the horizontal
- * inset in both directions; `top` and `height` come from the component, because
- * they are the proportional part and there is nothing to mirror about them.
+ * Absolutely positioned from real minutes. The component passes the time slot
+ * as --slot-top / --slot-height (the proportional part, nothing to mirror), and
+ * the card sits --card-inset inside it on all four sides: 3px from the column
+ * edges, 3px after its start line and 3px before its end line. The same inset
+ * for every card, so each still reads against its hour lines, and two
+ * back-to-back classes are 6px apart instead of touching. It also keeps an
+ * 08:00 card off the day header's bottom border.
  */
 .block {
+  --card-inset: 3px;
   position: absolute;
-  inset-inline: 3px;
+  inset-inline: var(--card-inset);
+  top: calc(var(--slot-top) + var(--card-inset));
+  height: calc(var(--slot-height) - 2 * var(--card-inset));
   display: flex;
   flex-direction: column;
   gap: 1px;
   overflow: hidden;
   padding: 5px 7px;
-  border: 1px solid;
-  border-inline-start-width: 3px;
+  border: 1px solid var(--hair);
+  border-inline-start: 4px solid var(--subj);
   border-radius: var(--r-sm);
   font-family: inherit;
   text-align: start;
@@ -304,29 +376,20 @@ html[lang="ar"] .dayName {
     box-shadow var(--dur-fast) var(--ease-out);
 }
 
-/* §3: clickable cards lift 1px and deepen to --shadow-lg over --dur-fast. */
 /*
- * Opaque. The type tints are translucent, and on their own they let today's
- * jade column wash through — a TP block on today read as olive. Each block lays
- * its tint over the card surface inside its own box, so it is the same colour
- * in every column. Per type because the tint is part of the shorthand.
+ * EXPERIMENT (2026-11-18, may be reverted): the 4px stripe at the inline-start
+ * edge carries the subject's exact colour (the border above: full height,
+ * mirrored by `dir`). The fill is a light wash of the same colour, --card-wash
+ * of --subj over --surface (7% light, 10% dark), opaque so the hour rules
+ * cannot show through, and --shadow-card lifts the card off the grid. A --hair
+ * edge on the other three sides.
  */
-.block.typeCm {
-  background: linear-gradient(var(--info-bg), var(--info-bg)) var(--surface);
+.block {
+  background: color-mix(in srgb, var(--subj) var(--card-wash), var(--surface));
+  box-shadow: var(--shadow-card);
 }
 
-.block.typeTd {
-  background: linear-gradient(var(--jade-faint), var(--jade-faint)) var(--surface);
-}
-
-.block.typeTp {
-  background: linear-gradient(var(--warning-bg), var(--warning-bg)) var(--surface);
-}
-
-.block.typeExam {
-  background: linear-gradient(var(--exam-bg), var(--exam-bg)) var(--surface);
-}
-
+/* §3: clickable cards lift 1px and deepen to --shadow-lg over --dur-fast. */
 .block:hover {
   transform: translateY(-1px);
   box-shadow: var(--shadow-lg);
@@ -338,6 +401,7 @@ html[lang="ar"] .dayName {
 }
 
 .blockType {
+  color: var(--ink2);
   font-size: 9.5px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -365,38 +429,13 @@ html[lang="ar"] .dayName {
   text-overflow: ellipsis;
 }
 
-/* ── Class types ───────────────────────────────────────────────────────────── */
+/* ── Type pill ─────────────────────────────────────────────────────────────── */
 
 /*
- * Existing semantic tokens, no new colours. Each type's tint fills the block and
- * its solid hue rules the inline-start edge. The three-letter code — always
- * present, so colour is never the only signal (§10) — is TEXT on that tint, so
- * it takes the hue's -ink variant: the hue itself is under 4.5:1 there.
+ * The type written in the subject's colour, on the subject's tint. Text, so it
+ * takes --subj-ink, which reaches 4.5:1 on the tint in both themes; the app's
+ * hex is not always enough (lib/subject-colors.ts has the table).
  */
-.typeCm {
-  border-color: var(--info);
-  background: var(--info-bg);
-  color: var(--info-ink);
-}
-
-.typeTd {
-  border-color: var(--jade);
-  background: var(--jade-faint);
-  color: var(--jade-text);
-}
-
-.typeTp {
-  border-color: var(--warning);
-  background: var(--warning-bg);
-  color: var(--warning-ink);
-}
-
-.typeExam {
-  border-color: var(--exam);
-  background: var(--exam-bg);
-  color: var(--exam-ink);
-}
-
 .typePill {
   display: inline-flex;
   align-items: center;
@@ -408,6 +447,8 @@ html[lang="ar"] .dayName {
   font-weight: 800;
   letter-spacing: 0.06em;
   white-space: nowrap;
+  background: var(--subj-tint);
+  color: var(--subj-ink);
 }
 
 /* Arabic: no tracking — see the note at .dayName. Scoped to .detailType, where
@@ -477,11 +518,14 @@ html[lang="ar"] .detailType .typePill {
 
 /* ── Day view ──────────────────────────────────────────────────────────────── */
 
+/* The only space between the day heading and the first card (or the empty-day
+   box): 14px, the dashboard's card-head spacing (app.css:160-162), a little
+   more than the 8px between two cards. */
 .dayHeading {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0;
+  margin: 0 0 14px;
   font-size: 16px;
   font-weight: 700;
   color: var(--ink);
@@ -520,6 +564,11 @@ html[lang="ar"] .detailType .typePill {
   width: 100%;
   padding: 12px;
   border: 1px solid var(--hair);
+  /* The subject's colour as the card's start-edge stripe, as on the week
+     blocks. Unlike them, no wash: the day card is a plain --surface card like
+     the dashboard's, so its colour is the stripe alone. Text on it: --ink
+     15.96:1 / 13.61:1, --ink2 5.49:1 / 6.78:1 (light / dark). */
+  border-inline-start: 4px solid var(--subj);
   border-radius: var(--r-md);
   background: var(--surface);
   box-shadow: var(--shadow-card);
@@ -559,14 +608,17 @@ html[lang="ar"] .detailType .typePill {
   color: var(--ink2);
 }
 
-/* The type's colour as a rule down the inline-start edge of the body. The
-   colour comes inline from course-type.ts's typeRailColor — the status hue,
-   shared with the dashboard's class rail. */
+/* EXPERIMENT: the inner rule is replaced by the card's start-edge stripe
+   (.dayItem's border), so a card carries its colour once. */
 .dayRule {
-  flex-shrink: 0;
-  width: 3px;
-  border: 0;
-  border-radius: 9999px;
+  display: none;
+}
+
+/* EXPERIMENT: on a card the type label is neutral, --ink2 with no tint. The
+   detail panel's pill (.detailType) keeps the subject tint: it is not a card. */
+.dayItem .typePill {
+  background: none;
+  color: var(--ink2);
 }
 
 .dayBody {
@@ -761,15 +813,25 @@ html[lang="ar"] .detailLabel {
   }
 }
 
+/* The toolbar's three footprints: the compact switch (34px + 3px track each
+   side), the week navigation (two 34px buttons around a 150px label) and the
+   34px ghost button. */
 .skeletonToggle {
-  width: 168px;
-  height: 52px;
+  width: 160px;
+  height: 40px;
   border-radius: 9999px;
 }
 
 .skeletonNav {
-  width: 260px;
-  height: 44px;
+  width: 236px;
+  height: 34px;
+  border-radius: 9999px;
+}
+
+.skeletonEnd {
+  width: 116px;
+  height: 34px;
+  border-radius: 9999px;
 }
 
 .skeletonDayHead {
@@ -787,24 +849,11 @@ html[lang="ar"] .detailLabel {
 
 /*
  * The week grid is never rendered at this width — ScheduleView forces the day
- * view and drops the toggle, so there is no five-column layout to squeeze. What
- * is left is the toolbar, which stops trying to sit on one line.
+ * view and drops the toggle, so there is no five-column layout to squeeze. The
+ * toolbar needs nothing here: it wraps by its container's width (above), not
+ * the viewport's.
  */
 @media (max-width: 639px) {
-  .toolbar {
-    justify-content: flex-start;
-  }
-
-  .nav {
-    flex: 1;
-    justify-content: space-between;
-  }
-
-  .navLabel {
-    min-width: 0;
-    flex: 1;
-  }
-
   .dayItem {
     gap: 10px;
     padding: 10px;

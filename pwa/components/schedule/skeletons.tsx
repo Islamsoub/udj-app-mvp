@@ -4,7 +4,7 @@ import styles from './schedule.module.css';
 
 /**
  * §5: "Skeleton blocks (gray rounded rectangles matching each real element's
- * footprint)." The footprints below are the real ones — the toggle's 44px row,
+ * footprint)." The footprints below are the real ones — the toolbar's 34px row,
  * the grid's HOUR_PX scale — so nothing resizes when the timetable lands.
  *
  * All blocks share one animation name and therefore one timeline, which is what
@@ -26,9 +26,18 @@ const SKELETON_SLOTS = [
 export function ScheduleSkeleton() {
   return (
     <>
+      {/* The same three zones as the loaded toolbar, so the navigation is
+          already centred where it will land. */}
       <div className={styles.toolbar}>
-        <Block className={styles.skeletonToggle} />
-        <Block className={styles.skeletonNav} />
+        <div className={styles.toolbarStart}>
+          <Block className={styles.skeletonToggle} />
+        </div>
+        <div className={styles.nav}>
+          <Block className={styles.skeletonNav} />
+        </div>
+        <div className={styles.toolbarEnd}>
+          <Block className={styles.skeletonEnd} />
+        </div>
       </div>
 
       <div className={styles.week}>
