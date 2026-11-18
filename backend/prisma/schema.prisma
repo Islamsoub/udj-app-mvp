@@ -114,6 +114,7 @@ model Student {
   qrTokens            QrToken[]
   refreshTokens       RefreshToken[]
   pushTokens          PushToken[]
+  courseNotes         CourseNote[]
 
   @@index([programmeId])
   @@map("students")
@@ -154,6 +155,7 @@ model Subject {
   grades            Grade[]
   scheduleEntries   ScheduleEntry[]
   attendanceRecords AttendanceRecord[]
+  courseNotes       CourseNote[]
 
   @@unique([programmeId, semesterId, code])
   @@map("subjects")
@@ -311,6 +313,25 @@ model RefreshToken {
   @@unique([tokenHash])
   @@index([studentId])
   @@map("refresh_tokens")
+}
+
+// A student's own note on one class: a subject on one weekday, the key the
+// mobile app's local course_notes table uses (subject_code + day_of_week).
+// Several per class, read newest first. Student-authored and private: the text
+// never appears in logs (middleware/errorHandler.ts) and no admin route reads it.
+model CourseNote {
+  id        String   @id @default(uuid())
+  studentId String   @map("student_id")
+  subjectId String   @map("subject_id")
+  dayOfWeek Int      @map("day_of_week") // 0 = Sunday ... 6 = Saturday, as ScheduleEntry
+  body      String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+
+  @@index([studentId, subjectId, dayOfWeek])
+  @@map("course_notes")
 }
 
 // ─── Admin Portal ────────────────────────────────────────────────────────────
