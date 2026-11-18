@@ -316,6 +316,42 @@ export interface UploadJustificationResponse {
   justificationNote: string | null;
 }
 
+// ── /student/course-notes ─────────────────────────────────────────────────────
+
+/**
+ * One of the student's own notes on a class. A class is a subject on a weekday,
+ * the mobile app's key: `subjectCode` + `dayOfWeek` (0 = Sunday), so the same
+ * subject on Sunday and on Tuesday holds two separate lists.
+ *
+ * `body` is the student's private text, already trimmed by the server. It is
+ * fetched fresh every time and never cached (see lib/offline-cache).
+ * Shapes from backend/src/routes/courseNotes.ts.
+ */
+export interface CourseNote {
+  id: string;
+  subjectCode: string;
+  dayOfWeek: number;
+  body: string;
+  /** ISO 8601, UTC. */
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** GET, filtered by class or not: newest first. */
+export interface CourseNotesResponse {
+  notes: CourseNote[];
+}
+
+/** POST body. The server trims `body` and requires 1-2000 characters. */
+export interface CreateCourseNotePayload {
+  subjectCode: string;
+  dayOfWeek: number;
+  body: string;
+}
+
+/** The backend's 2000, counted in characters (code points), as it counts them. */
+export const COURSE_NOTE_MAX = 2000;
+
 /**
  * The backend's error body. `error` is a human sentence in whatever language the
  * thrower wrote it and is never shown to a student. `code` is present only on

@@ -39,7 +39,9 @@ const STORE = 'cache';
  * the query params it may carry; a request with any other param is not cached
  * at all rather than cached under a key nobody will look up.
  *
- * Never cached: /auth/*, /student/preferences, /news, and any request that is
+ * Never cached: /auth/*, /student/preferences, /news, /student/course-notes
+ * (a student's private notes — this store is per browser, and a lab machine's
+ * browser is shared), and any request that is
  * not a GET (the justification upload included, and the notifications'
  * mark-as-read PATCHes).
  *

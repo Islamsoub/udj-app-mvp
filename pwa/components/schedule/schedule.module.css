@@ -725,6 +725,271 @@ html[lang="ar"] .detailLabel {
   font-size: 12.5px;
 }
 
+/* ── Detail panel: personal notes (CourseNotes.tsx) ─────────────────────────── */
+
+/*
+ * Under the details, separated by a hairline so it reads as a second part of
+ * the panel, not a fifth row. Every colour is a theme token, so dark mode needs
+ * no rule of its own, and every side is logical, so Arabic mirrors as is.
+ */
+.notes {
+  display: flex;
+  flex-direction: column;
+  /* 12px from the heading to the text box, and between the parts below it. */
+  gap: 12px;
+  /* The divider sits 20px under the details, with the same 20px above the
+     heading, so the notes read as a second part of the panel. */
+  margin-block-start: 20px;
+  padding-block-start: 20px;
+  border-block-start: 1px solid var(--hair);
+}
+
+/*
+ * A section title, not a detail label: in the small grey capitals of HORAIRE
+ * and SALLE it read as a fifth detail. No font is named, so it takes the
+ * page's face like the panel's own title (the Arabic face in Arabic), and with
+ * no tracking there is no Arabic override to add.
+ */
+.notesHeading {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.notesForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notesInput {
+  width: 100%;
+  min-height: 84px;
+  padding: 10px 12px;
+  border: 1px solid var(--hair2);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink);
+  /* A form control inherits no font. The note follows the active language. */
+  font-family: inherit;
+  font-size: 13.5px;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.notesInput::placeholder {
+  color: var(--ink2);
+}
+
+.notesInput:focus-visible {
+  outline: none;
+  border-color: var(--jade);
+  box-shadow: 0 0 0 3px var(--jade-faint);
+}
+
+/* Over the limit. Weaker than :focus-visible, so a focused field keeps the
+   jade ring over the danger fill, as the justification note does. */
+.notesInputError {
+  border-color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.notesActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.notesCounter {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink2);
+}
+
+.notesCounterOver {
+  color: var(--danger-ink);
+  font-weight: 700;
+}
+
+/* The justification form's primary button, at panel scale. */
+.notesSave {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding-inline: 16px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--jade);
+  color: var(--on-jade);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+.notesSave:hover:not(:disabled) {
+  background: var(--jade-hover);
+}
+
+.notesSave:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* §3: disabled controls drop to 0.5 opacity and refuse the cursor. */
+.notesSave:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.notesFieldError {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--danger-ink);
+}
+
+/* The live region stays mounted; it takes no room while it is empty. */
+.notesSaved {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--jade-text);
+}
+
+.notesSaved:empty {
+  display: none;
+}
+
+.notesMessage {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink2);
+}
+
+.notesErrorBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.notesSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notesSkeletonLine {
+  display: block;
+  height: 14px;
+}
+
+.notesSkeletonShort {
+  display: block;
+  width: 40%;
+  height: 14px;
+}
+
+.notesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.noteItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-md);
+  background: var(--surface2);
+}
+
+/* The student's line breaks are kept, and a long URL or word wraps instead of
+   pushing the panel sideways. */
+.noteBody {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.noteFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.noteTime {
+  font-size: 12px;
+  color: var(--ink2);
+}
+
+.noteConfirm {
+  display: inline-flex;
+  gap: 4px;
+}
+
+/*
+ * A text button. 32px tall inside the card; the padding and the card's own
+ * 12px around it put the hit area at 44px tall, and the label sets its width.
+ */
+.noteDelete {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding-inline: 10px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink2);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.noteDelete:hover:not(:disabled) {
+  background: var(--sunken);
+  color: var(--ink);
+}
+
+.noteDeleteConfirm,
+.noteDeleteConfirm:hover:not(:disabled) {
+  background: var(--danger-bg);
+  color: var(--danger-ink);
+}
+
+.noteDelete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.notesSave:focus-visible,
+.noteDelete:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
 /* ── Empty / error / offline (§5, §8) ──────────────────────────────────────── */
 
 .emptyBox,
@@ -887,7 +1152,10 @@ html[lang="ar"] .detailLabel {
   .dayItem,
   .navButton,
   .todayButton,
-  .retryButton {
+  .retryButton,
+  .notesInput,
+  .notesSave,
+  .noteDelete {
     transition-duration: var(--dur-instant);
     transition-timing-function: linear;
   }
