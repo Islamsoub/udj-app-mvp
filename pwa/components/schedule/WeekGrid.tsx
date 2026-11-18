@@ -123,11 +123,15 @@ export function WeekGrid({
                       key={entry.id}
                       type="button"
                       className={`${styles.block} subject-color`}
-                      style={{
-                        ...subjectStyle(subjectSwatch(colors, entry.subject.nameFr)),
-                        top: `${box.top}px`,
-                        height: `${box.height}px`,
-                      }}
+                      style={
+                        {
+                          ...subjectStyle(subjectSwatch(colors, entry.subject.nameFr)),
+                          // The time slot, exactly. The card's own inset inside
+                          // it is the stylesheet's (.block, --card-inset).
+                          '--slot-top': `${box.top}px`,
+                          '--slot-height': `${box.height}px`,
+                        } as React.CSSProperties
+                      }
                       onClick={() => onSelect(entry)}
                       /*
                        * The visible text is fragmented into type, subject and

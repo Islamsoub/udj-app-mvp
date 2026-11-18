@@ -350,13 +350,20 @@ html[lang="ar"] .dayName {
 /* ── Course blocks ─────────────────────────────────────────────────────────── */
 
 /*
- * Absolutely positioned from real minutes. `inset-inline` handles the horizontal
- * inset in both directions; `top` and `height` come from the component, because
- * they are the proportional part and there is nothing to mirror about them.
+ * Absolutely positioned from real minutes. The component passes the time slot
+ * as --slot-top / --slot-height (the proportional part, nothing to mirror), and
+ * the card sits --card-inset inside it on all four sides: 3px from the column
+ * edges, 3px after its start line and 3px before its end line. The same inset
+ * for every card, so each still reads against its hour lines, and two
+ * back-to-back classes are 6px apart instead of touching. It also keeps an
+ * 08:00 card off the day header's bottom border.
  */
 .block {
+  --card-inset: 3px;
   position: absolute;
-  inset-inline: 3px;
+  inset-inline: var(--card-inset);
+  top: calc(var(--slot-top) + var(--card-inset));
+  height: calc(var(--slot-height) - 2 * var(--card-inset));
   display: flex;
   flex-direction: column;
   gap: 1px;
