@@ -518,11 +518,14 @@ html[lang="ar"] .detailType .typePill {
 
 /* ── Day view ──────────────────────────────────────────────────────────────── */
 
+/* The only space between the day heading and the first card (or the empty-day
+   box): 14px, the dashboard's card-head spacing (app.css:160-162), a little
+   more than the 8px between two cards. */
 .dayHeading {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0;
+  margin: 0 0 14px;
   font-size: 16px;
   font-weight: 700;
   color: var(--ink);
