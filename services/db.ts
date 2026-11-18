@@ -15,6 +15,7 @@ import type {
   CachedNotification,
   NewsCategory,
 } from './api';
+import { COURSE_NOTES_MIGRATIONS, type SqlDb } from './courseNotesStore';
 
 const DB_NAME = 'udj.db';
 const ENC_TMP_NAME = 'udj_enc.db';
@@ -321,6 +322,11 @@ export async function runMigrations(): Promise<void> {
 
   // --- Additive migrations: new columns on existing tables ---
 
+  // course_notes: server_id, upload_failed, student_id (server-backed notes and
+  // their one-time upload; see services/courseNotesStore.ts). Existing rows come
+  // out as "pending": not on the server yet, to be uploaded once.
+  for (const sql of COURSE_NOTES_MIGRATIONS) await addColumnSafe(db, sql);
+
   // schedules: coefficient, subject_name_ar
   await addColumnSafe(db, 'ALTER TABLE schedules ADD COLUMN coefficient REAL NOT NULL DEFAULT 0');
   await addColumnSafe(db, "ALTER TABLE schedules ADD COLUMN subject_name_ar TEXT NOT NULL DEFAULT ''");
@@ -548,45 +554,15 @@ export async function getCachedNotifications(): Promise<CachedNotification[]> {
   return rows.map(rowToNotification);
 }
 
-// --- Course notes (user-authored, not cache — survives clearAllCache) ---
+// --- Course notes ---
+// The server is the source of truth; course_notes holds the local copy plus
+// notes not on the server yet. Not part of CACHE_TABLES, so clearAllCache never
+// touches it; logout wipes only the server copies (services/auth.ts). All the
+// SQL lives in services/courseNotesStore.ts, which is unit-tested in Node.
 
-export interface CourseNote {
-  id: string;
-  note: string;
-  createdAt: string;
-}
-
-export async function saveCourseNote(
-  subjectCode: string,
-  dayOfWeek: number,
-  note: string,
-): Promise<void> {
-  const db = await getDb();
-  const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  await db.runAsync(
-    `INSERT INTO course_notes (id, subject_code, day_of_week, note, created_at)
-     VALUES (?, ?, ?, ?, ?)`,
-    [id, subjectCode, dayOfWeek, note, new Date().toISOString()],
-  );
-}
-
-export async function getCourseNotes(
-  subjectCode: string,
-  dayOfWeek: number,
-): Promise<CourseNote[]> {
-  const db = await getDb();
-  const rows = await db.getAllAsync<{ id: string; note: string; created_at: string }>(
-    `SELECT id, note, created_at FROM course_notes
-     WHERE subject_code = ? AND day_of_week = ?
-     ORDER BY created_at DESC`,
-    [subjectCode, dayOfWeek],
-  );
-  return rows.map((r) => ({ id: r.id, note: r.note, createdAt: r.created_at }));
-}
-
-export async function deleteCourseNote(id: string): Promise<void> {
-  const db = await getDb();
-  await db.runAsync('DELETE FROM course_notes WHERE id = ?', [id]);
+/** The encrypted connection, for services/courseNotesStore.ts. */
+export async function getCourseNotesDb(): Promise<SqlDb> {
+  return getDb();
 }
 
 // --- Write helpers ---

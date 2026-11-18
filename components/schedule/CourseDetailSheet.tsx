@@ -16,12 +16,25 @@ import { useTranslation } from 'react-i18next';
 import { fonts, fz, radius, spacing, sizing, scrimColor, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { useCourseDetailStore } from '@/stores/courseDetailStore';
+import { useAuthStore } from '@/stores/authStore';
+import { useNetworkStore } from '@/stores/networkStore';
+import { useOfflineQuery } from '@/hooks/useOfflineQuery';
+import { SkeletonBox } from '@/components/ui/SkeletonBox';
+import { getCourseNotesDb } from '@/services/db';
 import {
-  getCourseNotes,
-  saveCourseNote,
-  deleteCourseNote,
-  type CourseNote,
-} from '@/services/db';
+  createCourseNote,
+  deleteCourseNoteOnServer,
+  fetchCourseNotes,
+  httpStatusOf,
+  type CourseNoteDto,
+} from '@/services/api';
+import {
+  putServerNote,
+  readClassNotes,
+  removeLocalNote,
+  replaceClassCopy,
+  type LocalNote,
+} from '@/services/courseNotesStore';
 import { StatusPill } from './StatusPill';
 import { getAccentColor } from './CourseCard';
 
@@ -29,6 +42,20 @@ interface Props {
   visible: boolean;
   onClose: () => void;
 }
+
+/** The server's limit, counted in code points like the server does. */
+const NOTE_MAX = 2000;
+
+type SaveError = 'save_error' | 'rate_limited' | 'too_long';
+
+const fromServer = (n: CourseNoteDto): LocalNote => ({
+  localId: n.id,
+  serverId: n.id,
+  body: n.body,
+  createdAt: n.createdAt,
+  deviceOnly: false,
+  pending: false,
+});
 
 function formatNoteTimestamp(dateStr: string, lang: string): string {
   const date = new Date(dateStr);
@@ -65,41 +92,128 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
   const scrollRef = useRef<React.ElementRef<typeof KeyboardAwareScrollView>>(null);
 
   const [noteText, setNoteText] = useState('');
-  const [notes, setNotes] = useState<CourseNote[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<SaveError | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteErrorId, setDeleteErrorId] = useState<string | null>(null);
+  /** A 404 on save: the subject left this student's timetable after the read. */
+  const [unavailableOnSave, setUnavailableOnSave] = useState(false);
 
   const course      = selectedCourse;
   const subjectCode = course?.code ?? null;
   const dayOfWeek   = course?.dayOfWeek ?? null;
   const courseColor = course ? getAccentColor(course, colors, isDark) : colors.jade400;
+  const studentId   = useAuthStore((s) => s.student?.id ?? null);
+  const isOnline    = useNetworkStore((s) => s.isOnline);
 
-  const refreshNotes = useCallback(async () => {
-    if (subjectCode == null || dayOfWeek == null) {
-      setNotes([]);
-      return;
-    }
-    const rows = await getCourseNotes(subjectCode, dayOfWeek);
-    setNotes(rows);
-  }, [subjectCode, dayOfWeek]);
+  // Server first; the local copy is shown at once and when offline.
+  // getCached returns null for "nothing on this phone" so a first open shows the
+  // skeleton rather than a flash of "no notes".
+  const classKey = `${studentId}:${subjectCode}:${dayOfWeek}`;
+  const query = useOfflineQuery<LocalNote[]>({
+    cacheKey: `course-notes:${classKey}`,
+    enabled: visible && !!studentId && subjectCode != null && dayOfWeek != null,
+    getCached: async () => {
+      const rows = await readClassNotes(await getCourseNotesDb(), studentId!, subjectCode!, dayOfWeek!);
+      return rows.length ? rows : null;
+    },
+    fetchFresh: async () =>
+      (await fetchCourseNotes({ subjectCode: subjectCode!, dayOfWeek: dayOfWeek! })).map(fromServer),
+    updateCache: async (fresh) => {
+      await replaceClassCopy(
+        await getCourseNotesDb(),
+        studentId!,
+        subjectCode!,
+        dayOfWeek!,
+        fresh.map((n) => ({ id: n.serverId!, subjectCode: subjectCode!, dayOfWeek: dayOfWeek!, body: n.body, createdAt: n.createdAt })),
+      );
+    },
+  });
+
+  // What the list shows: the query's result, then each change the server confirmed.
+  const [notes, setNotes] = useState<LocalNote[] | null>(null);
+  const [notesKey, setNotesKey] = useState(classKey);
+  useEffect(() => {
+    setNotes(query.data);
+    setNotesKey(classKey);
+  }, [query.data, classKey]);
+  const shown = notesKey === classKey ? notes : null;
 
   useEffect(() => {
     if (!visible) return;
     setNoteText('');
-    void refreshNotes();
-  }, [visible, refreshNotes]);
+    setSaveError(null);
+    setDeleteErrorId(null);
+    setUnavailableOnSave(false);
+  }, [visible, classKey]);
+
+  const loadStatus = query.error ? httpStatusOf(query.error) : undefined;
+  const unavailable = unavailableOnSave || loadStatus === 404;
+  // Read-only: offline, or the class can't take notes. Notes already on the phone still show.
+  const canWrite = isOnline && !unavailable;
 
   const handleSave = useCallback(async () => {
     Keyboard.dismiss();
     const trimmed = noteText.trim();
-    if (!trimmed || subjectCode == null || dayOfWeek == null) return;
-    await saveCourseNote(subjectCode, dayOfWeek, trimmed);
-    setNoteText('');
-    await refreshNotes();
-  }, [noteText, subjectCode, dayOfWeek, refreshNotes]);
+    if (!trimmed || subjectCode == null || dayOfWeek == null || !studentId || saving || !isOnline) return;
+    if ([...trimmed].length > NOTE_MAX) {
+      setSaveError('too_long');
+      return;
+    }
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const created = await createCourseNote({ subjectCode, dayOfWeek, body: trimmed });
+      // Confirmed by the server: now the local copy and the screen.
+      try {
+        await putServerNote(await getCourseNotesDb(), studentId, created);
+      } catch {
+        // The local copy catches up at the next read; the note is safe on the server.
+      }
+      setNotes((prev) => [fromServer(created), ...(prev ?? [])]);
+      setNoteText('');
+    } catch (err) {
+      const status = httpStatusOf(err);
+      if (status === 404) setUnavailableOnSave(true);
+      else setSaveError(status === 429 ? 'rate_limited' : 'save_error'); // the text stays in the field
+    } finally {
+      setSaving(false);
+    }
+  }, [noteText, subjectCode, dayOfWeek, studentId, saving, isOnline]);
 
-  const handleDelete = useCallback(async (id: string) => {
-    await deleteCourseNote(id);
-    await refreshNotes();
-  }, [refreshNotes]);
+  const handleDelete = useCallback(async (n: LocalNote) => {
+    Keyboard.dismiss();
+    if (deletingId) return;
+    setDeleteErrorId(null);
+    setDeletingId(n.localId);
+    try {
+      if (n.serverId) {
+        if (!isOnline) return;
+        try {
+          await deleteCourseNoteOnServer(n.serverId);
+        } catch (err) {
+          // 404: already gone (deleted on the PWA, say), which is what was asked.
+          if (httpStatusOf(err) !== 404) {
+            setDeleteErrorId(n.localId);
+            return;
+          }
+        }
+      }
+      // A note not on the server (not uploaded yet, or kept on this phone) is deleted here only.
+      try {
+        await removeLocalNote(await getCourseNotesDb(), n.localId);
+      } catch {
+        if (!n.serverId) {
+          setDeleteErrorId(n.localId);
+          return;
+        }
+        // Gone from the server; the stale local copy is dropped at the next read.
+      }
+      setNotes((prev) => (prev ?? []).filter((x) => x.localId !== n.localId));
+    } finally {
+      setDeletingId(null);
+    }
+  }, [deletingId, isOnline]);
 
   const timeStr = course ? `${course.start} – ${course.end}` : '';
   const coefStr = course ? String(course.coefficient) : '';
@@ -171,43 +285,112 @@ export function CourseDetailSheet({ visible, onClose }: Props) {
             {/* Notes section */}
             <Text style={styles.notesHeader}>{t('course.notes_section')}</Text>
 
-            <TextInput
-              style={styles.notesInput}
-              multiline
-              value={noteText}
-              onChangeText={setNoteText}
-              placeholder={t('course.notes_placeholder')}
-              placeholderTextColor={colors.textTertiary}
-              textAlignVertical="top"
-            />
+            {unavailable ? (
+              <Text style={styles.notesMessage}>{t('schedule.notes.unavailable')}</Text>
+            ) : !isOnline ? (
+              <View style={styles.offlineBox}>
+                <Text style={styles.offlineText}>
+                  {shown?.length ? t('schedule.notes.offline') : t('schedule.notes.offline_empty')}
+                </Text>
+              </View>
+            ) : null}
 
-            <PressBox
-              tier="button"
-              style={styles.saveBtn}
-              onPress={handleSave}
-            >
-              <Text style={styles.saveBtnText}>{t('course.save')}</Text>
-            </PressBox>
+            {canWrite && (
+              <>
+                <TextInput
+                  style={styles.notesInput}
+                  multiline
+                  value={noteText}
+                  onChangeText={(v) => {
+                    setNoteText(v);
+                    if (saveError) setSaveError(null);
+                  }}
+                  editable={!saving}
+                  placeholder={t('course.notes_placeholder')}
+                  placeholderTextColor={colors.textTertiary}
+                  textAlignVertical="top"
+                />
+
+                {saveError && (
+                  <Text style={styles.errorText} accessibilityLiveRegion="polite">
+                    {t(`schedule.notes.${saveError}`, { max: NOTE_MAX })}
+                  </Text>
+                )}
+
+                <PressBox
+                  tier="button"
+                  style={[styles.saveBtn, saving && styles.saveBtnBusy]}
+                  onPress={handleSave}
+                  disabled={saving}
+                >
+                  <Text style={styles.saveBtnText}>{saving ? t('schedule.notes.saving') : t('course.save')}</Text>
+                </PressBox>
+              </>
+            )}
 
             <View style={styles.notesList}>
-              {notes.map((n) => (
-                <View key={n.id} style={styles.noteCard}>
-                  <Text style={styles.noteText}>{n.note}</Text>
-                  <View style={styles.noteFooter}>
-                    <Text style={styles.noteTimestamp}>
-                      {formatNoteTimestamp(n.createdAt, i18n.language)}
-                    </Text>
-                    <PressBox
-                      tier="icon"
-                      onPress={() => handleDelete(n.id)}
-                      hitSlop={14}
-                      style={styles.noteDeleteBtn}
-                    >
-                      <TrashIcon color={colors.textTertiary} />
-                    </PressBox>
-                  </View>
+              {shown === null && query.isLoading ? (
+                <View style={styles.skeletonList}>
+                  <SkeletonBox width="100%" height={64} borderRadius={radius.rMd} />
+                  <SkeletonBox width="100%" height={64} borderRadius={radius.rMd} />
                 </View>
-              ))}
+              ) : shown === null && query.error && isOnline && loadStatus !== 404 ? (
+                <View style={styles.loadError}>
+                  <Text style={styles.notesMessage}>{t('schedule.notes.load_error')}</Text>
+                  <PressBox tier="button" style={styles.retryBtn} onPress={() => void query.refetch()}>
+                    <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
+                  </PressBox>
+                </View>
+              ) : !shown?.length ? (
+                isOnline && !unavailable ? <Text style={styles.notesMessage}>{t('schedule.notes.empty')}</Text> : null
+              ) : (
+                <>
+                  {query.error && isOnline && loadStatus !== 404 && (
+                    <View style={styles.loadError}>
+                      <Text style={styles.notesMessage}>{t('schedule.notes.load_error')}</Text>
+                      <PressBox tier="button" style={styles.retryBtn} onPress={() => void query.refetch()}>
+                        <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
+                      </PressBox>
+                    </View>
+                  )}
+                  {shown.map((n) => {
+                    // Server notes need the server to delete; notes only on this phone don't.
+                    const canDelete = !n.serverId || isOnline;
+                    return (
+                      <View key={n.localId} style={styles.noteCard}>
+                        <Text style={styles.noteText}>{n.body}</Text>
+                        {n.deviceOnly && (
+                          <View style={styles.deviceOnlyPill}>
+                            <Text style={styles.deviceOnlyText}>{t('schedule.notes.device_only')}</Text>
+                          </View>
+                        )}
+                        <View style={styles.noteFooter}>
+                          <Text style={styles.noteTimestamp}>
+                            {formatNoteTimestamp(n.createdAt, i18n.language)}
+                          </Text>
+                          {canDelete && (
+                            <PressBox
+                              tier="icon"
+                              onPress={() => handleDelete(n)}
+                              hitSlop={14}
+                              style={styles.noteDeleteBtn}
+                              disabled={deletingId !== null}
+                              accessibilityLabel={t('schedule.notes.delete_label')}
+                            >
+                              {deletingId === n.localId
+                                ? <Text style={styles.noteTimestamp}>{t('schedule.notes.deleting')}</Text>
+                                : <TrashIcon color={colors.textTertiary} />}
+                            </PressBox>
+                          )}
+                        </View>
+                        {deleteErrorId === n.localId && (
+                          <Text style={styles.errorText}>{t('schedule.notes.delete_error')}</Text>
+                        )}
+                      </View>
+                    );
+                  })}
+                </>
+              )}
             </View>
 
           </KeyboardAwareScrollView>
@@ -347,6 +530,9 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   saveBtnPressed: {
     backgroundColor: colors.jade600,
   },
+  saveBtnBusy: {
+    opacity: 0.6,
+  },
   saveBtnText: {
     fontSize: fz(15),
     fontWeight: '600',
@@ -384,6 +570,69 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontSize: fz(12),
     fontFamily: fonts.mono,
     color: colors.textTertiary,
+  },
+  notesMessage: {
+    fontSize: fz(13.5),
+    fontFamily: fonts.sans,
+    color: colors.textSecondary,
+    paddingHorizontal: spacing.sp20,
+    marginBottom: spacing.sp8,
+  },
+  offlineBox: {
+    marginHorizontal: spacing.sp20,
+    marginBottom: spacing.sp8,
+    padding: spacing.sp12,
+    borderRadius: radius.rMd,
+    backgroundColor: colors.offlineBg,
+  },
+  offlineText: {
+    fontSize: fz(13.5),
+    fontFamily: fonts.sans,
+    color: colors.offlineText,
+  },
+  errorText: {
+    fontSize: fz(13),
+    fontFamily: fonts.sans,
+    color: colors.danger,
+    marginHorizontal: spacing.sp20,
+    marginTop: spacing.sp8,
+  },
+  skeletonList: {
+    gap: spacing.sp8,
+  },
+  loadError: {
+    alignItems: 'flex-start',
+    gap: spacing.sp8,
+    marginBottom: spacing.sp12,
+  },
+  retryBtn: {
+    minHeight: sizing.touchTarget,
+    paddingHorizontal: spacing.sp16,
+    borderRadius: radius.rBtn,
+    borderWidth: 1,
+    borderColor: colors.hair,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  retryBtnText: {
+    fontSize: fz(14),
+    fontWeight: '600',
+    fontFamily: fonts.sans,
+    color: colors.jade600,
+  },
+  deviceOnlyPill: {
+    alignSelf: 'flex-start',
+    marginTop: spacing.sp8,
+    paddingHorizontal: spacing.sp8,
+    paddingVertical: spacing.sp2,
+    borderRadius: radius.rFull,
+    backgroundColor: colors.surface2,
+  },
+  deviceOnlyText: {
+    fontSize: fz(11.5),
+    fontWeight: '600',
+    fontFamily: fonts.sans,
+    color: colors.textSecondary,
   },
   noteDeleteBtn: {
     minWidth: sizing.touchTarget,

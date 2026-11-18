@@ -168,6 +168,21 @@
       "body": "Votre session a expiré pour des raisons de sécurité. Reconnectez-vous pour continuer.",
       "login": "Se connecter",
       "continue_offline": "Continuer en hors-ligne"
+    },
+    "notes": {
+      "saving": "Enregistrement…",
+      "empty": "Aucune note pour ce cours.",
+      "load_error": "Impossible de charger vos notes de cours.",
+      "save_error": "Échec de l'enregistrement. Votre texte est conservé ; réessayez.",
+      "delete_error": "Échec de la suppression ; réessayez.",
+      "rate_limited": "Trop de notes d'un coup, réessayez dans une minute.",
+      "unavailable": "Les notes ne sont pas disponibles pour ce cours.",
+      "too_long": "Trop long : {{max}} caractères au maximum.",
+      "delete_label": "Supprimer cette note",
+      "deleting": "Suppression…",
+      "offline": "Hors connexion : vos notes enregistrées s'affichent en lecture seule. Une connexion est nécessaire pour en ajouter ou en supprimer.",
+      "offline_empty": "Hors connexion : une connexion est nécessaire pour afficher vos notes.",
+      "device_only": "Sur cet appareil uniquement"
     }
   },
   "grades": {
