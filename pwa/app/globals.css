@@ -257,6 +257,9 @@
   --mention-insuffisant: #FFB4B4;
 
   --shadow-card: 0 2px 10px rgba(30, 35, 31, .06);
+  /* How much of a class's subject colour washes its schedule card, mixed over
+     --surface (schedule.module.css). Light: 7%, half the old 12% tint. */
+  --card-wash: 7%;
   --shadow-lg: 0 12px 32px rgba(30, 35, 31, .12);
   --shadow-panel: 0 0 0 1px rgba(30, 35, 31, .04), -12px 0 32px rgba(30, 35, 31, .10);
   --scrim: rgba(30, 35, 31, .40);
@@ -339,6 +342,10 @@
   /* A 1px light ring does the edge work a shadow cannot on a dark page; the
      black blur underneath gives the lift. */
   --shadow-card: 0 0 0 1px rgba(255, 255, 255, .06), 0 2px 8px rgba(0, 0, 0, .40);
+  /* The same wash on the dark surface. 10%: a dark hue at 7% barely leaves
+     #1C2721, so the dark value keeps the light one's share of the old tint
+     (18% there, against 12% in light). */
+  --card-wash: 10%;
   --shadow-lg: 0 0 0 1px rgba(255, 255, 255, .08), 0 16px 40px rgba(0, 0, 0, .55);
   --shadow-panel: 0 0 0 1px rgba(255, 255, 255, .08), -16px 0 40px rgba(0, 0, 0, .60);
   --scrim: rgba(0, 0, 0, .60);

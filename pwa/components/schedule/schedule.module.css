@@ -373,15 +373,16 @@ html[lang="ar"] .dayName {
 }
 
 /*
- * EXPERIMENT (2026-11-18, may be reverted): colour only on the 4px stripe at
- * the inline-start edge, which is the border above, so it is full height and
- * mirrors with `dir`. The fill is neutral: --sunken, one step darker than the
- * grid's --surface in both themes (light #EFEAE0 on #FFFFFF, dark #0F1713 on
- * #1C2721), and opaque, so today's jade column cannot wash through it. A --hair
+ * EXPERIMENT (2026-11-18, may be reverted): the 4px stripe at the inline-start
+ * edge carries the subject's exact colour (the border above: full height,
+ * mirrored by `dir`). The fill is a light wash of the same colour, --card-wash
+ * of --subj over --surface (7% light, 10% dark), opaque so today's jade column
+ * cannot show through, and --shadow-card lifts the card off the grid. A --hair
  * edge on the other three sides.
  */
 .block {
-  background: var(--sunken);
+  background: color-mix(in srgb, var(--subj) var(--card-wash), var(--surface));
+  box-shadow: var(--shadow-card);
 }
 
 /* §3: clickable cards lift 1px and deepen to --shadow-lg over --dur-fast. */
@@ -557,10 +558,10 @@ html[lang="ar"] .detailType .typePill {
   padding: 12px;
   border: 1px solid var(--hair);
   /* EXPERIMENT: the subject's colour as the card's start-edge stripe, as on the
-     week blocks, on the same neutral --sunken fill. */
+     week blocks, on the same subject wash. */
   border-inline-start: 4px solid var(--subj);
   border-radius: var(--r-md);
-  background: var(--sunken);
+  background: color-mix(in srgb, var(--subj) var(--card-wash), var(--surface));
   box-shadow: var(--shadow-card);
   font-family: inherit;
   text-align: start;
