@@ -349,8 +349,8 @@ html[lang="ar"] .dayName {
   gap: 1px;
   overflow: hidden;
   padding: 5px 7px;
-  border: 1px solid;
-  border-inline-start-width: 3px;
+  border: 1px solid var(--hair);
+  border-inline-start: 4px solid var(--subj);
   border-radius: var(--r-sm);
   font-family: inherit;
   text-align: start;
@@ -360,13 +360,15 @@ html[lang="ar"] .dayName {
 }
 
 /*
- * The subject's colour: the app's hex on the border and the inline-start rail,
- * its tint as the fill. The tint is stored opaque (lib/subject-colors.ts), so
- * today's jade column cannot wash through it.
+ * EXPERIMENT (2026-11-18, may be reverted): colour only on the 4px stripe at
+ * the inline-start edge, which is the border above, so it is full height and
+ * mirrors with `dir`. The fill is neutral: --sunken, one step darker than the
+ * grid's --surface in both themes (light #EFEAE0 on #FFFFFF, dark #0F1713 on
+ * #1C2721), and opaque, so today's jade column cannot wash through it. A --hair
+ * edge on the other three sides.
  */
 .block {
-  border-color: var(--subj);
-  background: var(--subj-tint);
+  background: var(--sunken);
 }
 
 /* §3: clickable cards lift 1px and deepen to --shadow-lg over --dur-fast. */
@@ -381,7 +383,7 @@ html[lang="ar"] .dayName {
 }
 
 .blockType {
-  color: var(--subj-ink);
+  color: var(--ink2);
   font-size: 9.5px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -541,8 +543,11 @@ html[lang="ar"] .detailType .typePill {
   width: 100%;
   padding: 12px;
   border: 1px solid var(--hair);
+  /* EXPERIMENT: the subject's colour as the card's start-edge stripe, as on the
+     week blocks, on the same neutral --sunken fill. */
+  border-inline-start: 4px solid var(--subj);
   border-radius: var(--r-md);
-  background: var(--surface);
+  background: var(--sunken);
   box-shadow: var(--shadow-card);
   font-family: inherit;
   text-align: start;
@@ -580,14 +585,17 @@ html[lang="ar"] .detailType .typePill {
   color: var(--ink2);
 }
 
-/* The subject's colour as a rule down the inline-start edge of the body —
-   the app's hex, the same as the week block's border and the dashboard rail. */
+/* EXPERIMENT: the inner rule is replaced by the card's start-edge stripe
+   (.dayItem's border), so a card carries its colour once. */
 .dayRule {
-  flex-shrink: 0;
-  width: 3px;
-  border: 0;
-  border-radius: 9999px;
-  background: var(--subj);
+  display: none;
+}
+
+/* EXPERIMENT: on a card the type label is neutral, --ink2 with no tint. The
+   detail panel's pill (.detailType) keeps the subject tint: it is not a card. */
+.dayItem .typePill {
+  background: none;
+  color: var(--ink2);
 }
 
 .dayBody {
