@@ -20,7 +20,7 @@ const ALLOWED_ROOTS = new Set(['student', 'news']);
 const SAFE_SEGMENT = /^[A-Za-z0-9._~-]+$/;
 
 /**
- * The ONE upstream shape POST may reach:
+ * The upload shape POST may reach (the other, a course note, is below):
  * `student/attendance/{uuid}/justification`.
  *
  * Anchored end to end rather than scoped to `student/*`. POST is the only verb
@@ -44,6 +44,39 @@ function isJustificationUpload(segments: string[]): boolean {
     UUID.test(segments[2])
   );
 }
+
+/**
+ * The two course-note targets, each the only shape its verb may reach:
+ *   POST   student/course-notes          — create one note (JSON body)
+ *   DELETE student/course-notes/{uuid}   — delete one note (no body)
+ * GET student/course-notes needs no rule of its own: GET reaches every
+ * student/* path already.
+ *
+ * Exact matches, for the same reason as the upload rule above: a write verb
+ * gets the one endpoint it is for, never "anything under student/". The note
+ * id is matched as a UUID here too, although the backend checks it, so the
+ * relay never forwards a string the backend can only refuse.
+ */
+function isCourseNoteCreate(segments: string[]): boolean {
+  return segments.length === 2 && segments[0] === 'student' && segments[1] === 'course-notes';
+}
+
+function isCourseNoteDelete(segments: string[]): boolean {
+  return (
+    segments.length === 3 &&
+    segments[0] === 'student' &&
+    segments[1] === 'course-notes' &&
+    UUID.test(segments[2])
+  );
+}
+
+/**
+ * A note is at most 2000 characters (the backend's limit). At 4 bytes for the
+ * widest UTF-8 character plus JSON escaping and the other three fields, a
+ * legitimate body stays well under this; anything larger is refused before it
+ * costs a backend call.
+ */
+const MAX_NOTE_JSON_BYTES = 32 * 1024;
 
 type Context = { params: Promise<{ path?: string[] }> };
 
@@ -103,6 +136,12 @@ async function forward(req: Request, context: Context, body?: string) {
     return NextResponse.json({ error: 'Backend unreachable' }, { status: 502 });
   }
 
+  // 204 carries no body, and a Response with status 204 cannot be given one —
+  // NextResponse.json would throw. DELETE /student/course-notes/:id answers 204.
+  if (upstream.status === 204) {
+    return new NextResponse(null, { status: 204 });
+  }
+
   const data = await readJson(upstream);
 
   // Status and body pass through untouched — the client needs to tell 401 from
@@ -124,7 +163,44 @@ export async function PATCH(req: Request, context: Context) {
 }
 
 /**
- * POST /api/backend/student/attendance/{uuid}/justification — the only POST.
+ * DELETE /api/backend/student/course-notes/{uuid} — the only DELETE.
+ *
+ * The same chain as the other verbs: the root allow-list and segment check in
+ * upstreamPath, then an exact target, then a Bearer token, then `forward` (55s
+ * deadline, 504 on timeout, 502 when unreachable, status passed through).
+ * Nothing from the incoming body is read or sent.
+ */
+export async function DELETE(req: Request, context: Context) {
+  const { path } = await context.params;
+  const target = upstreamPath(path, new URL(req.url).search);
+  if (!target || !path || !isCourseNoteDelete(path)) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+  return forward(req, context);
+}
+
+/**
+ * POST /api/backend/student/course-notes — a JSON body, forwarded as received.
+ * Split out of POST below because that handler is built for multipart.
+ */
+async function postCourseNote(req: Request, context: Context) {
+  const contentType = req.headers.get('content-type');
+  if (!contentType || !contentType.toLowerCase().startsWith('application/json')) {
+    return NextResponse.json({ error: 'Expected application/json' }, { status: 400 });
+  }
+
+  const body = await req.text();
+  if (new TextEncoder().encode(body).byteLength > MAX_NOTE_JSON_BYTES) {
+    return NextResponse.json({ error: 'Payload too large' }, { status: 413 });
+  }
+
+  // The body is the student's note: it is forwarded and never logged or echoed.
+  return forward(req, context, body);
+}
+
+/**
+ * POST /api/backend/student/attendance/{uuid}/justification — the upload POST.
+ * (The other POST, student/course-notes, is routed to postCourseNote first.)
  *
  * A separate handler rather than a branch inside `forward`, because almost
  * nothing about `forward` is right for this call: it hardcodes
@@ -174,8 +250,11 @@ const MAX_UPLOAD_BYTES = 4.5 * 1024 * 1024;
 export async function POST(req: Request, context: Context) {
   const { path } = await context.params;
 
-  // The GET allow-list still applies, and the upload rule narrows it further.
+  // The GET allow-list still applies, and each POST rule narrows it further.
   const target = upstreamPath(path, new URL(req.url).search);
+  if (target && path && isCourseNoteCreate(path)) {
+    return postCourseNote(req, context);
+  }
   if (!target || !path || !isJustificationUpload(path)) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }

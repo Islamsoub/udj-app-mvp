@@ -6,6 +6,7 @@ import { fmtRange } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n-types';
 import { subjectStyle, type SubjectSwatch } from '@/lib/subject-colors';
+import { CourseNotes } from './CourseNotes';
 import { courseType, typeLabelKey } from './course-type';
 import { ClockIcon, CodeIcon, ProfessorIcon, RoomIcon } from './icons';
 import styles from './schedule.module.css';
@@ -13,14 +14,9 @@ import styles from './schedule.module.css';
 /**
  * The body of the course detail panel — everything inside SlidePanel's chrome.
  *
- * NO NOTE FIELD, DELIBERATELY. §9 describes saving a note here, with the success
- * flash from §5 and the panel auto-closing 500ms later. There is no notes
- * endpoint on the backend: the native app keeps them in its own SQLite table
- * (`course_notes`), and this PWA has no local database and no caching layer. The
- * only ways to ship the control would be to invent a store the app does not
- * have, or to render a Save button that discards what the student typed — and a
- * note silently lost is worse than a note never offered. So the feature is left
- * out and reported as spec-without-backend.
+ * The personal notes sit under the details (CourseNotes). The panel does NOT
+ * auto-close after a save, unlike §9's sketch: a student often adds a second
+ * note, and the new one is shown at the top of the list as the confirmation.
  */
 export function CourseDetail({
   entry,
@@ -81,6 +77,14 @@ export function CourseDetail({
           </span>
         </DetailRow>
       </dl>
+
+      {/* Keyed on the class, so another class opened in the same panel starts
+          from its own list and an empty field. */}
+      <CourseNotes
+        key={`${entry.subject.code}:${entry.dayOfWeek}`}
+        subjectCode={entry.subject.code}
+        dayOfWeek={entry.dayOfWeek}
+      />
     </div>
   );
 }

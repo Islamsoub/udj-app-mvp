@@ -16,6 +16,9 @@ import {
 import type {
   AllSemestersResponse,
   AttendanceResponse,
+  CourseNote,
+  CourseNotesResponse,
+  CreateCourseNotePayload,
   GradesResponse,
   MarkAllReadResponse,
   MeResponse,
@@ -394,6 +397,24 @@ export const markAllNotificationsRead = () =>
 /** Marks one notification read. The server checks it belongs to this student. */
 export const markNotificationRead = (id: string) =>
   patchJson<{ success: boolean }>(`/student/notifications/${encodeURIComponent(id)}/read`);
+
+/**
+ * One class's notes, newest first. NOT on the offline allow-list, and that is
+ * deliberate: notes are private text, and a lab machine's IndexedDB is shared
+ * by every student who signs in on it. Offline, this fails like any request.
+ */
+export const getCourseNotes = (subjectCode: string, dayOfWeek: number) =>
+  apiFetch<CourseNotesResponse>(withQuery('/student/course-notes', { subjectCode, dayOfWeek }));
+
+export const createCourseNote = (payload: CreateCourseNotePayload) =>
+  apiFetch<CourseNote>('/student/course-notes', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+
+/** Resolves on the server's 204; the note is gone only once this resolves. */
+export const deleteCourseNote = (id: string) =>
+  apiFetch<null>(`/student/course-notes/${encodeURIComponent(id)}`, { method: 'DELETE' });
 
 export const updatePreferences = (payload: PreferencesPayload) =>
   patchJson<StudentPreferences>('/student/preferences', payload);
