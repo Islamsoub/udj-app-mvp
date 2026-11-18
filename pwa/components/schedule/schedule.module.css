@@ -299,9 +299,7 @@ html[lang="ar"] .dayName {
 
 /*
  * Hour labels sit ON their rule, so each is pulled up by half its own line to
- * read as marking the line rather than the space beneath it. The first one would
- * otherwise be clipped by the grid's top edge, which is why the gutter is not
- * overflow-hidden.
+ * read as marking the line rather than the space beneath it.
  */
 .gutterLabel {
   position: absolute;
@@ -310,6 +308,21 @@ html[lang="ar"] .dayName {
   font-size: 11px;
   font-weight: 600;
   color: var(--ink2);
+}
+
+/*
+ * The two ends have no room for that. The first hour's rule IS the header's
+ * bottom border, so a centred first label straddled it and read as cut in half;
+ * the last one straddled the legend's top border the same way. Both are pushed
+ * inside the grid instead, 3px clear of the border, and every label between
+ * them stays centred on its rule. Vertical only, so nothing here mirrors.
+ */
+.gutterLabel:first-child {
+  transform: translateY(3px);
+}
+
+.gutterLabel:last-child {
+  transform: translateY(calc(-100% - 3px));
 }
 
 .dayColumn {
