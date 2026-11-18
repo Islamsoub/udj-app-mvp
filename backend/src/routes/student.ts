@@ -8,6 +8,8 @@ import prisma from '../utils/prisma';
 import { env } from '../utils/env';
 import { supabase, JUSTIFICATION_BUCKET } from '../utils/supabase';
 import authMiddleware from '../middleware/auth';
+import { courseNoteWriteLimiter } from '../middleware/rateLimiter';
+import { createCourseNotesRouter } from './courseNotes';
 import { AppError } from '../utils/AppError';
 import {
   buildSessionHoursResolver,
@@ -47,6 +49,9 @@ const CREDIT_GRADE_SELECT = {
 
 const router = Router();
 router.use(authMiddleware);
+
+// /student/course-notes — behind authMiddleware above, like every route here.
+router.use('/course-notes', createCourseNotesRouter(prisma, courseNoteWriteLimiter));
 
 // ── Multer for justification uploads ──────────────────────────────────────────
 

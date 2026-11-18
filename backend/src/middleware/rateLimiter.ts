@@ -144,3 +144,21 @@ export const authRefreshLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+/**
+ * 60/min per student on course-note creation. Runs AFTER authMiddleware, so
+ * req.studentId is the verified id. Mounted per route, not router-wide, so the
+ * reads it sits beside are not slowed by it.
+ *
+ * Higher than the auth limits on purpose: the mobile app's step-2 upload of a
+ * student's existing local notes is one POST per note, and a student with a
+ * term of notes should finish in a minute or two, not trip a 429 on the tenth.
+ */
+export const courseNoteWriteLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  keyGenerator: (req) => `student:${req.studentId ?? `ip:${clientIpKey(req)}`}`,
+  message: TOO_MANY,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
