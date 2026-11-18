@@ -20,6 +20,7 @@ import { useThemeStore } from '@/stores/themeStore';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { useColors } from '@/hooks/useColors';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { useCourseNotesUpload } from '@/hooks/useCourseNotesUpload';
 import {
   registerForPushNotifications,
   setupNotificationListeners,
@@ -114,6 +115,8 @@ function RootLayout() {
   const router = useRouter();
   const { isDark } = useColors();
   useNetworkStatus();
+  // One-time upload of notes written on this phone before the server stored them.
+  useCourseNotesUpload(migrationsReady);
 
   // Font files go here once assets/fonts/ is populated — empty map loads instantly
   const [fontsLoaded] = useFonts({

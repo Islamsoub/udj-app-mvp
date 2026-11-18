@@ -545,3 +545,46 @@ export const getNewsArticle = (id: string) =>
   instance.get<NewsArticleDetail>(`/news/${id}`).then((r) => r.data);
 
 export default instance;
+
+// ── Course notes (backend/src/routes/courseNotes.ts) ──────────────────────────
+// A note belongs to a class: a subject code + a weekday (0 = Sunday … 6). The
+// body is the most personal thing the app sends: never log these requests,
+// their bodies or their error objects (an axios error's config.data IS the body).
+
+export interface CourseNoteDto {
+  id: string;
+  subjectCode: string;
+  dayOfWeek: number;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CourseNoteCreate {
+  subjectCode: string;
+  dayOfWeek: number;
+  /** 1–2000 characters (code points) after trimming. */
+  body: string;
+  /** ISO 8601; only for notes written on the phone before they were stored on the server. */
+  createdAt?: string;
+}
+
+/** 400 both filters not given together · 404 subject not in the current timetable. Newest first. */
+export const fetchCourseNotes = (filter?: { subjectCode: string; dayOfWeek: number }) =>
+  instance
+    .get<{ notes: CourseNoteDto[] }>('/student/course-notes', {
+      params: filter ? { subjectCode: filter.subjectCode, dayOfWeek: filter.dayOfWeek } : undefined,
+    })
+    .then((r) => r.data.notes);
+
+/** 201 the note · 400 invalid · 404 subject not in the current timetable · 429 over 60 a minute. */
+export const createCourseNote = (payload: CourseNoteCreate) =>
+  instance.post<CourseNoteDto>('/student/course-notes', payload).then((r) => r.data);
+
+/** 204 · 400 not a note id · 404 not found (or not yours). */
+export const deleteCourseNoteOnServer = (id: string) =>
+  instance.delete(`/student/course-notes/${encodeURIComponent(id)}`).then(() => undefined);
+
+/** HTTP status of a failed call; undefined when no response came back (offline, timeout). */
+export const httpStatusOf = (err: unknown): number | undefined =>
+  axios.isAxiosError(err) ? err.response?.status : undefined;

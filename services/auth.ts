@@ -5,6 +5,7 @@ import { API_BASE_URL, TIMEOUT } from '@/constants/api';
 import { useAuthStore, REFRESH_KEY, StudentProfile } from '@/stores/authStore';
 import api, { SECURE_OPTS } from './api';
 import { clearAllCache } from './db';
+import { clearCourseNotesOnLogout } from './courseNotesSync';
 import { BIOMETRIC_ENABLED_KEY, BIOMETRIC_ASKED_KEY } from '@/services/biometric';
 
 // Identity shown on the login screen ("Bon retour, Ahmed") before re-auth.
@@ -77,6 +78,14 @@ export async function logout(): Promise<void> {
   await SecureStore.deleteItemAsync(BIOMETRIC_ASKED_KEY);
 
   await clearAllCache();
+  // Course notes are not cache, so clearAllCache leaves them. Wipe the copies of
+  // this student's server notes; keep the notes that exist only on this phone
+  // (not uploaded yet, or refused by the server) so none is ever lost.
+  try {
+    await clearCourseNotesOnLogout();
+  } catch {
+    // A local database error must not block logout. Not logged: it could quote a note.
+  }
 
   // Drop the remembered identity so the next login screen is anonymous.
   await SecureStore.deleteItemAsync(LAST_STUDENT_NAME_KEY);
