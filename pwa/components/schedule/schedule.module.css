@@ -256,8 +256,9 @@
   border-inline-start: 1px solid var(--hair);
 }
 
-/* Today's column, marked here and on the body below. Paired with
-   aria-current="date" so the tint is never the only signal (§10). */
+/* Today, marked on its header cell only — the column body below is drawn like
+   every other day's. Paired with aria-current="date" so the tint is never the
+   only signal (§10). Jade text on this tint: 5.13:1 light, 5.66:1 dark. */
 .dayHeadToday {
   background: var(--jade-faint);
 }
@@ -343,10 +344,6 @@ html[lang="ar"] .dayName {
   );
 }
 
-.dayColumnToday {
-  background-color: var(--jade-faint);
-}
-
 /* ── Course blocks ─────────────────────────────────────────────────────────── */
 
 /*
@@ -383,7 +380,7 @@ html[lang="ar"] .dayName {
  * EXPERIMENT (2026-11-18, may be reverted): the 4px stripe at the inline-start
  * edge carries the subject's exact colour (the border above: full height,
  * mirrored by `dir`). The fill is a light wash of the same colour, --card-wash
- * of --subj over --surface (7% light, 10% dark), opaque so today's jade column
+ * of --subj over --surface (7% light, 10% dark), opaque so the hour rules
  * cannot show through, and --shadow-card lifts the card off the grid. A --hair
  * edge on the other three sides.
  */

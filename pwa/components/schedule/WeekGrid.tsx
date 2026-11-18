@@ -93,14 +93,14 @@ export function WeekGrid({
           ))}
         </div>
 
+        {/* Today is marked in the header cell only; every column body is
+            drawn the same, so today's cards and rules look like any other
+            day's. */}
         {TEACHING_DAYS.map((day) => {
-          const date = dateForDay(weekStart, day);
-          const isToday = sameDay(date, today);
-
           return (
             <div
               key={day}
-              className={`${styles.dayColumn} ${isToday ? styles.dayColumnToday : ''}`}
+              className={styles.dayColumn}
               // The hour rules are a repeating gradient rather than N elements:
               // the spacing is uniform by construction, so there is nothing for
               // a list of divs to get wrong.
