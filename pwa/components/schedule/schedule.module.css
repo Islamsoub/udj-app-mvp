@@ -735,25 +735,27 @@ html[lang="ar"] .detailLabel {
 .notes {
   display: flex;
   flex-direction: column;
+  /* 12px from the heading to the text box, and between the parts below it. */
   gap: 12px;
-  margin-block-start: 28px;
+  /* The divider sits 20px under the details, with the same 20px above the
+     heading, so the notes read as a second part of the panel. */
+  margin-block-start: 20px;
   padding-block-start: 20px;
   border-block-start: 1px solid var(--hair);
 }
 
-/* The same label style as the detail rows above it. */
+/*
+ * A section title, not a detail label: in the small grey capitals of HORAIRE
+ * and SALLE it read as a fifth detail. No font is named, so it takes the
+ * page's face like the panel's own title (the Arabic face in Arabic), and with
+ * no tracking there is no Arabic override to add.
+ */
 .notesHeading {
   margin: 0;
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink2);
-}
-
-/* Arabic: no tracking — see the note at .dayName. */
-html[lang="ar"] .notesHeading {
-  letter-spacing: normal;
+  line-height: 1.3;
+  color: var(--ink);
 }
 
 .notesForm {

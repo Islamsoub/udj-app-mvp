@@ -9,7 +9,7 @@ import { NotificationTime } from '@/components/notifications/NotificationParts';
 import styles from './schedule.module.css';
 
 /**
- * "Notes personnelles" in the course detail panel: the student's own notes on
+ * "Notes" (the personal notes section) in the course detail panel: the student's own notes on
  * one class, stored on the server (/student/course-notes) so the app and the
  * PWA share them.
  *
