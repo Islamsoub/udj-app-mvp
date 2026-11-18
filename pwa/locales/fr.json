@@ -283,7 +283,8 @@
       "next_day": "Jour suivant",
       "this_week": "Cette semaine",
       "today": "Aujourd'hui",
-      "week_of": "Semaine du {{day}} {{month}} {{year}}",
+      "week_of": "Semaine du {{day}} {{month}}",
+      "week_of_year": "Semaine du {{day}} {{month}} {{year}}",
       "day_of": "{{weekday}} {{day}} {{month}} {{year}}"
     },
     "days": {

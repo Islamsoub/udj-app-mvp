@@ -5,7 +5,8 @@ import type { ScheduleEntry } from '@/lib/api-types';
 import { fmtRange } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n-types';
-import { courseType, typeClass, typeLabelKey } from './course-type';
+import { subjectStyle, type SubjectSwatch } from '@/lib/subject-colors';
+import { courseType, typeLabelKey } from './course-type';
 import { ClockIcon, CodeIcon, ProfessorIcon, RoomIcon } from './icons';
 import styles from './schedule.module.css';
 
@@ -21,7 +22,16 @@ import styles from './schedule.module.css';
  * note silently lost is worse than a note never offered. So the feature is left
  * out and reported as spec-without-backend.
  */
-export function CourseDetail({ entry, dayLabel }: { entry: ScheduleEntry; dayLabel: string }) {
+export function CourseDetail({
+  entry,
+  dayLabel,
+  swatch,
+}: {
+  entry: ScheduleEntry;
+  dayLabel: string;
+  /** The subject's colour, the same one its block and day row carry. */
+  swatch: SubjectSwatch;
+}) {
   const { t } = useI18n();
 
   const type = courseType(entry.type);
@@ -33,12 +43,14 @@ export function CourseDetail({ entry, dayLabel }: { entry: ScheduleEntry; dayLab
   return (
     <div className={styles.detail}>
       {/*
-        The type, as a coloured pill AND as a word — §10 forbids colour as the
+        The type, as a pill in the subject's colour AND as a word — §10 forbids colour as the
         only signal, and this is the one place there is room for the long form
         ("Travaux pratiques") rather than the three-letter code the grid shows.
       */}
       <p className={styles.detailType}>
-        <span className={`${styles.typePill} ${typeClass(type)}`}>{t(typeLabelKey(type))}</span>
+        <span className={`${styles.typePill} subject-color`} style={subjectStyle(swatch)}>
+          {t(typeLabelKey(type))}
+        </span>
       </p>
 
       <dl className={styles.detailList}>

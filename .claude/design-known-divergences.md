@@ -3,7 +3,7 @@
 The design checker must not report anything on this list. Each one has been
 seen and decided. Remove an entry when it is actually fixed.
 
-Last reviewed: 2026-11-17
+Last reviewed: 2026-11-18
 
 | Where | Spec says | Built says | Decision |
 |---|---|---|---|
@@ -26,3 +26,6 @@ Last reviewed: 2026-11-17
 | "Tout marquer comme lu" in the bell popover (PWA) | hover `--jade-hover`; disabled `--ink3` (`bell-states.html`, `.np-markall`) | hover underlines; disabled `--ink2` | Code wins, 2026-11-17. `--jade-hover` is under AA as text, and `--ink3` is reserved for non-text (CLAUDE.md). |
 | Older notification dates in the bell popover (PWA) | "02/06" (`bell-states.html`, row 4) | "2 juin" / "2 يونيو", the same short date as the dashboard card, in `--ink2` | Code wins, 2026-11-17. One notification is dated the same way in the card and the popover; the shared `NotificationTime` decides. Today, yesterday and weekday are Design's. |
 | Bell popover rows (PWA) | no hover style | `--surface2` background on hover | Code wins, 2026-11-17. Each row is a button that marks the notification read and opens its section; a clickable row needs a hover response. |
+| Class colours, schedule week view, day view, course panel and dashboard "Aujourd'hui" rails (PWA) | a few colours reused across subjects (prototype `buildWeekGrid`) | one colour per subject, the mobile app's 12-hue `COURSE_PALETTE` and assignment rule (`constants/colorMap.ts`, copied into `pwa/lib/subject-colors.ts`), so a subject is the same colour in the app and the PWA | Product owner, 2026-11-18. Border and rail are the app's hex exactly. Light-mode borders under 3:1 on their own tint, kept as the app's hex: emerald 2.99, lime 2.95, orange 2.95, amber 2.40 (amber is also 2.68 on `--surface`). |
+| Class type label ink on the subject tint (PWA) | the subject colour | a darker shade of the same hue (lighter in dark mode) where the app's hex is under 4.5:1 on the tint | Product owner, 2026-11-18. Ratios per hue in `pwa/lib/subject-colors.ts`; every label is 4.54:1 or more in both themes. |
+| Schedule toolbar end button (PWA) | "Imprimer" print button, `.btn-ghost` (`#btn-print`) | "Cette semaine" / "هذا الأسبوع" (day view: "Aujourd'hui"), same `.btn-ghost` style, in the print button's place | Product owner, 2026-11-18. The PWA has no print feature. |

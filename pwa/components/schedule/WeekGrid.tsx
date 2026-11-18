@@ -3,9 +3,10 @@
 import type { ScheduleEntry } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
 import { DAY_SHORT_KEYS } from './CourseDetail';
-import { courseType, typeClass, typeLabelKey } from './course-type';
+import { courseType, typeLabelKey } from './course-type';
 import { Crossfade } from './Crossfade';
 import { TEACHING_DAYS, dateForDay, formatTime, sameDay } from '@/lib/teaching-week';
+import { subjectStyle, subjectSwatch, type SubjectColorMap } from '@/lib/subject-colors';
 import { HOUR_PX, blockBox, entriesForDay, hourMarks, timeBounds } from './week';
 import styles from './schedule.module.css';
 
@@ -29,11 +30,14 @@ export function WeekGrid({
   entries,
   weekStart,
   today,
+  colors,
   onSelect,
 }: {
   entries: ScheduleEntry[];
   weekStart: Date;
   today: Date;
+  /** Built from the whole timetable, so a subject keeps its colour every week. */
+  colors: SubjectColorMap;
   onSelect: (entry: ScheduleEntry) => void;
 }) {
   const { t, lang } = useI18n();
@@ -118,8 +122,12 @@ export function WeekGrid({
                     <button
                       key={entry.id}
                       type="button"
-                      className={`${styles.block} ${typeClass(type)}`}
-                      style={{ top: `${box.top}px`, height: `${box.height}px` }}
+                      className={`${styles.block} subject-color`}
+                      style={{
+                        ...subjectStyle(subjectSwatch(colors, entry.subject.nameFr)),
+                        top: `${box.top}px`,
+                        height: `${box.height}px`,
+                      }}
                       onClick={() => onSelect(entry)}
                       /*
                        * The visible text is fragmented into type, subject and

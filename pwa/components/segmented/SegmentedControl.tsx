@@ -37,6 +37,7 @@ export function SegmentedControl({
   onSelect,
   label,
   panelId,
+  size = 'regular',
 }: {
   options: SegmentedOption[];
   selectedId: string;
@@ -45,6 +46,13 @@ export function SegmentedControl({
   label: string;
   /** The tabpanel these options drive, for aria-controls. */
   panelId?: string;
+  /**
+   * `compact` is the prototype's `.segmented` / `.seg-btn` exactly: a 3px track
+   * on --surface2 and 34px options at 13px. It is for toolbars that only render
+   * at tablet width and up (the schedule's Jour/Semaine switch); `regular`
+   * keeps the 44px touch target that the phone-width screens need.
+   */
+  size?: 'regular' | 'compact';
 }) {
   const { dir } = useI18n();
 
@@ -146,7 +154,7 @@ export function SegmentedControl({
       ref={listRef}
       role="tablist"
       aria-label={label}
-      className={styles.strip}
+      className={`${styles.strip} ${size === 'compact' ? styles.compact : ''}`}
       onKeyDown={onKeyDown}
     >
       {/*

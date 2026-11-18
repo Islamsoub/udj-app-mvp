@@ -459,6 +459,24 @@ html[lang="ar"] body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Per-subject colour (lib/subject-colors.ts). The element carries BOTH themes'
+   values inline (--subj-l, --subj-d and so on, set by subjectStyle) and this
+   picks the active theme's three. It is a rule on the element itself because a
+   custom property declared on <html> would resolve var(--subj-l) there, where it
+   does not exist. The values and their contrast ratios live in the module, not
+   here: they are the mobile app's palette, copied from constants/colorMap.ts. */
+[data-theme="light"] .subject-color {
+  --subj: var(--subj-l);
+  --subj-tint: var(--subj-tint-l);
+  --subj-ink: var(--subj-ink-l);
+}
+
+[data-theme="dark"] .subject-color {
+  --subj: var(--subj-d);
+  --subj-tint: var(--subj-tint-d);
+  --subj-ink: var(--subj-ink-d);
+}
+
 /* A figure and its scale grouped by fmtScaled (lib/bidi) inside a flex row. It
    becomes one item of that row and lays its own two pieces out the same way —
    inherited, so each call site keeps the gap it already had. */

@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Interpolated } from '@/components/dashboard/Interpolated';
 import { SlidePanel } from '@/components/panel/SlidePanel';
 import { SegmentedControl } from '@/components/segmented/SegmentedControl';
 import { useLayoutMode } from '@/components/shell/useLayoutMode';
 import type { ScheduleEntry, ScheduleResponse } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
+import { buildSubjectColorMap, subjectSwatch } from '@/lib/subject-colors';
 import { CourseDetail, DAY_KEYS, courseTitle } from './CourseDetail';
 import { DayList } from './DayList';
 import { ChevronIcon } from './icons';
@@ -34,6 +35,14 @@ export function ScheduleView({ data, today }: { data: ScheduleResponse; today: D
   const { t, lang, dir } = useI18n();
 
   const entries = data.entries;
+
+  /*
+   * Subject -> colour, from the WHOLE timetable, as the mobile app builds it on
+   * its schedule and home screens. Never from one week's or one day's classes:
+   * the index is a subject's position in the sorted list, so a smaller input
+   * would renumber the subjects and repaint them as the student pages.
+   */
+  const colors = useMemo(() => buildSubjectColorMap(entries), [entries]);
 
   /*
    * BELOW 640px THE WEEK GRID IS NOT USED, and the toggle is not shown either.
@@ -102,25 +111,45 @@ export function ScheduleView({ data, today }: { data: ScheduleResponse; today: D
     if (view === 'day') setDay(focus.getDay());
   };
 
-  const monthName = new Intl.DateTimeFormat(lang, { month: 'long' }).format(
-    view === 'week' ? weekStart : shownDate
-  );
+  /*
+   * The week label names the week's FIRST day — Sunday, the Djibouti week —
+   * whichever day is selected underneath, so "Semaine du 15 novembre" is the
+   * same whether the student last looked at Sunday or Wednesday. The year is
+   * written only for a week outside the current year, as in the prototype.
+   */
+  const labelDate = view === 'week' ? weekStart : shownDate;
+  const monthName = new Intl.DateTimeFormat(lang, { month: 'long' }).format(labelDate);
+  const labelKey =
+    view === 'day'
+      ? 'schedule.nav.day_of'
+      : weekStart.getFullYear() === today.getFullYear()
+        ? 'schedule.nav.week_of'
+        : 'schedule.nav.week_of_year';
 
   return (
     <>
+      {/*
+        THREE ZONES (the prototype's .sched-toolbar): the switch at the start,
+        the week navigation centred on the row, "Cette semaine" at the end. The
+        two outer zones are equal tracks, which is what puts the navigation on
+        the row's true centre rather than merely between its neighbours.
+      */}
       <div className={styles.toolbar}>
-        {!isPhone && (
-          <SegmentedControl
-            options={[
-              { id: 'week', label: t('schedule.view.week') },
-              { id: 'day', label: t('schedule.view.day') },
-            ]}
-            selectedId={view}
-            onSelect={(id) => setPreferredView(id as ViewMode)}
-            label={t('schedule.view.label')}
-            panelId={PANEL_ID}
-          />
-        )}
+        <div className={styles.toolbarStart}>
+          {!isPhone && (
+            <SegmentedControl
+              size="compact"
+              options={[
+                { id: 'day', label: t('schedule.view.day') },
+                { id: 'week', label: t('schedule.view.week') },
+              ]}
+              selectedId={view}
+              onSelect={(id) => setPreferredView(id as ViewMode)}
+              label={t('schedule.view.label')}
+              panelId={PANEL_ID}
+            />
+          )}
+        </div>
 
         <div
           className={styles.nav}
@@ -156,11 +185,11 @@ export function ScheduleView({ data, today }: { data: ScheduleResponse; today: D
               be Latin.
             */}
             <Interpolated
-              template={t(view === 'week' ? 'schedule.nav.week_of' : 'schedule.nav.day_of', {
+              template={t(labelKey, {
                 month: monthName,
                 weekday: t(DAY_KEYS[day] ?? 'schedule.days.sunday'),
               })}
-              values={{ day: shownDate.getDate(), year: shownDate.getFullYear() }}
+              values={{ day: labelDate.getDate(), year: labelDate.getFullYear() }}
             />
           </p>
 
@@ -172,12 +201,15 @@ export function ScheduleView({ data, today }: { data: ScheduleResponse; today: D
           >
             <ChevronIcon className={styles.navIcon} />
           </button>
+        </div>
 
+        <div className={styles.toolbarEnd}>
           {/*
-            The way back. Disabled rather than hidden when it would do nothing —
-            §3 gives disabled controls 0.5 opacity and not-allowed, and a button
-            that appears and vanishes as the student pages is harder to aim at
-            than one that greys out.
+            The way back, in the place the prototype gives its print button
+            (recorded in .claude/design-known-divergences.md). Disabled rather
+            than hidden when it would do nothing — §3 gives disabled controls 0.5
+            opacity and not-allowed, and a button that appears and vanishes as the
+            student pages is harder to aim at than one that greys out.
           */}
           <button
             type="button"
@@ -202,6 +234,7 @@ export function ScheduleView({ data, today }: { data: ScheduleResponse; today: D
             entries={entries}
             weekStart={weekStart}
             today={today}
+            colors={colors}
             onSelect={setSelected}
           />
         ) : (
@@ -211,6 +244,7 @@ export function ScheduleView({ data, today }: { data: ScheduleResponse; today: D
               entries={entries}
               day={day}
               date={shownDate}
+              colors={colors}
               onSelect={setSelected}
               empty={<EmptyDay />}
             />
@@ -248,6 +282,7 @@ export function ScheduleView({ data, today }: { data: ScheduleResponse; today: D
           <CourseDetail
             entry={selected}
             dayLabel={t(DAY_KEYS[selected.dayOfWeek] ?? 'schedule.days.sunday')}
+            swatch={subjectSwatch(colors, selected.subject.nameFr)}
           />
         )}
       </SlidePanel>

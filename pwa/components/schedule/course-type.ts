@@ -1,39 +1,21 @@
 import type { TranslationKey } from '@/lib/i18n-types';
-import styles from './schedule.module.css';
 
 /**
  * The four class types the schema defines — CM, TD, TP and EXAM.
  *
  * EXAM is in the enum (backend/prisma/schema.prisma) even though the seeded
  * timetables only use the first three. It is handled here rather than left to
- * fall through unstyled, because the one type a student most needs to pick out
- * of a grid at a glance is the one that is an exam.
+ * fall through, because the one type a student most needs to pick out of a grid
+ * is the one that is an exam.
  *
- * §10: "Status colors are never the only signal — always paired with a label or
- * icon." Every block therefore carries its type as TEXT as well as a colour, so
- * the grid is still readable in greyscale, to a colour-blind student, and to a
- * screen reader.
+ * THE TYPE NO LONGER PICKS A COLOUR. A class is coloured by its SUBJECT, from
+ * the mobile app's palette (lib/subject-colors.ts), so a subject looks the same
+ * in the app and the PWA. The type is still written on every block and pill as
+ * text, which is what §10 asks for: colour is never the only signal, and the
+ * type is readable in greyscale, to a colour-blind student, and to a screen
+ * reader.
  */
 export type CourseType = 'CM' | 'TD' | 'TP' | 'EXAM';
-
-/**
- * Existing semantic tokens only — no new colours were introduced for this.
- *
- *   CM   -> --info    a lecture, the neutral default of the timetable
- *   TD   -> --jade    tutorials, on the brand colour
- *   TP   -> --warning lab work, which needs a room and kit and is worth spotting
- *   EXAM -> --exam    the token that exists for exactly this
- *
- * The pairing is not arbitrary: --exam was defined for exam slots, and the other
- * three are the remaining semantic hues, assigned so the commonest type (CM)
- * takes the quietest.
- */
-const TYPE_CLASS: Record<CourseType, string> = {
-  CM: styles.typeCm,
-  TD: styles.typeTd,
-  TP: styles.typeTp,
-  EXAM: styles.typeExam,
-};
 
 const TYPE_LABELS: Record<CourseType, TranslationKey> = {
   CM: 'schedule.type.cm',
@@ -42,31 +24,10 @@ const TYPE_LABELS: Record<CourseType, TranslationKey> = {
   EXAM: 'schedule.type.exam',
 };
 
-/**
- * The type's colour as a bar — the schedule's day-list rule and the dashboard's
- * class rail. The status hue, not the darker text ink the .typeX classes carry:
- * a bar is a graphic and needs 3:1, not 4.5:1. One map, so the two screens
- * cannot paint the same class two colours.
- */
-const TYPE_RAIL: Record<CourseType, string> = {
-  CM: 'var(--info)',
-  TD: 'var(--jade-text)',
-  TP: 'var(--warning)',
-  EXAM: 'var(--exam)',
-};
-
-export function typeRailColor(type: CourseType): string {
-  return TYPE_RAIL[type];
-}
-
 /** Narrows the API's free-form `type` string, defaulting to the commonest. */
 export function courseType(raw: string): CourseType {
   const upper = raw.toUpperCase();
   return upper === 'TD' || upper === 'TP' || upper === 'EXAM' ? upper : 'CM';
-}
-
-export function typeClass(type: CourseType): string {
-  return TYPE_CLASS[type];
 }
 
 /** The long name, for the detail panel and for assistive tech. */
