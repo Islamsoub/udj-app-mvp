@@ -561,11 +561,13 @@ html[lang="ar"] .detailType .typePill {
   width: 100%;
   padding: 12px;
   border: 1px solid var(--hair);
-  /* EXPERIMENT: the subject's colour as the card's start-edge stripe, as on the
-     week blocks, on the same subject wash. */
+  /* The subject's colour as the card's start-edge stripe, as on the week
+     blocks. Unlike them, no wash: the day card is a plain --surface card like
+     the dashboard's, so its colour is the stripe alone. Text on it: --ink
+     15.96:1 / 13.61:1, --ink2 5.49:1 / 6.78:1 (light / dark). */
   border-inline-start: 4px solid var(--subj);
   border-radius: var(--r-md);
-  background: color-mix(in srgb, var(--subj) var(--card-wash), var(--surface));
+  background: var(--surface);
   box-shadow: var(--shadow-card);
   font-family: inherit;
   text-align: start;
