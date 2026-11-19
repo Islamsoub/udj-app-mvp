@@ -55,11 +55,13 @@ export function Grades() {
   return (
     <>
       {/*
-        §10 puts the page heading after the topbar actions in the reading order,
-        which is here in the content area. The topbar's crossfading title is a
-        label, not a heading, so this is the page's only h1.
+        The page's only h1, visually hidden. The topbar already shows "Notes"
+        and a second visible title under it was a duplicate, so the content
+        starts right under the topbar. The topbar's crossfading title is a
+        label, not a heading, so without this the page would have no h1 at all;
+        §10 puts it after the topbar actions in the reading order, which is here.
       */}
-      <h1 className={styles.heading}>{t('grades.heading')}</h1>
+      <h1 className={styles.srOnly}>{t('grades.heading')}</h1>
 
       <div className={styles.screen}>
         <StateLayers loading={state.phase === 'loading'} skeleton={<ScreenSkeleton />}>

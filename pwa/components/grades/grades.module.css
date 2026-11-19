@@ -13,17 +13,21 @@
    property set in JS, which is what §6 prescribes.
    ───────────────────────────────────────────────────────────────────────────── */
 
-.heading {
-  margin: 0 0 20px;
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  color: var(--ink);
-}
-
-/* Arabic: no tracking — see the note at .heroLabel. */
-html[lang="ar"] .heading {
-  letter-spacing: normal;
+/*
+ * The page's only h1, visually hidden (standing decision 1). The topbar already
+ * shows "Notes"; a second, visible title under it was a duplicate. Same rule as
+ * the schedule screen's .srOnly.
+ */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /*
@@ -79,6 +83,12 @@ html[lang="ar"] .heading {
 /* ── Semester tabs (§5 sliding pill, §10 tablist) ──────────────────────────── */
 
 /*
+ * The prototype's compact .segmented / .seg-btn, value for value — the same
+ * numbers as SegmentedControl size="compact" on the schedule: track --surface2,
+ * 3px padding, 2px gap; options 34px tall, 0 16px, 13px/700. SemesterTabs keeps
+ * its own markup rather than using SegmentedControl because its tab ids
+ * (grades-tab-<id>) label the tabpanel and its labels sit on the Latin face.
+ *
  * No border. The pill is absolutely positioned against this box's padding edge
  * while SemesterTabs measures border-box rects; with no border the two are the
  * same box, and adding one here would shift the pill by its width.
@@ -87,10 +97,10 @@ html[lang="ar"] .heading {
   position: relative;
   align-self: flex-start;
   display: inline-flex;
-  gap: 4px;
-  padding: 4px;
+  gap: 2px;
+  padding: 3px;
   border-radius: 9999px;
-  background: var(--sunken);
+  background: var(--surface2);
 }
 
 /*
@@ -101,7 +111,7 @@ html[lang="ar"] .heading {
  */
 .tabPill {
   position: absolute;
-  inset-block: 4px;
+  inset-block: 3px;
   inset-inline-start: 0;
   width: var(--pill-w);
   transform: translateX(var(--pill-x));
@@ -123,18 +133,32 @@ html[lang="ar"] .heading {
   z-index: 1;
   display: inline-flex;
   align-items: center;
-  min-height: 44px;
-  padding-inline: 20px;
+  height: 34px;
+  padding-inline: 16px;
   border: 0;
   border-radius: 9999px;
   background: none;
   color: var(--ink2);
   font-family: inherit;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
   /* §5: "Text color crossfades in place, not on a delay." */
   transition: color var(--dur-fast) var(--ease-in-out);
+}
+
+/*
+ * The box is the prototype's 34px; the touch target is still 44. A transparent
+ * layer 5px past the top and bottom edges takes the tap, so nothing is
+ * inflated and the strip keeps its 40px height. Sideways it needs nothing: the
+ * narrowest option ("S1", 16px either side) is already wider than 44.
+ */
+.tab::before {
+  content: "";
+  position: absolute;
+  inset-block: -5px;
+  inset-inline: 0;
 }
 
 .tab:hover {
@@ -760,18 +784,20 @@ html[lang="ar"] .cardLabel {
   }
 }
 
+/* The compact strip's footprint: 3px track, 2px gap, 34px options. */
 .skeletonTabs {
   display: flex;
   align-self: flex-start;
-  gap: 4px;
-  padding: 4px;
+  gap: 2px;
+  padding: 3px;
   border-radius: 9999px;
-  background: var(--sunken);
+  background: var(--surface2);
 }
 
 .skeletonTab {
-  width: 76px;
-  height: 44px;
+  /* A two-character label ("S1") with 16px either side measures 48. */
+  width: 48px;
+  height: 34px;
   border-radius: 9999px;
 }
 
