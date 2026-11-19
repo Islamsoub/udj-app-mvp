@@ -69,9 +69,7 @@ export function GradeCalculator({
         aria-expanded={open}
       >
         <CalculatorIcon className={styles.calcTriggerIcon} />
-        {/* Visually hidden below 640, where the trigger is the icon alone; it
-            stays the button's accessible name at every width. */}
-        <span className={styles.calcTriggerText}>{t('grades.calculator.open')}</span>
+        {t('grades.calculator.open')}
       </button>
 
       <SlidePanel
