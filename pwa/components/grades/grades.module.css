@@ -697,23 +697,21 @@ html[lang="ar"] .cardLabel {
 
 /* ── Empty / error / offline (§5, §8) ──────────────────────────────────────── */
 
-/* Dashboard card style (standing decision 4): 20 padding, --r-lg, 1px --hair. */
 .empty {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
-  padding: 20px;
+  padding: 24px;
   border: 1px solid var(--hair);
   border-radius: var(--r-lg);
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
 
-/* A card heading: 14/700 with 14 below — its 6px margin plus the box's 8px gap. */
 .emptyTitle {
-  margin: 0 0 6px;
-  font-size: 14px;
+  margin: 0;
+  font-size: 15px;
   font-weight: 700;
   color: var(--ink);
 }
@@ -773,7 +771,7 @@ html[lang="ar"] .cardLabel {
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  padding: 20px;
+  padding: 24px;
   border: 1px solid var(--hair);
   border-radius: var(--r-lg);
   background: var(--surface);
