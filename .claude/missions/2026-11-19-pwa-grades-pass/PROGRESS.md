@@ -101,3 +101,13 @@ The Reviewer found two faults; both are fixed in a6b5cfd.
 8 semesters were tested by extending the harness fixtures inside my own probe script (in /tmp, not committed).
 
 Checks in pwa/ at a6b5cfd: `npm run typecheck`, `tsc --noEmit`, exit 0. `npm run build`: "✓ Compiled successfully", "✓ Generating static pages using 14 workers (12/12)", exit 0.
+
+## 2026-11-19 — Review of 6fa17da: hidden fifth semester at 400 (Builder)
+
+Fault: at 400 in French the one-line head left the strip a 216px box for 254px of tabs. S5 sat out of sight past the calculator button, with no hint it was there.
+
+Fix, 6c909fa: below 640 the calculator trigger is the icon alone, a 34px circle with a 44px tap target through ::before. The word "Calculatrice" stays in the page, visually hidden, as the button's accessible name, so screen readers and the harness still find it by name. The strip box is now 306 (measured 308 including its 2px padding). 5 semesters (254) and 6 (304) fit with no scrolling, all tabs fully visible, FR and AR. The head stays 40 in every state, so the jump does not come back: next block top at 400 is 167.44 FR / 175.44 AR in skeleton, loaded and empty alike. 640 and wider are unchanged (124×34 with the word). 7 or more semesters still scroll inside the strip's box; that is A8, left for Islam.
+
+This is a new difference from the prototype: on a phone the prototype's button has its word and sits on a second line. If kept, it needs a divergence row. That is for the Lead, because I may not edit that file.
+
+Checks in pwa/ at 6c909fa: `npm run typecheck` exit 0; `npm run build` "✓ Compiled successfully", "✓ Generating static pages (12/12)", exit 0.
