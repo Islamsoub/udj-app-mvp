@@ -33,6 +33,7 @@ export function SemesterTabs({
 }) {
   const { t, dir } = useI18n();
 
+  const scrollRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
   const tabRefs = useRef(new Map<string, HTMLButtonElement>());
 
@@ -79,6 +80,24 @@ export function SemesterTabs({
   useLayoutEffect(() => {
     measure();
   }, [measure, semesters]);
+
+  /*
+   * Keeps the selected tab inside the scroller when the strip is wider than its
+   * box: on first paint (the current semester may be the last of eight) and on
+   * every change of selection. Only the scroller moves — scrollIntoView could
+   * scroll the page as well. Deltas in physical pixels, so the same two lines
+   * hold in Arabic, where scrollLeft runs from 0 into the negatives.
+   */
+  useLayoutEffect(() => {
+    const scroller = scrollRef.current;
+    const tab = tabRefs.current.get(selectedId);
+    if (!scroller || !tab || scroller.scrollWidth <= scroller.clientWidth) return;
+
+    const box = scroller.getBoundingClientRect();
+    const tabBox = tab.getBoundingClientRect();
+    if (tabBox.left < box.left) scroller.scrollLeft -= box.left - tabBox.left;
+    else if (tabBox.right > box.right) scroller.scrollLeft += tabBox.right - box.right;
+  }, [selectedId, semesters]);
 
   // Deferred one frame so the "no transition" first paint has actually
   // happened before transitions are allowed.
@@ -128,55 +147,63 @@ export function SemesterTabs({
   };
 
   return (
-    <div
-      ref={listRef}
-      role="tablist"
-      aria-label={t('grades.semester_tabs')}
-      className={styles.tabs}
-      onKeyDown={onKeyDown}
-    >
-      {/*
-        Decorative: the selected state is announced by aria-selected, so the pill
-        must not appear in the accessibility tree as a second, unlabelled thing.
-      */}
-      {pill !== null && (
-        <span
-          aria-hidden="true"
-          className={`${styles.tabPill} ${settled ? styles.tabPillSettled : ''}`}
-          style={
-            {
-              '--pill-x': `${dir === 'rtl' ? -pill.offset : pill.offset}px`,
-              '--pill-w': `${pill.width}px`,
-            } as React.CSSProperties
-          }
-        />
-      )}
+    /*
+     * The scroller, so a strip wider than the column scrolls in its own box
+     * rather than widening the page (see .tabsScroll). The tablist inside it
+     * never scrolls, so the pill's measurements stay relative to a box that
+     * does not move.
+     */
+    <div ref={scrollRef} className={styles.tabsScroll}>
+      <div
+        ref={listRef}
+        role="tablist"
+        aria-label={t('grades.semester_tabs')}
+        className={styles.tabs}
+        onKeyDown={onKeyDown}
+      >
+        {/*
+          Decorative: the selected state is announced by aria-selected, so the pill
+          must not appear in the accessibility tree as a second, unlabelled thing.
+        */}
+        {pill !== null && (
+          <span
+            aria-hidden="true"
+            className={`${styles.tabPill} ${settled ? styles.tabPillSettled : ''}`}
+            style={
+              {
+                '--pill-x': `${dir === 'rtl' ? -pill.offset : pill.offset}px`,
+                '--pill-w': `${pill.width}px`,
+              } as React.CSSProperties
+            }
+          />
+        )}
 
-      {semesters.map((semester) => {
-        const selected = semester.id === selectedId;
-        return (
-          <button
-            key={semester.id}
-            ref={(el) => {
-              if (el) tabRefs.current.set(semester.id, el);
-              else tabRefs.current.delete(semester.id);
-            }}
-            type="button"
-            role="tab"
-            id={`grades-tab-${semester.id}`}
-            aria-selected={selected}
-            aria-controls={panelId}
-            // Roving tabindex: one stop for the whole strip, arrows inside it.
-            tabIndex={selected ? 0 : -1}
-            className={`${styles.tab} ${selected ? styles.tabSelected : ''}`}
-            onClick={() => onSelect(semester.id)}
-          >
-            {/* A semester label is a code ("S1"), so it stays on the Latin face
-                in Arabic like every other code on this screen. */}
-            <span className="num">{semester.label}</span>
-          </button>
-        );
-      })}
+        {semesters.map((semester) => {
+          const selected = semester.id === selectedId;
+          return (
+            <button
+              key={semester.id}
+              ref={(el) => {
+                if (el) tabRefs.current.set(semester.id, el);
+                else tabRefs.current.delete(semester.id);
+              }}
+              type="button"
+              role="tab"
+              id={`grades-tab-${semester.id}`}
+              aria-selected={selected}
+              aria-controls={panelId}
+              // Roving tabindex: one stop for the whole strip, arrows inside it.
+              tabIndex={selected ? 0 : -1}
+              className={`${styles.tab} ${selected ? styles.tabSelected : ''}`}
+              onClick={() => onSelect(semester.id)}
+            >
+              {/* A semester label is a code ("S1"), so it stays on the Latin face
+                  in Arabic like every other code on this screen. */}
+              <span className="num">{semester.label}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

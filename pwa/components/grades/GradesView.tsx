@@ -10,7 +10,7 @@ import { ArrowIcon } from './icons';
 import { suggestedSemester, type Published } from './model';
 import { SemesterTabs } from './SemesterTabs';
 import { StateLayers } from './StateLayers';
-import { TableSkeleton } from './skeletons';
+import { TableSkeleton, TriggerSkeleton } from './skeletons';
 import { useSemesterDetail } from './useSemesterDetail';
 import styles from './grades.module.css';
 
@@ -90,12 +90,38 @@ export function GradesView({
 
   return (
     <>
-      <SemesterTabs
-        semesters={bundle.semesters}
-        selectedId={activeId}
-        onSelect={onSelect}
-        panelId={PANEL_ID}
-      />
+      {/*
+        The prototype's .grades-head: the switch at the start, the calculator
+        trigger at the end of the same row, wrapping under the switch when the
+        two do not fit (a phone).
+      */}
+      <div className={styles.head}>
+        <SemesterTabs
+          semesters={bundle.semesters}
+          selectedId={activeId}
+          onSelect={onSelect}
+          panelId={PANEL_ID}
+        />
+
+        {/*
+          Mounted with the table, and only with it. A semester with nothing
+          published has no `grades` at all — the API omits unpublished rows — so
+          the calculator would open onto an empty subject picker; the empty state
+          already explains why there is nothing to work from. Keyed by semester
+          so a tab switch never carries one semester's picker into the next.
+          While a tab loads, a skeleton holds the trigger's place, so the row
+          does not lose and regain its second line on a phone.
+        */}
+        {detail.phase === 'ready' && hasRows ? (
+          <GradeCalculator
+            key={detail.data.semester.id}
+            grades={detail.data.grades}
+            published={{ cc: detail.data.ccPublished, nf: detail.data.nfPublished }}
+          />
+        ) : (
+          detail.phase === 'loading' && <TriggerSkeleton />
+        )}
+      </div>
 
       {showHero && <GpaHero semester={summary} />}
 
@@ -183,16 +209,6 @@ function SemesterResults({
           {t('grades.notice.cc_only')}
         </p>
       )}
-
-      {/*
-        Mounted with the table, and only with it. A semester with nothing
-        published has no `grades` at all — the API omits unpublished rows — so
-        the calculator would open onto an empty subject picker; the empty state
-        below already explains why there is nothing to work from.
-      */}
-      <div className={styles.resultsBar}>
-        <GradeCalculator grades={data.grades} published={published} />
-      </div>
 
       <GradesTable
         // Keyed by semester: a tab switch mounts a fresh table, so the sort

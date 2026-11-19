@@ -19,23 +19,32 @@ function Block({ className }: { className: string }) {
 export function ScreenSkeleton() {
   return (
     <>
-      <div className={styles.skeletonTabs}>
-        <Block className={styles.skeletonTab} />
-        <Block className={styles.skeletonTab} />
+      <div className={styles.head}>
+        <div className={styles.skeletonTabs}>
+          <Block className={styles.skeletonTab} />
+          <Block className={styles.skeletonTab} />
+        </div>
+        <TriggerSkeleton />
       </div>
 
       <div className={styles.skeletonHero}>
         <Block className={styles.skeletonRing} />
         <div className={styles.skeletonHeroText}>
-          <Block className={styles.skeletonLineShort} />
+          <Block className={styles.skeletonLineLabel} />
           <Block className={styles.skeletonLineHero} />
-          <Block className={styles.skeletonLineMedium} />
+          <Block className={styles.skeletonLineMeta} />
+          <Block className={styles.skeletonLineYear} />
         </div>
       </div>
 
       <TableSkeleton />
     </>
   );
+}
+
+/** The calculator trigger's footprint at the end of the head row. */
+export function TriggerSkeleton() {
+  return <Block className={styles.skeletonTrigger} />;
 }
 
 /** Just the rows — a tab switch that has to fetch a semester keeps its tabs and
