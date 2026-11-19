@@ -84,6 +84,29 @@
   }
 }
 
+/* ── Head row: switch + calculator trigger (prototype .grades-head) ───────── */
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/*
+ * Below 640 the trigger always goes under the switch, at the start, 12px down —
+ * where the prototype puts it on a phone. Always, not only when the two fail to
+ * fit: how many semesters the strip holds is not known while the skeleton is
+ * up, and a row that wrapped only after loading would push the page down 46px.
+ */
+@media (max-width: 639px) {
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 /* ── Semester tabs (§5 sliding pill, §10 tablist) ──────────────────────────── */
 
 /*
@@ -897,12 +920,11 @@ html[lang="ar"] .cardLabel {
   }
 }
 
-/* The calculator trigger's row above the table: 44 tall at the inline-end. */
-.skeletonBar {
-  align-self: flex-end;
-  width: 131px;
-  height: 44px;
-  border-radius: var(--r-sm);
+/* The calculator trigger at the end of the head row: 124 x 34, a pill. */
+.skeletonTrigger {
+  width: 124px;
+  height: 34px;
+  border-radius: 9999px;
 }
 
 .skeletonRows {
@@ -918,33 +940,44 @@ html[lang="ar"] .cardLabel {
 
 /* ── Grade calculator (§9) ─────────────────────────────────────────────────── */
 
-/* The trigger's row. Sits above the table at the inline-end, so it reads as an
-   action on the results rather than as part of them. */
-.resultsBar {
-  display: flex;
-  justify-content: flex-end;
-}
-
+/*
+ * The prototype's .btn-ghost (#btn-calc), at the end of the head row: 34 tall,
+ * a pill, 0 14px, 12.5/700 --ink2, icon 14 with a 6px gap. Hover turns the
+ * border --jade and the text --jade-text.
+ */
 .calcTrigger {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding-inline: 14px;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
   border: 1px solid var(--hair2);
-  border-radius: var(--r-sm);
+  border-radius: 9999px;
   background: var(--surface);
-  color: var(--jade-text);
+  color: var(--ink2);
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
+  transition: border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
     transform var(--dur-instant) var(--ease-out);
 }
 
+/* The 44px touch target, without inflating the 34px box: a transparent layer
+   5px past every edge takes the tap. -6px, because an absolute box is placed
+   from the padding edge, which sits 1px inside the border: 34 + 2 x 5 = 44. */
+.calcTrigger::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+
 .calcTrigger:hover {
-  background: var(--jade-faint);
+  border-color: var(--jade);
+  color: var(--jade-text);
 }
 
 /* §3: on :active, buttons scale to 0.97 over --dur-instant. */
@@ -953,8 +986,9 @@ html[lang="ar"] .cardLabel {
 }
 
 .calcTriggerIcon {
-  width: 16px;
-  height: 16px;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
 }
 
 /* ── Panel body ────────────────────────────────────────────────────────────── */
@@ -967,7 +1001,7 @@ html[lang="ar"] .cardLabel {
 /* Both finals already published, so this is a simulation of a settled result.
    Informational tone: nothing has gone wrong. */
 .calcNote {
-  margin: 0 0 20px;
+  margin: 0;
   padding: 10px 14px;
   border: 1px solid var(--hair);
   border-radius: var(--r-md);
@@ -977,11 +1011,13 @@ html[lang="ar"] .cardLabel {
   color: var(--ink2);
 }
 
+/* The prototype's .dp-section-lbl: 11.5/700 uppercase, .5px, 18 above, 8 below.
+   18 above the first one too — after the note, or after the panel's padding. */
 .calcLabel {
-  margin: 0 0 8px;
-  font-size: 11px;
+  margin: 18px 0 8px;
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   color: var(--ink2);
 }
@@ -991,18 +1027,16 @@ html[lang="ar"] .calcLabel {
   letter-spacing: normal;
 }
 
-.calcLabel:not(:first-child) {
-  margin-top: 20px;
-}
-
+/* The prototype's .calc-select / .calc-target-input: 46 tall on --surface2,
+   1.5px --hair2. */
 .calcSelect,
 .calcInput {
   width: 100%;
-  min-height: 48px;
+  height: 46px;
   padding-inline: 14px;
-  border: 1px solid var(--hair2);
+  border: 1.5px solid var(--hair2);
   border-radius: var(--r-md);
-  background: var(--surface);
+  background: var(--surface2);
   color: var(--ink);
   font-size: 14px;
   transition: border-color var(--dur-fast) var(--ease-out),
@@ -1048,21 +1082,35 @@ html[lang="ar"] .calcLabel {
   color: var(--ink2);
 }
 
-/* The read-only CC, shown as a figure with its scale — not an input, because it
-   is a fact about the semester rather than something to change. */
+/*
+ * The read-only CC, as the prototype's .calc-current-row: a boxed row on
+ * --surface2, radius 12, 12px 14px, the figure 18/600 --jade-text with its
+ * scale at 13/400. Not an input — it is a fact about the semester rather than
+ * something to change.
+ */
 .calcCurrent {
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 4px;
   margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: var(--surface2);
+  font-size: 18px;
+  line-height: 24px;
 }
 
 .calcCurrentValue {
-  font-size: 26px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--jade-text);
+}
+
+/* Line-height 1 on the smaller scale, so its baseline sits on the figure's
+   without its own leading pushing the row past 48. */
+.calcCurrent .calcSuffix {
+  font-weight: 400;
   line-height: 1;
-  letter-spacing: -0.02em;
-  color: var(--ink);
 }
 
 .calcSuffix {
@@ -1077,13 +1125,15 @@ html[lang="ar"] .calcLabel {
  * A grid, so the outgoing and incoming layers share one cell and the block does
  * not change height mid-crossfade — the same arrangement the GPA hero uses.
  */
+/* The prototype's .calc-result: 16 above, --jade-faint, radius 12, 14 padding,
+   centred. */
 .calcResult {
   display: grid;
-  margin-top: 24px;
-  padding: 16px;
-  border: 1px solid var(--hair);
-  border-radius: var(--r-lg);
-  background: var(--surface2);
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: var(--r-md);
+  background: var(--jade-faint);
+  text-align: center;
 }
 
 .calcResultLayer {
@@ -1109,9 +1159,10 @@ html[lang="ar"] .calcLabel {
 .calcResultValue {
   display: flex;
   align-items: baseline;
+  justify-content: center;
   gap: 6px;
   margin: 0 0 6px;
-  font-size: 30px;
+  font-size: 26px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.03em;
@@ -1119,7 +1170,7 @@ html[lang="ar"] .calcLabel {
 
 .calcResultAchieved,
 .calcResultAchievable {
-  color: var(--ink);
+  color: var(--jade-text);
 }
 
 /*

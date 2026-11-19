@@ -19,9 +19,12 @@ function Block({ className }: { className: string }) {
 export function ScreenSkeleton() {
   return (
     <>
-      <div className={styles.skeletonTabs}>
-        <Block className={styles.skeletonTab} />
-        <Block className={styles.skeletonTab} />
+      <div className={styles.head}>
+        <div className={styles.skeletonTabs}>
+          <Block className={styles.skeletonTab} />
+          <Block className={styles.skeletonTab} />
+        </div>
+        <TriggerSkeleton />
       </div>
 
       <div className={styles.skeletonHero}>
@@ -39,21 +42,21 @@ export function ScreenSkeleton() {
   );
 }
 
+/** The calculator trigger's footprint at the end of the head row. */
+export function TriggerSkeleton() {
+  return <Block className={styles.skeletonTrigger} />;
+}
+
 /** Just the rows — a tab switch that has to fetch a semester keeps its tabs and
  *  its hero, so only this part is replaced. */
 export function TableSkeleton() {
   return (
-    <>
-      {/* The calculator trigger's row, which the loaded panel opens with. */}
-      <Block className={styles.skeletonBar} />
-
-      <div className={styles.skeletonRows}>
-        {/* Six: the seeded semesters carry six to eight subjects, so the block
-            is about the height the real table will be and the page does not jump. */}
-        {[0, 1, 2, 3, 4, 5].map((row) => (
-          <Block key={row} className={styles.skeletonRow} />
-        ))}
-      </div>
-    </>
+    <div className={styles.skeletonRows}>
+      {/* Six: the seeded semesters carry six to eight subjects, so the block is
+          about the height the real table will be and the page does not jump. */}
+      {[0, 1, 2, 3, 4, 5].map((row) => (
+        <Block key={row} className={styles.skeletonRow} />
+      ))}
+    </div>
   );
 }
