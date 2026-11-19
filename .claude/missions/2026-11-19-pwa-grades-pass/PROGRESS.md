@@ -111,3 +111,21 @@ Fix, 6c909fa: below 640 the calculator trigger is the icon alone, a 34px circle 
 This is a new difference from the prototype: on a phone the prototype's button has its word and sits on a second line. If kept, it needs a divergence row. That is for the Lead, because I may not edit that file.
 
 Checks in pwa/ at 6c909fa: `npm run typecheck` exit 0; `npm run build` "✓ Compiled successfully", "✓ Generating static pages (12/12)", exit 0.
+
+## 2026-11-19 — Phone head row, Lead's decision (Builder)
+
+The Lead decided per F6's own target: below 640 the calculator button goes on its own line under the switch, and that line's height is always reserved.
+
+- beb663e: reverts 6c909fa (the icon-only trigger on phones). The button keeps its word at every width.
+- 9617349: below 640 the head is a column: switch, then the trigger 12px under it, at the start, 124×34 (88 in Arabic). The head has `min-height: 86` (40 + 12 + 34), whether or not the trigger is there and whether or not it is the skeleton. 640 and wider are unchanged: one line, 40 tall, trigger at the end.
+
+Measured (next block top / head height):
+- 400 FR: 213.44 / 86 in skeleton, loaded, empty, CC-only tab and after switching to the empty S4.
+- 400 AR: 221.44 / 86, loaded and empty.
+- 640: 179.44 / 40 in skeleton, loaded and empty. 1280: 199.44 / 40.
+
+All semesters that fit are visible at 400: 2, 5 and 6, fully inside the strip's box. 8 semesters: the strip box is the full column (356 including its 2px padding) and scrolls; the page stays 400. That part is A8 and is not settled here.
+
+This replaces the "Changes the F6 target" note from a6b5cfd: F6 now matches its own target again (on the switch's line at 1280 and 800, under it at 400).
+
+Checks in pwa/ at 9617349: `npm run typecheck` exit 0. `npm run build`: "✓ Compiled successfully", "✓ Generating static pages using 14 workers (12/12)", exit 0.
