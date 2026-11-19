@@ -488,19 +488,25 @@ html[lang="ar"] .sortButton {
 }
 
 /* §5: "the clicked column header's sort caret rotates 180° over --dur-fast". */
+/*
+ * Recessive on the seven columns that are not sorting, so the affordance is
+ * discoverable without seven carets competing with the data — but still a
+ * graphic that has to be seen: --ink3, the PWA's non-text grey, is 3.74:1 on
+ * --surface in light and 4.05:1 in dark, over the 3:1 an icon needs. (The old
+ * --ink2 at 0.35 opacity was 1.63:1 / 2.03:1.) The sorting column's caret takes
+ * the button's own colour, --jade-text.
+ */
 .caret {
   flex-shrink: 0;
   width: 14px;
   height: 14px;
-  /* Visible but recessive on the seven columns that are not sorting, so the
-     affordance is discoverable without seven carets competing with the data. */
-  opacity: 0.35;
+  color: var(--ink3);
   transition: transform var(--dur-fast) var(--ease-in-out),
-    opacity var(--dur-fast) var(--ease-out);
+    color var(--dur-fast) var(--ease-out);
 }
 
 .sortActive .caret {
-  opacity: 1;
+  color: inherit;
 }
 
 .caretUp {
