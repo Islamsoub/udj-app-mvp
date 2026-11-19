@@ -87,16 +87,16 @@
 /* ── Head row: switch + calculator trigger (prototype .grades-head) ───────── */
 
 /*
- * One line at every width: the switch at the start, the trigger at the end.
+ * 640 and wider: one line, the switch at the start and the trigger at the end,
+ * as the prototype's .grades-head.
  *
- * NOT wrapped on a phone, although the prototype wraps its head there. Whether
- * the trigger exists is only known once the semester has loaded (it is mounted
- * with the table, and most students' current semester has none), so a head
- * that grew a second line for it made the page jump 46px — after the first
- * load, and on every switch to or from an empty semester. On one line the row
- * is 40px tall whether the trigger is there or not. When the strip and the
- * trigger do not both fit, the strip scrolls inside its own box (.tabsScroll)
- * and the trigger keeps its size.
+ * Below 640: the trigger on its own line under the switch, at the start, 12px
+ * down — where the prototype puts it on a phone (fix F6). That line is ALWAYS
+ * reserved (min-height 40 + 12 + 34 = 86), with or without the trigger. Whether
+ * the trigger exists is only known once the semester has loaded — it is mounted
+ * with the table, and most students' current semester has none — so a line that
+ * came and went with it moved the page 46px after the first load and on every
+ * switch to or from an empty semester. The skeleton holds the same 86.
  */
 .head {
   display: flex;
@@ -106,18 +106,35 @@
   min-width: 0;
 }
 
+@media (max-width: 639px) {
+  .head {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    min-height: 86px;
+  }
+
+  /* The full column for the strip, so every semester that fits on the line
+     shows; past that it scrolls in its own box (question A8). */
+  .head > .tabsScroll {
+    max-width: calc(100% + 4px);
+  }
+}
+
 .head > * {
   flex-shrink: 0;
 }
 
 /*
- * The strip's scroller. Many semesters on a phone (8 is 404px against 352 of
- * column) scroll sideways in here instead of widening the page.
+ * The strip's scroller. A strip wider than its line (on a phone, 7 semesters
+ * and up: 354px against 352) scrolls sideways in here instead of widening the
+ * page. How such a strip should behave is question A8; this only keeps the page
+ * from scrolling sideways meanwhile.
  *
  * The 2px of padding, taken back by the negative margin, is room for what a
  * scroll container would otherwise clip: above and below, the tabs' 44px touch
  * layer (::before reaches 5px past the 3px track); at the two ends, the focus
- * ring (2px wide, 2px out). The row stays 40 tall and the track does not move.
+ * ring (2px wide, 2px out). The track keeps its 40px and does not move.
  * No visible scrollbar — it would add height on desktop; touch, trackpad and the
  * tablist's arrow keys (which focus, and so scroll to, the next tab) all work.
  */
