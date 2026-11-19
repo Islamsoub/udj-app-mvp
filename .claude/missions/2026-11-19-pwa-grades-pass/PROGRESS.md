@@ -78,3 +78,13 @@ Route (app): / /_not-found /api/auth/login /api/auth/logout /api/auth/refresh
 /api/backend/[...path] /attendance /grades /login /news /profile /schedule
 (all ƒ dynamic; exit 0)
 ```
+
+## 2026-11-19 — List update from 6f82cc7, F12 undone, F13 (Builder)
+
+The Lead asked me to bring in Design's re-sorted lists and carry on with steps 4 to 6. Steps 4 to 6 were already built in the run above (afe48cd, 957081f, 049da19), so this run only applied what changed:
+- 2e475f5: FIX.md and ASK.md taken from 6f82cc7; DECIDE.md and INVENTORY.md removed; F1 and F2 ticked (done in 8246a5f). My measurement notes were then added back under each item in the next docs commit.
+- e3b2140: **F12 undone.** It is now A11 (Planning's state cards use the same 24 / 15px). `.empty`, `.emptyTitle` and `.stateBox` are byte-for-byte back to develop. Only the F12 part of afe48cd is reverted; F7 and F11 stand.
+- 66baeec: **F13.** Inactive sort carets were `--ink2` at 0.35 opacity: 1.63:1 light, 2.03:1 dark. They are now solid `--ink3`, the PWA's non-text grey, so they pass without a made-up opacity: rgb(128,134,122) on white is 3.74:1 (light), and rgb(113,136,124) on rgb(28,39,33) is 4.05:1 (dark). These are computed colours, measured in the browser. The table's header band was removed in F5, so the carets sit on `--surface`.
+- **F14: blocked.** Same as before: I may not write `.claude/design-known-divergences.md`. Rows 1-4 from F14 are for the Lead or Islam to add. Row 5 waits for A5. The stray uncommitted line from my earlier mistake is still in the builder worktree. It was never committed, and someone allowed to touch that file should discard it.
+
+Checks in pwa/ at 66baeec: `npm run typecheck`, `tsc --noEmit`, exit 0, no errors. `npm run build`: "✓ Compiled successfully", "✓ Generating static pages using 14 workers (12/12)", exit 0.
