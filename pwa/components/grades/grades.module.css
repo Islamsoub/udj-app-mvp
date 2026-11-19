@@ -384,9 +384,13 @@ html[lang="ar"] .heroLabel {
  * is narrower than eight columns of marks — the sidebar is collapsed but still
  * 72px — and scrolling that band is better than either breaking the layout or
  * overriding the breakpoint the spec gives.
+ *
+ * Padding 20, as the prototype's .card around its table: the header and the
+ * cells never touch the card's edge.
  */
 .tableWrap {
   overflow-x: auto;
+  padding: 20px;
   border: 1px solid var(--hair);
   border-radius: var(--r-lg);
   background: var(--surface);
@@ -396,11 +400,7 @@ html[lang="ar"] .heroLabel {
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
-}
-
-.table thead {
-  background: var(--surface2);
+  font-size: 13.5px;
 }
 
 .table th {
@@ -430,9 +430,9 @@ html[lang="ar"] .heroLabel {
   background: none;
   color: var(--ink2);
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.4px;
   text-transform: uppercase;
   text-align: inherit;
   cursor: pointer;
@@ -444,8 +444,16 @@ html[lang="ar"] .sortButton {
   letter-spacing: normal;
 }
 
+/*
+ * End-aligned columns put the caret BEFORE the label, so the label's end edge
+ * is the cell's — the same edge as the figures under it (both 12px in). With
+ * the caret trailing, every label stopped 18px short of its numbers. Reversing
+ * the row keeps the DOM order (label, then caret) and mirrors in Arabic with
+ * the inline axis.
+ */
 .thEnd .sortButton {
-  justify-content: flex-end;
+  flex-direction: row-reverse;
+  justify-content: flex-start;
 }
 
 .sortButton:hover {
@@ -505,7 +513,14 @@ html[lang="ar"] .sortButton {
   text-align: end;
 }
 
-.tdSubject {
+/*
+ * Two classes, not one: `.table td` above is (0,1,1) and outranked a bare
+ * `.tdSubject` (0,1,0), so neither the colour nor the wrap ever applied. The
+ * subject cell stayed `nowrap`, its min-content became the longest name in full
+ * (328px + padding), and that alone pushed the table to 989.5px in a 942px card
+ * and cut off the Statut column.
+ */
+.table .tdSubject {
   color: var(--ink);
   font-weight: 600;
   /* The only column allowed to wrap: a subject name is the row's identity and
@@ -525,14 +540,23 @@ html[lang="ar"] .sortButton {
 }
 
 /* §5: status pill colour "never animates on its own". Nothing here transitions. */
+/* The prototype's .hug-pill: 11/700 uppercase, .3px tracking, 4px 10px, 21 tall. */
 .pill {
   display: inline-flex;
   align-items: center;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: 9999px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
+  line-height: 13px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
   white-space: nowrap;
+}
+
+/* Arabic: no tracking — see the note at .heroLabel. */
+html[lang="ar"] .pill {
+  letter-spacing: normal;
 }
 
 .pillValidated {
@@ -572,10 +596,11 @@ html[lang="ar"] .sortButton {
   list-style: none;
 }
 
+/* The prototype's .subject-card: radius 16, padding 16. */
 .card {
-  padding: 14px;
+  padding: 16px;
   border: 1px solid var(--hair);
-  border-radius: var(--r-md);
+  border-radius: var(--r-lg);
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
@@ -589,7 +614,7 @@ html[lang="ar"] .sortButton {
 
 .cardSubject {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   line-height: 1.3;
   color: var(--ink);
@@ -635,7 +660,7 @@ html[lang="ar"] .cardLabel {
   .cards {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
   }
 
   .heroLayer {
