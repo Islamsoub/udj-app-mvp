@@ -50,11 +50,15 @@
   border-radius: var(--r-md);
 }
 
+/*
+ * 20 between blocks — the switch, the hero, the table — as the prototype's head
+ * and card grid (margin-bottom 20 on each).
+ */
 .layer {
   grid-area: 1 / 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   min-width: 0;
 }
 
@@ -645,21 +649,23 @@ html[lang="ar"] .cardLabel {
 
 /* ── Empty / error / offline (§5, §8) ──────────────────────────────────────── */
 
+/* Dashboard card style (standing decision 4): 20 padding, --r-lg, 1px --hair. */
 .empty {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
-  padding: 24px;
+  padding: 20px;
   border: 1px solid var(--hair);
   border-radius: var(--r-lg);
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
 
+/* A card heading: 14/700 with 14 below — its 6px margin plus the box's 8px gap. */
 .emptyTitle {
-  margin: 0;
-  font-size: 15px;
+  margin: 0 0 6px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--ink);
 }
@@ -719,7 +725,7 @@ html[lang="ar"] .cardLabel {
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  padding: 24px;
+  padding: 20px;
   border: 1px solid var(--hair);
   border-radius: var(--r-lg);
   background: var(--surface);
@@ -819,27 +825,59 @@ html[lang="ar"] .cardLabel {
   border-radius: 50%;
 }
 
+/*
+ * One block per line of the loaded hero text, each the height of the line box it
+ * stands in for and spaced by the same margins (.heroLabel 18, .heroValue 6 +
+ * 41.5, .heroMeta 10 + 24, .heroYear 6 + 17.25), so the skeleton and the loaded
+ * hero are the same 164.75px tall (282.75 stacked, below 640).
+ */
 .skeletonHeroText {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 10px;
+  align-self: stretch;
   min-width: 0;
 }
 
-.skeletonLineShort {
+.skeletonLineLabel {
   width: 40%;
-  height: 12px;
-}
-
-.skeletonLineMedium {
-  width: 70%;
-  height: 12px;
+  height: 18px;
 }
 
 .skeletonLineHero {
   width: 140px;
-  height: 36px;
+  height: 41.5px;
+  margin-top: 6px;
+}
+
+.skeletonLineMeta {
+  width: 70%;
+  height: 24px;
+  margin-top: 10px;
+}
+
+.skeletonLineYear {
+  width: 30%;
+  height: 17.25px;
+  margin-top: 6px;
+}
+
+/* Stacks below 640 exactly as .heroLayer does, so it is the loaded hero's
+   height at every width. Declared after .skeletonHero so it wins. */
+@media (max-width: 639px) {
+  .skeletonHero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+}
+
+/* The calculator trigger's row above the table: 44 tall at the inline-end. */
+.skeletonBar {
+  align-self: flex-end;
+  width: 131px;
+  height: 44px;
+  border-radius: var(--r-sm);
 }
 
 .skeletonRows {

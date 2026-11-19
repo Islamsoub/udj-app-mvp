@@ -27,9 +27,10 @@ export function ScreenSkeleton() {
       <div className={styles.skeletonHero}>
         <Block className={styles.skeletonRing} />
         <div className={styles.skeletonHeroText}>
-          <Block className={styles.skeletonLineShort} />
+          <Block className={styles.skeletonLineLabel} />
           <Block className={styles.skeletonLineHero} />
-          <Block className={styles.skeletonLineMedium} />
+          <Block className={styles.skeletonLineMeta} />
+          <Block className={styles.skeletonLineYear} />
         </div>
       </div>
 
@@ -42,12 +43,17 @@ export function ScreenSkeleton() {
  *  its hero, so only this part is replaced. */
 export function TableSkeleton() {
   return (
-    <div className={styles.skeletonRows}>
-      {/* Six: the seeded semesters carry six to eight subjects, so the block is
-          about the height the real table will be and the page does not jump. */}
-      {[0, 1, 2, 3, 4, 5].map((row) => (
-        <Block key={row} className={styles.skeletonRow} />
-      ))}
-    </div>
+    <>
+      {/* The calculator trigger's row, which the loaded panel opens with. */}
+      <Block className={styles.skeletonBar} />
+
+      <div className={styles.skeletonRows}>
+        {/* Six: the seeded semesters carry six to eight subjects, so the block
+            is about the height the real table will be and the page does not jump. */}
+        {[0, 1, 2, 3, 4, 5].map((row) => (
+          <Block key={row} className={styles.skeletonRow} />
+        ))}
+      </div>
+    </>
   );
 }
