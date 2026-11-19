@@ -88,3 +88,16 @@ The Lead asked me to bring in Design's re-sorted lists and carry on with steps 4
 - **F14: blocked.** Same as before: I may not write `.claude/design-known-divergences.md`. Rows 1-4 from F14 are for the Lead or Islam to add. Row 5 waits for A5. The stray uncommitted line from my earlier mistake is still in the builder worktree. It was never committed, and someone allowed to touch that file should discard it.
 
 Checks in pwa/ at 66baeec: `npm run typecheck`, `tsc --noEmit`, exit 0, no errors. `npm run build`: "✓ Compiled successfully", "✓ Generating static pages using 14 workers (12/12)", exit 0.
+
+## 2026-11-19 — Review fixes on 4f3ba84 (Builder)
+
+The Reviewer found two faults; both are fixed in a6b5cfd.
+
+1. **Page jumped 46px on phones for empty semesters.** Cause: the calculator trigger is mounted only with a table, and nothing tells the screen whether a semester has rows until it has loaded. SemesterSummary has only gpa, mention and credits, so the skeleton could not know either. The phone layout put the trigger on a second line, so that line came and went with the data. Fix: the head is one line at every width, switch at the start and trigger at the end, 40px tall whether the trigger is there or not. Next element's top, measured in skeleton, loaded and empty states: 167.44 at 400 and 199.44 at 1280 in all of them.
+2. **8 semesters widened the page at 400** (strip 404, page 428). The strip now scrolls sideways inside its own box (`.tabsScroll` in SemesterTabs). The page stays 400 wide with 8 semesters, with or without the trigger. The selected tab is kept in view on load and on every change; End to S8 leaves it visible, with the pill aligned to 0px, in FR and AR. 2px of padding, taken back by a negative margin, stops the scroller from clipping the 44px touch layer and the focus ring. The row stays 40 and the track does not move.
+
+**This changes a passed target, F6.** At 400 the trigger now sits on the switch's line, not under it as the prototype has it. With the 5-semester fixture at 400 the strip shows 216 of its 254px and scrolls for the rest; with 2 semesters (the prototype's case) everything fits on the line. The Reviewer suggested keeping the row height steady "another way", and this is that way. If Islam prefers the prototype's wrap, the trade-off is the 46px jump. The only alternative is a permanently empty 46px line on phones. That is a question for the Lead.
+
+8 semesters were tested by extending the harness fixtures inside my own probe script (in /tmp, not committed).
+
+Checks in pwa/ at a6b5cfd: `npm run typecheck`, `tsc --noEmit`, exit 0. `npm run build`: "✓ Compiled successfully", "✓ Generating static pages using 14 workers (12/12)", exit 0.
