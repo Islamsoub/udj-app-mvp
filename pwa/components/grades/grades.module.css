@@ -952,11 +952,18 @@ html[lang="ar"] .cardLabel {
   }
 }
 
-/* The calculator trigger at the end of the head row: 124 x 34, a pill. */
+/* The calculator trigger at the end of the head row: 124 x 34, a pill (34 x 34
+   below 640, where the trigger is the icon alone). */
 .skeletonTrigger {
   width: 124px;
   height: 34px;
   border-radius: 9999px;
+}
+
+@media (max-width: 639px) {
+  .skeletonTrigger {
+    width: 34px;
+  }
 }
 
 .skeletonRows {
@@ -1021,6 +1028,35 @@ html[lang="ar"] .cardLabel {
   flex-shrink: 0;
   width: 14px;
   height: 14px;
+}
+
+/*
+ * Below 640 the trigger is the icon alone, a 34px circle (still a 44px target
+ * through ::before). With the word, it took 124 + 12 of a 352px column and left
+ * the semester strip 216: S5 of five sat out of sight past the button, with
+ * nothing to say it was there. As a circle it leaves 306, which holds six
+ * semesters (304) without scrolling. The word stays in the DOM, visually
+ * hidden, as the button's name for assistive technology. Not hidden with
+ * display:none, which would take the name away with it.
+ */
+@media (max-width: 639px) {
+  .calcTrigger {
+    justify-content: center;
+    width: 34px;
+    padding: 0;
+  }
+
+  .calcTriggerText {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
 }
 
 /* ── Panel body ────────────────────────────────────────────────────────────── */
