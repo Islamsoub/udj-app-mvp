@@ -251,8 +251,12 @@
 /* ── Cards row (prototype .grid-cards) ─────────────────────────────────────── */
 
 /*
- * One column, two from 640px, three from 1024px; 16px apart; align-items start,
- * so each card keeps its own height. The hero is in column 1 and the history in
+ * One column, two from 640px, three from 1024px; 16px apart. On a phone the
+ * cards stack and each keeps its own height (align-items start). Side by side,
+ * from 640px, they stretch to the taller of the two, so the hero and the history
+ * card are one height on every semester: without its trend line (the first
+ * semester) the history card is shorter than the hero. The hero is in column 1
+ * and the history in
  * column 2; from 1024 column 3 stays empty, as in the prototype. minmax(0, 1fr)
  * rather than the prototype's bare 1fr only so a long word can never widen a
  * column past its share; at the widths measured the tracks are the same.
@@ -267,6 +271,7 @@
 @media (min-width: 640px) {
   .cardsRow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
   }
 }
 
@@ -497,6 +502,10 @@ html[lang="ar"] .heroLabel {
   background: var(--surface);
   box-shadow: var(--shadow-card);
   line-height: normal;
+  /* A column, so the chart can sit on the bottom edge when the row stretches
+     the card past its natural height (.historyPlot). */
+  display: flex;
+  flex-direction: column;
 }
 
 /* .card h3: 14 / 700, 14px above the chart. An h2 in the outline — the page's
@@ -539,8 +548,13 @@ html[lang="ar"] .heroLabel {
 
 /* The first and last semesters sit 20px in from the card's content edges, as
    the prototype's first point (x 20 of 320); the SVG overflows into this
-   padding for the half of each end label that lies past its point. */
+   padding for the half of each end label that lies past its point.
+   margin-block-start auto takes the height a stretched row adds, above the
+   chart: the line and its labels stay on the card's bottom edge, as on a
+   semester with a trend line, and the extra space opens under the title, not
+   under the labels. At the card's natural height it is 0 and nothing moves. */
 .historyPlot {
+  margin-block-start: auto;
   padding-inline: 20px;
 }
 
@@ -1088,8 +1102,10 @@ html[lang="ar"] .cardLabel {
   margin-bottom: 14px;
 }
 
+/* On the card's bottom edge when the row stretches it, as the chart. */
 .skeletonHistoryChart {
   height: 92.8px;
+  margin-block-start: auto;
 }
 
 /* "Calculatrice" and "Exporter PDF": 34px pills at their loaded French widths
