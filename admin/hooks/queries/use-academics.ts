@@ -71,7 +71,10 @@ export function useSemesters() {
   });
 }
 
-/** The semester flagged isCurrent (or undefined while loading). */
+/**
+ * The current semester (or undefined while loading): the one the API marks
+ * `isCurrent`, which the backend computes from the dates. Never decided here.
+ */
 export function useCurrentSemester(): Semester | undefined {
   const { data } = useSemesters();
   return data?.find((s) => s.isCurrent);

@@ -136,13 +136,18 @@ export type SubjectValues = z.infer<typeof subjectSchema>;
 
 // ─── Semester (impl spec §27 SemesterForm) ───────────────────────────────────
 
-export const semesterSchema = z.object({
-  label: z.string().min(1, 'Libellé requis'),
-  academicYear: z.string().min(1, 'Année académique requise'),
-  startDate: z.string().min(1, 'Date de début requise'),
-  endDate: z.string().min(1, 'Date de fin requise'),
-  isCurrent: z.boolean(),
-});
+// No isCurrent: the backend decides the current semester from the dates.
+export const semesterSchema = z
+  .object({
+    label: z.string().min(1, 'Libellé requis'),
+    academicYear: z.string().min(1, 'Année académique requise'),
+    startDate: z.string().min(1, 'Date de début requise'),
+    endDate: z.string().min(1, 'Date de fin requise'),
+  })
+  .refine((v) => !v.startDate || !v.endDate || new Date(v.endDate) > new Date(v.startDate), {
+    message: 'La date de fin doit être postérieure à la date de début',
+    path: ['endDate'],
+  });
 export type SemesterValues = z.infer<typeof semesterSchema>;
 
 // ─── Schedule (impl spec §27 ScheduleForm — all required, end > start) ───────

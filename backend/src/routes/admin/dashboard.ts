@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { Prisma, StudentStatus, JustificationStatus } from '@prisma/client';
 import prisma from '../../utils/prisma';
+import { resolveCurrentSemester } from '../../utils/currentSemester';
 import adminAuth from '../../middleware/adminAuth';
 import { rbac, facultyScopeWhere } from '../../middleware/rbac';
 import { AdminRole } from '@prisma/client';
@@ -50,7 +51,7 @@ router.get(
       ] = await Promise.all([
         prisma.student.count({ where: studentWhere }),
         prisma.student.count({ where: { ...studentWhere, status: StudentStatus.SUSPENDED } }),
-        prisma.semester.findFirst({ where: { isCurrent: true } }),
+        resolveCurrentSemester(prisma),
         prisma.attendanceRecord.count({
           where: { ...attWhere, justificationStatus: JustificationStatus.PENDING },
         }),

@@ -11,6 +11,7 @@ import authMiddleware from '../middleware/auth';
 import { courseNoteWriteLimiter } from '../middleware/rateLimiter';
 import { createCourseNotesRouter } from './courseNotes';
 import { AppError } from '../utils/AppError';
+import { resolveCurrentSemester } from '../utils/currentSemester';
 import {
   buildSessionHoursResolver,
   canSubmitJustification,
@@ -131,9 +132,7 @@ router.get('/me', async (req: Request, res: Response, next: NextFunction) => {
 
     if (!student) throw new AppError('Student not found', 404);
 
-    const currentSemester = await prisma.semester.findFirst({
-      where: { isCurrent: true },
-    });
+    const currentSemester = await resolveCurrentSemester(prisma);
 
     const [
       semesterGrades,
@@ -290,7 +289,7 @@ router.get('/schedule', async (req: Request, res: Response, next: NextFunction) 
       }),
       querySemesterId
         ? prisma.semester.findUnique({ where: { id: querySemesterId } })
-        : prisma.semester.findFirst({ where: { isCurrent: true } }),
+        : resolveCurrentSemester(prisma),
     ]);
 
     if (!student) throw new AppError('Student not found', 404);
@@ -407,10 +406,9 @@ router.get('/grades', async (req: Request, res: Response, next: NextFunction) =>
           where: { id: querySemesterId },
           select: { id: true, label: true, academicYear: true },
         })
-      : await prisma.semester.findFirst({
-          where: { isCurrent: true },
-          select: { id: true, label: true, academicYear: true },
-        });
+      : await resolveCurrentSemester(prisma).then((s) =>
+          s ? { id: s.id, label: s.label, academicYear: s.academicYear } : null
+        );
 
     if (!semester) throw new AppError('Semester not found', 404);
 
@@ -496,7 +494,7 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
      * serialising them would add a round trip to every load of this screen.
      */
     const [currentSemester, settings] = await Promise.all([
-      prisma.semester.findFirst({ where: { isCurrent: true } }),
+      resolveCurrentSemester(prisma),
       prisma.systemSettings.findUnique({ where: { id: 'singleton' } }),
     ]);
 

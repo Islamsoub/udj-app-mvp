@@ -23,17 +23,16 @@ import { ProgrammeForm } from '@/components/forms/programme-form';
 import { SubjectForm } from '@/components/forms/subject-form';
 import { SemesterForm } from '@/components/forms/semester-form';
 import { useModal } from '@/hooks/use-modal';
-import { useToast } from '@/hooks/use-toast';
 import {
   useFaculties,
   useProgrammes,
-  useSaveSemester,
   useSemesters,
   useSubjects,
 } from '@/hooks/queries/use-academics';
 import { useScopeStore } from '@/stores/scope-store';
 import { PROGRAMME_LEVELS } from '@/lib/constants';
-import { apiErrorMessage, fmtDate } from '@/lib/utils';
+import { fmtDate } from '@/lib/utils';
+import type { Semester } from '@/lib/types';
 import type { Tone } from '@/lib/tokens';
 
 /**
@@ -66,7 +65,6 @@ function AcademicsSkeleton() {
 
 export default function AcademicsPage() {
   const { open } = useModal();
-  const { toast } = useToast();
   const [tab, setTab] = useState<TabKey>('faculties');
 
   // The Context Bar owns Faculté → Programme scoping for the whole portal; this
@@ -85,7 +83,6 @@ export default function AcademicsPage() {
     programmeId ? { programme: programmeId } : {}
   );
   const { data: semesters, isLoading: semestersLoading } = useSemesters();
-  const saveSemester = useSaveSemester();
 
   const visibleFaculties = useMemo(
     () => (faculties ?? []).filter((f) => !facultyId || f.id === facultyId),
@@ -119,13 +116,19 @@ export default function AcademicsPage() {
     semesters: <SemesterForm />,
   };
 
-  const setCurrent = async (id: string) => {
-    try {
-      await saveSemester.mutateAsync({ id, data: { isCurrent: true } });
-    } catch (err) {
-      toast(apiErrorMessage(err), 'x');
-    }
-  };
+  /*
+   * The current semester comes from the API (`isCurrent`, computed from the
+   * dates by the backend). A semester that is not current is "À venir" if it
+   * starts after the current one and "Terminé" otherwise — ordered against the
+   * API's answer, so this page never reads the calendar itself.
+   */
+  const currentStart = (semesters ?? []).find((s) => s.isCurrent)?.startDate;
+  const semesterStatus = (s: Semester) =>
+    s.isCurrent
+      ? 'current'
+      : currentStart !== undefined && new Date(s.startDate) > new Date(currentStart)
+        ? 'upcoming'
+        : 'ended';
 
   return (
     <>
@@ -327,27 +330,18 @@ export default function AcademicsPage() {
                     {fmtDate(s.startDate)} → {fmtDate(s.endDate)}
                   </div>
                 </div>
-                {s.isCurrent ? (
+                {semesterStatus(s) === 'current' ? (
                   <Badge tone="jade" dot>
                     En cours
                   </Badge>
+                ) : semesterStatus(s) === 'upcoming' ? (
+                  <Badge tone="blue">À venir</Badge>
                 ) : (
-                  <Badge tone="slate">Clôturé</Badge>
+                  <Badge tone="slate">Terminé</Badge>
                 )}
-                {s.isCurrent ? (
-                  <Button kind="ghost" size="sm" onClick={() => open(<SemesterForm semester={s} />)}>
-                    Gérer
-                  </Button>
-                ) : (
-                  <Button
-                    kind="ghost"
-                    size="sm"
-                    disabled={saveSemester.isPending}
-                    onClick={() => setCurrent(s.id)}
-                  >
-                    Définir comme courant
-                  </Button>
-                )}
+                <Button kind="ghost" size="sm" onClick={() => open(<SemesterForm semester={s} />)}>
+                  Gérer
+                </Button>
               </Card>
             ))}
           </div>

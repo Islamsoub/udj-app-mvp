@@ -8,6 +8,7 @@ import {
   AdminRole,
 } from '@prisma/client';
 import prisma from '../../utils/prisma';
+import { resolveCurrentSemester } from '../../utils/currentSemester';
 import { AppError } from '../../utils/AppError';
 import adminAuth from '../../middleware/adminAuth';
 import { rbac, facultyScopeWhere } from '../../middleware/rbac';
@@ -145,7 +146,7 @@ router.get('/overview', adminAuth, rbac(...READ_ROLES), async (req, res, next) =
     const settings = await prisma.systemSettings.findUnique({ where: { id: 'singleton' } });
     const threshold = settings?.attendanceThreshold ?? 75;
 
-    const currentSemester = await prisma.semester.findFirst({ where: { isCurrent: true } });
+    const currentSemester = await resolveCurrentSemester(prisma);
     if (!currentSemester) {
       res.status(200).json({ programmeId, threshold, subjects: [] });
       return;

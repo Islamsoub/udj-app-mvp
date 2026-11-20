@@ -39,8 +39,9 @@ function loadAttendance(): Promise<AttendanceResponse> {
  * to the shared useCardData.
  *
  * ONE SEMESTER ONLY, which is worth knowing when reading the figures. GET
- * /student/attendance filters to the semester flagged `isCurrent` and returns
- * `{ overall: null, subjects: [] }` when none is — so everything on this screen
+ * /student/attendance filters to the current semester, which the backend
+ * decides from the semester dates, and returns `{ overall: null, subjects: [] }`
+ * when there is no semester at all — so everything on this screen
  * is the current semester's, and a student's earlier absences are not here and
  * are not counted in the percentage.
  */
