@@ -1,3 +1,4 @@
+import { expectHistory } from './history-hint';
 import styles from './grades.module.css';
 
 /**
@@ -27,14 +28,27 @@ export function ScreenSkeleton() {
         <ActionsSkeleton />
       </div>
 
-      {/* The cards row at its loaded footprint: the hero's box (one block, the
-          hero's radius and height) and the history card around a chart block. */}
+      {/*
+        The cards row at its loaded footprint: the hero's box (one block, the
+        hero's radius and height) and the history card, or — when the student
+        has fewer than two published averages — the hero alone and wider. Which
+        one is known from the last time the semester list loaded this session
+        (history-hint); the row is the hero's height either way, so nothing
+        below moves if the guess is wrong.
+      */}
       <div className={styles.cardsRow}>
-        <Block className={styles.skeletonHero} />
-        <div className={styles.historyCard}>
-          <Block className={styles.skeletonHistoryTitle} />
-          <Block className={styles.skeletonHistoryChart} />
-        </div>
+        {expectHistory() ? (
+          <>
+            <Block className={styles.skeletonHero} />
+            <div className={styles.historyCard}>
+              <Block className={styles.skeletonHistoryTitle} />
+              <Block className={styles.skeletonHistoryTrend} />
+              <Block className={styles.skeletonHistoryChart} />
+            </div>
+          </>
+        ) : (
+          <Block className={`${styles.skeletonHero} ${styles.heroWide}`} />
+        )}
       </div>
 
       <TableSkeleton />

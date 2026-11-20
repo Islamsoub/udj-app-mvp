@@ -291,6 +291,10 @@
      errors, on the panel's --surface: 6.54:1 on #FFFFFF (WCAG 2.x, measured
      2026-11-11). */
   --danger-ink: #B3261E;
+  /* Success as text: --jade-text, the colour "Validée" already uses. 6.20:1 on
+     --surface (light). Named for what it says, so a chart's "up" and a pill's
+     "validated" cannot drift apart. */
+  --success-ink: var(--jade-text);
   --info-ink: #1D4ED8;
   --warning-ink: #8A5200;
   --exam-ink: #6D28D9;
@@ -378,6 +382,8 @@
      errors, on the panel's --surface: 7.59:1 on #1C2721 (WCAG 2.x, measured
      2026-11-11). */
   --danger-ink: #FF9B8F;
+  /* --jade-text: 8.34:1 on --surface (dark). See the light block. */
+  --success-ink: var(--jade-text);
   --info-ink: #8AB4FF;
   --warning-ink: #F2B35E;
   --exam-ink: #C4B0FF;

@@ -276,6 +276,24 @@
   }
 }
 
+/*
+ * The hero alone in the row — fewer than two published averages, so no history
+ * card: the whole row from 640 to 1023px, two of the three columns from 1024px
+ * (the prototype's .span-2). Phones are one column either way. The skeleton's
+ * block takes the same class.
+ */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .heroWide {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .heroWide {
+    grid-column: span 2;
+  }
+}
+
 /* ── GPA hero (prototype .hero-jade, §9 crossfade) ─────────────────────────── */
 
 /*
@@ -309,6 +327,23 @@
   border-radius: 50%;
   background: var(--hero-circle);
   pointer-events: none;
+}
+
+/*
+ * No text under the circle, at any width. The label keeps out of it by its own
+ * inline-end padding; the average line cannot wrap, so on a card narrower than
+ * 290px its "/20" runs under the circle — 4px deep on a 320px phone, measured.
+ * There the circle, which is decoration, is not drawn. The container query
+ * reads the hero's content box: 290 - 2 x 22.
+ */
+.hero {
+  container-type: inline-size;
+}
+
+@container (width < 246px) {
+  .heroDepth {
+    display: none;
+  }
 }
 
 /* A block, like the prototype's hero: the badge is an inline-flex box on its own
@@ -473,6 +508,35 @@ html[lang="ar"] .heroLabel {
   color: var(--ink);
 }
 
+/* With the trend line under it, the 14px moves below the trend. */
+.historyTitleWithTrend {
+  margin-bottom: 4px;
+}
+
+/*
+ * The selected semester against the previous one with an average. On
+ * --surface: --success-ink 6.20:1 light, 8.34:1 dark; --danger-ink 6.54:1 and
+ * 7.59:1; --ink2 5.49:1 and 6.78:1 (WCAG 2.x, computed from the tokens). The
+ * colour is never the only signal: the sign and the word say it too.
+ */
+.historyTrend {
+  margin: 0 0 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.historyTrendUp {
+  color: var(--success-ink);
+}
+
+.historyTrendDown {
+  color: var(--danger-ink);
+}
+
+.historyTrendStable {
+  color: var(--ink2);
+}
+
 /* The first and last semesters sit 20px in from the card's content edges, as
    the prototype's first point (x 20 of 320); the SVG overflows into this
    padding for the half of each end label that lies past its point. */
@@ -508,11 +572,26 @@ html[lang="ar"] .heroLabel {
   fill: var(--ink2);
 }
 
-.historyEmpty {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--ink2);
+/* Each average above its dot: 11 / 700, mono as the hero's figure, --ink2
+   (5.49:1 light, 6.78:1 dark on --surface). */
+.historyValue {
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--ink2);
+}
+
+/* The semester selected in the switch: a 5px jade dot in a 2px ring of the
+   card's own colour (white in light), so it stands off the line; its label in
+   --ink (15.96:1 light, 13.61:1 dark) and 700. */
+.historyDotSelected {
+  fill: var(--jade);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.historyLabelSelected {
+  fill: var(--ink);
+  font-weight: 700;
 }
 
 /* ── Notice ────────────────────────────────────────────────────────────────── */
@@ -993,11 +1072,19 @@ html[lang="ar"] .cardLabel {
   border-radius: 22px;
 }
 
-/* The history card's title line (17.6) and its 90px chart plus the 2.8px of
-   line descent under the inline SVG, so the card is the loaded 166.4. */
+/* The history card's title line (17.6), 4px above the trend line, and its 90px
+   chart plus the 2.8px of line descent under the inline SVG. */
 .skeletonHistoryTitle {
   width: 40%;
   height: 17.6px;
+  margin-bottom: 4px;
+}
+
+/* The trend line under the title, as the loaded card usually has it: the
+   current semester is the latest, so it has an earlier one to compare with. */
+.skeletonHistoryTrend {
+  width: 30%;
+  height: 15.8px;
   margin-bottom: 14px;
 }
 

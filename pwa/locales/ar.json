@@ -214,9 +214,10 @@
     },
     "history": {
       "title": "سجل المعدل",
-      "empty": "لا يوجد سجل بعد: لم يُنشر أي معدّل.",
       "item": "{{semester}}: {{gpa}} من 20",
-      "item_none": "{{semester}}: المعدّل غير منشور"
+      "item_none": "{{semester}}: المعدّل غير منشور",
+      "trend": "{{delta}} منذ {{semester}}",
+      "trend_stable": "مستقر منذ {{semester}}"
     },
     "export": {
       "open": "تصدير PDF"

@@ -6,6 +6,7 @@ import { useI18n } from '@/lib/i18n';
 import { ExportPdf } from './ExportPdf';
 import { GpaHero } from './GpaHero';
 import { GpaHistory } from './GpaHistory';
+import { showsHistory } from './history-hint';
 import { GradeCalculator } from './GradeCalculator';
 import { GradesTable } from './GradesTable';
 import { ArrowIcon } from './icons';
@@ -89,6 +90,7 @@ export function GradesView({
   const loaded = detail.phase === 'ready' && detail.data.semester.id === activeId;
   const hasRows = loaded && detail.data.grades.length > 0;
   const showHero = summary.gpa !== null || hasRows;
+  const history = showsHistory(bundle.semesters);
 
   return (
     <>
@@ -132,13 +134,15 @@ export function GradesView({
       {/*
         The prototype's .grid-cards: the hero, then "Historique GPA" beside it
         from 640px; from 1024px a third column, left empty, as in the prototype.
+        The history needs two published averages to say anything; with fewer it
+        is not drawn and the hero widens into its place (.heroWide).
         Drawn on the hero's rule (above), so a semester with nothing published
         is still one card below the tabs and not three.
       */}
       {showHero && (
         <div className={styles.cardsRow}>
-          <GpaHero semester={summary} />
-          <GpaHistory semesters={bundle.semesters} />
+          <GpaHero semester={summary} wide={!history} />
+          {history && <GpaHistory semesters={bundle.semesters} selectedId={activeId} />}
         </div>
       )}
 

@@ -214,9 +214,10 @@
     },
     "history": {
       "title": "Historique GPA",
-      "empty": "Pas encore d'historique : aucune moyenne n'a été publiée.",
       "item": "{{semester}} : {{gpa}} sur 20",
-      "item_none": "{{semester}} : moyenne non publiée"
+      "item_none": "{{semester}} : moyenne non publiée",
+      "trend": "{{delta}} depuis {{semester}}",
+      "trend_stable": "Stable depuis {{semester}}"
     },
     "export": {
       "open": "Exporter PDF"

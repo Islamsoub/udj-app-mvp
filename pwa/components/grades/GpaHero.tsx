@@ -30,7 +30,14 @@ import styles from './grades.module.css';
  * mention beside it cut would misattribute the old mention to the new average
  * for a fifth of a second. The depth circle is decoration and stays put.
  */
-export function GpaHero({ semester }: { semester: SemesterSummary }) {
+export function GpaHero({
+  semester,
+  wide = false,
+}: {
+  semester: SemesterSummary;
+  /** Alone in the cards row (no history card): spans its columns. */
+  wide?: boolean;
+}) {
   /*
    * Derived-from-props state rather than an effect. An effect would run after
    * the commit, so the frame in which the new semester first paints would have
@@ -56,7 +63,7 @@ export function GpaHero({ semester }: { semester: SemesterSummary }) {
   useExitBackstop(leaving?.id, () => setLeaving(null));
 
   return (
-    <section className={styles.hero} aria-live="polite">
+    <section className={`${styles.hero} ${wide ? styles.heroWide : ''}`} aria-live="polite">
       <span className={styles.heroDepth} aria-hidden="true" />
 
       {leaving !== null && (

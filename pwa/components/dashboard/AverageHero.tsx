@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { rememberHistory } from '@/components/grades/history-hint';
 import { latestPublished, MENTION_DOT, mentionKey, orderSemesters } from '@/components/grades/model';
 import { getGrades, getGradesAllSemesters } from '@/lib/api-client';
 import type { SemesterRef, SemesterSummary } from '@/lib/api-types';
@@ -29,9 +30,13 @@ interface Averages {
  */
 async function loadAverages(): Promise<Averages> {
   const [current, all] = await Promise.all([getGrades(), getGradesAllSemesters()]);
+  const semesters = orderSemesters(current, all.semesters);
+  // Tells the Notes skeleton which layout to draw (grades/history-hint). No
+  // effect on this card.
+  rememberHistory(semesters);
   return {
     current: current.semester,
-    published: latestPublished(orderSemesters(current, all.semesters)),
+    published: latestPublished(semesters),
   };
 }
 
