@@ -6,16 +6,6 @@ import { useI18n } from '@/lib/i18n';
 import styles from './grades.module.css';
 
 /*
- * UNUSED FOR NOW, KEPT ON PURPOSE. The card was taken off the Notes page as an
- * experiment (ASK A3, 2026-11-20): the hero took its place. This file, its
- * styles in grades.module.css (.history*) and its strings (grades.history.*)
- * stay so that option 3 — the chart shown only from 3 published semesters, with
- * each value written on its point and a trend line — can be built from here
- * rather than from scratch. Reverting the commit that removed it puts the card
- * back exactly as it was.
- */
-
-/*
  * The prototype's chart, in its own units: a 90px-tall SVG, the line between
  * y 20 (highest average) and y 64 (lowest), the semester labels on y 82.
  */

@@ -14,8 +14,6 @@ Ranked, most important first. The first five go in the report's "Needs your deci
 
 **Decided 2026-11-20: (b), by Islam.** Built from the real semester averages. A semester with no published average gets no dot and breaks the line; one semester is a single dot; none is a sentence. The chart has a text alternative (feature/pwa-grades-hero).
 
-**Update 2026-11-20: removed for now, option 3 to try if Islam prefers.** The card is off the Notes page as an experiment; the green hero takes its place (2 columns from 1024px, full width from 640 to 1023px). Option 3: show the chart only from 3 semesters, with each value on its point and a trend line. `GpaHistory.tsx`, its styles and its strings stay in the repo, unused, to build it from; reverting the experiment commit brings the old card back exactly.
-
 **A4. The "Exporter PDF" button.** The prototype has it; the PWA cannot export a PDF. Options: (a) leave it out, as the schedule's print button was, (b) build a real export later, (c) show a button that is switched off. Recommend (a): a button that promises something missing misleads.
 
 **Decided 2026-11-20: (b), by Islam, built now.** Exporter PDF opens the browser's print dialog on a one-page report of the selected semester; no dependency (feature/pwa-grades-hero).

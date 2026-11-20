@@ -28,9 +28,13 @@ export function ScreenSkeleton() {
       </div>
 
       {/* The cards row at its loaded footprint: the hero's box (one block, the
-          hero's radius and height), spanning the columns the hero spans. */}
+          hero's radius and height) and the history card around a chart block. */}
       <div className={styles.cardsRow}>
         <Block className={styles.skeletonHero} />
+        <div className={styles.historyCard}>
+          <Block className={styles.skeletonHistoryTitle} />
+          <Block className={styles.skeletonHistoryChart} />
+        </div>
       </div>
 
       <TableSkeleton />
