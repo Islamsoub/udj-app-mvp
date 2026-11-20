@@ -205,12 +205,39 @@
       "offline": "درجاتك غير متاحة دون اتصال."
     },
     "hero": {
-      "label": "معدّل الفصل",
-      "scale": "/ 20",
-      "credits": "{{credits}} وحدة مكتسبة",
+      "label": "المعدل العام · {{semester}}",
+      "scale": "/20",
+      "credits": "الأرصدة : {{credits}}",
       "at_stake": "{{total}} وحدة قيد التقييم هذا الفصل",
       "no_gpa": "المعدّل غير منشور",
-      "ring_label": "معدّل الفصل: {{gpa}} من 20"
+      "ring_label": "معدّل الفصل: {{gpa}} من 20",
+      "mention": {
+        "tres_bien": "جيد جداً",
+        "bien": "جيد",
+        "assez_bien": "مستحسن",
+        "passable": "مقبول",
+        "insuffisant": "ضعيف"
+      }
+    },
+    "history": {
+      "title": "سجل المعدل",
+      "empty": "لا يوجد سجل بعد: لم يُنشر أي معدّل.",
+      "item": "{{semester}}: {{gpa}} من 20",
+      "item_none": "{{semester}}: المعدّل غير منشور"
+    },
+    "export": {
+      "open": "تصدير PDF"
+    },
+    "report": {
+      "title": "كشف النقاط",
+      "student": "الطالب",
+      "student_id": "الرقم الجامعي",
+      "semester": "الفصل",
+      "year": "السنة الجامعية",
+      "average": "المعدّل",
+      "mention": "التقدير",
+      "credits": "الوحدات المكتسبة",
+      "file_name": "كشف النقاط {{semester}}"
     },
     "mention": {
       "tres_bien": "ممتاز",

@@ -41,13 +41,30 @@ export function ArrowIcon({ className }: IconProps) {
   );
 }
 
+/*
+ * The head row's two glyphs are the prototype's own (#btn-calc, #btn-export-pdf),
+ * path for path and with its attributes: 1.8 stroke and the SVG default butt
+ * caps, not this file's round ones — the keypad "dots" are 1-unit dashes there,
+ * and round caps would draw them visibly larger.
+ */
+const prototypeStroke = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8 };
+
 /** Calculator — the grade-calculator trigger. */
 export function CalculatorIcon({ className }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
-      <rect x="4.5" y="3" width="15" height="18" rx="2.5" />
-      <path d="M8 7.5h8" />
-      <path d="M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01" />
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...prototypeStroke}>
+      <rect x="5" y="3" width="14" height="18" rx="2" />
+      <path d="M9 7h6M8 12h1M12 12h1M16 12h1M8 16h1M12 16h1M16 16h1" />
+    </svg>
+  );
+}
+
+/** Upload-out-of-a-tray — "Exporter PDF". */
+export function ExportIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...prototypeStroke}>
+      <path d="M12 15V3m0 0 4 4m-4-4-4 4" />
+      <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
     </svg>
   );
 }

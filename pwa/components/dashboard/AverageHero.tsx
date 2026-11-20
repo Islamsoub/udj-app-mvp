@@ -1,12 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { latestPublished, mentionKey, orderSemesters } from '@/components/grades/model';
+import { latestPublished, MENTION_DOT, mentionKey, orderSemesters } from '@/components/grades/model';
 import { getGrades, getGradesAllSemesters } from '@/lib/api-client';
 import type { SemesterRef, SemesterSummary } from '@/lib/api-types';
 import { fmtScaled } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
-import type { TranslationKey } from '@/lib/i18n-types';
 import { CardStates } from './Card';
 import { Interpolated } from './Interpolated';
 import { useCardData } from './useCardData';
@@ -35,16 +34,6 @@ async function loadAverages(): Promise<Averages> {
     published: latestPublished(orderSemesters(current, all.semesters)),
   };
 }
-
-/** The badge's dot, per mention (prototype-v1 MENTIONS). Keyed on the same
- *  translation key the label uses, so the two cannot disagree. */
-const MENTION_DOT: Partial<Record<TranslationKey, string>> = {
-  'grades.mention.tres_bien': 'var(--mention-tres-bien)',
-  'grades.mention.bien': 'var(--mention-bien)',
-  'grades.mention.assez_bien': 'var(--mention-assez-bien)',
-  'grades.mention.passable': 'var(--mention-passable)',
-  'grades.mention.insuffisant': 'var(--mention-insuffisant)',
-};
 
 /**
  * Moyenne générale, as Design's jade hero (dashboard.html:95-100; app.css:380-385,

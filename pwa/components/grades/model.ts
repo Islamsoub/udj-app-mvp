@@ -82,6 +82,41 @@ export function mentionKey(mention: string): TranslationKey | null {
   return MENTION_KEYS[mention.trim().toLowerCase()] ?? null;
 }
 
+/**
+ * The mention badge's dot (prototype-v1 MENTIONS), shared by the dashboard's
+ * AverageHero and the Notes hero. Keyed on the same translation key the label
+ * uses, so the dot and the word cannot disagree. Decorative: the mention is
+ * always written beside it.
+ */
+export const MENTION_DOT: Partial<Record<TranslationKey, string>> = {
+  'grades.mention.tres_bien': 'var(--mention-tres-bien)',
+  'grades.mention.bien': 'var(--mention-bien)',
+  'grades.mention.assez_bien': 'var(--mention-assez-bien)',
+  'grades.mention.passable': 'var(--mention-passable)',
+  'grades.mention.insuffisant': 'var(--mention-insuffisant)',
+};
+
+/**
+ * The Notes hero's wording for each mention: the prototype's ("Assez Bien",
+ * "مستحسن"), which is not the wording the dashboard has used since its review
+ * ("Assez bien", "ممتاز" for Très bien). Kept as separate keys so the Notes pass
+ * leaves the dashboard's words alone; whether the two should converge is an open
+ * product question, recorded in .claude/design-known-divergences.md.
+ */
+export const HERO_MENTION_KEYS: Partial<Record<TranslationKey, TranslationKey>> = {
+  'grades.mention.tres_bien': 'grades.hero.mention.tres_bien',
+  'grades.mention.bien': 'grades.hero.mention.bien',
+  'grades.mention.assez_bien': 'grades.hero.mention.assez_bien',
+  'grades.mention.passable': 'grades.hero.mention.passable',
+  'grades.mention.insuffisant': 'grades.hero.mention.insuffisant',
+};
+
+/** The hero's word for a backend mention, or the raw string when unknown. */
+export function heroMentionKey(mention: string): TranslationKey | null {
+  const key = mentionKey(mention);
+  return key === null ? null : (HERO_MENTION_KEYS[key] ?? key);
+}
+
 // ── Semesters ─────────────────────────────────────────────────────────────────
 
 /**

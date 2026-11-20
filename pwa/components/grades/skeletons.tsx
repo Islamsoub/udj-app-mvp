@@ -3,8 +3,8 @@ import styles from './grades.module.css';
 /**
  * §5: "Skeleton blocks (gray rounded rectangles matching each real element's
  * footprint)." The footprints below are taken from the components they stand in
- * for — the hero's gauge is the ring's 104px circle, the rows are the table's
- * row height — so nothing on the screen resizes when the data lands.
+ * for — the hero is the jade card's own box, the rows are the table's row
+ * height — so nothing on the screen resizes when the data lands.
  *
  * All blocks share one animation name and therefore one timeline, which is what
  * makes §5's "sweeps left->right across every skeleton block in parallel" true
@@ -15,7 +15,7 @@ function Block({ className }: { className: string }) {
   return <div className={`${styles.skeleton} ${className}`} />;
 }
 
-/** Tab strip + hero + table: the whole screen's first load. */
+/** Tab strip + cards row + table: the whole screen's first load. */
 export function ScreenSkeleton() {
   return (
     <>
@@ -24,16 +24,16 @@ export function ScreenSkeleton() {
           <Block className={styles.skeletonTab} />
           <Block className={styles.skeletonTab} />
         </div>
-        <TriggerSkeleton />
+        <ActionsSkeleton />
       </div>
 
-      <div className={styles.skeletonHero}>
-        <Block className={styles.skeletonRing} />
-        <div className={styles.skeletonHeroText}>
-          <Block className={styles.skeletonLineLabel} />
-          <Block className={styles.skeletonLineHero} />
-          <Block className={styles.skeletonLineMeta} />
-          <Block className={styles.skeletonLineYear} />
+      {/* The cards row at its loaded footprint: the hero's box (one block, the
+          hero's radius and height) and the history card around a chart block. */}
+      <div className={styles.cardsRow}>
+        <Block className={styles.skeletonHero} />
+        <div className={styles.historyCard}>
+          <Block className={styles.skeletonHistoryTitle} />
+          <Block className={styles.skeletonHistoryChart} />
         </div>
       </div>
 
@@ -42,9 +42,14 @@ export function ScreenSkeleton() {
   );
 }
 
-/** The calculator trigger's footprint at the end of the head row. */
-export function TriggerSkeleton() {
-  return <Block className={styles.skeletonTrigger} />;
+/** "Calculatrice" and "Exporter PDF" at the end of the head row, 8px apart. */
+export function ActionsSkeleton() {
+  return (
+    <div className={styles.headActions}>
+      <Block className={styles.skeletonCalc} />
+      <Block className={styles.skeletonExport} />
+    </div>
+  );
 }
 
 /** Just the rows — a tab switch that has to fetch a semester keeps its tabs and

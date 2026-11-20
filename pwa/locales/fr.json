@@ -205,12 +205,39 @@
       "offline": "Vos notes ne sont pas disponibles hors ligne."
     },
     "hero": {
-      "label": "Moyenne du semestre",
-      "scale": "/ 20",
-      "credits": "{{credits}} crédits validés",
+      "label": "Moyenne générale · {{semester}}",
+      "scale": "/20",
+      "credits": "Crédits : {{credits}}",
       "at_stake": "{{total}} crédits en jeu ce semestre",
       "no_gpa": "Moyenne non publiée",
-      "ring_label": "Moyenne du semestre : {{gpa}} sur 20"
+      "ring_label": "Moyenne du semestre : {{gpa}} sur 20",
+      "mention": {
+        "tres_bien": "Très Bien",
+        "bien": "Bien",
+        "assez_bien": "Assez Bien",
+        "passable": "Passable",
+        "insuffisant": "Insuffisant"
+      }
+    },
+    "history": {
+      "title": "Historique GPA",
+      "empty": "Pas encore d'historique : aucune moyenne n'a été publiée.",
+      "item": "{{semester}} : {{gpa}} sur 20",
+      "item_none": "{{semester}} : moyenne non publiée"
+    },
+    "export": {
+      "open": "Exporter PDF"
+    },
+    "report": {
+      "title": "Relevé de notes",
+      "student": "Étudiant",
+      "student_id": "Matricule",
+      "semester": "Semestre",
+      "year": "Année universitaire",
+      "average": "Moyenne",
+      "mention": "Mention",
+      "credits": "Crédits validés",
+      "file_name": "Relevé de notes {{semester}}"
     },
     "mention": {
       "tres_bien": "Très bien",
