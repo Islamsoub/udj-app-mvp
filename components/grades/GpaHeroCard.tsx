@@ -19,6 +19,18 @@ interface Props {
   pending?: boolean;
 }
 
+/** PressBox when the card opens something; a plain View otherwise. */
+function HeroPressable({ onPress, children }: { onPress?: () => void; children: React.ReactNode }) {
+  if (onPress === undefined) {
+    return <View style={{ borderRadius: radius.rHero }}>{children}</View>;
+  }
+  return (
+    <PressBox tier="settle" onPress={onPress} style={{ borderRadius: radius.rHero }}>
+      {children}
+    </PressBox>
+  );
+}
+
 export function GpaHeroCard({ gpa, credits, activeSemester, onPress, skeleton, pending }: Props) {
   const { t, i18n } = useTranslation();
   const { colors } = useColors();
@@ -44,7 +56,8 @@ export function GpaHeroCard({ gpa, credits, activeSemester, onPress, skeleton, p
 
   return (
     <View style={styles.shadow}>
-      <PressBox tier="settle" onPress={onPress} style={{ borderRadius: radius.rHero }}>
+      {/* A button only when it opens something (the GPA history). */}
+      <HeroPressable onPress={onPress}>
         <LinearGradient
           colors={['#1D9E75', '#0B5544']} // jade400 → deep jade — on-gradient literals required by LinearGradient
           start={{ x: 0, y: 0 }}
@@ -53,12 +66,15 @@ export function GpaHeroCard({ gpa, credits, activeSemester, onPress, skeleton, p
         >
           <View style={styles.depthCircle} />
 
-          <Ionicons
-            name="stats-chart-outline"
-            size={16}
-            color={withAlpha('#FFFFFF', 0.70)} // on-gradient literal
-            style={styles.chartIcon}
-          />
+          {/* The history's affordance: shown only when the card opens it. */}
+          {onPress !== undefined && (
+            <Ionicons
+              name="stats-chart-outline"
+              size={16}
+              color={withAlpha('#FFFFFF', 0.70)} // on-gradient literal
+              style={styles.chartIcon}
+            />
+          )}
 
           <Text style={styles.heroLabel} numberOfLines={1}>
             {t('grades.hero_label', { semester: activeSemester })}
@@ -89,7 +105,7 @@ export function GpaHeroCard({ gpa, credits, activeSemester, onPress, skeleton, p
             <View style={[styles.barFill, { width: `${Math.round(creditPct * 100)}%` as any }]} />
           </View>
         </LinearGradient>
-      </PressBox>
+      </HeroPressable>
     </View>
   );
 }

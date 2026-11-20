@@ -12,12 +12,9 @@ import Svg, { Polyline, Polygon, Circle, Line } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { fonts, fz, radius, spacing, scrimColor, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
+import { publishedRuns, type GPADataPoint } from '@/utils/gpaHistory';
 
-export interface GPADataPoint {
-  label: string;
-  value: number;
-  isEstimate?: boolean;
-}
+export type { GPADataPoint };
 
 interface Props {
   visible: boolean;
@@ -51,32 +48,38 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
 
   const innerW = chartWidth > 0 ? chartWidth - PAD_L - PAD_R : 0;
 
-  const data = gpaData.length > 0 ? gpaData : [];
-  const hasLine = data.length >= 2;
-  const hasEstimates = data.some((d) => d.isEstimate === true);
+  /*
+   * Every semester in order; `value` is the server's published average, or
+   * null where it is not published. Nothing here is estimated: a null gets no
+   * point, and the line (with its area) is drawn per run of consecutive
+   * published semesters, so it breaks at a gap instead of bridging it. The
+   * screen opens this sheet only from two published averages
+   * (utils/gpaHistory showsGpaHistory).
+   */
+  const data = gpaData;
+  const runs = publishedRuns(data);
+  const published = data
+    .map((d, i) => ({ i, value: d.value }))
+    .filter((d): d is { i: number; value: number } => d.value !== null);
 
   function toX(index: number) {
     if (data.length <= 1 || innerW <= 0) return PAD_L + innerW / 2;
     return PAD_L + (index / (data.length - 1)) * innerW;
   }
 
-  const linePoints = data.map((d, i) => `${toX(i)},${toY(d.value)}`).join(' ');
-  const areaPoints = hasLine
-    ? [
-        ...data.map((d, i) => `${toX(i)},${toY(d.value)}`),
-        `${toX(data.length - 1)},${PAD_T + INNER_H}`,
-        `${toX(0)},${PAD_T + INNER_H}`,
-      ].join(' ')
-    : '';
+  const point = (i: number) => `${toX(i)},${toY(data[i].value as number)}`;
+  const lineRuns = runs.filter((run) => run.length >= 2);
 
-  const currentGpa = data.length > 0 ? data[data.length - 1].value : 0;
-  const prevGpa    = data.length > 1 ? data[data.length - 2].value : currentGpa;
-  const diff       = currentGpa - prevGpa;
+  // The latest published average, and the one before it, for the stats.
+  const latest   = published[published.length - 1];
+  const previous = published[published.length - 2];
+  const currentGpa = latest?.value ?? null;
+  const diff       = latest && previous ? latest.value - previous.value : null;
 
-  const trendPositive = diff >= 0;
+  const trendPositive = (diff ?? 0) >= 0;
   const trendColor    = trendPositive ? colors.jade400 : colors.danger;
   const trendKey      = trendPositive ? 'gpa_history.trend_up' : 'gpa_history.trend_down';
-  const diffStr       = Math.abs(diff).toFixed(1).replace('.', ',');
+  const diffStr       = Math.abs(diff ?? 0).toFixed(1).replace('.', ',');
 
   return (
     <Modal
@@ -136,54 +139,38 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
                     strokeDasharray="4,4"
                   />
 
-                  {/* Area fill */}
-                  {hasLine && (
-                    <Polygon
-                      points={areaPoints}
-                      fill={colors.jadeFaint}
-                    />
-                  )}
-
-                  {/* Line */}
-                  {hasLine && (
-                    <Polyline
-                      points={linePoints}
-                      fill="none"
-                      stroke={colors.jade400}
-                      strokeWidth={2.5}
-                      strokeLinejoin="round"
-                      strokeLinecap="round"
-                      strokeDasharray={hasEstimates ? '5,4' : undefined}
-                    />
-                  )}
-
-                  {/* Data points */}
-                  {data.map((d, i) => {
-                    const cx = toX(i);
-                    const cy = toY(d.value);
-                    if (d.isEstimate) {
-                      return (
-                        <Circle
-                          key={`${d.label}-${i}`}
-                          cx={cx}
-                          cy={cy}
-                          r={6}
-                          fill={colors.jadeFaint}
-                          stroke={colors.jade400}
-                          strokeWidth={1.5}
-                        />
-                      );
-                    }
-                    return (
-                      <Circle
-                        key={`${d.label}-${i}`}
-                        cx={cx}
-                        cy={cy}
-                        r={6}
-                        fill={colors.jade400}
+                  {/* Area and line, one per run of published semesters */}
+                  {lineRuns.map((run) => (
+                    <React.Fragment key={`run-${run[0]}`}>
+                      <Polygon
+                        points={[
+                          ...run.map(point),
+                          `${toX(run[run.length - 1])},${PAD_T + INNER_H}`,
+                          `${toX(run[0])},${PAD_T + INNER_H}`,
+                        ].join(' ')}
+                        fill={colors.jadeFaint}
                       />
-                    );
-                  })}
+                      <Polyline
+                        points={run.map(point).join(' ')}
+                        fill="none"
+                        stroke={colors.jade400}
+                        strokeWidth={2.5}
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                      />
+                    </React.Fragment>
+                  ))}
+
+                  {/* A point for each published average; none for a gap */}
+                  {published.map(({ i, value }) => (
+                    <Circle
+                      key={`${data[i].label}-${i}`}
+                      cx={toX(i)}
+                      cy={toY(value)}
+                      r={6}
+                      fill={colors.jade400}
+                    />
+                  ))}
                 </Svg>
               )}
 
@@ -224,7 +211,7 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
               </View>
 
               {/* Current semester tooltip */}
-              {data.length > 0 && (
+              {currentGpa !== null && (
                 <View style={[styles.tooltip, { position: 'absolute', end: 4, top: 4 }]}>
                   <Text style={styles.tooltipText}>
                     {currentGpa.toFixed(1)}
@@ -240,8 +227,7 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
                   key={`${d.label}-${i}`}
                   style={[
                     styles.xLabel,
-                    i === data.length - 1 && styles.xLabelActive,
-                    d.isEstimate === true && styles.xLabelEstimate,
+                    i === latest?.i && styles.xLabelActive,
                   ]}
                 >
                   {d.label}
@@ -250,7 +236,7 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
             </View>
 
             {/* Stats below chart */}
-            {data.length > 0 && (
+            {currentGpa !== null && (
               <View style={styles.statsBlock}>
                 <Text style={styles.currentLabel}>{t('grades.history_current')}</Text>
                 <View style={styles.statsRow}>
@@ -260,17 +246,13 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
                     <Text style={styles.gpaSuffix}>/20</Text>
                   </View>
                   {/* Trend */}
-                  {data.length > 1 && !hasEstimates && (
+                  {diff !== null && (
                     <Text style={[styles.trendText, { color: trendColor }]}>
                       {t(trendKey, { diff: diffStr })}
                     </Text>
                   )}
                 </View>
               </View>
-            )}
-
-            {hasEstimates && (
-              <Text style={styles.disclaimer}>{t('gpa_history.disclaimer')}</Text>
             )}
 
             <View style={{ height: Math.max(28, insets.bottom + 12) }} />
@@ -357,9 +339,6 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontWeight: '700',
     color: colors.textPrimary,
   },
-  xLabelEstimate: {
-    color: colors.textTertiary,
-  },
 
   // ── Tooltip
   tooltip: {
@@ -415,13 +394,5 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontSize: fz(13),
     fontWeight: '400',
     fontFamily: fonts.sans,
-  },
-  disclaimer: {
-    fontSize: fz(12),
-    fontWeight: '400',
-    fontFamily: fonts.sans,
-    color: colors.textTertiary,
-    paddingHorizontal: spacing.sp20,
-    marginTop: spacing.sp12,
   },
 });
