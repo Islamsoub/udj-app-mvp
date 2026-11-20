@@ -19,7 +19,8 @@ import { GpaHeroCard } from '@/components/grades/GpaHeroCard';
 import { SubjectCard, Subject } from '@/components/grades/SubjectCard';
 import { GradesSkeleton } from '@/components/grades/GradesSkeleton';
 import { GradeCalculatorSheet } from '@/components/grades/GradeCalculatorSheet';
-import { GPAHistorySheet, GPADataPoint } from '@/components/grades/GPAHistorySheet';
+import { GPAHistorySheet } from '@/components/grades/GPAHistorySheet';
+import { gpaHistoryPoints, showsGpaHistory } from '@/utils/gpaHistory';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import {
@@ -248,25 +249,11 @@ export default function GradesScreen() {
     return (hook.data ?? []).some((g) => g.nfPublished ?? g.finalScore !== null);
   }, [gradesData, hook.data]);
 
-  const gpaChartData = useMemo<GPADataPoint[]>(() => {
-    let real: GPADataPoint[] = allSemesterData
-      .filter((s) => s.gpa !== null)
-      .map((s) => ({ label: s.label, value: s.gpa as number }));
-
-    if (real.length === 0 && gradesData?.gpa != null) {
-      real = [{ label: gradesData.semester.label, value: gradesData.gpa }];
-    }
-
-    if (real.length !== 1) return real;
-
-    const currentGpa = real[0].value;
-    const clamp = (v: number) => Math.max(0, Math.min(20, v));
-    return [
-      { label: '—', value: clamp(currentGpa - 0.8), isEstimate: true },
-      { label: '—', value: clamp(currentGpa - 0.3), isEstimate: true },
-      real[0],
-    ];
-  }, [allSemesterData, gradesData]);
+  // Real published averages only, every semester in order, null where an
+  // average is not published (a gap in the line, never 0). The history is
+  // offered only from two published averages (utils/gpaHistory).
+  const gpaChartData = useMemo(() => gpaHistoryPoints(allSemesterData), [allSemesterData]);
+  const hasGpaHistory = useMemo(() => showsGpaHistory(allSemesterData), [allSemesterData]);
 
   // ─── Semester switch ────────────────────────────────────────────────────────
 
@@ -418,7 +405,10 @@ export default function GradesScreen() {
             credits={headerCredits}
             activeSemester={activeSemester}
             pending={heroPending}
-            onPress={() => setGpaHistoryVisible(true)}
+            // The card is the history's only entry point. With fewer than two
+            // published averages there is no history, so the card is not a
+            // button at all (no press feedback, no chart icon).
+            onPress={hasGpaHistory ? () => setGpaHistoryVisible(true) : undefined}
           />
         )}
 
@@ -454,7 +444,7 @@ export default function GradesScreen() {
       />
 
       <GPAHistorySheet
-        visible={gpaHistoryVisible}
+        visible={gpaHistoryVisible && hasGpaHistory}
         onClose={() => setGpaHistoryVisible(false)}
         gpaData={gpaChartData}
       />
