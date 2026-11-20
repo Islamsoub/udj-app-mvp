@@ -3,15 +3,18 @@
 import { useState } from 'react';
 import { Interpolated } from '@/components/dashboard/Interpolated';
 import type { SemesterSummary } from '@/lib/api-types';
-import { fmtLtr, fmtRatio, fmtScaled } from '@/lib/bidi';
+import { fmtLtr, fmtScaled } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { useExitBackstop } from '@/lib/useExitBackstop';
-import { GpaRing } from './GpaRing';
-import { mentionKey } from './model';
+import { MENTION_DOT, mentionKey } from './model';
 import styles from './grades.module.css';
 
 /**
- * The hero stat: one semester's average, mention and credits.
+ * The hero stat: one semester's average, mention and credits, as the
+ * prototype's green .hero-jade (view-grades, #gpa-hero). It replaced the white
+ * card with the progress ring (ASK A2, decided (b) by the product owner,
+ * 2026-11-20); see .claude/design-known-divergences.md for where it departs
+ * from Design's numbers and why.
  *
  * §9: "Semester tab switch fades the GPA hero's number via a quick crossfade
  * (old value fades out 100ms, new fades in over the next 150ms -- slight overlap
@@ -22,14 +25,19 @@ import styles from './grades.module.css';
  * stacking it in the same grid cell as the incoming one, so the two overlap
  * without the hero changing height and without anything below it moving.
  *
- * THE WHOLE FIGURE CROSSFADES, not the number alone. Number, mention, credits
- * and gauge are four readings of one semester; fading the number while the
+ * THE WHOLE FIGURE CROSSFADES, not the number alone. Number, mention and
+ * credits are three readings of one semester; fading the number while the
  * mention beside it cut would misattribute the old mention to the new average
- * for a fifth of a second. Keeping them in one layer also handles the case the
- * data makes common — switching between a semester with results and one without
- * — where there is no number to crossfade at all, only a sentence.
+ * for a fifth of a second. The depth circle is decoration and stays put.
  */
-export function GpaHero({ semester }: { semester: SemesterSummary }) {
+export function GpaHero({
+  semester,
+  wide = false,
+}: {
+  semester: SemesterSummary;
+  /** Alone in the cards row (no history card): spans its columns. */
+  wide?: boolean;
+}) {
   /*
    * Derived-from-props state rather than an effect. An effect would run after
    * the commit, so the frame in which the new semester first paints would have
@@ -55,7 +63,9 @@ export function GpaHero({ semester }: { semester: SemesterSummary }) {
   useExitBackstop(leaving?.id, () => setLeaving(null));
 
   return (
-    <section className={styles.hero} aria-live="polite">
+    <section className={`${styles.hero} ${wide ? styles.heroWide : ''}`} aria-live="polite">
+      <span className={styles.heroDepth} aria-hidden="true" />
+
       {leaving !== null && (
         <div className={`${styles.heroLayer} ${styles.heroLeaving}`} aria-hidden="true">
           <HeroFigures semester={leaving} />
@@ -77,68 +87,81 @@ function HeroFigures({ semester }: { semester: SemesterSummary }) {
   const { t } = useI18n();
 
   const { gpa, mention, credits } = semester;
+  // The dashboard's key, for the word and the dot alike, so the two screens
+  // cannot name the same mention differently.
   const key = mention === null ? null : mentionKey(mention);
+  const dot = key === null ? undefined : MENTION_DOT[key];
 
   return (
     <>
-      {/*
-        No ring when there is no average — §5's fill animates "from 0% to its
-        target value", and a gauge pinned at zero would read as a zero.
-      */}
-      {gpa !== null && (
-        <GpaRing gpa={gpa} label={t('grades.hero.ring_label', { gpa: gpa.toFixed(2) })} />
-      )}
+      <p className={styles.heroLabel}>
+        {/* "S1" is Latin inside an Arabic sentence; isolated so the middle dot
+            stays between the words and the label in both directions. */}
+        <Interpolated template={t('grades.hero.label')} values={{ semester: fmtLtr(semester.label) }} />
+      </p>
 
-      <div className={styles.heroText}>
-        <p className={styles.heroLabel}>{t('grades.hero.label')}</p>
-
-        {gpa === null ? (
+      {gpa === null ? (
+        <>
+          {/*
+            No published average: a plain sentence where the figure would be.
+            Never 0, never 0.00 — null means "not published", not "zero" — and
+            no mention, no bar: both would be verdicts on finals nobody has
+            published. The credits are stated as what is at stake.
+          */}
           <p className={styles.heroNoGpa}>{t('grades.hero.no_gpa')}</p>
-        ) : (
-          <p className={styles.heroValue}>
-            {/*
-              .num on both: a GPA must read identically in both languages, so it
-              stays on the Latin face in Arabic. toFixed(2) rather than the raw
-              float — 13.666666 is not a mark. fmtScaled keeps "15.17 / 20" in
-              that order in Arabic.
-            */}
+          <p className={styles.heroCredits}>
+            <Interpolated template={t('grades.hero.at_stake')} values={{ total: credits.total }} />
+          </p>
+        </>
+      ) : (
+        <>
+          {/*
+            The figure is drawn for the eye and spoken from the sentence beside
+            it — the ring's old label — because "15.17/20" read aloud is "15.17
+            slash 20". Mono, as the prototype's .hj-value; toFixed(2) because
+            13.666666 is not a mark; fmtScaled keeps "15.17/20" in that order in
+            Arabic.
+          */}
+          <p className={styles.heroValue} aria-hidden="true">
             {fmtScaled(
-              <span className={`${styles.heroNumber} num`}>{gpa.toFixed(2)}</span>,
-              <span className={`${styles.heroScale} num`}>{t('grades.hero.scale')}</span>
+              <span className="mono">{gpa.toFixed(2)}</span>,
+              <span className={`${styles.heroSuffix} mono`}>{t('grades.hero.scale')}</span>
             )}
           </p>
-        )}
+          <p className={styles.srOnly}>{t('grades.hero.ring_label', { gpa: gpa.toFixed(2) })}</p>
 
-        <p className={styles.heroMeta}>
           {mention !== null && (
-            <span className={styles.mention}>{key === null ? mention : t(key)}</span>
+            // Not a link here, unlike the dashboard's: this IS the grades page.
+            <p className={styles.mentionBadge}>
+              {dot && <span className={styles.mentionDot} style={{ background: dot }} aria-hidden="true" />}
+              {key === null ? mention : t(key)}
+            </p>
           )}
-          <span className={styles.heroCredits}>
-            {/*
-              With no published average there is no result to count credits
-              from, so they are stated as what is at stake. "0 / 32 validated"
-              would be a verdict on finals nobody has published.
-            */}
-            {gpa === null ? (
-              <Interpolated template={t('grades.hero.at_stake')} values={{ total: credits.total }} />
-            ) : (
-              <Interpolated
-                template={t('grades.hero.credits')}
-                values={{ credits: fmtRatio(credits.earned, credits.total) }}
-              />
-            )}
-          </span>
-        </p>
 
-        <p className={styles.heroYear}>
-          <Interpolated
-            template={t('grades.academic_year')}
-            // "2024-2025" arrives as one string; isolated so Arabic does not
-            // draw it as "2025-2024".
-            values={{ year: fmtLtr(semester.academicYear) }}
-          />
-        </p>
-      </div>
+          <p className={styles.heroCredits}>
+            <Interpolated
+              template={t('grades.hero.credits')}
+              values={{
+                // One LTR run with no spaces, as the prototype's "24/32";
+                // isolated so Arabic does not draw it "32/24".
+                credits: (
+                  <bdi dir="ltr">
+                    {credits.earned}/{credits.total}
+                  </bdi>
+                ),
+              }}
+            />
+          </p>
+
+          {/* Decorative: the line above already says it in words and figures. */}
+          <div className={styles.heroTrack} aria-hidden="true">
+            <div
+              className={styles.heroFill}
+              style={{ width: `${credits.total > 0 ? Math.min(100, (credits.earned / credits.total) * 100) : 0}%` }}
+            />
+          </div>
+        </>
+      )}
     </>
   );
 }

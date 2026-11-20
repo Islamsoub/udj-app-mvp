@@ -8,9 +8,17 @@ Ranked, most important first. The first five go in the report's "Needs your deci
 
 **A2. The look of the average card.** The prototype's is a green card with white text and a thin credits bar. Ours is a white card with a progress ring, in the same style as the dashboard. Options: (a) keep ours, (b) the prototype's green card, (c) green card and keep the ring. Recommend (a): it matches the dashboard and Planning; the ring says the same thing the bar does.
 
+**Decided 2026-11-20: (b), by Islam.** The green hero replaced the ring card on Notes (branch feature/pwa-grades-hero). Where it departs from Design's colours, and why, is in `.claude/design-known-divergences.md`.
+
 **A3. The "Historique GPA" chart.** The prototype shows a small line chart of the average per semester. Ours has none. The real averages per semester are already loaded for the tabs, so nothing would be invented. Options: (a) leave it out, (b) build it from the real semester averages. Recommend (a) for now: it is new scope and needs a decision on semesters with no average.
 
+**Decided 2026-11-20: (b), by Islam.** Built from the real semester averages. A semester with no published average gets no dot and breaks the line; one semester is a single dot; none is a sentence. The chart has a text alternative (feature/pwa-grades-hero).
+
+**Update 2026-11-20, by Islam: kept and made useful.** The removal experiment was reverted. The card shows only from 2 semesters with a published average (otherwise the hero widens into its place); each dot carries its average; the semester selected in the switch is highlighted; a trend line under the title compares it with the previous semester that has an average.
+
 **A4. The "Exporter PDF" button.** The prototype has it; the PWA cannot export a PDF. Options: (a) leave it out, as the schedule's print button was, (b) build a real export later, (c) show a button that is switched off. Recommend (a): a button that promises something missing misleads.
+
+**Decided 2026-11-20: (b), by Islam, built now.** Exporter PDF opens the browser's print dialog on a one-page report of the selected semester; no dependency (feature/pwa-grades-hero).
 
 **A5. The "Calculer" button in the calculator.** The prototype has one. Ours updates the result as the student types (the interaction spec, section 9), which makes the button unnecessary. Options: (a) keep it live, no button, (b) add the button too. Recommend (a): the spec asks for it and the result is never out of date.
 

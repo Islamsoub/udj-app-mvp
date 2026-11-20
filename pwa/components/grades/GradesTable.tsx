@@ -32,7 +32,7 @@ interface Column {
  * cells, the body cells and the stacked cards, so the three cannot disagree
  * about what a column is called or how it is aligned.
  */
-const COLUMNS: Column[] = [
+export const COLUMNS: Column[] = [
   { key: 'subject', labelKey: 'grades.table.subject', num: false, end: false },
   { key: 'code', labelKey: 'grades.table.code', num: true, end: false },
   { key: 'coefficient', labelKey: 'grades.table.coefficient', num: true, end: true },
@@ -43,7 +43,7 @@ const COLUMNS: Column[] = [
   { key: 'status', labelKey: 'grades.table.status', num: false, end: true },
 ];
 
-const STATUS_KEYS: Record<RowStatus, TranslationKey> = {
+export const STATUS_KEYS: Record<RowStatus, TranslationKey> = {
   validated: 'grades.status.validated',
   failed: 'grades.status.failed',
   pending: 'grades.status.pending',

@@ -1,8 +1,9 @@
 /* ─────────────────────────────────────────────────────────────────────────────
-   Grades — semester tabs, GPA hero, the grades table, and the screen's states.
+   Grades — semester tabs, GPA hero, GPA history, the grades table, the print
+   report, and the screen's states.
 
    Every colour, radius, shadow, duration and easing is a token from
-   app/globals.css. No new ones. The two literal durations in this file are the
+   app/globals.css. The two literal durations in this file are the
    100ms / 150ms that interaction-spec §9 states outright for the hero crossfade;
    they are quoted values, not tokens, and appear nowhere else.
 
@@ -84,33 +85,39 @@
   }
 }
 
-/* ── Head row: switch + calculator trigger (prototype .grades-head) ───────── */
+/* ── Head row: switch + actions (prototype .grades-head) ─────────────────── */
 
 /*
- * 640 and wider: one line, the switch at the start and the trigger at the end,
- * as the prototype's .grades-head.
+ * The prototype's .grades-head, value for value: one wrapping flex row, the
+ * switch at the start and "Calculatrice" + "Exporter PDF" (.headActions, 8px
+ * apart) at the end, 12px between them when they share a line and 12px between
+ * the lines when the actions wrap under the switch (a phone). The 20px under the
+ * row is .layer's gap.
  *
- * Below 640: the trigger on its own line under the switch, at the start, 12px
- * down — where the prototype puts it on a phone (fix F6). That line is ALWAYS
- * reserved (min-height 40 + 12 + 34 = 86), with or without the trigger. Whether
- * the trigger exists is only known once the semester has loaded — it is mounted
- * with the table, and most students' current semester has none — so a line that
- * came and went with it moved the page 46px after the first load and on every
- * switch to or from an empty semester. The skeleton holds the same 86.
+ * Below 640 the row ALWAYS reserves its second line (min-height 40 + 12 + 34 =
+ * 86), with or without the buttons. Whether they exist is only known once the
+ * semester has loaded — they are mounted with the table, and most students'
+ * current semester has none — so a line that came and went with them moved the
+ * page 46px after the first load and on every switch to or from an empty
+ * semester (fix F6). The skeleton holds the same 86.
  */
 .head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
 }
 
+.headActions {
+  display: flex;
+  gap: 8px;
+}
+
 @media (max-width: 639px) {
   .head {
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
+    align-content: flex-start;
     min-height: 86px;
   }
 
@@ -241,22 +248,114 @@
   color: var(--jade-text);
 }
 
-/* ── GPA hero (§5 hero stats, §9 crossfade) ────────────────────────────────── */
+/* ── Cards row (prototype .grid-cards) ─────────────────────────────────────── */
 
-.hero {
+/*
+ * One column, two from 640px, three from 1024px; 16px apart. On a phone the
+ * cards stack and each keeps its own height (align-items start). Side by side,
+ * from 640px, they stretch to the taller of the two, so the hero and the history
+ * card are one height on every semester: without its trend line (the first
+ * semester) the history card is shorter than the hero. The hero is in column 1
+ * and the history in
+ * column 2; from 1024 column 3 stays empty, as in the prototype. minmax(0, 1fr)
+ * rather than the prototype's bare 1fr only so a long word can never widen a
+ * column past its share; at the widths measured the tracks are the same.
+ */
+.cardsRow {
   display: grid;
-  padding: 20px;
-  border: 1px solid var(--hair);
-  border-radius: var(--r-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
 }
 
+@media (min-width: 640px) {
+  .cardsRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+}
+
+@media (min-width: 1024px) {
+  .cardsRow {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/*
+ * The hero alone in the row — fewer than two published averages, so no history
+ * card: the whole row from 640 to 1023px, two of the three columns from 1024px
+ * (the prototype's .span-2). Phones are one column either way. The skeleton's
+ * block takes the same class.
+ */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .heroWide {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .heroWide {
+    grid-column: span 2;
+  }
+}
+
+/* ── GPA hero (prototype .hero-jade, §9 crossfade) ─────────────────────────── */
+
+/*
+ * .hero-jade: radius 22, padding 22, the 150deg jade gradient, the jade shadow.
+ * The gradient and the text are the dashboard hero's tokens, not Design's raw
+ * values: Design's --jade -> --jade-hover start is 3.39:1 under white, and its
+ * 78% / 85% / 70% whites are lower still (see --hero-card-bg in globals.css and
+ * .claude/design-known-divergences.md).
+ */
+.hero {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  padding: 22px;
+  border-radius: 22px;
+  background: var(--hero-card-bg);
+  box-shadow: var(--shadow-hero);
+  color: var(--hero-ink);
+  /* The prototype's line boxes are the browser's `normal`; the PWA's body sets
+     1.5, which made the label, badge and credits lines 9px taller in all. */
+  line-height: normal;
+}
+
+/* .depth-circle: decorative, in the top inline-end corner. */
+.heroDepth {
+  position: absolute;
+  top: -48px;
+  inset-inline-end: -48px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: var(--hero-circle);
+  pointer-events: none;
+}
+
+/*
+ * No text under the circle, at any width. The label keeps out of it by its own
+ * inline-end padding; the average line cannot wrap, so on a card narrower than
+ * 290px its "/20" runs under the circle — 4px deep on a 320px phone, measured.
+ * There the circle, which is decoration, is not drawn. The container query
+ * reads the hero's content box: 290 - 2 x 22.
+ */
+.hero {
+  container-type: inline-size;
+}
+
+@container (width < 246px) {
+  .heroDepth {
+    display: none;
+  }
+}
+
+/* A block, like the prototype's hero: the badge is an inline-flex box on its own
+   line inside it, which is what gives the prototype its line-box height. */
 .heroLayer {
+  position: relative;
   grid-area: 1 / 1;
-  display: flex;
-  align-items: center;
-  gap: 20px;
   min-width: 0;
 }
 
@@ -300,130 +399,213 @@
   }
 }
 
-.heroText {
-  min-width: 0;
-}
-
+/*
+ * .hj-label: 12.5 / 700, uppercase, 0.4px tracking.
+ *
+ * KEPT OUT OF THE DEPTH CIRCLE (same decision as the dashboard's): white over
+ * the circle falls just under 4.5:1. At the label's height the circle reaches
+ * 112px in from the card's inline-end edge, 90px past the 22px padding, so the
+ * label stops there and wraps rather than run under it when the card is narrow.
+ */
 .heroLabel {
   margin: 0;
-  font-size: 12px;
+  padding-inline-end: 90px;
+  font-size: 12.5px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.4px;
   text-transform: uppercase;
-  color: var(--ink2);
 }
 
-/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
-   because mirroring belongs to logical properties; letter-spacing belongs to
-   the script. Arabic letters join, and tracking pulls them apart in either
-   direction. This is not a breach of that rule, so do not remove it as one. */
+/* Keyed on language, not direction: Arabic letters join, and tracking pulls
+   them apart. Not a breach of the no-[dir="rtl"] rule. */
 html[lang="ar"] .heroLabel {
   letter-spacing: normal;
 }
 
+/* .hj-value: mono 42 / 500, line-height 1, 6px under the label. A flex row so
+   fmtScaled's group sits on one baseline (see .ratio in globals.css). */
 .heroValue {
   display: flex;
   align-items: baseline;
-  gap: 6px;
   margin: 6px 0 0;
+  font-size: 42px;
+  font-weight: 500;
+  line-height: 1;
 }
 
-.heroNumber {
-  font-size: 40px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
+/* .hj-value .suf: 17 / 400. */
+.heroSuffix {
+  font-size: 17px;
+  font-weight: 400;
+}
+
+/* No published average: a plain sentence where the figure would be, as the
+   dashboard hero's. No warning colour and no zero — this is the ordinary state
+   of the screen, not a fault. */
+.heroNoGpa {
+  margin: 8px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* .mention-badge: 13 / 700 on a pill, a 6px dot 7px before the word. */
+.mentionBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 10px 0 0;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  background: var(--hero-badge);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mentionDot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* .hj-credits: 13px, 16px under the badge. */
+.heroCredits {
+  margin: 16px 0 0;
+  font-size: 13px;
+}
+
+/* .hj-credits-track / .hj-credits-fill: 4px, a pill, the fill white. The fill
+   starts at the inline start, so it grows from the right in Arabic. */
+.heroTrack {
+  height: 4px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: var(--hero-track);
+}
+
+.heroFill {
+  height: 100%;
+  background: var(--hero-ink);
+}
+
+/* ── Historique GPA (prototype .card with the line chart) ──────────────────── */
+
+/* .card: --surface, 1px --hair, --r-lg, 20px padding, --shadow-card. */
+.historyCard {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  line-height: normal;
+  /* A column, so the chart can sit on the bottom edge when the row stretches
+     the card past its natural height (.historyPlot). */
+  display: flex;
+  flex-direction: column;
+}
+
+/* .card h3: 14 / 700, 14px above the chart. An h2 in the outline — the page's
+   h1 is the hidden "Notes" — styled as the prototype's h3. */
+.historyTitle {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--ink);
 }
 
-.heroScale {
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ink2);
-}
-
-/* No average yet. Plain text, no warning colour and no zero — this is the
-   ordinary state of the screen, not a fault. */
-.heroNoGpa {
-  margin: 8px 0 0;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--ink2);
-}
-
-.heroMeta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 10px;
-  margin: 10px 0 0;
-}
-
-.mention {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  background: var(--jade-faint);
-  color: var(--jade-text);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.heroCredits {
-  font-size: 12.5px;
-  color: var(--ink2);
-}
-
-.heroYear {
-  margin: 6px 0 0;
-  font-size: 11.5px;
-  color: var(--ink2);
-}
-
-/* ── GPA ring (§5) ─────────────────────────────────────────────────────────── */
-
-.ring {
-  flex-shrink: 0;
-  width: 104px;
-  height: 104px;
-  /*
-   * The SVG is drawn with 0 at 12 o'clock going clockwise. Rotating -90deg puts
-   * the start there; the sweep is not mirrored in RTL because a gauge is a dial,
-   * not a line of text — clockwise means "more" in both directions.
-   */
-  transform: rotate(-90deg);
-}
-
-.ringTrack {
-  fill: none;
-  stroke: var(--sunken);
+/* With the trend line under it, the 14px moves below the trend. */
+.historyTitleWithTrend {
+  margin-bottom: 4px;
 }
 
 /*
- * §5: fills from 0 to its value once, on first paint of the view, over
- * --dur-slow with --ease-in-out.
- *
- * Done with stroke-dashoffset in CSS rather than in JS so prefers-reduced-motion
- * can switch it off with one rule and leave the final value rendered — the gauge
- * stays correct, only the travel goes.
+ * The selected semester against the previous one with an average. On
+ * --surface: --success-ink 6.20:1 light, 8.34:1 dark; --danger-ink 6.54:1 and
+ * 7.59:1; --ink2 5.49:1 and 6.78:1 (WCAG 2.x, computed from the tokens). The
+ * colour is never the only signal: the sign and the word say it too.
  */
-.ringValue {
-  fill: none;
+.historyTrend {
+  margin: 0 0 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.historyTrendUp {
+  color: var(--success-ink);
+}
+
+.historyTrendDown {
+  color: var(--danger-ink);
+}
+
+.historyTrendStable {
+  color: var(--ink2);
+}
+
+/* The first and last semesters sit 20px in from the card's content edges, as
+   the prototype's first point (x 20 of 320); the SVG overflows into this
+   padding for the half of each end label that lies past its point.
+   margin-block-start auto takes the height a stretched row adds, above the
+   chart: the line and its labels stay on the card's bottom edge, as on a
+   semester with a trend line, and the extra space opens under the title, not
+   under the labels. At the card's natural height it is 0 and nothing moves. */
+.historyPlot {
+  margin-block-start: auto;
+  padding-inline: 20px;
+}
+
+/* Inline on the baseline, as the prototype's: it sits on a line box, whose
+   descent under the SVG is part of the card's measured height (166.4px at every
+   width). Stated outright because Tailwind's reset makes every svg a block. */
+.historySvg {
+  display: inline;
+  vertical-align: baseline;
+  overflow: visible;
+}
+
+/* 2.5px jade, round caps (and so round joins where two segments meet). */
+.historyLine {
   stroke: var(--jade);
+  stroke-width: 2.5;
   stroke-linecap: round;
-  stroke-dasharray: var(--ring-circumference);
-  stroke-dashoffset: var(--ring-offset);
 }
 
-.ringFilling {
-  animation: ringFill var(--dur-slow) var(--ease-in-out);
+.historyDot {
+  fill: var(--jade);
 }
 
-@keyframes ringFill {
-  from {
-    stroke-dashoffset: var(--ring-circumference);
-  }
+/* 10px, as the prototype; --ink2 rather than its 50% ink, which is about 3.2:1
+   on --surface while these labels say which semester is which (see the
+   divergences file). */
+.historyLabel {
+  font-size: 10px;
+  fill: var(--ink2);
+}
+
+/* Each average above its dot: 11 / 700, mono as the hero's figure, --ink2
+   (5.49:1 light, 6.78:1 dark on --surface). */
+.historyValue {
+  font-size: 11px;
+  font-weight: 700;
+  fill: var(--ink2);
+}
+
+/* The semester selected in the switch: a 5px jade dot in a 2px ring of the
+   card's own colour (white in light), so it stands off the line; its label in
+   --ink (15.96:1 light, 13.61:1 dark) and 700. */
+.historyDotSelected {
+  fill: var(--jade);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.historyLabelSelected {
+  fill: var(--ink);
+  font-weight: 700;
 }
 
 /* ── Notice ────────────────────────────────────────────────────────────────── */
@@ -736,14 +918,6 @@ html[lang="ar"] .cardLabel {
     flex-direction: column;
     gap: 14px;
   }
-
-  .heroLayer {
-    /* The gauge and the figures stop fitting side by side well before the
-       column does; stacking keeps the number at its full size. */
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 14px;
-  }
 }
 
 /* ── Empty / error / offline (§5, §8) ──────────────────────────────────────── */
@@ -904,76 +1078,50 @@ html[lang="ar"] .cardLabel {
   border-radius: 9999px;
 }
 
+/* The hero's box at its loaded height, measured: 188.8px at every width where
+   the label fits on one line (label 15.2 + 6 + value 42 + 10 + badge 26.8 + 16
+   + credits 16.8 + 8 + track 4, inside 22 + 22). One block, the hero's radius. */
 .skeletonHero {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 20px;
-  border: 1px solid var(--hair);
-  border-radius: var(--r-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
+  height: 188.8px;
+  border-radius: 22px;
 }
 
-.skeletonRing {
-  flex-shrink: 0;
-  width: 104px;
-  height: 104px;
-  border-radius: 50%;
-}
-
-/*
- * One block per line of the loaded hero text, each the height of the line box it
- * stands in for and spaced by the same margins (.heroLabel 18, .heroValue 6 +
- * 41.5, .heroMeta 10 + 24, .heroYear 6 + 17.25), so the skeleton and the loaded
- * hero are the same 164.75px tall (282.75 stacked, below 640).
- */
-.skeletonHeroText {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-self: stretch;
-  min-width: 0;
-}
-
-.skeletonLineLabel {
+/* The history card's title line (17.6), 4px above the trend line, and its 90px
+   chart plus the 2.8px of line descent under the inline SVG. */
+.skeletonHistoryTitle {
   width: 40%;
-  height: 18px;
+  height: 17.6px;
+  margin-bottom: 4px;
 }
 
-.skeletonLineHero {
-  width: 140px;
-  height: 41.5px;
-  margin-top: 6px;
-}
-
-.skeletonLineMeta {
-  width: 70%;
-  height: 24px;
-  margin-top: 10px;
-}
-
-.skeletonLineYear {
+/* The trend line under the title, as the loaded card usually has it: the
+   current semester is the latest, so it has an earlier one to compare with. */
+.skeletonHistoryTrend {
   width: 30%;
-  height: 17.25px;
-  margin-top: 6px;
+  height: 15.8px;
+  margin-bottom: 14px;
 }
 
-/* Stacks below 640 exactly as .heroLayer does, so it is the loaded hero's
-   height at every width. Declared after .skeletonHero so it wins. */
-@media (max-width: 639px) {
-  .skeletonHero {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 14px;
-  }
+/* On the card's bottom edge when the row stretches it, as the chart. */
+.skeletonHistoryChart {
+  height: 92.8px;
+  margin-block-start: auto;
 }
 
-/* The calculator trigger at the end of the head row: 124 x 34, a pill. */
-.skeletonTrigger {
-  width: 124px;
+/* "Calculatrice" and "Exporter PDF": 34px pills at their loaded French widths
+   (123.1 and 129.7). */
+.skeletonCalc,
+.skeletonExport {
   height: 34px;
   border-radius: 9999px;
+}
+
+.skeletonCalc {
+  width: 123px;
+}
+
+.skeletonExport {
+  width: 130px;
 }
 
 .skeletonRows {
@@ -990,11 +1138,11 @@ html[lang="ar"] .cardLabel {
 /* ── Grade calculator (§9) ─────────────────────────────────────────────────── */
 
 /*
- * The prototype's .btn-ghost (#btn-calc), at the end of the head row: 34 tall,
- * a pill, 0 14px, 12.5/700 --ink2, icon 14 with a 6px gap. Hover turns the
- * border --jade and the text --jade-text.
+ * The prototype's .btn-ghost (#btn-calc, #btn-export-pdf), at the end of the
+ * head row: 34 tall, a pill, 0 14px, 12.5/700 --ink2, icon 14 with a 6px gap.
+ * Hover turns the border --jade and the text --jade-text.
  */
-.calcTrigger {
+.ghostButton {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -1018,23 +1166,23 @@ html[lang="ar"] .cardLabel {
 /* The 44px touch target, without inflating the 34px box: a transparent layer
    5px past every edge takes the tap. -6px, because an absolute box is placed
    from the padding edge, which sits 1px inside the border: 34 + 2 x 5 = 44. */
-.calcTrigger::before {
+.ghostButton::before {
   content: "";
   position: absolute;
   inset: -6px;
 }
 
-.calcTrigger:hover {
+.ghostButton:hover {
   border-color: var(--jade);
   color: var(--jade-text);
 }
 
 /* §3: on :active, buttons scale to 0.97 over --dur-instant. */
-.calcTrigger:active {
+.ghostButton:active {
   transform: scale(0.97);
 }
 
-.calcTriggerIcon {
+.ghostButtonIcon {
   flex-shrink: 0;
   width: 14px;
   height: 14px;
@@ -1247,7 +1395,7 @@ html[lang="ar"] .calcLabel {
 .sortButton:focus-visible,
 .retryButton:focus-visible,
 .emptyAction:focus-visible,
-.calcTrigger:focus-visible {
+.ghostButton:focus-visible {
   outline: 2px solid var(--jade);
   outline-offset: 2px;
 }
@@ -1258,17 +1406,13 @@ html[lang="ar"] .calcLabel {
  * §2: collapse every transform/opacity transition to --dur-instant with no
  * easing curve, and show a static tone instead of the shimmer sweep.
  *
- * The ring fill and the row FLIP are removed outright rather than shortened.
- * Both exist purely to draw the eye, and their end state is the correct
- * rendering, so dropping them loses nothing but the motion. useRowFlip checks
+ * The row FLIP is removed outright rather than shortened. It exists purely to
+ * draw the eye, and its end state is the correct rendering, so dropping it
+ * loses nothing but the motion. useRowFlip checks
  * the same media query and does not even invert the rows, so there is no
  * leftover inline transform waiting for a transition that is not coming.
  */
 @media (prefers-reduced-motion: reduce) {
-  .ringFilling {
-    animation: none;
-  }
-
   .skeleton {
     background-image: none;
     background-color: var(--sunken);
@@ -1285,7 +1429,7 @@ html[lang="ar"] .calcLabel {
   .caret,
   .retryButton,
   .emptyAction,
-  .calcTrigger,
+  .ghostButton,
   .calcSelect,
   .calcInput {
     transition-duration: var(--dur-instant);
@@ -1305,7 +1449,112 @@ html[lang="ar"] .calcLabel {
 
   .retryButton:active,
   .emptyAction:active,
-  .calcTrigger:active {
+  .ghostButton:active {
     transform: none;
   }
+}
+
+/* ── Print report: "Exporter PDF" (ExportPdf.tsx) ──────────────────────────── */
+
+/*
+ * The report is a portal on <body>, hidden on screen. In print, every OTHER
+ * child of <body> is hidden — the whole app, shell and page alike, plus the
+ * toasts, the route announcer and any dev overlay — and the report is shown
+ * alone, black on white, at the paper's width. Scoped by this module's own
+ * class, so it applies only while the Notes page has a report mounted; printing
+ * any other page is untouched.
+ *
+ * All text is --print-ink on --print-paper (21:1); the rules are --print-rule.
+ * No grey text: on paper, and after a PDF viewer's own rendering, the low-
+ * contrast tones the screen uses cannot be relied on.
+ */
+.report {
+  display: none;
+}
+
+@media print {
+  :global(body) > :not(.report) {
+    display: none !important;
+  }
+
+  .report {
+    display: block;
+    color: var(--print-ink);
+    background: var(--print-paper);
+    font-size: 10.5pt;
+    line-height: 1.4;
+  }
+
+  .reportBrand {
+    margin: 0;
+    font-size: 9pt;
+    font-weight: 600;
+  }
+
+  .reportTitle {
+    margin: 4pt 0 12pt;
+    font-size: 18pt;
+    font-weight: 800;
+  }
+
+  /* Label over value, three to a row. */
+  .reportFacts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10pt 18pt;
+    margin: 0 0 14pt;
+    padding: 10pt 0;
+    border-block: 1px solid var(--print-rule);
+  }
+
+  .reportFacts dt {
+    font-size: 8.5pt;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .reportFacts dd {
+    margin: 2pt 0 0;
+    font-size: 11pt;
+    font-weight: 700;
+  }
+
+  .reportNote {
+    margin: 8pt 0;
+    font-size: 9pt;
+  }
+
+  .reportTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+  }
+
+  .reportTable th,
+  .reportTable td {
+    padding: 5pt 6pt;
+    border-bottom: 1px solid var(--print-rule);
+    text-align: start;
+    vertical-align: top;
+  }
+
+  .reportTable th {
+    font-weight: 700;
+    border-bottom-width: 1.5px;
+    border-bottom-color: var(--print-ink);
+  }
+
+  .reportTable tr {
+    break-inside: avoid;
+  }
+
+  .reportTable .reportEnd {
+    text-align: end;
+  }
+}
+
+/* Arabic: no tracking on the uppercase-style labels (they have no case anyway). */
+html[lang="ar"] .reportFacts dt {
+  letter-spacing: normal;
 }

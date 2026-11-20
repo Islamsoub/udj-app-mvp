@@ -3,14 +3,17 @@
 import { Interpolated } from '@/components/dashboard/Interpolated';
 import type { GradesResponse, SemesterSummary } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
+import { ExportPdf } from './ExportPdf';
 import { GpaHero } from './GpaHero';
+import { GpaHistory } from './GpaHistory';
+import { showsHistory } from './history-hint';
 import { GradeCalculator } from './GradeCalculator';
 import { GradesTable } from './GradesTable';
 import { ArrowIcon } from './icons';
 import { suggestedSemester, type Published } from './model';
 import { SemesterTabs } from './SemesterTabs';
 import { StateLayers } from './StateLayers';
-import { TableSkeleton, TriggerSkeleton } from './skeletons';
+import { ActionsSkeleton, TableSkeleton } from './skeletons';
 import { useSemesterDetail } from './useSemesterDetail';
 import styles from './grades.module.css';
 
@@ -87,13 +90,14 @@ export function GradesView({
   const loaded = detail.phase === 'ready' && detail.data.semester.id === activeId;
   const hasRows = loaded && detail.data.grades.length > 0;
   const showHero = summary.gpa !== null || hasRows;
+  const history = showsHistory(bundle.semesters);
 
   return (
     <>
       {/*
-        The prototype's .grades-head: the switch at the start, the calculator
-        trigger at the end of the same row, wrapping under the switch when the
-        two do not fit (a phone).
+        The prototype's .grades-head: the switch at the start, "Calculatrice"
+        and "Exporter PDF" at the end of the same row, wrapping under the switch
+        when the two do not fit (a phone).
       */}
       <div className={styles.head}>
         <SemesterTabs
@@ -104,26 +108,43 @@ export function GradesView({
         />
 
         {/*
-          Mounted with the table, and only with it. A semester with nothing
+          Both mounted with the table, and only with it. A semester with nothing
           published has no `grades` at all — the API omits unpublished rows — so
-          the calculator would open onto an empty subject picker; the empty state
-          already explains why there is nothing to work from. Keyed by semester
-          so a tab switch never carries one semester's picker into the next.
-          While a tab loads, a skeleton holds the trigger's place, so the row
-          does not lose and regain its second line on a phone.
+          the calculator would open onto an empty subject picker and the export
+          would print an empty table; the empty state already explains why there
+          is nothing to work from. Keyed by semester so a tab switch never
+          carries one semester's picker into the next. While a tab loads, a
+          skeleton holds the buttons' place, so the row does not lose and regain
+          its second line on a phone.
         */}
         {detail.phase === 'ready' && hasRows ? (
-          <GradeCalculator
-            key={detail.data.semester.id}
-            grades={detail.data.grades}
-            published={{ cc: detail.data.ccPublished, nf: detail.data.nfPublished }}
-          />
+          <div className={styles.headActions}>
+            <GradeCalculator
+              key={detail.data.semester.id}
+              grades={detail.data.grades}
+              published={{ cc: detail.data.ccPublished, nf: detail.data.nfPublished }}
+            />
+            <ExportPdf data={detail.data} summary={summary} />
+          </div>
         ) : (
-          detail.phase === 'loading' && <TriggerSkeleton />
+          detail.phase === 'loading' && <ActionsSkeleton />
         )}
       </div>
 
-      {showHero && <GpaHero semester={summary} />}
+      {/*
+        The prototype's .grid-cards: the hero, then "Historique GPA" beside it
+        from 640px; from 1024px a third column, left empty, as in the prototype.
+        The history needs two published averages to say anything; with fewer it
+        is not drawn and the hero widens into its place (.heroWide).
+        Drawn on the hero's rule (above), so a semester with nothing published
+        is still one card below the tabs and not three.
+      */}
+      {showHero && (
+        <div className={styles.cardsRow}>
+          <GpaHero semester={summary} wide={!history} />
+          {history && <GpaHistory semesters={bundle.semesters} selectedId={activeId} />}
+        </div>
+      )}
 
       <div
         id={PANEL_ID}

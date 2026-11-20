@@ -82,6 +82,20 @@ export function mentionKey(mention: string): TranslationKey | null {
   return MENTION_KEYS[mention.trim().toLowerCase()] ?? null;
 }
 
+/**
+ * The mention badge's dot (prototype-v1 MENTIONS), shared by the dashboard's
+ * AverageHero and the Notes hero. Keyed on the same translation key the label
+ * uses, so the dot and the word cannot disagree. Decorative: the mention is
+ * always written beside it.
+ */
+export const MENTION_DOT: Partial<Record<TranslationKey, string>> = {
+  'grades.mention.tres_bien': 'var(--mention-tres-bien)',
+  'grades.mention.bien': 'var(--mention-bien)',
+  'grades.mention.assez_bien': 'var(--mention-assez-bien)',
+  'grades.mention.passable': 'var(--mention-passable)',
+  'grades.mention.insuffisant': 'var(--mention-insuffisant)',
+};
+
 // ── Semesters ─────────────────────────────────────────────────────────────────
 
 /**

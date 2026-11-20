@@ -154,6 +154,14 @@
   --r-xl: 20px;
   --r-2xl: 24px;
 
+  /* Paper, for the Notes report (grades.module.css, "Print report"). The same in
+     both themes: a printout is black on white whatever the screen was showing.
+     --print-ink on --print-paper is 21:1; --print-rule is 4.54:1 on it, so table
+     rules survive a light printer and a PDF viewer's downsampling. */
+  --print-ink: #000000;
+  --print-paper: #FFFFFF;
+  --print-rule: #767676;
+
   /* Shadows and the scrim are per theme, in the blocks below: a dark-ink
      shadow is invisible on a dark surface. */
 }
@@ -247,6 +255,9 @@
   /* The mention badge on that hero: a black wash that darkens it, so its white
      label gains contrast — 5.43:1 even over the start stop under the circle. */
   --hero-badge: rgba(0, 0, 0, .16);
+  /* The credits bar's track on that hero (prototype .hj-credits-track). Non-text
+     and decorative: the credits are written above it in words and figures. */
+  --hero-track: rgba(255, 255, 255, .25);
   --shadow-hero: 0 14px 30px rgba(15, 110, 86, .30);
   /* Mention dots on the badge (prototype-v1 MENTIONS). Decorative: the mention
      is always written beside its dot, so these carry no information alone. */
@@ -280,6 +291,10 @@
      errors, on the panel's --surface: 6.54:1 on #FFFFFF (WCAG 2.x, measured
      2026-11-11). */
   --danger-ink: #B3261E;
+  /* Success as text: --jade-text, the colour "Validée" already uses. 6.20:1 on
+     --surface (light). Named for what it says, so a chart's "up" and a pill's
+     "validated" cannot drift apart. */
+  --success-ink: var(--jade-text);
   --info-ink: #1D4ED8;
   --warning-ink: #8A5200;
   --exam-ink: #6D28D9;
@@ -332,6 +347,9 @@
   --hero-card-bg: linear-gradient(150deg, #168666, #0F6E56);
   --hero-circle: rgba(255, 255, 255, .07);
   --hero-badge: rgba(0, 0, 0, .16);
+  /* The credits bar's track on that hero (prototype .hj-credits-track). Non-text
+     and decorative: the credits are written above it in words and figures. */
+  --hero-track: rgba(255, 255, 255, .25);
   --shadow-hero: 0 14px 30px rgba(15, 110, 86, .30);
   --mention-tres-bien: #7DF3C4;
   --mention-bien: #9CC7F5;
@@ -364,6 +382,8 @@
      errors, on the panel's --surface: 7.59:1 on #1C2721 (WCAG 2.x, measured
      2026-11-11). */
   --danger-ink: #FF9B8F;
+  /* --jade-text: 8.34:1 on --surface (dark). See the light block. */
+  --success-ink: var(--jade-text);
   --info-ink: #8AB4FF;
   --warning-ink: #F2B35E;
   --exam-ink: #C4B0FF;
@@ -491,4 +511,21 @@ html[lang="ar"] body {
   display: flex;
   align-items: inherit;
   gap: inherit;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Print. The page's own background, which is --bg and dark in the dark theme,
+   would print whenever "background graphics" is ticked; paper is white.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+@media print {
+  html,
+  body {
+    background: var(--print-paper);
+    color: var(--print-ink);
+  }
+}
+
+@page {
+  margin: 14mm;
 }

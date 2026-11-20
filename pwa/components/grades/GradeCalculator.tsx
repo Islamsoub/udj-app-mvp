@@ -57,7 +57,7 @@ export function GradeCalculator({
     <>
       <button
         type="button"
-        className={styles.calcTrigger}
+        className={styles.ghostButton}
         onClick={() => setOpen(true)}
         /*
          * The panel is not in the DOM until it opens, so aria-controls would
@@ -68,7 +68,7 @@ export function GradeCalculator({
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        <CalculatorIcon className={styles.calcTriggerIcon} />
+        <CalculatorIcon className={styles.ghostButtonIcon} />
         {t('grades.calculator.open')}
       </button>
 

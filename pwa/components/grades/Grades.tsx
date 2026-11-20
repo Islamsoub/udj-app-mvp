@@ -6,6 +6,7 @@ import { useOnline } from '@/components/shell/useOnline';
 import { getGrades, getGradesAllSemesters } from '@/lib/api-client';
 import { useI18n } from '@/lib/i18n';
 import { GradesView, type GradesBundle } from './GradesView';
+import { rememberHistory } from './history-hint';
 import { orderSemesters } from './model';
 import { ScreenSkeleton } from './skeletons';
 import { StateLayers } from './StateLayers';
@@ -26,7 +27,9 @@ import styles from './grades.module.css';
  */
 async function loadBundle(): Promise<GradesBundle> {
   const [current, all] = await Promise.all([getGrades(), getGradesAllSemesters()]);
-  return { current, semesters: orderSemesters(current, all.semesters) };
+  const semesters = orderSemesters(current, all.semesters);
+  rememberHistory(semesters);
+  return { current, semesters };
 }
 
 /**
