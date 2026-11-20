@@ -6,7 +6,7 @@ import type { SemesterSummary } from '@/lib/api-types';
 import { fmtLtr, fmtScaled } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { useExitBackstop } from '@/lib/useExitBackstop';
-import { heroMentionKey, MENTION_DOT, mentionKey } from './model';
+import { MENTION_DOT, mentionKey } from './model';
 import styles from './grades.module.css';
 
 /**
@@ -80,9 +80,10 @@ function HeroFigures({ semester }: { semester: SemesterSummary }) {
   const { t } = useI18n();
 
   const { gpa, mention, credits } = semester;
-  const dotKey = mention === null ? null : mentionKey(mention);
-  const wordKey = mention === null ? null : heroMentionKey(mention);
-  const dot = dotKey === null ? undefined : MENTION_DOT[dotKey];
+  // The dashboard's key, for the word and the dot alike, so the two screens
+  // cannot name the same mention differently.
+  const key = mention === null ? null : mentionKey(mention);
+  const dot = key === null ? undefined : MENTION_DOT[key];
 
   return (
     <>
@@ -126,7 +127,7 @@ function HeroFigures({ semester }: { semester: SemesterSummary }) {
             // Not a link here, unlike the dashboard's: this IS the grades page.
             <p className={styles.mentionBadge}>
               {dot && <span className={styles.mentionDot} style={{ background: dot }} aria-hidden="true" />}
-              {wordKey === null ? mention : t(wordKey)}
+              {key === null ? mention : t(key)}
             </p>
           )}
 

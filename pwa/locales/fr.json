@@ -210,14 +210,7 @@
       "credits": "Crédits : {{credits}}",
       "at_stake": "{{total}} crédits en jeu ce semestre",
       "no_gpa": "Moyenne non publiée",
-      "ring_label": "Moyenne du semestre : {{gpa}} sur 20",
-      "mention": {
-        "tres_bien": "Très Bien",
-        "bien": "Bien",
-        "assez_bien": "Assez Bien",
-        "passable": "Passable",
-        "insuffisant": "Insuffisant"
-      }
+      "ring_label": "Moyenne du semestre : {{gpa}} sur 20"
     },
     "history": {
       "title": "Historique GPA",

@@ -210,14 +210,7 @@
       "credits": "الأرصدة : {{credits}}",
       "at_stake": "{{total}} وحدة قيد التقييم هذا الفصل",
       "no_gpa": "المعدّل غير منشور",
-      "ring_label": "معدّل الفصل: {{gpa}} من 20",
-      "mention": {
-        "tres_bien": "جيد جداً",
-        "bien": "جيد",
-        "assez_bien": "مستحسن",
-        "passable": "مقبول",
-        "insuffisant": "ضعيف"
-      }
+      "ring_label": "معدّل الفصل: {{gpa}} من 20"
     },
     "history": {
       "title": "سجل المعدل",

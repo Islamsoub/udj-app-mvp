@@ -8,7 +8,7 @@ import { fmtLtr } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import { COLUMNS, STATUS_KEYS } from './GradesTable';
 import { ExportIcon } from './icons';
-import { heroMentionKey, rowStatus, sortGrades, subjectName, visibleMark, type Published } from './model';
+import { mentionKey, rowStatus, sortGrades, subjectName, visibleMark, type Published } from './model';
 import styles from './grades.module.css';
 
 /**
@@ -77,7 +77,7 @@ function Report({
   // The table's default order (subject, A→Z), so the paper matches the screen
   // a student opened before sorting anything.
   const rows = sortGrades(data.grades, { key: 'subject', dir: 'asc' }, lang, published);
-  const wordKey = summary.mention === null ? null : heroMentionKey(summary.mention);
+  const wordKey = summary.mention === null ? null : mentionKey(summary.mention);
 
   const cell = (grade: GradeItem, key: (typeof COLUMNS)[number]['key']) => {
     switch (key) {
