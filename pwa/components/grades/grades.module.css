@@ -252,10 +252,12 @@
 
 /*
  * One column, two from 640px, three from 1024px; 16px apart; align-items start,
- * so each card keeps its own height. The hero is in column 1 and the history in
- * column 2; from 1024 column 3 stays empty, as in the prototype. minmax(0, 1fr)
- * rather than the prototype's bare 1fr only so a long word can never widen a
- * column past its share; at the widths measured the tracks are the same.
+ * so each card keeps its own height. minmax(0, 1fr) rather than the prototype's
+ * bare 1fr only so a long word can never widen a column past its share.
+ *
+ * The hero is alone in the row for now (the history card is out, ASK A3): it
+ * spans the whole row from 640 to 1023px and two of the three columns from
+ * 1024px, the prototype's .span-2. The skeleton's block spans the same.
  */
 .cardsRow {
   display: grid;
@@ -273,6 +275,20 @@
 @media (min-width: 1024px) {
   .cardsRow {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .hero,
+  .skeletonHero {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero,
+  .skeletonHero {
+    grid-column: span 2;
   }
 }
 
@@ -309,6 +325,23 @@
   border-radius: 50%;
   background: var(--hero-circle);
   pointer-events: none;
+}
+
+/*
+ * No text under the circle, at any width. The label keeps out of it by its own
+ * inline-end padding; the average line cannot wrap, so on a card narrower than
+ * 290px (a phone under about 338px) its "/20" would run under the circle — 4px
+ * deep on a 320px phone, measured. There the circle, which is decoration, is
+ * not drawn. The container query reads the hero's content box: 290 - 2 x 22.
+ */
+.hero {
+  container-type: inline-size;
+}
+
+@container (width < 246px) {
+  .heroDepth {
+    display: none;
+  }
 }
 
 /* A block, like the prototype's hero: the badge is an inline-flex box on its own
@@ -991,18 +1024,6 @@ html[lang="ar"] .cardLabel {
 .skeletonHero {
   height: 188.8px;
   border-radius: 22px;
-}
-
-/* The history card's title line (17.6) and its 90px chart plus the 2.8px of
-   line descent under the inline SVG, so the card is the loaded 166.4. */
-.skeletonHistoryTitle {
-  width: 40%;
-  height: 17.6px;
-  margin-bottom: 14px;
-}
-
-.skeletonHistoryChart {
-  height: 92.8px;
 }
 
 /* "Calculatrice" and "Exporter PDF": 34px pills at their loaded French widths

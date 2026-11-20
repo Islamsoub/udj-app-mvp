@@ -5,7 +5,6 @@ import type { GradesResponse, SemesterSummary } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
 import { ExportPdf } from './ExportPdf';
 import { GpaHero } from './GpaHero';
-import { GpaHistory } from './GpaHistory';
 import { GradeCalculator } from './GradeCalculator';
 import { GradesTable } from './GradesTable';
 import { ArrowIcon } from './icons';
@@ -130,15 +129,16 @@ export function GradesView({
       </div>
 
       {/*
-        The prototype's .grid-cards: the hero, then "Historique GPA" beside it
-        from 640px; from 1024px a third column, left empty, as in the prototype.
+        The prototype's .grid-cards, with the hero alone in it: full width from
+        640 to 1023px and two of the three columns from 1024px (.span-2). The
+        "Historique GPA" card is out for now, an experiment (ASK A3); the
+        component is kept unused in GpaHistory.tsx.
         Drawn on the hero's rule (above), so a semester with nothing published
         is still one card below the tabs and not three.
       */}
       {showHero && (
         <div className={styles.cardsRow}>
           <GpaHero semester={summary} />
-          <GpaHistory semesters={bundle.semesters} />
         </div>
       )}
 
