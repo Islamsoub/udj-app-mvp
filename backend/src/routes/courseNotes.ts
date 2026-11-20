@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction, RequestHandler } from 'express
 import { z } from 'zod';
 import type { PrismaClient } from '@prisma/client';
 import { AppError } from '../utils/AppError';
+import { resolveCurrentSemester } from '../utils/currentSemester';
 
 /**
  * /student/course-notes — a student's private notes on a class.
@@ -100,7 +101,7 @@ async function resolveScheduledSubject(
 ): Promise<{ id: string } | null> {
   const [student, semester] = await Promise.all([
     db.student.findUnique({ where: { id: studentId }, select: { programmeId: true } }),
-    db.semester.findFirst({ where: { isCurrent: true }, select: { id: true } }),
+    resolveCurrentSemester(db),
   ]);
   if (!student || !semester) return null;
 

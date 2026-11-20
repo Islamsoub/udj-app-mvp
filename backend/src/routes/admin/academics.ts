@@ -2,6 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { Prisma, ProgrammeLevel, AdminRole } from '@prisma/client';
 import prisma from '../../utils/prisma';
+import { withComputedCurrent } from '../../utils/currentSemester';
 import { AppError } from '../../utils/AppError';
 import adminAuth from '../../middleware/adminAuth';
 import { rbac, facultyScopeWhere } from '../../middleware/rbac';
@@ -160,7 +161,7 @@ router.patch(
 );
 
 // ══════════════════════════════════════════════════════════════════════════
-//  SEMESTERS  (setting one current unsets the previous current)
+//  SEMESTERS  (the current one is decided by the dates: utils/currentSemester)
 // ══════════════════════════════════════════════════════════════════════════
 
 router.get('/semesters', adminAuth, rbac(...ALL_ROLES), async (_req, res, next) => {
@@ -168,19 +169,43 @@ router.get('/semesters', adminAuth, rbac(...ALL_ROLES), async (_req, res, next) 
     const semesters = await prisma.semester.findMany({
       orderBy: [{ academicYear: 'desc' }, { label: 'asc' }],
     });
-    res.status(200).json(semesters);
+    res.status(200).json(withComputedCurrent(semesters));
   } catch (err) {
     next(err);
   }
 });
 
+/** A date the admin portal sends (an ISO string); anything Date cannot read is refused. */
+const semesterDate = z
+  .string()
+  .min(1)
+  .refine((v) => !Number.isNaN(new Date(v).getTime()), { message: 'Invalid date' });
+
+/*
+ * No `isCurrent`: the current semester is computed from the dates, so the
+ * manual switch is gone. zod strips unknown keys, so an older admin portal
+ * that still sends `isCurrent` is accepted and the flag is ignored — never
+ * written to the column, which is kept only to avoid a schema change.
+ */
 const semesterSchema = z.object({
   label: z.string().min(1),
   academicYear: z.string().min(1),
-  startDate: z.string().datetime().or(z.string().min(1)),
-  endDate: z.string().datetime().or(z.string().min(1)),
-  isCurrent: z.boolean().optional().default(false),
+  startDate: semesterDate,
+  endDate: semesterDate,
 });
+
+/** End strictly after start, compared as instants (both are midnights). */
+function assertDateOrder(startDate: Date, endDate: Date): void {
+  if (endDate.getTime() <= startDate.getTime()) {
+    throw new AppError('La date de fin doit être postérieure à la date de début', 400);
+  }
+}
+
+/** One semester as the list returns it: isCurrent computed against the whole table. */
+async function withCurrentFlag(id: string) {
+  const all = withComputedCurrent(await prisma.semester.findMany());
+  return all.find((s) => s.id === id) ?? null;
+}
 
 router.post(
   '/semesters',
@@ -192,23 +217,15 @@ router.post(
       const parsed = semesterSchema.safeParse(req.body);
       if (!parsed.success) throw new AppError('Invalid semester data', 400);
       const d = parsed.data;
+      const startDate = new Date(d.startDate);
+      const endDate = new Date(d.endDate);
+      assertDateOrder(startDate, endDate);
 
-      const semester = await prisma.$transaction(async (tx) => {
-        if (d.isCurrent) {
-          await tx.semester.updateMany({ where: { isCurrent: true }, data: { isCurrent: false } });
-        }
-        return tx.semester.create({
-          data: {
-            label: d.label,
-            academicYear: d.academicYear,
-            startDate: new Date(d.startDate),
-            endDate: new Date(d.endDate),
-            isCurrent: d.isCurrent,
-          },
-        });
+      const created = await prisma.semester.create({
+        data: { label: d.label, academicYear: d.academicYear, startDate, endDate },
       });
 
-      res.status(201).json(semester);
+      res.status(201).json(await withCurrentFlag(created.id));
     } catch (err) {
       next(err);
     }
@@ -229,26 +246,22 @@ router.patch(
       const existing = await prisma.semester.findUnique({ where: { id: String(req.params.id) } });
       if (!existing) throw new AppError('Semester not found', 404);
 
-      const semester = await prisma.$transaction(async (tx) => {
-        if (d.isCurrent === true) {
-          await tx.semester.updateMany({
-            where: { isCurrent: true, id: { not: String(req.params.id) } },
-            data: { isCurrent: false },
-          });
-        }
-        return tx.semester.update({
-          where: { id: String(req.params.id) },
-          data: {
-            ...(d.label !== undefined ? { label: d.label } : {}),
-            ...(d.academicYear !== undefined ? { academicYear: d.academicYear } : {}),
-            ...(d.startDate !== undefined ? { startDate: new Date(d.startDate) } : {}),
-            ...(d.endDate !== undefined ? { endDate: new Date(d.endDate) } : {}),
-            ...(d.isCurrent !== undefined ? { isCurrent: d.isCurrent } : {}),
-          },
-        });
+      // Checked against the stored date when only one of the two is sent.
+      const startDate = d.startDate !== undefined ? new Date(d.startDate) : existing.startDate;
+      const endDate = d.endDate !== undefined ? new Date(d.endDate) : existing.endDate;
+      assertDateOrder(startDate, endDate);
+
+      await prisma.semester.update({
+        where: { id: existing.id },
+        data: {
+          ...(d.label !== undefined ? { label: d.label } : {}),
+          ...(d.academicYear !== undefined ? { academicYear: d.academicYear } : {}),
+          ...(d.startDate !== undefined ? { startDate } : {}),
+          ...(d.endDate !== undefined ? { endDate } : {}),
+        },
       });
 
-      res.status(200).json(semester);
+      res.status(200).json(await withCurrentFlag(existing.id));
     } catch (err) {
       next(err);
     }

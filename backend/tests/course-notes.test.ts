@@ -84,7 +84,11 @@ const fakeDb = {
     findUnique: async ({ where }: any) => students.get(where.id) ?? null,
   },
   semester: {
-    findFirst: async ({ where }: any) => (where.isCurrent ? { id: SEMESTER } : null),
+    // resolveCurrentSemester reads every semester and picks by date: one
+    // semester, in progress whatever today is.
+    findMany: async () => [
+      { id: SEMESTER, startDate: new Date('2000-01-01T00:00:00Z'), endDate: new Date('2999-12-31T00:00:00Z') },
+    ],
   },
   subject: {
     findFirst: async ({ where }: any) => {

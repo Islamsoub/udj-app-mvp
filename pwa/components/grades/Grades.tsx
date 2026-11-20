@@ -19,7 +19,8 @@ import styles from './grades.module.css';
  * before anything can render — the list decides which tabs exist, and the
  * current semester decides which of them is selected. `allSemesters=true`
  * deliberately does not say which semester is current; the plain call does, by
- * being the one the backend answers with `isCurrent`.
+ * answering for the current semester, which the backend decides from the
+ * semester dates.
  *
  * Module scope, so the reference is stable: useCardData holds its fetcher in a
  * ref and re-runs only on retry or reconnect, and an inline arrow here would be

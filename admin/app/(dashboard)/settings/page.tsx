@@ -19,18 +19,12 @@ import { Card } from '@/components/shared/card';
 import { AccessDenied } from '@/components/shared/access-denied';
 import { ConfirmModal } from '@/components/shared/confirm-modal';
 import { Button } from '@/components/ui/button';
-import { Dropdown } from '@/components/ui/select';
 import { Toggle } from '@/components/ui/toggle';
 import { Tooltip } from '@/components/ui/tooltip';
-import { CloseSemesterModal } from '@/components/modals/close-semester-modal';
 import { useModal } from '@/hooks/use-modal';
 import { useToast } from '@/hooks/use-toast';
 import { useAdminRole } from '@/hooks/use-admin';
-import {
-  useCurrentSemester,
-  useSaveSemester,
-  useSemesters,
-} from '@/hooks/queries/use-academics';
+import { useCurrentSemester } from '@/hooks/queries/use-academics';
 import {
   useCreateCategory,
   useDeleteCategory,
@@ -278,12 +272,9 @@ function CategoriesCard() {
 
 export default function SettingsPage() {
   const role = useAdminRole();
-  const { open } = useModal();
   const { toast } = useToast();
   const { data: settings } = useSettings();
-  const { data: semesters } = useSemesters();
   const currentSemester = useCurrentSemester();
-  const saveSemester = useSaveSemester();
   const updateGradeFormula = useUpdateGradeFormula();
   const updateAttendanceThreshold = useUpdateAttendanceThreshold();
   const updateJustificationDeadline = useUpdateJustificationDeadline();
@@ -328,15 +319,6 @@ export default function SettingsPage() {
     }
   };
 
-  const onSelectSemester = async (id: string) => {
-    if (id === currentSemester?.id) return;
-    try {
-      await saveSemester.mutateAsync({ id, data: { isCurrent: true } });
-    } catch (err) {
-      toast(apiErrorMessage(err), 'x');
-    }
-  };
-
   if (!settings || !draft) {
     return (
       <>
@@ -364,18 +346,16 @@ export default function SettingsPage() {
       <div className="grid grid-cols-2 gap-4">
         {/* ─── Période académique ────────────────────────────────────────── */}
         <SettingsCard icon={<Calendar size={18} />} title="Période académique">
-          <SettingsRow title="Semestre courant" desc="Détermine les données affichées par défaut">
-            <div className="w-[240px]">
-              <Dropdown
-                value={currentSemester?.id ?? null}
-                onChange={onSelectSemester}
-                options={(semesters ?? []).map((s) => ({
-                  value: s.id,
-                  label: `${s.label} — ${s.academicYear}${s.isCurrent ? ' (en cours)' : ''}`,
-                }))}
-                placeholder="Sélectionner…"
-                disabled={saveSemester.isPending}
-              />
+          {/*
+            Read-only: the backend decides the current semester from the dates
+            (backend/src/utils/currentSemester.ts). There is nothing to choose.
+          */}
+          <SettingsRow
+            title="Semestre en cours"
+            desc="Déterminé automatiquement par les dates des semestres"
+          >
+            <div className="text-[13.5px] font-semibold text-ink">
+              {currentSemester ? `${currentSemester.label} — ${currentSemester.academicYear}` : 'Aucun semestre'}
             </div>
           </SettingsRow>
           <SettingsRow title="Année universitaire">
@@ -522,27 +502,6 @@ export default function SettingsPage() {
           </SettingsRow>
         </SettingsCard>
 
-        {/* ─── Danger zone ───────────────────────────────────────────────── */}
-        <Card
-          className="col-span-2 flex items-center justify-between gap-4"
-          style={{ borderColor: 'rgba(225,72,61,0.25)', background: 'var(--danger-bg)' }}
-        >
-          <div>
-            <div className="text-[15px] font-bold text-danger">Clôturer le semestre</div>
-            <div className="mt-[2px] text-[12.5px] text-ink2">
-              Fige les notes, archive les relevés de présence et prépare le semestre suivant.
-            </div>
-          </div>
-          <Button
-            kind="dangerSolid"
-            onClick={() => {
-              if (currentSemester) open(<CloseSemesterModal semester={currentSemester} />);
-              else toast('Aucun semestre en cours', 'x');
-            }}
-          >
-            Clôturer le semestre
-          </Button>
-        </Card>
       </div>
     </>
   );
