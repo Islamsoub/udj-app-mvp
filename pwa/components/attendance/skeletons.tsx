@@ -30,13 +30,19 @@ export function AttendanceSkeleton() {
         </div>
       </div>
 
-      <div className={styles.section}>
-        <Block className={styles.skeletonHeading} />
-        <div className={styles.skeletonRows}>
+      {/* The "Par matière" card: the same card, title and note heights, and
+          rows on the loaded rows' own class, so their padding and hairlines
+          are the loaded ones. */}
+      <div className={styles.card}>
+        <Block className={styles.skeletonCardTitle} />
+        <Block className={styles.skeletonNote} />
+        <div>
           {/* Four, not eight. The skeleton stands for "a list is coming", and a
               full-length one on a screen this tall is a wall of grey. */}
           {[0, 1, 2, 3].map((n) => (
-            <Block key={n} className={styles.skeletonSubject} />
+            <div key={n} className={styles.subject}>
+              <Block className={styles.skeletonSubject} />
+            </div>
           ))}
         </div>
       </div>

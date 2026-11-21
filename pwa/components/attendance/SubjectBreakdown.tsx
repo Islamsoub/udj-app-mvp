@@ -86,8 +86,8 @@ export function SubjectBreakdown({
   const ordered = sortSubjects(subjects, lang);
 
   return (
-    <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>{t('attendance.subjects.title')}</h2>
+    <section className={styles.card}>
+      <h2 className={styles.cardTitle}>{t('attendance.subjects.title')}</h2>
 
       {/* The legend for the tick on every bar below: the mark itself, then what
           it stands for. The value is the server's, never a constant. */}

@@ -255,29 +255,65 @@ html[lang="ar"] .heroLabel {
   color: var(--ink2);
 }
 
+/*
+ * A section as a card: the prototype's .card and the dashboard's card style
+ * (standing decision 4) — 20px padding, --r-lg, 1px --hair, --shadow-card —
+ * with an h2 at 14/700 and 14px under it (.card h3).
+ */
+.card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.cardTitle {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Inside the card the note follows the title's 14px directly. */
+.card > .sectionNote {
+  margin: 0;
+}
+
 /* ── Per-subject breakdown ─────────────────────────────────────────────────── */
 
 .subjects {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/*
+ * Rows inside the card, as the prototype's rows: inset by the card's padding,
+ * a hairline between two rows, no border, radius or shadow of their own. The
+ * band is carried by the bar, the figure and the flag sentence with its icon,
+ * so the coloured outline the rows used to have is not needed.
+ */
 .subject {
-  padding: 14px 16px;
-  border: 1px solid var(--hair);
-  border-radius: var(--r-md);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
+  padding: 14px 0;
+}
+
+.subject + .subject {
+  border-top: 1px solid var(--hair);
+}
+
+.subject:last-child {
+  padding-bottom: 0;
 }
 
 /*
- * The subject's own band, ROUND2-CLOSEOUT §4 "Row treatment": border, bar fill
- * and figure. Never on its own — the row also carries the triangle glyph and a
- * sentence (.subjectFlag), because §10 forbids colour as the only signal.
+ * The subject's own band, ROUND2-CLOSEOUT §4 "Row treatment": bar fill and
+ * figure (the row border went with the per-row cards). Never on its own — the
+ * row also carries the triangle glyph and a sentence (.subjectFlag), because
+ * §10 forbids colour as the only signal.
  *
  * No background tint: §4's table has no background column, so --warning-bg is
  * no longer used here (Flag 8, Design to confirm). --warning is not used either
@@ -291,14 +327,6 @@ html[lang="ar"] .heroLabel {
  * 3.76 light / 5.56 dark on --surface and 3.14 light / 6.57 dark on --sunken; the
  * figure is text, so it takes --danger-ink, 6.54 light / 7.59 dark on --surface.
  */
-.subjectNear {
-  border-color: var(--warning-ink);
-}
-
-.subjectBelow {
-  border-color: var(--danger);
-}
-
 .subjectHead {
   display: flex;
   align-items: baseline;
@@ -1320,10 +1348,23 @@ html[lang="ar"] .formLabel {
   gap: 10px;
 }
 
-/* The real footprints, so nothing resizes when the data lands. */
+/* A card title's line box (14px text: 21) and its 14px below. */
+.skeletonCardTitle {
+  width: 120px;
+  height: 21px;
+  margin-bottom: 14px;
+}
+
+/* The threshold note's line box (12.5px text: 18.75). */
+.skeletonNote {
+  width: 60%;
+  height: 18.75px;
+}
+
+/* A subject row's content on one line each: name 20.25, bar 10 + 8, meta
+   8 + 22.5 — 68.75, inside the row's own 14px padding. */
 .skeletonSubject {
-  height: 92px;
-  border-radius: var(--r-md);
+  height: 68.75px;
 }
 
 .skeletonAbsence {
