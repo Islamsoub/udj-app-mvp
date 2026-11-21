@@ -19,11 +19,14 @@ export function AttendanceSkeleton() {
     <>
       <div className={styles.skeletonHero}>
         <Block className={styles.skeletonRing} />
+        {/* One block per line of the loaded hero text, at its height and
+            margin, so the skeleton and the loaded hero are one height. */}
         <div className={styles.skeletonHeroText}>
-          <Block className={styles.skeletonLineShort} />
-          <Block className={styles.skeletonLineHero} />
-          <Block className={styles.skeletonLineMedium} />
-          <Block className={styles.skeletonLineShort} />
+          <Block className={styles.skeletonHeroLabel} />
+          <Block className={styles.skeletonHeroFigure} />
+          <Block className={styles.skeletonHeroSessions} />
+          <Block className={styles.skeletonHeroThreshold} />
+          <Block className={styles.skeletonHeroCounts} />
         </div>
       </div>
 

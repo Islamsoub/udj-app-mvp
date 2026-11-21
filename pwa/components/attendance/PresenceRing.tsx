@@ -2,24 +2,24 @@
 
 import { useState } from 'react';
 import { takeOnce } from '@/components/dashboard/session-flags';
-import type { AttendanceBand } from '@/lib/api-types';
 import styles from './attendance.module.css';
 
-const SIZE = 132;
-const STROKE = 11;
+/*
+ * The prototype's .hero-ring at layout b: 96px with an 8px stroke, scaled 1.15
+ * — 110 and 9 here, drawn at that size rather than scaled, so the box the
+ * layout measures is the box that is seen.
+ */
+const SIZE = 110;
+const STROKE = 9;
 const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-/**
- * The stroke follows the server's overall band (ROUND2-CLOSEOUT §4, with §3's
- * three colours) and is never derived from the percentage here. Track and
- * aria-label are band-independent: the Hero's sentence says the band in words.
+/*
+ * ONE stroke for every band, the hero's ink. On the green hero the band
+ * colours do not reach 3:1 (--warning-ink, --danger), so the band is said in
+ * the Hero's sentence, in words and with its icon, and the gauge only shows the
+ * figure. Whether the band also gets a colour cue on the hero is A2 in ASK.md.
  */
-const STROKE_CLASS: Record<AttendanceBand, string> = {
-  ok: '',
-  near: styles.ringValueNear,
-  below: styles.ringValueBelow,
-};
 
 /**
  * The presence gauge — §9 calls the fill-on-load "the hero moment of this
@@ -54,15 +54,7 @@ const STROKE_CLASS: Record<AttendanceBand, string> = {
  * hero moment would never happen. Hence a local component with its own key, and
  * a note rather than a quiet fourth fork.
  */
-export function PresenceRing({
-  percentage,
-  band,
-  label,
-}: {
-  percentage: number;
-  band: AttendanceBand;
-  label: string;
-}) {
+export function PresenceRing({ percentage, label }: { percentage: number; label: string }) {
   const [filling] = useState(() => takeOnce('attendance_presence_ring'));
 
   const clamped = Math.max(0, Math.min(100, percentage));
@@ -89,7 +81,7 @@ export function PresenceRing({
         strokeWidth={STROKE}
       />
       <circle
-        className={`${styles.ringValue} ${STROKE_CLASS[band]} ${filling ? styles.ringFilling : ''}`}
+        className={`${styles.ringValue} ${filling ? styles.ringFilling : ''}`}
         cx={SIZE / 2}
         cy={SIZE / 2}
         r={RADIUS}

@@ -40,30 +40,74 @@
   display: grid;
 }
 
-/* ── Hero (§5 hero stats, §9 "the hero moment of this screen") ─────────────── */
+/* ── Hero (prototype #pres-hero, .hero-jade; §9 "the hero moment") ───────── */
 
+/*
+ * The prototype's .hero-jade, as Notes and the dashboard draw it: radius 22,
+ * padding 22, the jade gradient and shadow, white text. The gradient and the
+ * text use the hero variables (--hero-card-bg, --hero-ink), not Design's raw
+ * values: Design's start stop is 3.39:1 under white and its 78% / 85% whites
+ * are lower still (see --hero-card-bg in globals.css).
+ *
+ * Every line is solid --hero-ink, with no reduced-opacity secondary text:
+ * white is 4.53:1 on the gradient's start stop and 6.20:1 on its end stop.
+ *
+ * The band (near, below, ended below) is NOT coloured here. --warning-ink and
+ * --danger fall under 3:1 on the green, and no existing variable reaches it, so
+ * the band is said in the threshold sentence, in bold, with its warning icon,
+ * all in --hero-ink. A colour cue on top of that is A2 in ASK.md.
+ */
 .hero {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   gap: 24px;
-  padding: 20px;
-  border: 1px solid var(--hair);
-  border-radius: var(--r-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
+  padding: 22px;
+  border-radius: 22px;
+  background: var(--hero-card-bg);
+  box-shadow: var(--shadow-hero);
+  color: var(--hero-ink);
+  container-type: inline-size;
+}
+
+/*
+ * .depth-circle: 160px in the top inline-end corner, 48px past both edges, so it
+ * covers the card's last 112px across and its first 112px down. White on it
+ * drops under 4.5:1, so no text may sit there. On a wide card the text column
+ * ends long before it; on a narrow one (content box under 520px) the label, the
+ * figure and the sessions line would run under it, and there the circle, which
+ * is decoration, is not drawn — the same rule as the Notes hero.
+ */
+.heroDepth {
+  position: absolute;
+  top: -48px;
+  inset-inline-end: -48px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: var(--hero-circle);
+  pointer-events: none;
+}
+
+@container (width < 520px) {
+  .heroDepth {
+    display: none;
+  }
 }
 
 .heroText {
+  position: relative;
   min-width: 0;
 }
 
+/* .hj-label: 12.5 / 700, uppercase, 0.4px tracking. */
 .heroLabel {
   margin: 0;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.4px;
   text-transform: uppercase;
-  color: var(--ink2);
 }
 
 /* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
@@ -93,19 +137,16 @@ html[lang="ar"] .heroLabel {
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.03em;
-  color: var(--ink);
 }
 
 .heroUnit {
   font-size: 20px;
   font-weight: 700;
-  color: var(--ink2);
 }
 
 .heroSessions {
   margin: 10px 0 0;
-  font-size: 12.5px;
-  color: var(--ink2);
+  font-size: 13px;
 }
 
 .heroThreshold {
@@ -113,25 +154,14 @@ html[lang="ar"] .heroLabel {
   align-items: center;
   gap: 6px;
   margin: 8px 0 0;
-  font-size: 12.5px;
-  color: var(--ink2);
+  font-size: 13px;
 }
 
-/* The overall band, ROUND2-CLOSEOUT §4 "Hero line". The colour is ONE of three
-   signals — the triangle beside it and the sentence itself carry the same
-   meaning (§10). ok and term-over-ok keep .heroThreshold's --ink2 and no icon.
-   Text on the card --surface, so the -ink tokens, never the hues: --warning is
-   2.15:1 on it in light. The triangle follows the text through currentColor, as
-   §4 asks. Measured on --surface: --warning-ink 6.39 light / 8.36 dark,
-   --danger-ink 6.54 light / 7.59 dark. */
-.heroThresholdNear {
-  color: var(--warning-ink);
-  font-weight: 700;
-}
-
-/* below, and term-over below. */
+/* near, below and ended below: the same ink, said in bold and with the warning
+   icon beside the sentence (§10: never colour alone; here not colour at all,
+   see the note at .hero). */
+.heroThresholdNear,
 .heroThresholdBelow {
-  color: var(--danger-ink);
   font-weight: 700;
 }
 
@@ -149,16 +179,17 @@ html[lang="ar"] .heroLabel {
 }
 
 .heroCount {
-  font-size: 12px;
-  color: var(--ink2);
+  font-size: 12.5px;
 }
 
 /* ── Presence ring (§5) ────────────────────────────────────────────────────── */
 
+/* The prototype's .hero-ring at layout b: 96 scaled 1.15, so 110 here. */
 .ring {
+  position: relative;
   flex-shrink: 0;
-  width: 132px;
-  height: 132px;
+  width: 110px;
+  height: 110px;
   /*
    * The SVG is drawn with 0 at 12 o'clock going clockwise. Rotating -90deg puts
    * the start there; the sweep is not mirrored in RTL because a gauge is a dial,
@@ -167,9 +198,10 @@ html[lang="ar"] .heroLabel {
   transform: rotate(-90deg);
 }
 
+/* The prototype's track, rgba(255,255,255,.25), as the hero variable. */
 .ringTrack {
   fill: none;
-  stroke: var(--sunken);
+  stroke: var(--hero-track);
 }
 
 /*
@@ -179,28 +211,16 @@ html[lang="ar"] .heroLabel {
  * Done with stroke-dashoffset in CSS rather than in JS so prefers-reduced-motion
  * can switch it off with one rule and leave the final value rendered — the gauge
  * stays correct, only the travel goes.
+ *
+ * --hero-ink in every band (see PresenceRing). A graphic, so 3:1 is the bar:
+ * white is 4.53:1 on the gradient's lighter stop.
  */
 .ringValue {
   fill: none;
-  stroke: var(--jade);
+  stroke: var(--hero-ink);
   stroke-linecap: round;
   stroke-dasharray: var(--ring-circumference);
   stroke-dashoffset: var(--ring-offset);
-}
-
-/*
- * The stroke follows overall.band (ROUND2-CLOSEOUT §4, with §3/A3's colours):
- * ok --jade above, near --warning-ink, below --danger. A graphic, so 3:1 is the
- * bar. Measured on --surface: --jade 3.39 light / 6.17 dark, --warning-ink
- * 6.39 light / 8.36 dark, --danger 3.76 light / 5.56 dark. --warning is not
- * used: 2.15:1 on --surface in light.
- */
-.ringValueNear {
-  stroke: var(--warning-ink);
-}
-
-.ringValueBelow {
-  stroke: var(--danger);
 }
 
 .ringFilling {
@@ -1208,45 +1228,78 @@ html[lang="ar"] .formLabel {
   }
 }
 
+/*
+ * The hero's box: radius 22, padding 22, no border (the loaded hero has none),
+ * on --surface — the green is for the figure, not for a promise of one.
+ */
 .skeletonHero {
   display: flex;
   align-items: center;
   gap: 24px;
-  padding: 20px;
-  border: 1px solid var(--hair);
-  border-radius: var(--r-lg);
+  padding: 22px;
+  border-radius: 22px;
   background: var(--surface);
   box-shadow: var(--shadow-card);
 }
 
 .skeletonRing {
   flex-shrink: 0;
-  width: 132px;
-  height: 132px;
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
 }
 
+/*
+ * The loaded text column, line by line: label 18.75, figure 6 + 47, sessions
+ * 10 + 19.5, threshold sentence 8 + 19.5, counts 10 + 18.75 — 157.5, so the
+ * hero is 201.5 at 640 and wider. Below 640 the text column is 182px and, with
+ * the sample data, the sentence takes two lines and the counts three; the
+ * blocks take those heights there (270.5 in all).
+ */
 .skeletonHeroText {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 10px;
   min-width: 0;
 }
 
-.skeletonLineShort {
+.skeletonHeroLabel {
   width: 40%;
-  height: 12px;
+  height: 18.75px;
 }
 
-.skeletonLineMedium {
+.skeletonHeroFigure {
+  width: 96px;
+  height: 47px;
+  margin-top: 6px;
+}
+
+.skeletonHeroSessions {
+  width: 55%;
+  height: 19.5px;
+  margin-top: 10px;
+}
+
+.skeletonHeroThreshold {
   width: 70%;
-  height: 12px;
+  height: 19.5px;
+  margin-top: 8px;
 }
 
-.skeletonLineHero {
-  width: 140px;
-  height: 40px;
+.skeletonHeroCounts {
+  width: 60%;
+  height: 18.75px;
+  margin-top: 10px;
+}
+
+@media (max-width: 639px) {
+  .skeletonHeroThreshold {
+    height: 39px;
+  }
+
+  .skeletonHeroCounts {
+    height: 68.25px;
+  }
 }
 
 .skeletonHeading {
@@ -1281,12 +1334,11 @@ html[lang="ar"] .formLabel {
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 
 @media (max-width: 639px) {
+  /* The ring stays beside the text on a phone, closer to it: 352 - 44 of
+     padding - 110 - 16 leaves the text 182px, enough for each line to wrap on
+     whole words, with no half-empty row beside a ring on its own. */
   .hero,
   .skeletonHero {
-    /* The gauge and the figures stop fitting side by side well before the
-       column does; stacking keeps the number at its full size. */
-    flex-direction: column;
-    align-items: flex-start;
     gap: 16px;
   }
 

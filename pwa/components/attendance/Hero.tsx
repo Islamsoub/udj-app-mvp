@@ -16,7 +16,8 @@ import styles from './attendance.module.css';
  *
  * Term over is `absencesLeft === null`, and it is checked first: §4's term-over
  * rows apply whatever the band, so a term-over `near` reads `ended_ok` in the
- * neutral tone (Flag 4, open: the ring keeps the near stroke beside it).
+ * neutral tone. On the green hero every band is drawn in the hero's ink, so
+ * the sentence and its icon are what say it.
  */
 type HeroTone = 'neutral' | 'warning' | 'danger';
 
@@ -77,9 +78,12 @@ export function Hero({
 
   return (
     <section className={styles.hero}>
+      {/* The prototype's .depth-circle: decoration, kept clear of the text (see
+          .heroDepth). */}
+      <div className={styles.heroDepth} aria-hidden="true" />
+
       <PresenceRing
         percentage={percentage}
-        band={overall.band}
         label={t('attendance.hero.ring_label', { value: percentText(percentage) })}
       />
 
@@ -112,7 +116,12 @@ export function Hero({
         */}
         <p className={`${styles.heroThreshold} ${TONE_CLASS[line.tone]}`}>
           {line.tone !== 'neutral' && <WarningIcon className={styles.heroThresholdIcon} />}
-          <Interpolated template={t(line.key)} values={{ threshold: fmtPercent(threshold) }} />
+          {/* One span around the sentence: Interpolated returns text and the
+              isolated figure as siblings, and as direct flex items they broke
+              into columns as soon as the line had to wrap (a phone). */}
+          <span>
+            <Interpolated template={t(line.key)} values={{ threshold: fmtPercent(threshold) }} />
+          </span>
         </p>
 
         {/*
