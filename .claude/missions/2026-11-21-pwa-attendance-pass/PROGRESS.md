@@ -62,3 +62,26 @@ Builder summary, steps 3 to 7:
 - Files touched: only `pwa/components/attendance/` (Attendance, AttendanceView, Hero, PresenceRing, SubjectBreakdown, skeletons, the stylesheet) and this mission folder. No locale, backend, shared component (segmented, panel, schedule, grades), `model.ts`, `useReducedMotion.ts` or `package.json` change.
 - Nothing from ASK.md was done. The known-differences file was not touched; its rows are in DIVERGENCES.md.
 - Testing: my own probe script, in /tmp outside the repo, reused the harness fixtures. It used one browser context at a time, sample data only, and no real account. Language and theme were set per test context through cookies, and every context was closed. No saved browser state was changed, so French / light is the state left behind.
+
+## 2026-11-21 — Review fix, F5 hero height (Builder)
+
+Commit 75df4e6. Reviewer: the skeleton hero was sized to the sample data. The loaded hero changed height with the band, with partial sessions, and in Arabic, so the page jumped on load.
+
+Cause: two things. (1) Arabic line boxes grew 1-2px because Latin-face figures sat inside Naskh lines. (2) On narrow widths the threshold sentence and the counts wrap to a number of lines that depends on the data.
+
+Fix, in the stylesheet only:
+- Each hero line has a px line-height, and everything inside a line has line-height 1, so Arabic lines are the French height.
+- The sentence and the counts reserve the most lines they can need at the text column's width. Buckets are container queries on the hero's content box: ≥514, ≥384, ≥304, <304. Under 304 the label and the sessions line also reserve 2 lines.
+- The skeleton uses the same buckets on its own box (same padding, so same width).
+- The sentence and the counts are top-aligned in their reservation; the icon sits on the first line.
+- Cost: where the data is short (band ok, no partial sessions), the reserved lines stay empty. At 400 that is a 19.5px gap under the sentence and 25px under the counts.
+
+Measured, loaded = skeleton, every cell equal (110 runs: ok, near, below, ended, no absences, each with and without partial sessions, FR and AR, plus the loading skeleton):
+- 1280 and 800: 201.5
+- 640: 245.75
+- 400: 270.5
+- 360: 328.25
+
+The longest French content was measured against the buckets. A future longer string, or very large counts, could still exceed a bucket; the note at `.heroText` explains how to widen one.
+
+`npm run typecheck`: exit 0. `npm run build`: "✓ Compiled successfully", "✓ Generating static pages (12/12)", exit 0.
