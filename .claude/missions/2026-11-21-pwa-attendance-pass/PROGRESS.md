@@ -50,3 +50,15 @@ Commit 2ff8607.
 - Removed the now-unused `.section`, `.sectionTitle`, `.skeletonHeading` and `.skeletonRows` rules.
 - No divergence row needed.
 - `npm run typecheck`: exit 0. `npm run build`: "✓ Compiled successfully", "✓ Generating static pages (12/12)", exit 0.
+
+## 2026-11-21 — Step 7, F13, and wrap-up (Builder)
+
+Commit 7a4c574.
+- F13: all four panel labels are 11.5/700 uppercase at 0.5px (normal tracking in Arabic, as before), colour `--ink2` (DIVERGENCES row 1). Submit is 46 tall. I opened all 12 sample absences' panels at 400 in FR and AR (none, expired, pending, approved, excused, rejected, with and without a note). Labels measured 11.5px/700/0.5px everywhere. Nothing scrolls sideways or is clipped. Escape closed each one and focus returned to its row (12/12). I did not re-run the upload flow (file chosen, wrong type, uploading, success, offline): only label and button sizes changed there, and `upload.ts` and the form logic are untouched. The Reviewer's QA runs that flow.
+- `npm run typecheck`: exit 0. `npm run build`: "✓ Compiled successfully", "✓ Generating static pages (12/12)", exit 0.
+
+Builder summary, steps 3 to 7:
+- Code commits: d5f619f (F1, F2), 8f9764a (F3, F4, F5), 6d59637 (F6, F7, F8), 2ff8607 (F9 to F12), 7a4c574 (F13).
+- Files touched: only `pwa/components/attendance/` (Attendance, AttendanceView, Hero, PresenceRing, SubjectBreakdown, skeletons, the stylesheet) and this mission folder. No locale, backend, shared component (segmented, panel, schedule, grades), `model.ts`, `useReducedMotion.ts` or `package.json` change.
+- Nothing from ASK.md was done. The known-differences file was not touched; its rows are in DIVERGENCES.md.
+- Testing: my own probe script, in /tmp outside the repo, reused the harness fixtures. It used one browser context at a time, sample data only, and no real account. Language and theme were set per test context through cookies, and every context was closed. No saved browser state was changed, so French / light is the state left behind.
