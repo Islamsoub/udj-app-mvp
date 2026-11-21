@@ -38,3 +38,15 @@ Commit 6d59637.
 - F8: the skeleton is the same card, with blocks for the title (21 + 14) and note (18.75), and 4 rows on the loaded `.subject` class (68.75 content). At 1280 and 800 the rows match the loaded single-line rows exactly (96.75 / 97.75 / 97.75 / 83.75), and the card's top is the same (360.94 at 1280). At 400 the loaded rows wrap to the names' lengths, so they are taller than the skeleton rows there.
 - No divergence row: the table-or-bars question is in ASK.md and untouched.
 - `npm run typecheck`: exit 0. `npm run build`: "✓ Compiled successfully", "✓ Generating static pages (12/12)", exit 0.
+
+## 2026-11-21 — Step 6, F9 to F12 (Builder)
+
+Commit 2ff8607.
+- F9: "Absences" is the same card as "Par matière". The head (h2 14/700 plus the compact filter) is one line, 40 tall, at 1280 and 400, FR and AR, with 14 to the list.
+- F10: 12 rows inside the card, a hairline between two, no own border or shadow. Hover is `--surface2` with radius 12. The text inset is 21 from the card edge (1 border + 20), and the row padding is 12px 10px inside a list pulled 10px into the card padding. The overflow this creates on the list wrappers is visible, not clipped (overflow: visible on the panel and the crossfade, checked). Rows are 64.25 / 65.25 at 1280; at 400 long names wrap (up to 130.25), with nothing clipped. Keyboard focus: `:focus-visible` 2px jade at -2px offset, so the ring sits inside the row and no hairline or neighbour covers it (checked by focusing a row). The hover lift and the 0.97 press are gone (a list row, as in the prototype).
+- Chips are unchanged; Design measured them at ≥4.58:1 light and ≥5.48:1 dark in milestone 2.
+- F11: the empty line is centred, 20 padding, no border; with no absences it sits inside the card. The count line is 14 below the list.
+- F12: skeleton card head 40 (title block 21 + strip 157×40); rows on the loaded `.absences` list (12px 10px padding plus a 40.25 block): 64.25 / 65.25 / 65.25, equal to the loaded single-line rows.
+- Removed the now-unused `.section`, `.sectionTitle`, `.skeletonHeading` and `.skeletonRows` rules.
+- No divergence row needed.
+- `npm run typecheck`: exit 0. `npm run build`: "✓ Compiled successfully", "✓ Generating static pages (12/12)", exit 0.
