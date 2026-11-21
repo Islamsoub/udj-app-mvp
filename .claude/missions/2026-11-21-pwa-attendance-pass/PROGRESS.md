@@ -29,3 +29,12 @@ Commit 8f9764a.
 - F5: the skeleton hero has the same box (radius 22, padding 22, ring 110) and one block per text line at its loaded height. Skeleton = loaded: 201.5 / 201.5 / 270.5 at 1280 / 800 / 400. At 400 that matches the sample data (sentence 2 lines, counts 3 lines). A student with no partial sessions has 2 count lines, so their hero is 18.75 shorter than the skeleton on a phone.
 - DIVERGENCES.md: row 1 narrowed to the panel labels. Two rows added: solid white hero text, and the band not coloured on the green.
 - `npm run typecheck`: exit 0. `npm run build`: "✓ Compiled successfully", "✓ Generating static pages (12/12)", exit 0.
+
+## 2026-11-21 — Step 5, F6 to F8 (Builder)
+
+Commit 6d59637.
+- F6: "Par matière" is one card: padding 20, radius 16, 1px `--hair`, `--shadow-card`. The h2 is 14/700 (21 tall) with exactly 14 below it; the threshold note stays inside the card.
+- F7: the 7 subjects are rows inside the card: padding 14 top and bottom, a hairline between them, no border, shadow or coloured outline. Rows are 96.75 / 97.75 / … / 83.75 at 1280, and taller at 400 where long names and flags wrap (up to 164.5). `scrollWidth > clientWidth` on no element in the card, at 1280 and 400, FR and AR. The ended-semester fixture shows no "Encore n" and no 0. The band stays on the bar, the figure and the flag with its icon, in the same colours as before.
+- F8: the skeleton is the same card, with blocks for the title (21 + 14) and note (18.75), and 4 rows on the loaded `.subject` class (68.75 content). At 1280 and 800 the rows match the loaded single-line rows exactly (96.75 / 97.75 / 97.75 / 83.75), and the card's top is the same (360.94 at 1280). At 400 the loaded rows wrap to the names' lengths, so they are taller than the skeleton rows there.
+- No divergence row: the table-or-bars question is in ASK.md and untouched.
+- `npm run typecheck`: exit 0. `npm run build`: "✓ Compiled successfully", "✓ Generating static pages (12/12)", exit 0.
