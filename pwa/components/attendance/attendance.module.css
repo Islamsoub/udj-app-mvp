@@ -101,9 +101,42 @@
   min-width: 0;
 }
 
+/*
+ * ONE HEIGHT PER WIDTH, WHATEVER THE DATA OR THE LANGUAGE.
+ *
+ * The skeleton cannot know the band, the sentence, whether there are partial
+ * sessions, or the language, so the hero is built to be the same height for all
+ * of them at a given width — otherwise the page moves when the data lands.
+ * Two things make that true:
+ *
+ * 1. Every text line has a fixed line-height in px, and what sits inside a line
+ *    (figures on the Latin face inside Arabic text) has line-height 1, so it
+ *    never pushes the line box taller. Arabic lines were 1-2px taller per line
+ *    from that mixing alone.
+ *
+ * 2. The two lines that wrap — the threshold sentence and the counts — reserve
+ *    the most lines they take at the width the text column has. The buckets
+ *    below are by the hero's content box (C); the text column is C less the
+ *    110 ring and its gap. Measured longest content, French: the "below"
+ *    sentence (bold) about 330px, the three counts about 353px in a row, the
+ *    longest single count about 140px.
+ *      C >= 514  (text >= 380): sentence 1 line,  counts 1 line
+ *      C >= 384  (text >= 250): sentence 2 lines, counts 2 lines
+ *      C >= 304  (text >= 170): sentence 2 lines, counts 3 lines
+ *      C <  304                : sentence 3 lines, counts 3 lines, and the
+                                label and the sessions line 2 lines each
+ *    A shorter sentence, or no partial sessions, leaves the rest of its
+ *    reserved height empty. The skeleton uses the same buckets on its own box,
+ *    which has the same padding and so the same C.
+ */
+.heroText p * {
+  line-height: 1;
+}
+
 /* .hj-label: 12.5 / 700, uppercase, 0.4px tracking. */
 .heroLabel {
   margin: 0;
+  line-height: 18.75px;
   font-size: 12.5px;
   font-weight: 700;
   letter-spacing: 0.4px;
@@ -132,6 +165,10 @@ html[lang="ar"] .heroLabel {
   gap: 2px;
 }
 
+.heroValue {
+  height: 47px;
+}
+
 .heroNumber {
   font-size: 44px;
   font-weight: 800;
@@ -147,14 +184,19 @@ html[lang="ar"] .heroLabel {
 .heroSessions {
   margin: 10px 0 0;
   font-size: 13px;
+  line-height: 19.5px;
 }
 
+/* Top-aligned, so a one-line sentence in a two-line reservation stays on the
+   first line; the icon is centred on that first line ((19.5 - 16) / 2). */
 .heroThreshold {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 6px;
+  min-height: 19.5px;
   margin: 8px 0 0;
   font-size: 13px;
+  line-height: 19.5px;
 }
 
 /* near, below and ended below: the same ink, said in bold and with the warning
@@ -169,17 +211,55 @@ html[lang="ar"] .heroLabel {
   flex-shrink: 0;
   width: 16px;
   height: 16px;
+  margin-top: 1.75px;
 }
 
 .heroCounts {
   display: flex;
   flex-wrap: wrap;
+  align-content: flex-start;
   gap: 6px 14px;
+  min-height: 18.75px;
   margin: 10px 0 0;
 }
 
 .heroCount {
   font-size: 12.5px;
+  line-height: 18.75px;
+}
+
+/* The reservations, by the hero's content box (see the note at .heroText).
+   Sentence: n x 19.5. Counts: n x 18.75 + (n - 1) x 6. */
+@container (width < 514px) {
+  .heroThreshold {
+    min-height: 39px;
+  }
+
+  .heroCounts {
+    min-height: 43.5px;
+  }
+}
+
+@container (width < 384px) {
+  .heroCounts {
+    min-height: 68.25px;
+  }
+}
+
+/* The narrowest phones (a 360px screen: text column 142): the label and the
+   sessions line wrap too. */
+@container (width < 304px) {
+  .heroLabel {
+    min-height: 37.5px;
+  }
+
+  .heroSessions {
+    min-height: 39px;
+  }
+
+  .heroThreshold {
+    min-height: 58.5px;
+  }
 }
 
 /* ── Presence ring (§5) ────────────────────────────────────────────────────── */
@@ -1260,6 +1340,7 @@ html[lang="ar"] .formLabel {
   align-items: center;
   gap: 24px;
   padding: 22px;
+  container-type: inline-size;
   border-radius: 22px;
   background: var(--surface);
   box-shadow: var(--shadow-card);
@@ -1274,10 +1355,11 @@ html[lang="ar"] .formLabel {
 
 /*
  * The loaded text column, line by line: label 18.75, figure 6 + 47, sessions
- * 10 + 19.5, threshold sentence 8 + 19.5, counts 10 + 18.75 — 157.5, so the
- * hero is 201.5 at 640 and wider. Below 640 the text column is 182px and, with
- * the sample data, the sentence takes two lines and the counts three; the
- * blocks take those heights there (270.5 in all).
+ * 10 + 19.5, threshold sentence 8 + 19.5 or more, counts 10 + 18.75 or more.
+ * The last two take the loaded hero's reservations, by the same container
+ * buckets on this box (see the note at .heroText), so the skeleton is the
+ * loaded hero's height at every width: 201.5 when the content box is 514 or
+ * wider, 245.75 down to 384, 270.5 down to 304, 328.25 under that.
  */
 .skeletonHeroText {
   display: flex;
@@ -1305,23 +1387,44 @@ html[lang="ar"] .formLabel {
 
 .skeletonHeroThreshold {
   width: 70%;
-  height: 19.5px;
+  min-height: 19.5px;
   margin-top: 8px;
 }
 
 .skeletonHeroCounts {
   width: 60%;
-  height: 18.75px;
+  min-height: 18.75px;
   margin-top: 10px;
 }
 
-@media (max-width: 639px) {
+/* The loaded hero's buckets (see .heroText), on the skeleton's own box. */
+@container (width < 514px) {
   .skeletonHeroThreshold {
-    height: 39px;
+    min-height: 39px;
   }
 
   .skeletonHeroCounts {
-    height: 68.25px;
+    min-height: 43.5px;
+  }
+}
+
+@container (width < 384px) {
+  .skeletonHeroCounts {
+    min-height: 68.25px;
+  }
+}
+
+@container (width < 304px) {
+  .skeletonHeroLabel {
+    min-height: 37.5px;
+  }
+
+  .skeletonHeroSessions {
+    min-height: 39px;
+  }
+
+  .skeletonHeroThreshold {
+    min-height: 58.5px;
   }
 }
 
