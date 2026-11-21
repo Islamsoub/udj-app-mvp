@@ -24,6 +24,43 @@ intentional difference from the prototype in .claude/design-known-divergences.md
 (pro…". This plan reads that as "(product owner, date)", the format the file
 already uses.
 
+## Revision r2, 2026-11-21 (Islam's command 61, the rest of the brief)
+This revision overrides anything below that disagrees with it.
+- **No screenshots for Islam.** He checks the result himself. Milestone 10 is dropped.
+  The harness still takes shots for measuring and QA, in the work folder. The "before"
+  set becomes optional: take it only if it helps the measuring.
+- **Restore afterwards.** Every agent who changes the language or the theme in the
+  browser puts them back to French and light before ending its turn. Fixtures only,
+  never a real 401, and never a real account.
+- **Chrome stop rule.** If Chrome freezes, or reports a 0×0 viewport, twice in a row:
+  stop browser work, finish what can be done in code, and list it under "Couldn't
+  check". Do not loop.
+- **QA (milestone 9).** Every panel and flow is opened, used and closed: the
+  justification panel in each sub-state, and the upload, the filter and the retry.
+  Each one closes with Escape and with the close button, and focus returns to the
+  element that opened it. Contrast numbers are given for every text colour changed.
+- **Divergence rows.** Islam asks for them in `.claude/design-known-divergences.md`
+  ("Product owner, 2026-11-21"). The guard still blocks every agent from that file, so
+  the rows go into DIVERGENCES.md, ready to paste. The Lead asks Islam to add them, or
+  to allow the edit.
+  - Nobody works around the guard.
+  - The Builder tries the edit once. If it is blocked, they report it and move on.
+- **Branch and PR.** Islam asks for `feature/pwa-attendance-pass`. The push helper only
+  accepts `agent/lead/*`, so the PR goes from `agent/lead/pwa-attendance-pass` into
+  `develop`, and is not merged. The Lead tells Islam why the name differs.
+- **The report (milestone 11)** follows Islam's format exactly:
+  - "Fixed": one line per fix, as a student sees it.
+  - "Needs your decision": at most 5, numbered. Each has the difference in one
+    sentence, 2 or 3 options, and a recommendation with its reason in one line.
+  - "Smaller decisions for later": one line each.
+  - "Couldn't check".
+  - "Details for review": commits, measurements and contrast.
+  - It uses plain English, with no code terms.
+- **Success check before the push:**
+  - typecheck is clean, and the PWA builds;
+  - no harness file is in the repo, and the work folder's `harness/` is deleted;
+  - language and theme are back to French / light.
+
 ## Standing decisions (Islam, command 60). Apply them; do not ask again
 Every entry in `.claude/design-known-divergences.md` stands. Never report anything
 listed there.
@@ -426,7 +463,8 @@ compile check.
 - Done when: every F id passes, and the verdict is recorded against the exact commit
   id. A fail goes back to the Builder with its F id and number.
 
-### 10. Screenshots (Design, after the pass)
+### 10. Screenshots: DROPPED in r2 (Islam: no screenshots needed)
+Kept below for the record only.
 - Goal: Islam's set in `shots/final/`, taken from the passed commit.
 - Paths: `.claude/missions/2026-11-21-pwa-attendance-pass/PROGRESS.md` only.
 - The set:
@@ -449,8 +487,11 @@ compile check.
   - Couldn't check;
   - Details for review.
 - Cleanup: delete the work folder's `harness/`. The shots and the inventory stay.
-- Done when: the report is sent, and the push request for
-  `agent/lead/pwa-attendance-pass` is filed.
+- Done when:
+  - the r2 success check passes;
+  - the report is sent in chat;
+  - the push request for `agent/lead/pwa-attendance-pass` into `develop` is filed, with
+    the report as its description.
 
 ## Flags
 - **Branch name.** Islam asked for `feature/pwa-attendance-pass`. The push helper only
