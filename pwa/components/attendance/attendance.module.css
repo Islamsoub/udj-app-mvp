@@ -13,17 +13,21 @@
    in JS, which is what §6 prescribes.
    ───────────────────────────────────────────────────────────────────────────── */
 
-.heading {
-  margin: 0 0 20px;
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  color: var(--ink);
-}
-
-/* Arabic: no tracking — see the note at .heroLabel. */
-html[lang="ar"] .heading {
-  letter-spacing: normal;
+/*
+ * The page's only h1, visually hidden (standing decision 1). The topbar already
+ * shows "Présence"; a second, visible title under it was a duplicate. Same rule
+ * as Planning's and Notes' .srOnly.
+ */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /*
@@ -1250,9 +1254,10 @@ html[lang="ar"] .formLabel {
   height: 20px;
 }
 
+/* The compact filter's footprint: 157 x 40 (a 3px track around 34px options). */
 .skeletonStrip {
-  width: 200px;
-  height: 44px;
+  width: 157px;
+  height: 40px;
   border-radius: 9999px;
 }
 

@@ -153,6 +153,7 @@ export function AttendanceView({
             onSelect={(id) => setFilter(id as Filter)}
             label={t('attendance.filter.label')}
             panelId={PANEL_ID}
+            size="compact"
           />
         </div>
 
