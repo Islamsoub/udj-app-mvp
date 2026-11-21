@@ -11,3 +11,10 @@ Done. No code changed; nothing from the harness is in git.
 - Prototype quirk: below 640 wide its "Par matière" card is empty (table hidden, cards never shown).
 - Milestone 8 (states): not needed, all six states render.
 - The browser never failed.
+
+## 2026-11-21 — Step 3, F1 and F2 (Builder)
+
+Commit d5f619f.
+- F1: one h1 ("Présence" / "الحضور"), 1×1 and clipped, at 1280, 800 and 400, FR and AR. The first block's top is at y 139.44 / 119.44 / 107.44 in both the loaded page and the skeleton (AR: 147.44 / 115.44, because the Arabic topbar is taller). The skeleton never held the title, so nothing jumps.
+- F2: the filter is `SegmentedControl size="compact"`: 157×40, options 34 (168×40 in AR), the same height as the schedule's compact strip. It is the shared component, so the tablist, arrow keys and `aria-controls` are unchanged. The skeleton strip block is 157×40.
+- `npm run typecheck`: exit 0. `npm run build`: "✓ Compiled successfully", "✓ Generating static pages (12/12)", exit 0.
