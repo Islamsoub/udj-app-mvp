@@ -19,35 +19,49 @@ export function AttendanceSkeleton() {
     <>
       <div className={styles.skeletonHero}>
         <Block className={styles.skeletonRing} />
+        {/* One block per line of the loaded hero text, at its height and
+            margin, so the skeleton and the loaded hero are one height. */}
         <div className={styles.skeletonHeroText}>
-          <Block className={styles.skeletonLineShort} />
-          <Block className={styles.skeletonLineHero} />
-          <Block className={styles.skeletonLineMedium} />
-          <Block className={styles.skeletonLineShort} />
+          <Block className={styles.skeletonHeroLabel} />
+          <Block className={styles.skeletonHeroFigure} />
+          <Block className={styles.skeletonHeroSessions} />
+          <Block className={styles.skeletonHeroThreshold} />
+          <Block className={styles.skeletonHeroCounts} />
         </div>
       </div>
 
-      <div className={styles.section}>
-        <Block className={styles.skeletonHeading} />
-        <div className={styles.skeletonRows}>
+      {/* The "Par matière" card: the same card, title and note heights, and
+          rows on the loaded rows' own class, so their padding and hairlines
+          are the loaded ones. */}
+      <div className={styles.card}>
+        <Block className={styles.skeletonCardTitle} />
+        <Block className={styles.skeletonNote} />
+        <div>
           {/* Four, not eight. The skeleton stands for "a list is coming", and a
               full-length one on a screen this tall is a wall of grey. */}
           {[0, 1, 2, 3].map((n) => (
-            <Block key={n} className={styles.skeletonSubject} />
+            <div key={n} className={styles.subject}>
+              <Block className={styles.skeletonSubject} />
+            </div>
           ))}
         </div>
       </div>
 
-      <div className={styles.section}>
+      {/* The "Absences" card: the loaded head (title and compact filter on
+          one line) and rows inside the loaded list's own classes, so the
+          inset and the hairlines are the loaded ones. */}
+      <div className={styles.card}>
         <div className={styles.absencesHead}>
-          <Block className={styles.skeletonHeading} />
+          <Block className={styles.skeletonCardTitleInline} />
           <Block className={styles.skeletonStrip} />
         </div>
-        <div className={styles.skeletonRows}>
+        <ul className={styles.absences}>
           {[0, 1, 2].map((n) => (
-            <Block key={n} className={styles.skeletonAbsence} />
+            <li key={n} className={styles.skeletonAbsenceRow}>
+              <Block className={styles.skeletonAbsence} />
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </>
   );
