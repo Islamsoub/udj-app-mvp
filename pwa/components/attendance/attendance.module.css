@@ -660,10 +660,13 @@ html[lang="ar"] .heroLabel {
   margin: 0;
 }
 
+/* The three panel labels (SÉANCE, JUSTIFICATIF, MOTIF, and the note's) are the
+   prototype's .dp-section-lbl: 11.5 / 700, uppercase, 0.5px tracking. The
+   colour stays --ink2 (see DIVERGENCES.md). */
 .panelDateLabel {
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   color: var(--ink2);
 }
@@ -743,9 +746,9 @@ html[lang="ar"] .panelDateLabel {
 
 .noteLabel {
   margin: 0 0 4px;
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   color: var(--ink2);
 }
@@ -828,9 +831,9 @@ html[lang="ar"] .noteLabel {
 
 .formLabel {
   margin: 8px 0 0;
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   color: var(--ink2);
 }
@@ -976,7 +979,8 @@ html[lang="ar"] .formLabel {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px;
+  /* The prototype's .btn-save: 46 tall. */
+  min-height: 46px;
   margin-top: 4px;
   padding-inline: 16px;
   border: 0;
