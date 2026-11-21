@@ -140,9 +140,9 @@ export function AttendanceView({
 
       <SubjectBreakdown subjects={subjects} threshold={threshold} />
 
-      <section className={styles.section}>
+      <section className={styles.card}>
         <div className={styles.absencesHead}>
-          <h2 className={styles.sectionTitle}>{t('attendance.absences.title')}</h2>
+          <h2 className={styles.cardTitle}>{t('attendance.absences.title')}</h2>
 
           <SegmentedControl
             options={[

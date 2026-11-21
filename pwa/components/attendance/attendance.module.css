@@ -235,22 +235,9 @@ html[lang="ar"] .heroLabel {
 
 /* ── Sections ──────────────────────────────────────────────────────────────── */
 
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-}
-
-.sectionTitle {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--ink);
-}
-
+/* The threshold note, right under the card title's 14px. */
 .sectionNote {
-  margin: -4px 0 0;
+  margin: 0;
   font-size: 12.5px;
   color: var(--ink2);
 }
@@ -276,11 +263,6 @@ html[lang="ar"] .heroLabel {
   font-size: 14px;
   font-weight: 700;
   color: var(--ink);
-}
-
-/* Inside the card the note follows the title's 14px directly. */
-.card > .sectionNote {
-  margin: 0;
 }
 
 /* ── Per-subject breakdown ─────────────────────────────────────────────────── */
@@ -473,12 +455,22 @@ html[lang="ar"] .heroLabel {
 
 /* ── Absence list ──────────────────────────────────────────────────────────── */
 
+/*
+ * The prototype's .card-head: the title and the compact filter on one line at
+ * every width (157px of switch fits a 352px phone card beside the title), 14px
+ * above the list. Never stacked: a head that went to two lines on a phone was
+ * the one thing in the card that changed shape.
+ */
 .absencesHead {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  margin-bottom: 14px;
+}
+
+.absencesHead .cardTitle {
+  margin: 0;
 }
 
 .absencesPanel:focus {
@@ -491,13 +483,20 @@ html[lang="ar"] .heroLabel {
   border-radius: var(--r-md);
 }
 
+/*
+ * Rows inside the card, as the prototype's .absence-row: a hairline between two,
+ * no border or shadow of their own. The list is pulled 10px out into the card's
+ * padding and each row padded 10px back in, so the text keeps the card's 20px
+ * inset while the hover tint has room around it.
+ */
 .absences {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin: 0;
+  margin: 0 -10px;
   padding: 0;
   list-style: none;
+}
+
+.absences > li + li {
+  border-top: 1px solid var(--hair);
 }
 
 .absence {
@@ -506,31 +505,22 @@ html[lang="ar"] .heroLabel {
   gap: 12px;
   width: 100%;
   min-height: 44px;
-  padding: 12px 14px;
-  border: 1px solid var(--hair);
+  padding: 12px 10px;
+  border: 0;
   border-radius: var(--r-md);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
+  background: none;
   color: inherit;
   font-family: inherit;
   text-align: start;
   cursor: pointer;
-  /* §3: clickable cards lift 1px on hover and deepen their shadow over
-     --dur-fast. */
-  transition: transform var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out),
-    background-color var(--dur-fast) var(--ease-out);
+  transition: background-color var(--dur-fast) var(--ease-out);
 }
 
+/* The prototype's row hover: --surface2 under the row, nothing moving. A row
+   in a list does not lift like a card, and a 0.97 press would shrink a
+   900px-wide row by 27px. */
 .absence:hover {
-  transform: translateY(-1px);
   background: var(--surface2);
-  box-shadow: var(--shadow-lg);
-}
-
-/* §3: on :active, buttons scale to 0.97 over --dur-instant. */
-.absence:active {
-  transform: scale(0.97);
 }
 
 .absenceIcon {
@@ -578,22 +568,23 @@ html[lang="ar"] .heroLabel {
   transform: scaleX(var(--chevron-flip, 1));
 }
 
+/* 14 under the list (decision 5), inside the card. */
 .absencesCount {
-  margin: 0;
+  margin: 14px 0 0;
   font-size: 11.5px;
   color: var(--ink2);
 }
 
 /* Both filtered views can be empty, and both are good news rather than a fault
-   — so this is plain text at the body colour, with no warning tone. */
+   — so this is plain text at the body colour, with no warning tone. Centred,
+   20px padding and no box of its own: it is already inside the card (the
+   prototype's empty line). */
 .filterEmpty {
   margin: 0;
   padding: 20px;
-  border: 1px solid var(--hair);
-  border-radius: var(--r-md);
-  background: var(--surface);
   font-size: 13px;
   line-height: 1.6;
+  text-align: center;
   color: var(--ink2);
 }
 
@@ -1330,10 +1321,6 @@ html[lang="ar"] .formLabel {
   }
 }
 
-.skeletonHeading {
-  width: 180px;
-  height: 20px;
-}
 
 /* The compact filter's footprint: 157 x 40 (a 3px track around 34px options). */
 .skeletonStrip {
@@ -1342,11 +1329,6 @@ html[lang="ar"] .formLabel {
   border-radius: 9999px;
 }
 
-.skeletonRows {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
 
 /* A card title's line box (14px text: 21) and its 14px below. */
 .skeletonCardTitle {
@@ -1367,9 +1349,21 @@ html[lang="ar"] .formLabel {
   height: 68.75px;
 }
 
+/* The title inside a card head: its line box, with the head's own margin. */
+.skeletonCardTitleInline {
+  width: 120px;
+  height: 21px;
+}
+
+/* An absence row: the loaded button's 12px 10px padding around its content —
+   the subject line and the date under it, 40.25 — so a row is 64.25 (65.25
+   with the hairline), as loaded. */
+.skeletonAbsenceRow {
+  padding: 12px 10px;
+}
+
 .skeletonAbsence {
-  height: 66px;
-  border-radius: var(--r-md);
+  height: 40.25px;
 }
 
 /* ── Responsive ────────────────────────────────────────────────────────────── */
@@ -1382,23 +1376,24 @@ html[lang="ar"] .formLabel {
   .skeletonHero {
     gap: 16px;
   }
-
-  .absencesHead {
-    align-items: stretch;
-    flex-direction: column;
-  }
 }
 
 /* ── Focus ring (§3, §10) ──────────────────────────────────────────────────── */
 
 /* 2px jade, 2px offset, :focus-visible only — never on a mouse click. */
 .dropZone:has(.fileInput:focus-visible),
-.absence:focus-visible,
 .retryButton:focus-visible,
 .document:focus-visible,
 .submit:focus-visible {
   outline: 2px solid var(--jade);
   outline-offset: 2px;
+}
+
+/* A row's ring sits inside its own box (2px in), so the hairlines and the
+   neighbouring rows never cover any of it. */
+.absence:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: -2px;
 }
 
 /* ── Reduced motion (§2) ───────────────────────────────────────────────────── */
@@ -1412,9 +1407,6 @@ html[lang="ar"] .formLabel {
  * nothing but the motion. The filter crossfade is Schedule's, and its own
  * stylesheet collapses it under the same query — one rule, one place.
  *
- * The hover LIFT goes too. A 1px translate over 100ms is not a shortened
- * animation, it is a twitch, and the background change carries the hover state
- * on its own.
  */
 @media (prefers-reduced-motion: reduce) {
   .ringFilling {
@@ -1450,11 +1442,6 @@ html[lang="ar"] .formLabel {
     transition-timing-function: linear;
   }
 
-  .absence:hover {
-    transform: none;
-  }
-
-  .absence:active,
   .retryButton:active,
   .document:active,
   .submit:active:not(:disabled) {

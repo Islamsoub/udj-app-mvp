@@ -47,16 +47,21 @@ export function AttendanceSkeleton() {
         </div>
       </div>
 
-      <div className={styles.section}>
+      {/* The "Absences" card: the loaded head (title and compact filter on
+          one line) and rows inside the loaded list's own classes, so the
+          inset and the hairlines are the loaded ones. */}
+      <div className={styles.card}>
         <div className={styles.absencesHead}>
-          <Block className={styles.skeletonHeading} />
+          <Block className={styles.skeletonCardTitleInline} />
           <Block className={styles.skeletonStrip} />
         </div>
-        <div className={styles.skeletonRows}>
+        <ul className={styles.absences}>
           {[0, 1, 2].map((n) => (
-            <Block key={n} className={styles.skeletonAbsence} />
+            <li key={n} className={styles.skeletonAbsenceRow}>
+              <Block className={styles.skeletonAbsence} />
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </>
   );
