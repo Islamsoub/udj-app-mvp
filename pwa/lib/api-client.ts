@@ -27,6 +27,7 @@ import type {
   NewsQuery,
   NotificationsResponse,
   PreferencesPayload,
+  SavedArticlesResponse,
   ScheduleResponse,
   StudentPreferences,
   UploadJustificationResponse,
@@ -430,6 +431,24 @@ export const getNews = (params: NewsQuery = {}) =>
 
 export const getNewsArticle = (id: string) =>
   apiFetch<NewsArticleDetail>(`/news/${encodeURIComponent(id)}`);
+
+/**
+ * The student's saved articles, newest first. NOT on the offline allow-list,
+ * deliberately: what a student reads is personal, and a lab machine's IndexedDB
+ * is shared by every student who signs in on it. Offline, this fails like any
+ * request, and the screen says a connection is needed.
+ */
+export const getSavedArticles = () => apiFetch<SavedArticlesResponse>('/student/saved-articles');
+
+/** Save one article. Resolves on the server's 204; idempotent. */
+export const saveArticle = (articleId: string) =>
+  apiFetch<null>(`/student/saved-articles/${encodeURIComponent(articleId)}`, { method: 'PUT' });
+
+/** Unsave one article. Resolves on the server's 204, even if it was not saved. */
+export const unsaveArticle = (articleId: string) =>
+  apiFetch<null>(`/student/saved-articles/${encodeURIComponent(articleId)}`, {
+    method: 'DELETE',
+  });
 
 /**
  * Uploads one justification document for an absence.

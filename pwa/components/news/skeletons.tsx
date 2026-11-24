@@ -13,10 +13,17 @@ const SKELETON_CARDS = 4;
 export function NewsSkeleton() {
   return (
     <>
-      <div className={styles.chips}>
-        <div className={`${styles.skeleton} ${styles.skeletonChip}`} />
-        <div className={`${styles.skeleton} ${styles.skeletonChip}`} />
-        <div className={`${styles.skeleton} ${styles.skeletonChip}`} />
+      {/* The loaded toolbar's own classes: pills on the start, the 38px search
+          on the end, the same 16px under it. */}
+      <div className={styles.toolbar}>
+        <div className={styles.chips}>
+          <div className={`${styles.skeleton} ${styles.skeletonChip}`} />
+          <div className={`${styles.skeleton} ${styles.skeletonChip}`} />
+          <div className={`${styles.skeleton} ${styles.skeletonChip}`} />
+        </div>
+        <div className={styles.search}>
+          <div className={`${styles.skeleton} ${styles.skeletonSearch}`} />
+        </div>
       </div>
 
       <ul className={styles.grid}>

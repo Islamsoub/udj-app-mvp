@@ -11,14 +11,19 @@ import { useSearchParams } from 'next/navigation';
 import { useReducedMotion } from '@/components/attendance/useReducedMotion';
 import { useCardData } from '@/components/dashboard/useCardData';
 import { StateLayers } from '@/components/grades/StateLayers';
+import { Toast } from '@/components/shell/Toast';
 import { useOnline } from '@/components/shell/useOnline';
 import type { NewsArticleSummary, NewsListResponse } from '@/lib/api-types';
 import { useI18n } from '@/lib/i18n';
 import { useExitBackstop } from '@/lib/useExitBackstop';
 import { ARTICLE_PARAM, articleHref, loadAllNews } from './model';
+
+/** The history-state key that counts this screen's reader entries (see `depth`). */
+const DEPTH_KEY = 'unipocketNewsDepth';
 import { NewsList } from './NewsList';
 import { Reader } from './Reader';
 import { NewsSkeleton } from './skeletons';
+import { useSavedArticles } from './useSavedArticles';
 import styles from './news.module.css';
 
 /**
@@ -66,7 +71,7 @@ function NewsFallback() {
   const { t } = useI18n();
   return (
     <>
-      <h1 className={styles.heading}>{t('news.heading')}</h1>
+      <h1 className={styles.srOnly}>{t('news.heading')}</h1>
       <div className={styles.screen} aria-hidden="true">
         <NewsSkeleton />
       </div>
@@ -80,7 +85,16 @@ function NewsScreen() {
   const reducedMotion = useReducedMotion();
 
   const state = useCardData<NewsListResponse>(loadAllNews, online);
-  const [category, setCategory] = useState('all');
+  /** "all", a category slug, or SAVED_FILTER — one pill pressed at a time. */
+  const [filter, setFilter] = useState('all');
+  const [query, setQuery] = useState('');
+
+  /*
+   * The saved ids, loaded once for this visit and shared by the list's
+   * "Enregistrés" pill and the reader's button (see useSavedArticles).
+   */
+  const saved = useSavedArticles(online);
+  const [toast, setToast] = useState<string | null>(null);
 
   const openId = useSearchParams().get(ARTICLE_PARAM);
 
@@ -111,16 +125,19 @@ function NewsScreen() {
   }
 
   /*
-   * Whether the reader's history entry is one this screen pushed. "Retour" then
-   * pops it, so Back and Retour are the same step and the history does not
-   * grow a list entry per article read. A reader reached from a shared link has
-   * no list entry beneath it to pop to — history.back() would leave the app —
-   * so it REPLACES its own entry with the list instead.
+   * How many reader entries THIS screen pushed below the current one, kept on
+   * the history entry itself (`history.state`), so it stays right through the
+   * browser's own Back and Forward. "Retour" pops one entry while there is one
+   * of ours below — so Back and Retour are the same step, from a related
+   * article back to the one that linked it, and from there to the list. A
+   * reader reached from a shared link has none of ours beneath it —
+   * history.back() would leave the app — so it REPLACES its own entry with the
+   * list instead. Next's router keeps keys it does not own on the state.
    */
-  const pushed = useRef(false);
-  useEffect(() => {
-    if (openId === null) pushed.current = false;
-  }, [openId]);
+  const depth = (): number => {
+    const value = (window.history.state as { [DEPTH_KEY]?: unknown } | null)?.[DEPTH_KEY];
+    return typeof value === 'number' ? value : 0;
+  };
 
   /** Scroll position and card to come back to when the reader closes. */
   const returnTo = useRef<{ scrollY: number; id: string } | null>(null);
@@ -133,14 +150,15 @@ function NewsScreen() {
     }
     event.preventDefault();
 
-    returnTo.current = { scrollY: window.scrollY, id: article.id };
-    pushed.current = true;
+    // From the list only: the place to come back to is the card that opened
+    // the first article, not a related one opened from inside the reader.
+    if (openId === null) returnTo.current = { scrollY: window.scrollY, id: article.id };
     // Next's router observes pushState, so useSearchParams re-renders with it.
-    window.history.pushState(null, '', articleHref(article.id));
+    window.history.pushState({ [DEPTH_KEY]: depth() + 1 }, '', articleHref(article.id));
   };
 
   const back = () => {
-    if (pushed.current) {
+    if (depth() > 0) {
       window.history.back();
     } else {
       window.history.replaceState(null, '', '/news');
@@ -191,10 +209,11 @@ function NewsScreen() {
       */}
       <div hidden={shownId !== null}>
         {/*
-          The page's h1. While the reader is open the article title is the h1
-          instead, and this one is hidden with the list.
+          The page's only h1, visually hidden, as on the other screens: the
+          topbar already shows "Actualités". While the reader is open the
+          article title is the h1 instead, and this one is hidden with the list.
         */}
-        <h1 className={styles.heading}>{t('news.heading')}</h1>
+        <h1 className={styles.srOnly}>{t('news.heading')}</h1>
 
         <div className={styles.screen}>
           <StateLayers loading={state.phase === 'loading'} skeleton={<NewsSkeleton />}>
@@ -212,8 +231,12 @@ function NewsScreen() {
               ) : (
                 <NewsList
                   articles={state.data.articles}
-                  category={category}
-                  onCategory={setCategory}
+                  filter={filter}
+                  onFilter={setFilter}
+                  query={query}
+                  onQuery={setQuery}
+                  saved={saved}
+                  online={online}
                   onOpen={open}
                 />
               ))}
@@ -248,13 +271,20 @@ function NewsScreen() {
             key={shownId}
             id={shownId}
             summary={summary}
+            articles={state.phase === 'ready' ? state.data.articles : []}
+            saved={saved}
             leaving={leaving}
             animate={!reducedMotion}
             onBack={back}
             onExited={exited}
+            onOpen={open}
+            onMessage={setToast}
           />
         </div>
       )}
+
+      {/* "Lien copié", and a failed save or unsave. */}
+      <Toast message={toast} onDone={() => setToast(null)} />
     </>
   );
 }

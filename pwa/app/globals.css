@@ -265,6 +265,13 @@
   --hero-dot-ok: #7DF3C4;
   --hero-dot-near: #FFD166;
   --hero-dot-below: #FFA39B;
+  /* The news reader's source pill ("UDJ · Université de Djibouti"), drawn over
+     the article's photograph (prototype .reader-source-pill). The same in both
+     themes: it sits on the picture, not on a surface. Its ink on its own
+     background over the darkest possible photo (black, so #D9D9D9) is 11.3:1,
+     and higher over anything lighter. */
+  --source-pill-bg: rgba(255, 255, 255, .85);
+  --source-pill-ink: #1E231F;
   --shadow-hero: 0 14px 30px rgba(15, 110, 86, .30);
   /* Mention dots on the badge (prototype-v1 MENTIONS). Decorative: the mention
      is always written beside its dot, so these carry no information alone. */
@@ -364,6 +371,13 @@
   --hero-dot-ok: #7DF3C4;
   --hero-dot-near: #FFD166;
   --hero-dot-below: #FFA39B;
+  /* The news reader's source pill ("UDJ · Université de Djibouti"), drawn over
+     the article's photograph (prototype .reader-source-pill). The same in both
+     themes: it sits on the picture, not on a surface. Its ink on its own
+     background over the darkest possible photo (black, so #D9D9D9) is 11.3:1,
+     and higher over anything lighter. */
+  --source-pill-bg: rgba(255, 255, 255, .85);
+  --source-pill-ink: #1E231F;
   --shadow-hero: 0 14px 30px rgba(15, 110, 86, .30);
   --mention-tres-bien: #7DF3C4;
   --mention-bien: #9CC7F5;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ImageIcon } from './icons';
 import styles from './news.module.css';
 
@@ -30,12 +30,15 @@ export function HeroImage({
   src,
   className,
   eager = false,
+  children,
 }: {
   src: string | null;
   className?: string;
   /** The reader's image is the point of the view; list images below the fold
    *  are lazy so a long list does not spend the connection on them first. */
   eager?: boolean;
+  /** Drawn over the image (the reader's source pill), whatever its phase. */
+  children?: ReactNode;
 }) {
   const [phase, setPhase] = useState<Phase>(src === null ? 'failed' : 'loading');
   const imgRef = useRef<HTMLImageElement | null>(null);
@@ -72,6 +75,7 @@ export function HeroImage({
           onError={() => setPhase('failed')}
         />
       )}
+      {children}
     </div>
   );
 }

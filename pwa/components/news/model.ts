@@ -1,5 +1,6 @@
 import { getNews } from '@/lib/api-client';
 import type { NewsArticleSummary, NewsListResponse } from '@/lib/api-types';
+import type { Lang } from '@/lib/i18n-shared';
 import type { TranslationKey } from '@/lib/i18n-types';
 
 /**
@@ -73,6 +74,87 @@ export function categoryChips(articles: NewsArticleSummary[], selected: string):
  */
 export function filterArticles(articles: NewsArticleSummary[], category: string): NewsArticleSummary[] {
   return category === 'all' ? articles : articles.filter((a) => a.category === category);
+}
+
+/**
+ * The "Enregistrés" pill's id in the same filter as the category slugs. Not a
+ * slug any article can have: categories are lowercase words from the admin
+ * portal, and this one is reserved here.
+ */
+export const SAVED_FILTER = '__saved';
+
+/**
+ * A title or a query, folded for comparison: accents and other combining marks
+ * removed (é → e, and in Arabic the short vowels and the hamza or madda on an
+ * alef, so أ إ آ match ا), then lower-cased in the active language. Both sides
+ * go through this, so "Évènement", "evenement" and "ÉVÈNEMENT" all meet.
+ *
+ * Two Arabic letters are also folded, because students type them both ways:
+ * ة (ta marbuta) as ه, and ى (alef maqsura) as ي — "المكتبه" finds "المكتبة".
+ */
+export function foldForSearch(text: string, lang: Lang): string {
+  return text
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .toLocaleLowerCase(lang)
+    .trim();
+}
+
+/** The title in the active language — the one the card shows and search reads. */
+export function articleTitle(article: NewsArticleSummary, lang: Lang): string {
+  return lang === 'ar' ? article.titleAr : article.titleFr;
+}
+
+/**
+ * What the list shows: the selected pill, then the search on top of it.
+ *
+ *   • a category slug, or "all" — as filterArticles, newest published first;
+ *   • SAVED_FILTER — the saved articles, newest SAVE first (the server's
+ *     order). A saved id with no article in the loaded list (withdrawn since,
+ *     or rescheduled) is skipped: there is nothing to draw for it.
+ *
+ * The search is a substring of the title in the active language, folded on
+ * both sides (foldForSearch). It covers every published article: the list is
+ * loaded whole (loadAllNews), not a page of it.
+ */
+export function visibleArticles(
+  articles: NewsArticleSummary[],
+  { filter, savedIds, query, lang }: { filter: string; savedIds: string[]; query: string; lang: Lang }
+): NewsArticleSummary[] {
+  let shown: NewsArticleSummary[];
+  if (filter === SAVED_FILTER) {
+    const byId = new Map(articles.map((a) => [a.id, a]));
+    shown = savedIds.flatMap((id) => {
+      const article = byId.get(id);
+      return article === undefined ? [] : [article];
+    });
+  } else {
+    shown = filterArticles(articles, filter);
+  }
+
+  const needle = foldForSearch(query, lang);
+  if (needle === '') return shown;
+  return shown.filter((a) => foldForSearch(articleTitle(a, lang), lang).includes(needle));
+}
+
+/**
+ * "Articles similaires": `count` other articles, the same category first, then
+ * the rest, each group newest first. Newest by publishedAt rather than by list
+ * position, so it holds whatever order the caller's list is in.
+ */
+export function relatedArticles(
+  articles: NewsArticleSummary[],
+  current: { id: string; category: string },
+  count = 2
+): NewsArticleSummary[] {
+  const newest = (a: NewsArticleSummary, b: NewsArticleSummary) =>
+    Date.parse(b.publishedAt) - Date.parse(a.publishedAt);
+  const others = articles.filter((a) => a.id !== current.id);
+  const same = others.filter((a) => a.category === current.category).sort(newest);
+  const rest = others.filter((a) => a.category !== current.category).sort(newest);
+  return [...same, ...rest].slice(0, count);
 }
 
 /**
