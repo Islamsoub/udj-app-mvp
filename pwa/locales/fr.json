@@ -512,13 +512,15 @@
   },
   "news": {
     "heading": "Actualités",
-    "date": "{{day}} {{month}} {{year}}",
-    "read_time": "{{count}} min de lecture",
+    "date": "{{day}} {{month}}",
+    "date_year": "{{day}} {{month}} {{year}}",
+    "read_time": "{{count}} min",
     "urgent": "Urgent",
     "count": "Articles affichés : {{shown}} sur {{total}}",
     "filter": {
       "label": "Filtrer par catégorie",
-      "all": "Tout"
+      "all": "Tout",
+      "saved": "Enregistrés"
     },
     "category": {
       "official": "Officiel",
@@ -551,7 +553,27 @@
       "not_found": {
         "title": "Article introuvable",
         "body": "Cet article n'existe pas ou a été retiré. Revenez à la liste des actualités."
-      }
+      },
+      "save": "Enregistrer",
+      "share": "Partager",
+      "offline_save": "Connexion requise",
+      "save_failed": "L'article n'a pas pu être enregistré. Réessayez.",
+      "unsave_failed": "L'article n'a pas pu être retiré. Réessayez.",
+      "link_copied": "Lien copié",
+      "copy_failed": "Le lien n'a pas pu être copié.",
+      "source": "UDJ · Université de Djibouti",
+      "related": "Articles similaires"
+    },
+    "search": {
+      "placeholder": "Rechercher…",
+      "label": "Rechercher un article par son titre",
+      "none": "Aucun article."
+    },
+    "saved": {
+      "none": "Aucun article enregistré.",
+      "offline": "Connexion requise pour afficher vos articles enregistrés.",
+      "loading": "Chargement de vos articles enregistrés…",
+      "error": "Impossible de charger vos articles enregistrés."
     }
   },
   "profile": {

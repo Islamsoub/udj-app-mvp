@@ -294,6 +294,20 @@ export interface NewsArticleDetail extends NewsArticleSummary {
   updatedAt: string;
 }
 
+// ── /student/saved-articles ───────────────────────────────────────────────────
+
+/** One saved article: its id (the article data comes from /news) and when the
+ *  student saved it. */
+export interface SavedArticle {
+  articleId: string;
+  createdAt: string;
+}
+
+/** GET /student/saved-articles — the student's saves, newest first. */
+export interface SavedArticlesResponse {
+  savedArticles: SavedArticle[];
+}
+
 export interface NewsQuery {
   category?: string;
   limit?: number;

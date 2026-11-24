@@ -3,7 +3,7 @@
    reader view.
 
    Every colour, radius, shadow, duration and easing is a token from
-   app/globals.css. No new ones.
+   app/globals.css.
 
    Logical properties only: no `left`/`right`, no `[dir="rtl"]` selector. The
    two things a logical property cannot express — which way the reader slides
@@ -11,20 +11,21 @@
    render time through a custom property set in JS, as §6 prescribes.
    ───────────────────────────────────────────────────────────────────────────── */
 
-.heading {
-  margin: 0 0 20px;
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  color: var(--ink);
-}
-
-/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
-   because mirroring belongs to logical properties; letter-spacing belongs to
-   the script. Arabic letters join, and tracking pulls them apart in either
-   direction. This is not a breach of that rule, so do not remove it as one. */
-html[lang="ar"] .heading {
-  letter-spacing: normal;
+/*
+ * The page's only h1, visually hidden: the topbar already shows "Actualités",
+ * and a second visible title under it was a duplicate. Same rule as Planning's,
+ * Notes' and Présence's .srOnly.
+ */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /*
@@ -36,13 +37,93 @@ html[lang="ar"] .heading {
   display: grid;
 }
 
-/* ── Category chips (§9: instant colour swap, not a sliding pill) ──────────── */
+/* ── Toolbar: pills and search (prototype .news-toolbar) ──────────────────── */
 
+/*
+ * .news-toolbar: one row, the pills on the start and the search on the end,
+ * 12px apart. It wraps when the two do not fit: on a phone the search goes
+ * under the pills, full width. The space under it is the list layer's 20px gap
+ * (StateLayers), where Design has 16 to its segmented row and 18 below that.
+ */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/*
+ * .chip-row: 8px gaps. Wrapping, where Design's row scrolls sideways
+ * (overflow-x: auto): a scroll container would clip each pill's 44px target
+ * and its focus ring, and hide pills off the edge with nothing to say so.
+ */
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
+
+/* .search-wrap: the glyph at the start, 12px in, 15px, --ink3 (non-text). */
+.search {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  inset-inline-start: 12px;
+  width: 15px;
+  height: 15px;
+  color: var(--ink3);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* The input: 38px, full radius, 1px --hair2 on --surface, 220 wide, 13px,
+   36px of start padding for the glyph and 14 at the end. */
+.searchInput {
+  width: 220px;
+  height: 38px;
+  padding-inline: 36px 14px;
+  border: 1px solid var(--hair2);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 13px;
+  appearance: none;
+}
+
+/* --ink2, not the UA's grey: the placeholder is the field's only label on
+   screen, so it is text (CLAUDE.md: --ink3 is for non-text). */
+.searchInput::placeholder {
+  color: var(--ink2);
+  opacity: 1;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--jade);
+}
+
+.searchInput:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
+@media (max-width: 639px) {
+  .search {
+    flex: 1 1 100%;
+  }
+
+  .searchInput {
+    width: 100%;
+  }
+}
+
+/* ── Category chips (§9: instant colour swap, not a sliding pill) ──────────── */
 
 /*
  * NO TRANSITION, on purpose and on every property: §9's "instant color swap".
@@ -87,6 +168,19 @@ html[lang="ar"] .heading {
 .chip:focus-visible {
   outline: 2px solid var(--jade);
   outline-offset: 2px;
+}
+
+/* "Enregistrés": the same pill with a 13px bookmark before the word. */
+.chipSaved {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chipIcon {
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
 }
 
 /* ── Article grid and cards ────────────────────────────────────────────────── */
@@ -155,6 +249,28 @@ html[lang="ar"] .heading {
   font-weight: 700;
   line-height: 1.4;
   color: var(--ink);
+}
+
+/* The prototype's empty line: centred, 13px, 30px above and below, no box
+   ("Aucun article.", "Aucun article enregistré."). --ink2, not --ink3: text. */
+.emptyLine {
+  margin: 0;
+  padding: 30px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+  color: var(--ink2);
+}
+
+.emptyLineBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 30px;
+}
+
+.emptyLineBox .emptyLine {
+  padding-bottom: 12px;
 }
 
 .count {
@@ -300,11 +416,11 @@ html[lang="ar"] .heading {
   overflow-x: clip;
 }
 
+/* Full content width, as the prototype's reader: the picture spans it; the
+   text keeps its own measure (.readerParagraph). */
 .reader {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  max-width: 720px;
 }
 
 .reader:focus {
@@ -337,6 +453,95 @@ html[lang="ar"] .heading {
   }
 }
 
+/* .reader-top: "Retour" on the start, the actions on the end, 16px above the
+   picture. */
+.readerTop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* .reader-actions: the two 38px buttons, 8px apart. */
+.readerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* "Connexion requise", beside the disabled save button. */
+.readerHint {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+}
+
+/*
+ * .icon-btn: 38px, round, --surface2 and --ink2, an 18px glyph; hover
+ * --jade-faint and --jade-text. Saved, the bookmark is filled (its shape says
+ * it, §10) and in --jade-text.
+ */
+.iconButton {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: none;
+  border-radius: 9999px;
+  background: var(--surface2);
+  color: var(--ink2);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    transform var(--dur-instant) var(--ease-out);
+}
+
+/* 38px button, 44px target. */
+.iconButton::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+}
+
+.iconButton:hover:not(:disabled) {
+  background: var(--jade-faint);
+  color: var(--jade-text);
+}
+
+.iconButton:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
+.iconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.iconButton[aria-busy="true"] {
+  cursor: progress;
+}
+
+.iconButtonOn {
+  color: var(--jade-text);
+}
+
+.iconButtonGlyph {
+  width: 18px;
+  height: 18px;
+}
+
 .back {
   position: relative;
   display: inline-flex;
@@ -344,7 +549,7 @@ html[lang="ar"] .heading {
   align-items: center;
   gap: 6px;
   height: 36px;
-  padding-inline: 12px 16px;
+  padding-inline: 14px;
   border: none;
   border-radius: 9999px;
   background: var(--surface2);
@@ -387,19 +592,62 @@ html[lang="ar"] .heading {
   transform: scaleX(var(--slide-dir, 1));
 }
 
+/* The prototype's spacing: picture, 20, the category pill, 10, the title, 8,
+   the date line, 20, the text. */
 .readerHead {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: flex-start;
 }
 
+/*
+ * .reader-hero-img: the content's full width, --r-lg, 20px above the article.
+ * Design's 260px at desktop width (a 944px content box at 1280), the same
+ * proportion below that, never under 160px on a phone.
+ */
 .readerHero {
-  aspect-ratio: 2 / 1;
+  width: 100%;
+  aspect-ratio: 944 / 260;
+  min-height: 160px;
+  max-height: 260px;
+  margin-bottom: 20px;
   border-radius: var(--r-lg);
 }
 
+/* .reader-source-pill, at the picture's bottom start corner, 16px in
+   (Design's padding: 16 with align-items: flex-end). Over a photograph, so the
+   same in both themes; ratio with the tokens in globals.css. */
+.sourcePill {
+  position: absolute;
+  z-index: 1;
+  inset-block-end: 16px;
+  inset-inline-start: 16px;
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: var(--source-pill-bg);
+  color: var(--source-pill-ink);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.readerHead .tags {
+  margin-bottom: 10px;
+}
+
+/* The date line in the reader: .reader-body .meta, 13px, 20 above the text. */
+.readerMeta {
+  display: block;
+  margin-bottom: 20px;
+}
+
+.readerMeta .meta {
+  font-size: 13px;
+}
+
 .readerTitle {
-  margin: 0;
+  margin: 0 0 8px;
   font-size: 24px;
   font-weight: 800;
   line-height: 1.3;
@@ -420,12 +668,109 @@ html[lang="ar"] .readerTitle {
 
 .readerParagraph {
   margin: 0;
-  max-width: 65ch;
+  /* .reader-body p: 640px. */
+  max-width: 640px;
   font-size: 15px;
   line-height: 1.7;
   color: var(--ink);
   /* Single line breaks inside a paragraph are the author's; keep them. */
   white-space: pre-line;
+}
+
+/* ── Articles similaires (prototype .related-lbl, .article-card2) ──────────── */
+
+/* .related-lbl: 11.5 / 700, uppercase, 0.5px tracking, 28 above and 12 below.
+   --ink2, not --ink3: a heading is text. */
+.relatedLabel {
+  margin: 28px 0 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--ink2);
+}
+
+html[lang="ar"] .relatedLabel {
+  letter-spacing: normal;
+}
+
+/* The prototype's .news-grid: one column, two from 640px, 16px gaps. */
+.relatedGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 640px) {
+  .relatedGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* .article-card2: a 56px thumbnail and the text, 12 apart, 14 of padding,
+   --r-lg on --surface with --shadow-card. Lifts like the list's cards. */
+.relatedCard {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.relatedCard:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.relatedCard:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
+/* .thumb: 56px, --r-md, the stripe when there is no picture. */
+.relatedThumb {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-md);
+}
+
+.relatedThumb .heroFallbackIcon {
+  width: 20px;
+  height: 20px;
+}
+
+.relatedRight {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+/* .ac-title: 14.5 / 700, line-height 1.35, 6 under the pill. */
+.relatedTitle {
+  margin-top: 6px;
+  font-size: 14.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+/* .ac-bottom: the date line, 8 under the title. */
+.relatedRight .meta {
+  margin-top: 8px;
 }
 
 /* ── Empty, error and offline states ───────────────────────────────────────── */
@@ -521,6 +866,19 @@ html[lang="ar"] .readerTitle {
   border-radius: 9999px;
 }
 
+/* The search field's footprint: 220 x 38, full width on a phone. */
+.skeletonSearch {
+  width: 220px;
+  height: 38px;
+  border-radius: 9999px;
+}
+
+@media (max-width: 639px) {
+  .skeletonSearch {
+    width: 100%;
+  }
+}
+
 .skeletonPill {
   width: 72px;
   height: 20px;
@@ -576,18 +934,22 @@ html[lang="ar"] .readerTitle {
   }
 
   .card,
+  .relatedCard,
   .back,
+  .iconButton,
   .retryButton,
   .heroImg {
     transition-duration: var(--dur-instant);
     transition-timing-function: linear;
   }
 
-  .card:hover {
+  .card:hover,
+  .relatedCard:hover {
     transform: none;
   }
 
   .back:active,
+  .iconButton:active,
   .retryButton:active {
     transform: none;
   }

@@ -71,6 +71,27 @@ function isCourseNoteDelete(segments: string[]): boolean {
 }
 
 /**
+ * The saved-article target, the only shape PUT may reach and the second one
+ * DELETE may: `student/saved-articles/{uuid}` (save / unsave one article).
+ * GET student/saved-articles needs no rule: GET reaches every student/* path.
+ * Exact, with the article id matched as a UUID, as the course-note rules.
+ */
+function isSavedArticle(segments: string[]): boolean {
+  return (
+    segments.length === 3 &&
+    segments[0] === 'student' &&
+    segments[1] === 'saved-articles' &&
+    UUID.test(segments[2])
+  );
+}
+
+/**
+ * A save's body is at most `{ "createdAt": "<ISO date>" }`, and the PWA sends
+ * none. Anything near this size is not a save.
+ */
+const MAX_SAVE_JSON_BYTES = 1024;
+
+/**
  * A note is at most 2000 characters (the backend's limit). At 4 bytes for the
  * widest UTF-8 character plus JSON escaping and the other three fields, a
  * legitimate body stays well under this; anything larger is refused before it
@@ -163,7 +184,8 @@ export async function PATCH(req: Request, context: Context) {
 }
 
 /**
- * DELETE /api/backend/student/course-notes/{uuid} — the only DELETE.
+ * DELETE /api/backend/student/course-notes/{uuid} and
+ * DELETE /api/backend/student/saved-articles/{uuid} — the only two DELETEs.
  *
  * The same chain as the other verbs: the root allow-list and segment check in
  * upstreamPath, then an exact target, then a Bearer token, then `forward` (55s
@@ -173,10 +195,30 @@ export async function PATCH(req: Request, context: Context) {
 export async function DELETE(req: Request, context: Context) {
   const { path } = await context.params;
   const target = upstreamPath(path, new URL(req.url).search);
-  if (!target || !path || !isCourseNoteDelete(path)) {
+  if (!target || !path || !(isCourseNoteDelete(path) || isSavedArticle(path))) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
   return forward(req, context);
+}
+
+/**
+ * PUT /api/backend/student/saved-articles/{uuid} — the only PUT: save one
+ * article (204, idempotent). Same chain as DELETE. The optional JSON body
+ * (`createdAt`) is forwarded as received, after a size check; an empty body is
+ * forwarded as none.
+ */
+export async function PUT(req: Request, context: Context) {
+  const { path } = await context.params;
+  const target = upstreamPath(path, new URL(req.url).search);
+  if (!target || !path || !isSavedArticle(path)) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
+
+  const body = await req.text();
+  if (new TextEncoder().encode(body).byteLength > MAX_SAVE_JSON_BYTES) {
+    return NextResponse.json({ error: 'Payload too large' }, { status: 413 });
+  }
+  return forward(req, context, body === '' ? undefined : body);
 }
 
 /**
