@@ -115,6 +115,7 @@ model Student {
   refreshTokens       RefreshToken[]
   pushTokens          PushToken[]
   courseNotes         CourseNote[]
+  savedArticles       SavedArticle[]
 
   @@index([programmeId])
   @@map("students")
@@ -256,6 +257,7 @@ model NewsArticle {
   publishedAt     DateTime @map("published_at")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
+  savedBy         SavedArticle[]
 
   @@index([publishedAt])
   @@map("news_articles")
@@ -332,6 +334,21 @@ model CourseNote {
 
   @@index([studentId, subjectId, dayOfWeek])
   @@map("course_notes")
+}
+
+// A news article a student saved ("Enregistrer"), shared by the app and the
+// PWA. One row per (student, article): saving twice is the same row. Both
+// sides cascade, so deleting a student or an article removes its saves.
+model SavedArticle {
+  studentId String      @map("student_id")
+  articleId String      @map("article_id")
+  createdAt DateTime    @default(now()) @map("created_at")
+  student   Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  article   NewsArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, articleId])
+  @@index([studentId, createdAt])
+  @@map("saved_articles")
 }
 
 // ─── Admin Portal ────────────────────────────────────────────────────────────
