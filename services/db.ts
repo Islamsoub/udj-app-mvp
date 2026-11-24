@@ -16,6 +16,11 @@ import type {
   NewsCategory,
 } from './api';
 import { COURSE_NOTES_MIGRATIONS, type SqlDb } from './courseNotesStore';
+import {
+  SAVED_ARTICLES_SCHEMA_VERSION,
+  SAVED_ARTICLES_TABLE,
+  SEED_LEGACY_SAVES,
+} from './savedArticlesStore';
 
 const DB_NAME = 'udj.db';
 const ENC_TMP_NAME = 'udj_enc.db';
@@ -415,6 +420,34 @@ export async function runMigrations(): Promise<void> {
   // notifications: title_ar, body_ar
   await addColumnSafe(db, "ALTER TABLE notifications ADD COLUMN title_ar TEXT NOT NULL DEFAULT ''");
   await addColumnSafe(db, "ALTER TABLE notifications ADD COLUMN body_ar TEXT NOT NULL DEFAULT ''");
+
+  // saved_articles: a NEW table (no existing CREATE TABLE is edited) for the
+  // student's saved news articles, server-backed, with the one-time upload of
+  // the saves made on the phone before (services/savedArticlesStore.ts).
+  await db.execAsync(SAVED_ARTICLES_TABLE);
+
+  // Versioned steps that must run exactly once, tracked in schema_version.
+  // v1: copy the legacy saves (news_cache.bookmarked = 1) into saved_articles
+  // as pending. Once only: from here on bookmarked is derived from
+  // saved_articles, and copying it again would turn server copies into
+  // pending saves.
+  const version = await schemaVersion(db);
+  if (version < SAVED_ARTICLES_SCHEMA_VERSION) {
+    await db.withTransactionAsync(async () => {
+      await db.execAsync(SEED_LEGACY_SAVES);
+      await db.runAsync('INSERT INTO schema_version (version) VALUES (?)', [
+        SAVED_ARTICLES_SCHEMA_VERSION,
+      ]);
+    });
+  }
+}
+
+/** The highest version recorded in schema_version, 0 when none is. */
+async function schemaVersion(db: SQLite.SQLiteDatabase): Promise<number> {
+  const row = await db.getFirstAsync<{ v: number | null }>(
+    'SELECT MAX(version) AS v FROM schema_version',
+  );
+  return row?.v ?? 0;
 }
 
 // --- Read helpers ---
@@ -511,22 +544,9 @@ export async function getSavedArticles(limit: number): Promise<NewsItem[]> {
   return rows.map(rowToNews);
 }
 
-export async function toggleNewsBookmark(id: string, bookmarked: boolean): Promise<void> {
-  const db = await getDb();
-  await db.runAsync(
-    'UPDATE news_cache SET bookmarked = ? WHERE id = ?',
-    [bookmarked ? 1 : 0, id],
-  );
-}
-
-export async function isArticleBookmarked(id: string): Promise<boolean> {
-  const db = await getDb();
-  const row = await db.getFirstAsync<{ bookmarked: number }>(
-    'SELECT bookmarked FROM news_cache WHERE id = ?',
-    [id],
-  );
-  return (row?.bookmarked ?? 0) === 1;
-}
+// Saving an article is no longer a local write: it goes through the server
+// (services/savedArticles.ts), and news_cache.bookmarked is a display flag
+// derived from the saved_articles table (refreshBookmarkFlags).
 
 export async function getStudentProfile(): Promise<StudentProfileCache | null> {
   const db = await getDb();
@@ -576,6 +596,11 @@ export async function getCachedNotifications(): Promise<CachedNotification[]> {
 
 /** The encrypted connection, for services/courseNotesStore.ts. */
 export async function getCourseNotesDb(): Promise<SqlDb> {
+  return getDb();
+}
+
+/** The same connection, for services/savedArticlesStore.ts. */
+export async function getSavedArticlesDb(): Promise<SqlDb> {
   return getDb();
 }
 

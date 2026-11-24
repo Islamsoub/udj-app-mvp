@@ -23,7 +23,10 @@ import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { getNewsArticle, NewsItem } from '@/services/api';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { isValidUUID } from '@/utils/validate';
-import { getCachedArticle, upsertArticle, toggleNewsBookmark } from '@/services/db';
+import { getCachedArticle, upsertArticle } from '@/services/db';
+import { refreshSavedFlags, setArticleSaved, syncSavedFromServer } from '@/services/savedArticles';
+import { useNetworkStore } from '@/stores/networkStore';
+import { showShortMessage } from '@/utils/shortMessage';
 import { mapArticleDetailToCache } from '@/services/cacheMappers';
 import { localTitle, localBody } from '@/utils/i18nName';
 import type { ArticleCategory } from '@/components/news/ArticleCard';
@@ -266,23 +269,38 @@ function OfflineEmptyBody() {
 interface BottomBarProps {
   bottomInset: number;
   isBookmarked: boolean;
+  /** Offline: the saved state is shown, but cannot be changed. */
+  canSave: boolean;
+  busy: boolean;
   onBookmark: () => void;
   onShare: () => void;
 }
 
-function BottomBar({ bottomInset, isBookmarked, onBookmark, onShare }: BottomBarProps) {
+function BottomBar({ bottomInset, isBookmarked, canSave, busy, onBookmark, onShare }: BottomBarProps) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
+  const label = t(isBookmarked ? 'news.saving.unsave' : 'news.saving.save');
   return (
     <View style={[styles.bottomBar, { paddingBottom: bottomInset + 8 }]}>
-      <PressBox tier="icon" style={styles.bookmarkBtn} onPress={onBookmark} hitSlop={8}>
+      <PressBox
+        tier="icon"
+        style={styles.bookmarkBtn}
+        onPress={onBookmark}
+        hitSlop={8}
+        disabled={!canSave || busy}
+        accessibilityRole="button"
+        accessibilityLabel={canSave ? label : `${label} — ${t('news.saving.offline_save')}`}
+        accessibilityState={{ selected: isBookmarked, disabled: !canSave || busy, busy }}
+      >
         <Ionicons
           name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
           size={24}
           color={isBookmarked ? colors.jade400 : colors.textPrimary}
+          style={!canSave ? styles.bookmarkOffline : undefined}
         />
       </PressBox>
+      {!canSave && <Text style={styles.offlineSave}>{t('news.saving.offline_save')}</Text>}
       <PressBox tier="button" style={styles.shareBtn} onPress={onShare}>
         <Ionicons name="share-social-outline" size={18} color={colors.surface} />
         <Text style={styles.shareBtnText}>{t('article.share')}</Text>
@@ -307,10 +325,12 @@ const STATE_LABELS: Record<ArticleReaderState, string> = {
 export default function ArticleReaderScreen() {
   const { colors, isDark } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const [devState, setDevState] = useState<ArticleReaderState | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const isOnline = useNetworkStore((s) => s.isOnline);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -336,7 +356,17 @@ export default function ArticleReaderScreen() {
       const detail = await getNewsArticle(id);
       return mapArticleDetailToCache(detail);
     },
-    updateCache: (item) => upsertArticle(item),
+    updateCache: async (item) => {
+      await upsertArticle(item);
+      // A newly cached row arrives with bookmarked = 0; read the saved state
+      // from the server (falling back to the local copy), then re-derive it.
+      try {
+        await syncSavedFromServer();
+      } catch {
+        // Offline or the server is down: the local copy stands.
+      }
+      await refreshSavedFlags();
+    },
     enabled: validId,
   });
 
@@ -377,13 +407,19 @@ export default function ArticleReaderScreen() {
     }
   }
 
+  // Through the server: the icon changes only after its 204. On failure it
+  // stays as it was and a short message says so.
   async function handleBookmark() {
+    if (saving || !isOnline) return;
     const next = !isBookmarked;
-    setIsBookmarked(next);
+    setSaving(true);
     try {
-      await toggleNewsBookmark(id, next);
+      await setArticleSaved(id, next);
+      setIsBookmarked(next);
     } catch {
-      setIsBookmarked(!next);
+      showShortMessage(t(next ? 'news.saving.save_failed' : 'news.saving.unsave_failed'));
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -411,6 +447,8 @@ export default function ArticleReaderScreen() {
           <BottomBar
             bottomInset={insets.bottom}
             isBookmarked={isBookmarked}
+            canSave={isOnline}
+            busy={saving}
             onBookmark={handleBookmark}
             onShare={handleShare}
           />
@@ -616,6 +654,15 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  bookmarkOffline: {
+    opacity: 0.45,
+  },
+  offlineSave: {
+    fontSize: fz(12),
+    fontWeight: '600',
+    fontFamily: fonts.sans,
+    color: colors.textSecondary,
   },
   bookmarkBtn: {
     width: sizing.touchTarget,

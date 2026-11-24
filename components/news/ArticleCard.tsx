@@ -6,7 +6,9 @@ import { elevation, fonts, fz, radius, spacing, type Palette } from '@/constants
 import { useColors } from '@/hooks/useColors';
 import { getNewsCategoryColors } from '@/constants/colorMap';
 import { PressBox } from '@/components/PressBox';
-import { toggleNewsBookmark } from '@/services/db';
+import { setArticleSaved } from '@/services/savedArticles';
+import { useNetworkStore } from '@/stores/networkStore';
+import { showShortMessage } from '@/utils/shortMessage';
 
 export type ArticleCategory = 'official' | 'events' | 'scolarite' | 'sport' | 'youth' | 'sponsors';
 
@@ -31,7 +33,11 @@ export function ArticleCard({ article, onPress }: ArticleCardProps) {
   const { colors } = useColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { t } = useTranslation();
+  const isOnline = useNetworkStore((s) => s.isOnline);
+  // The saved state shown is the local copy of the server's (news_cache.bookmarked,
+  // derived from saved_articles), so it is right offline too.
   const [isBookmarked, setIsBookmarked] = useState(article.bookmarked ?? false);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     setIsBookmarked(article.bookmarked ?? false);
@@ -39,13 +45,20 @@ export function ArticleCard({ article, onPress }: ArticleCardProps) {
 
   const catColor = getNewsCategoryColors(article.category, colors);
 
+  // Through the server: the icon changes only after its 204. On failure it
+  // stays as it was and a short message says so. Offline the button is
+  // disabled ("Connexion requise").
   async function handleBookmarkPress() {
+    if (busy || !isOnline) return;
     const next = !isBookmarked;
-    setIsBookmarked(next);
+    setBusy(true);
     try {
-      await toggleNewsBookmark(article.id, next);
+      await setArticleSaved(article.id, next);
+      setIsBookmarked(next);
     } catch {
-      setIsBookmarked(!next);
+      showShortMessage(t(next ? 'news.saving.save_failed' : 'news.saving.unsave_failed'));
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -90,11 +103,24 @@ export function ArticleCard({ article, onPress }: ArticleCardProps) {
         <View style={styles.bottomRow}>
           <Text style={styles.readTime}>{article.readTime}</Text>
           {/* Nested PressBox absorbs touch so bookmark does not trigger card navigation */}
-          <PressBox tier="icon" onPress={handleBookmarkPress} hitSlop={12}>
+          <PressBox
+            tier="icon"
+            onPress={handleBookmarkPress}
+            hitSlop={12}
+            disabled={!isOnline || busy}
+            accessibilityRole="button"
+            accessibilityLabel={
+              !isOnline
+                ? `${t(isBookmarked ? 'news.saving.unsave' : 'news.saving.save')} — ${t('news.saving.offline_save')}`
+                : t(isBookmarked ? 'news.saving.unsave' : 'news.saving.save')
+            }
+            accessibilityState={{ selected: isBookmarked, disabled: !isOnline || busy, busy }}
+          >
             <Ionicons
               name={isBookmarked ? 'bookmark' : 'bookmark-outline'}
               size={20}
               color={isBookmarked ? colors.jade400 : colors.textTertiary}
+              style={!isOnline ? styles.bookmarkOffline : undefined}
             />
           </PressBox>
         </View>
@@ -112,6 +138,12 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sp12,
     alignItems: 'flex-start',
+  },
+
+  // Offline: still the saved state (from the local copy), dimmed because it
+  // cannot be changed.
+  bookmarkOffline: {
+    opacity: 0.45,
   },
 
   thumbnail: {

@@ -32,6 +32,7 @@ import {
   upsertNewsCategories,
 } from '@/services/db';
 import { mapNewsToCache } from '@/services/cacheMappers';
+import { refreshSavedFlags, syncSavedFromServer } from '@/services/savedArticles';
 import { formatTimestamp, formatReadTime } from '@/utils/dateFormat';
 import { localTitle } from '@/utils/i18nName';
 
@@ -249,11 +250,28 @@ export default function NewsScreen() {
     },
     fetchFresh: async () => {
       if (isSavedTab) {
+        // "Mes favoris" is the server's list. Read it first (a failure here is
+        // the offline/error path, and the cached copy stays on screen), then
+        // make sure every saved article's row is cached — a save made on
+        // another device, or a cache emptied at logout, has none yet.
+        await syncSavedFromServer();
+        const data = await getNews({ limit: 100 });
+        await upsertNews(mapNewsToCache(data.articles ?? []));
+        await refreshSavedFlags();
         return getSavedArticles(20);
       }
       const data = await getNews();
       const all = mapNewsToCache(data.articles ?? []);
       await upsertNews(all);
+      // The saved state on the cards: from the server when it answers, from
+      // the local copy otherwise. New rows arrive with bookmarked = 0, so the
+      // flags are re-derived either way.
+      try {
+        await syncSavedFromServer();
+      } catch {
+        // The list itself loaded; the saved flags stay as the local copy says.
+      }
+      await refreshSavedFlags();
       return getCachedNews(20, filterCategory);
     },
     updateCache: () => Promise.resolve(),

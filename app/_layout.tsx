@@ -21,6 +21,7 @@ import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { useColors } from '@/hooks/useColors';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useCourseNotesUpload } from '@/hooks/useCourseNotesUpload';
+import { useSavedArticlesUpload } from '@/hooks/useSavedArticlesUpload';
 import {
   registerForPushNotifications,
   setupNotificationListeners,
@@ -117,6 +118,8 @@ function RootLayout() {
   useNetworkStatus();
   // One-time upload of notes written on this phone before the server stored them.
   useCourseNotesUpload(migrationsReady);
+  // One-time upload of news articles saved on this phone before the server stored them.
+  useSavedArticlesUpload(migrationsReady);
 
   // Font files go here once assets/fonts/ is populated — empty map loads instantly
   const [fontsLoaded] = useFonts({

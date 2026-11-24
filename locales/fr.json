@@ -509,6 +509,13 @@
       "body": "Votre session a expiré. Reconnectez-vous pour accéder aux dernières actualités.",
       "login": "Se connecter",
       "continue_offline": "Continuer en hors-ligne"
+    },
+    "saving": {
+      "save": "Enregistrer",
+      "unsave": "Retirer des enregistrés",
+      "save_failed": "L'article n'a pas pu être enregistré. Réessayez.",
+      "unsave_failed": "L'article n'a pas pu être retiré. Réessayez.",
+      "offline_save": "Connexion requise"
     }
   },
   "calculator": {

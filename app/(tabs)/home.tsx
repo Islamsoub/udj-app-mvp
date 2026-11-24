@@ -46,6 +46,7 @@ import { getGreeting, isWeekend } from '@/utils/greeting';
 import { formatLocalDate } from '@/utils/dateFormat';
 import { localName } from '@/utils/i18nName';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
+import { refreshSavedFlags } from '@/services/savedArticles';
 
 type HomeState = 'loaded' | 'error' | 'empty' | 'skeleton' | 'offline';
 
@@ -564,7 +565,12 @@ export default function HomeScreen() {
       const res = await getNews({ limit: 5 });
       return mapNewsToCache(res.articles);
     },
-    updateCache: (data) => upsertNews(data),
+    updateCache: async (data) => {
+      await upsertNews(data);
+      // New rows arrive with bookmarked = 0; re-derive the saved flags from the
+      // local copy so the news screen shows them right, offline too.
+      await refreshSavedFlags();
+    },
   });
 
   // ─── Build subject color map ────────────────────────────────────────────────
