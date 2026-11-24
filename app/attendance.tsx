@@ -154,6 +154,7 @@ function CardsBody({ data, onRefresh }: CardsBodyProps) {
           justificationStatus: a.justificationStatus,
           justificationUrl: a.justificationUrl,
           justificationNote: a.justificationNote,
+          canSubmitJustification: a.canSubmitJustification ?? null,
         });
       }
     }
@@ -299,7 +300,7 @@ export default function AttendanceScreen() {
       const o = res.overall;
       await upsertAttendanceSummary({
         studentId,
-        percentage: o?.percentage ?? 0,
+        percentage: o?.percentage ?? null,
         total: o?.total ?? 0,
         present: o?.present ?? 0,
         absent: o?.absent ?? 0,
@@ -353,7 +354,8 @@ export default function AttendanceScreen() {
           const total = cache.subjects.reduce((n, a) => n + a.sessionsTotal, 0);
           const present = cache.subjects.reduce((n, a) => n + a.sessionsPresent, 0);
           return {
-            percentage: 0,
+            // A pre-summary cache holds no overall figure: say so, not 0%.
+            percentage: null,
             total,
             present,
             absent: total - present,
@@ -405,7 +407,7 @@ export default function AttendanceScreen() {
   const screenState = devState ?? hookState;
 
   const overall: OverallView = attendanceData?.overall ?? {
-    percentage: 0,
+    percentage: null,
     total: 0,
     present: 0,
     absent: 0,

@@ -357,6 +357,20 @@ export async function runMigrations(): Promise<void> {
   // The server's threshold as a whole percent (75), for copy only.
   await addColumnSafe(db, 'ALTER TABLE attendance_summary ADD COLUMN threshold INTEGER');
 
+  // Whether `percentage` is a real figure. The server sends a null percentage
+  // when no hours could be counted, and both `percentage` columns are NOT NULL
+  // (SQLite cannot relax that in place), so the null is carried here:
+  //   1 = a figure, 0 = no figure (read back as null, never 0%),
+  //   NULL = a row cached before this column existed: its percentage is read
+  //   as before, until the next sync rewrites it.
+  await addColumnSafe(db, 'ALTER TABLE attendance ADD COLUMN has_rate INTEGER');
+  await addColumnSafe(db, 'ALTER TABLE attendance_summary ADD COLUMN has_rate INTEGER');
+
+  // attendance_absences: the server's canSubmitJustification (1 / 0), so the
+  // sheet can say "deadline passed" offline too. NULL = cached before this
+  // column: unknown, the server decides on submit.
+  await addColumnSafe(db, 'ALTER TABLE attendance_absences ADD COLUMN can_submit INTEGER');
+
   // news_cache: read_time_minutes, is_urgent, image_url, title_ar
   await addColumnSafe(db, 'ALTER TABLE news_cache ADD COLUMN read_time_minutes INTEGER NOT NULL DEFAULT 0');
   await addColumnSafe(db, 'ALTER TABLE news_cache ADD COLUMN is_urgent INTEGER NOT NULL DEFAULT 0');
@@ -825,9 +839,9 @@ export async function upsertAttendance(items: Attendance[]): Promise<void> {
       await db.runAsync(
         `INSERT INTO attendance
           (id, student_id, subject_code, subject_name, subject_name_ar, sessions_total,
-           sessions_present, sessions_remaining, percentage, threshold, band, absences_left,
-           cached_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           sessions_present, sessions_remaining, percentage, has_rate, threshold, band,
+           absences_left, cached_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           item.id,
           item.studentId,
@@ -837,7 +851,9 @@ export async function upsertAttendance(items: Attendance[]): Promise<void> {
           item.sessionsTotal,
           item.sessionsPresent,
           item.sessionsRemaining,
-          item.percentage,
+          // NOT NULL column: 0 stands in, and has_rate = 0 says it is not a figure.
+          item.percentage ?? 0,
+          item.percentage === null ? 0 : 1,
           item.threshold,
           item.band,
           item.absencesLeft,
@@ -862,8 +878,9 @@ export async function upsertAbsences(
       await db.runAsync(
         `INSERT OR REPLACE INTO attendance_absences
           (id, student_id, subject_code, session_date, status, subject_name, subject_name_ar,
-           justification_status, justification_url, justification_note, hours_attended, cached_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           justification_status, justification_url, justification_note, hours_attended, can_submit,
+           cached_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           a.id,
           studentId,
@@ -876,6 +893,7 @@ export async function upsertAbsences(
           a.justificationUrl,
           a.justificationNote ?? null,
           a.hoursAttended ?? null,
+          a.canSubmitJustification == null ? null : a.canSubmitJustification ? 1 : 0,
           now,
         ],
       );
@@ -887,11 +905,12 @@ export async function upsertAttendanceSummary(summary: AttendanceSummary): Promi
   const db = await getDb();
   await db.runAsync(
     `INSERT INTO attendance_summary
-      (student_id, percentage, total, present, absent, justified, partial, band, absences_left,
-       threshold, cached_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (student_id, percentage, has_rate, total, present, absent, justified, partial, band,
+       absences_left, threshold, cached_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(student_id) DO UPDATE SET
        percentage = excluded.percentage,
+       has_rate   = excluded.has_rate,
        total      = excluded.total,
        present    = excluded.present,
        absent     = excluded.absent,
@@ -903,7 +922,8 @@ export async function upsertAttendanceSummary(summary: AttendanceSummary): Promi
        cached_at  = excluded.cached_at`,
     [
       summary.studentId,
-      summary.percentage,
+      summary.percentage ?? 0,
+      summary.percentage === null ? 0 : 1,
       summary.total,
       summary.present,
       summary.absent,
@@ -1111,6 +1131,7 @@ function rowToAbsence(row: Record<string, SQLite.SQLiteBindValue>): AbsenceRecor
     justificationStatus: (row.justification_status as AbsenceRecord['justificationStatus']) ?? null,
     justificationNote: (row.justification_note as string | null) ?? null,
     hoursAttended: (row.hours_attended as number | null) ?? null,
+    canSubmitJustification: row.can_submit == null ? null : row.can_submit === 1,
   };
 }
 
@@ -1120,10 +1141,17 @@ function toBand(v: SQLite.SQLiteBindValue): AttendanceBand | null {
   return v === 'ok' || v === 'near' || v === 'below' ? v : null;
 }
 
+/** `percentage`, or null when has_rate says the row holds no figure (see the
+ *  has_rate migration). A pre-migration row (has_rate NULL) reads as before. */
+function readRate(row: Record<string, SQLite.SQLiteBindValue>): number | null {
+  if (row.has_rate === 0) return null;
+  return (row.percentage as number | null) ?? 0;
+}
+
 function rowToAttendanceSummary(row: Record<string, SQLite.SQLiteBindValue>): AttendanceSummary {
   return {
     studentId: row.student_id as string,
-    percentage: (row.percentage as number | null) ?? 0,
+    percentage: readRate(row),
     total: (row.total as number | null) ?? 0,
     present: (row.present as number | null) ?? 0,
     absent: (row.absent as number | null) ?? 0,
@@ -1211,7 +1239,7 @@ function rowToAttendance(row: Record<string, SQLite.SQLiteBindValue>): Attendanc
     sessionsTotal: row.sessions_total as number,
     sessionsPresent: row.sessions_present as number,
     sessionsRemaining: (row.sessions_remaining as number | null) ?? 0,
-    percentage: (row.percentage as number | null) ?? 0,
+    percentage: readRate(row),
     threshold: row.threshold as number,
     band: toBand(row.band),
     absencesLeft: (row.absences_left as number | null) ?? null,

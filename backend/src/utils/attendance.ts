@@ -1,4 +1,4 @@
-import { AttendanceStatus } from '@prisma/client';
+import { AttendanceStatus, JustificationStatus } from '@prisma/client';
 
 /**
  * Hours-based attendance math (architecture doc §4.3).
@@ -391,20 +391,31 @@ export function justificationDeadline(sessionDate: Date, deadlineDays: number): 
 /**
  * Whether a student may still upload a justification for one record.
  *
- * Both conditions the POST handler applies, in the same order: the record has to
- * be an absence, and it has to be inside the window. A JUSTIFIED record is
- * already excused and a PRESENT one was never missed, so neither is submittable
- * — which is what the POST's 409 says.
+ * The conditions the POST handler applies, in the same order: the record has
+ * to be an absence, its proof must not already be accepted, and it has to be
+ * inside the window. A JUSTIFIED record is already excused and a PRESENT one
+ * was never missed, so neither is submittable — which is what the POST's 409
+ * says.
+ *
+ * A REFUSED proof (REJECTED, status back to ABSENT) can be replaced inside the
+ * window: that is the point of refusing rather than closing it. A PENDING one
+ * can be replaced too (the newer file is the one reviewed). An APPROVED one
+ * never: approval normally sets the status to JUSTIFIED, but the admin register
+ * upsert can set the status back to ABSENT without touching
+ * justificationStatus, and a new upload would then overwrite an accepted proof
+ * and send it back to review.
  *
  * `now` is injectable so this stays a pure function and can be reasoned about
  * without freezing the clock.
  */
 export function canSubmitJustification(
   status: AttendanceStatus,
+  justificationStatus: JustificationStatus | null,
   sessionDate: Date,
   deadlineDays: number,
   now: Date = new Date()
 ): boolean {
   if (status !== AttendanceStatus.ABSENT) return false;
+  if (justificationStatus === JustificationStatus.APPROVED) return false;
   return now <= justificationDeadline(sessionDate, deadlineDays);
 }

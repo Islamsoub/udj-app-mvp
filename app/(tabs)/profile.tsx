@@ -118,7 +118,8 @@ function ProfileBody({
   const facultyName = isAr && student?.facultyNameAr
     ? student.facultyNameAr
     : (student?.facultyName ?? '—');
-  const presence = student?.attendancePercentage ?? 0;
+  // Null when no hours could be counted: '--', as on the home tile, never 0%.
+  const presence = student?.attendancePercentage ?? null;
   const email = student?.email ?? '—';
 
   const sKey = statusKey(student?.status ?? '');
@@ -182,7 +183,7 @@ function ProfileBody({
           icon="checkmark-circle-outline"
           iconColor={colors.warning}
           label={t('profile.row.presence')}
-          value={`${presence}%`}
+          value={presence === null ? '--' : `${presence}%`}
           onPress={onPresencePress}
           isLast
         />

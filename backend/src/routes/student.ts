@@ -659,6 +659,7 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
           justificationNote: r.justificationNote,
           canSubmitJustification: canSubmitJustification(
             r.status,
+            r.justificationStatus,
             r.sessionDate,
             deadlineDays,
             now
@@ -693,7 +694,10 @@ router.get('/attendance', async (req: Request, res: Response, next: NextFunction
       ({ subject, present, absent, justified, partial, inputs, absences }) => {
         const total = present + absent + justified + partial;
         const hours = sumAttendanceHours(inputs, resolveHours);
-        const percentage = truncatedPercentage(hours) ?? 0;
+        // Null when no hours were held, exactly as `overall.percentage`: "no
+        // figure", not a 0% that reads as "missed every session". The band
+        // treats a null rate as ok (attendanceBand).
+        const percentage = truncatedPercentage(hours);
         const recovery = attendanceRecovery(
           hours,
           remainingBySubject.get(subject.id) ?? 0,
@@ -1049,7 +1053,13 @@ router.post(
 
       const record = await prisma.attendanceRecord.findUnique({
         where: { id: recordId },
-        select: { id: true, studentId: true, status: true, sessionDate: true },
+        select: {
+          id: true,
+          studentId: true,
+          status: true,
+          justificationStatus: true,
+          sessionDate: true,
+        },
       });
 
       if (!record || record.studentId !== studentId) {
@@ -1064,6 +1074,19 @@ router.post(
           409,
           'NOT_ABSENT'
         );
+      }
+
+      /*
+       * An accepted proof is final. Approval sets the status to JUSTIFIED, which
+       * the check above already refuses; but the admin register upsert can set
+       * the status back to ABSENT without touching justificationStatus, and
+       * without this a new upload would overwrite the accepted document and
+       * send it back to review. Same code as above: for the clients, "this
+       * absence has already been dealt with". A REJECTED proof is not stopped
+       * here — replacing it inside the deadline is allowed (canSubmitJustification).
+       */
+      if (record.justificationStatus === 'APPROVED') {
+        throw new AppError('Justification already approved', 409, 'NOT_ABSENT');
       }
 
       // Enforce the configurable justification deadline (Pass C §4.4): students
