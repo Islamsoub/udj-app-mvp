@@ -8,8 +8,9 @@ import prisma from '../utils/prisma';
 import { env } from '../utils/env';
 import { supabase, JUSTIFICATION_BUCKET } from '../utils/supabase';
 import authMiddleware from '../middleware/auth';
-import { courseNoteWriteLimiter } from '../middleware/rateLimiter';
+import { courseNoteWriteLimiter, savedArticleWriteLimiter } from '../middleware/rateLimiter';
 import { createCourseNotesRouter } from './courseNotes';
+import { createSavedArticlesRouter } from './savedArticles';
 import { AppError } from '../utils/AppError';
 import { resolveCurrentSemester } from '../utils/currentSemester';
 import {
@@ -53,6 +54,10 @@ router.use(authMiddleware);
 
 // /student/course-notes — behind authMiddleware above, like every route here.
 router.use('/course-notes', createCourseNotesRouter(prisma, courseNoteWriteLimiter));
+
+// /student/saved-articles — the news articles a student saved, shared by the
+// app and the PWA. Behind authMiddleware above.
+router.use('/saved-articles', createSavedArticlesRouter(prisma, savedArticleWriteLimiter));
 
 // ── Multer for justification uploads ──────────────────────────────────────────
 

@@ -162,3 +162,18 @@ export const courseNoteWriteLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+/**
+ * 60/min per student on saving a news article (PUT /student/saved-articles),
+ * the course-note figure for the same reason: the app's one-time upload of the
+ * saves it already holds is one PUT per article. Its own counter, so uploading
+ * saves does not eat into a student's note writes. Runs after authMiddleware.
+ */
+export const savedArticleWriteLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  keyGenerator: (req) => `student:${req.studentId ?? `ip:${clientIpKey(req)}`}`,
+  message: TOO_MANY,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
