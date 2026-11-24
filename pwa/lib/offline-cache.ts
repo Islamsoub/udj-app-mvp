@@ -354,9 +354,36 @@ export function rememberResponse(
     };
 
     await done;
+    notifyStored();
   })().catch(() => {
     // QuotaExceededError, a closed connection, a private window: no cache.
   });
+}
+
+// ── What the store holds changed ──────────────────────────────────────────────
+
+/**
+ * Told after every write that landed and every clear, so a view of the store
+ * (Profile's "Dernière synchronisation") can read it again. Listeners are
+ * called synchronously and must not throw; one that does is ignored.
+ */
+const storedListeners = new Set<() => void>();
+
+function notifyStored(): void {
+  for (const listener of storedListeners) {
+    try {
+      listener();
+    } catch {
+      // A view's failure is not the store's.
+    }
+  }
+}
+
+export function subscribeStored(listener: () => void): () => void {
+  storedListeners.add(listener);
+  return () => {
+    storedListeners.delete(listener);
+  };
 }
 
 // ── Read path ─────────────────────────────────────────────────────────────────
@@ -404,6 +431,28 @@ export async function hasCachedData(): Promise<boolean> {
 }
 
 /**
+ * When this device's offline copy was last refreshed: the newest `savedAt` in
+ * the store (epoch ms, UTC), or null when consent is off or nothing is stored.
+ * Read-only, and like every entry point here it never rejects: a store it
+ * cannot read answers null.
+ */
+export async function newestSavedAt(): Promise<number | null> {
+  if (!isOfflineCacheEnabled()) return null;
+  try {
+    const database = await db();
+    if (database === null) return null;
+    const entries = await promisify(database.transaction(STORE, 'readonly').objectStore(STORE).getAll());
+    let newest: number | null = null;
+    for (const value of entries) {
+      if (isEntry(value) && (newest === null || value.savedAt > newest)) newest = value.savedAt;
+    }
+    return newest;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * How long a caller that blocks the UI may wait for hasCachedData. A healthy
  * IndexedDB answers in milliseconds; this only bounds a stalled one. A BLOCKED
  * open already fails fast (`onblocked` rejects), but an open or a transaction
@@ -447,6 +496,7 @@ export async function clearOfflineCache(): Promise<void> {
   } catch {
     // Nothing reachable to clear.
   }
+  notifyStored();
 }
 
 /**

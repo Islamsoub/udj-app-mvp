@@ -20,15 +20,18 @@ const SAVED_FLASH_MS = 1200;
 /**
  * The notification preferences — the only thing on this screen that writes.
  *
+ * The prototype's "Notifications" card: the three toggles as .settings-row
+ * with .toggle-switch, then "Heures calmes" (ours, kept) at the bottom.
+ *
  * ── THESE ARE THE PHONE'S SETTINGS, AND THE COPY SAYS SO ─────────────────────
  *
  * The PWA sends no notifications: there is no service worker and no web push.
  * The three toggles are read by the backend's push sender
  * (backend/src/utils/push.ts) when it messages the native app, and the quiet
- * hours are read by the native app itself, against the phone's clock. So a
- * change here changes what arrives on the student's PHONE, and nothing about
- * this browser — which is what the section's intro tells them, rather than
- * letting three switches imply a feature this tab does not have.
+ * hours are read by the native app itself, against the phone's clock. The one
+ * line under the title says so ("Réglages des notifications de l'application
+ * mobile."), rather than letting three switches imply a feature this tab does
+ * not have.
  *
  * ── A SAVE IS SHOWN, NEVER ASSUMED ───────────────────────────────────────────
  *
@@ -98,20 +101,19 @@ export function NotificationPrefs({ initial }: { initial: StudentPreferences }) 
   );
 
   return (
-    <section className={styles.section} aria-labelledby={`${introId}-title`}>
-      <h2 className={styles.sectionTitle} id={`${introId}-title`}>
+    <section className={styles.card} aria-labelledby={`${introId}-title`} aria-describedby={introId}>
+      <h2 className={styles.cardTitle} id={`${introId}-title`}>
         {t('profile.notifs.title')}
       </h2>
-      <p className={styles.sectionNote} id={introId}>
-        {t('profile.notifs.intro')}
+      <p className={styles.cardNote} id={introId}>
+        {t('profile.notifs.short')}
       </p>
 
-      <div className={styles.card}>
-        {BOOLEAN_PREFS.map(({ key, label, hint }) => (
+      <div>
+        {BOOLEAN_PREFS.map(({ key, label }) => (
           <SwitchRow
             key={key}
             label={label}
-            hint={hint}
             checked={shown[key]}
             busy={saving === key}
             locked={saving !== null}
@@ -144,7 +146,6 @@ export function NotificationPrefs({ initial }: { initial: StudentPreferences }) 
 
 function SwitchRow({
   label,
-  hint,
   checked,
   busy,
   locked,
@@ -153,7 +154,6 @@ function SwitchRow({
   status,
 }: {
   label: TranslationKey;
-  hint: TranslationKey;
   checked: boolean;
   busy: boolean;
   locked: boolean;
@@ -163,16 +163,12 @@ function SwitchRow({
 }) {
   const { t } = useI18n();
   const labelId = useId();
-  const hintId = useId();
 
   return (
-    <div className={styles.row}>
+    <div className={styles.settingsRow}>
       <div className={styles.rowText}>
-        <p className={styles.rowLabel} id={labelId}>
+        <p className={styles.settingsLabel} id={labelId}>
           {t(label)}
-        </p>
-        <p className={styles.rowHint} id={hintId}>
-          {t(hint)}
         </p>
         {status}
       </div>
@@ -181,7 +177,6 @@ function SwitchRow({
         checked={checked}
         onChange={onChange}
         labelledBy={labelId}
-        describedBy={hintId}
         busy={busy}
         locked={locked}
         disabled={disabled}
@@ -219,12 +214,12 @@ function QuietHours({
   const same = start !== null && end !== null && start === end;
 
   return (
-    <div className={`${styles.row} ${styles.rowStacked}`}>
+    <div className={`${styles.settingsRow} ${styles.settingsRowStacked}`}>
       <div className={styles.rowText}>
-        <p className={styles.rowLabel} id={labelId}>
+        <p className={styles.settingsLabel} id={labelId}>
           {t('profile.quiet.title')}
         </p>
-        <p className={styles.rowHint} id={hintId}>
+        <p className={styles.settingsSub} id={hintId}>
           {t(same ? 'profile.quiet.same' : 'profile.quiet.hint')}
         </p>
       </div>

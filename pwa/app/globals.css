@@ -272,6 +272,16 @@
      and higher over anything lighter. */
   --source-pill-bg: rgba(255, 255, 255, .85);
   --source-pill-ink: #1E231F;
+  /* Profile's switch knob (prototype .toggle-switch::after): white with its
+     small shadow, on the --sunken (off) or --jade (on) track, in both themes. */
+  --switch-knob: #FFFFFF;
+  --switch-knob-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+  /* Its track. Design's --sunken off track is 1.20:1 against the card, so the
+     off switch all but vanished; --ink3 (non-text) is 3.74:1 against
+     --surface, and the white knob 3.74:1 on it. On: --jade, the knob 3.39:1
+     on it, the track 3.39:1 against the card. */
+  --switch-track-off: var(--ink3);
+  --switch-track-on: var(--jade);
   --shadow-hero: 0 14px 30px rgba(15, 110, 86, .30);
   /* Mention dots on the badge (prototype-v1 MENTIONS). Decorative: the mention
      is always written beside its dot, so these carry no information alone. */
@@ -378,6 +388,15 @@
      and higher over anything lighter. */
   --source-pill-bg: rgba(255, 255, 255, .85);
   --source-pill-ink: #1E231F;
+  /* Profile's switch knob (prototype .toggle-switch::after): white with its
+     small shadow, on the --sunken (off) or --jade (on) track, in both themes. */
+  --switch-knob: #FFFFFF;
+  --switch-knob-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+  /* Off: --ink3, 4.05:1 against --surface, the knob 3.81:1 on it. On: the
+     light theme's jade, #1D9E75, not dark --jade (#2BB989), on which the white
+     knob was 2.50:1; on #1D9E75 it is 3.39:1, the track 4.55:1 against the card. */
+  --switch-track-off: var(--ink3);
+  --switch-track-on: #1D9E75;
   --shadow-hero: 0 14px 30px rgba(15, 110, 86, .30);
   --mention-tres-bien: #7DF3C4;
   --mention-bien: #9CC7F5;

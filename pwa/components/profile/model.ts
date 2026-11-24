@@ -23,14 +23,10 @@ export type TimePref = 'quietHoursStart' | 'quietHoursEnd';
 /** The three toggles, in the order the native app's Settings shows them. The
  *  mapping to push categories is backend/src/utils/push.ts: GRADES, SCHEDULE,
  *  ATTENDANCE. News and general notices have no toggle and always arrive. */
-export const BOOLEAN_PREFS: { key: BooleanPref; label: TranslationKey; hint: TranslationKey }[] = [
-  { key: 'notifGrades', label: 'profile.notifs.grades', hint: 'profile.notifs.grades_hint' },
-  { key: 'notifCourses', label: 'profile.notifs.courses', hint: 'profile.notifs.courses_hint' },
-  {
-    key: 'notifAttendance',
-    label: 'profile.notifs.attendance',
-    hint: 'profile.notifs.attendance_hint',
-  },
+export const BOOLEAN_PREFS: { key: BooleanPref; label: TranslationKey }[] = [
+  { key: 'notifGrades', label: 'profile.notifs.grades' },
+  { key: 'notifCourses', label: 'profile.notifs.courses' },
+  { key: 'notifAttendance', label: 'profile.notifs.attendance' },
 ];
 
 /** A real 24-hour clock time, which the backend's regex does not check. */
