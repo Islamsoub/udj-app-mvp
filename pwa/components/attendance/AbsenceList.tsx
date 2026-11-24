@@ -3,23 +3,23 @@
 import type { TranslationKey } from '@/lib/i18n-types';
 import { useI18n } from '@/lib/i18n';
 import { AbsenceDate } from './AbsenceDate';
-import { CheckIcon, ChevronIcon, PendingIcon, RejectedIcon, UnjustifiedIcon } from './icons';
 import { justificationState, type FlatAbsence, type JustificationState } from './model';
 import styles from './attendance.module.css';
 
 /**
- * The absences, newest first, one row each.
+ * The absences, newest first, as the prototype's .absence-row: the date tile,
+ * the subject (13.5 / 700) and the status pill.
  *
  * Every row opens the justification panel — including the settled ones. A
  * student whose justification was approved still wants to see the document they
  * sent, and one whose absence was excused at source wants to know why it is not
- * counting against them; a list where only some rows are clickable would hide
- * both.
+ * counting against them.
  *
- * No entrance animation on the rows, deliberately. §9: filtering "crossfades the
- * list rather than re-animating each row in — this is a filter, not new data",
- * and rows that animated themselves on mount would fight the crossfade the
- * parent is running around them.
+ * The row's accessible name is the subject, the full date and the status, so a
+ * screen reader hears the year and the weekday-free date the tile abbreviates.
+ *
+ * No entrance animation on the rows: §9's filter crossfades the whole list,
+ * and rows animating themselves would fight it.
  */
 export function AbsenceList({
   absences,
@@ -28,7 +28,7 @@ export function AbsenceList({
   absences: FlatAbsence[];
   onSelect: (absence: FlatAbsence) => void;
 }) {
-  const { t, dir } = useI18n();
+  const { t } = useI18n();
 
   return (
     <ul className={styles.absences}>
@@ -41,46 +41,46 @@ export function AbsenceList({
               type="button"
               className={styles.absence}
               onClick={() => onSelect({ record, subjectCode })}
-              /*
-                The chevron points toward the inline-end and a transform is never
-                mirrored by `dir`, so the flip arrives as a custom property read
-                from the active direction — the mechanism §6 prescribes, and the
-                reason the stylesheet still has no [dir="rtl"] selector.
-              */
-              style={{ '--chevron-flip': dir === 'rtl' ? -1 : 1 } as React.CSSProperties}
             >
-              <StatusDot state={state} />
+              <DateTile iso={record.date} />
 
-              <span className={styles.absenceText}>
-                <span className={styles.absenceSubject}>
-                  <AbsenceSubjectName record={record} />
-                  <span className={`${styles.absenceCode} num`}>{subjectCode}</span>
-                </span>
-
-                {/*
-                  NO OUTER `.num`. AbsenceDate wraps the day and the year in it
-                  itself and deliberately leaves the month name outside, because
-                  Plus Jakarta Sans has no Arabic glyphs — a `.num` on the
-                  wrapper would put "سبتمبر" on a face that cannot draw it.
-                */}
-                <span className={styles.absenceDate}>
+              <span className={styles.absenceSubject}>
+                <AbsenceSubjectName record={record} />
+                {/* The full date for assistive tech; the tile is aria-hidden. */}
+                <span className={styles.srOnly}>
+                  {' · '}
                   <AbsenceDate iso={record.date} />
                 </span>
               </span>
 
-              {/*
-                The state as a word as well as a colour (§10). This is the row's
-                whole point — "is this one dealt with?" — so it is never left to
-                the dot alone.
-              */}
-              <span className={`${styles.chip} ${CHIP_CLASS[state]}`}>{t(CHIP_KEY[state])}</span>
-
-              <ChevronIcon className={styles.absenceChevron} />
+              {/* The state as a word as well as a colour (§10). */}
+              <span className={`${styles.pillStatus} ${PILL_CLASS[state]}`}>
+                {t(PILL_KEY[state])}
+              </span>
             </button>
           </li>
         );
       })}
     </ul>
+  );
+}
+
+/**
+ * The prototype's .date-tile: the day, two digits on the mono face, over the
+ * short month in capitals. The month is a word, so it keeps the language's
+ * face — "NOV." in French, "نوفمبر" in Arabic.
+ */
+function DateTile({ iso }: { iso: string }) {
+  const { lang } = useI18n();
+  const date = new Date(iso);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = new Intl.DateTimeFormat(lang, { month: 'short' }).format(date);
+
+  return (
+    <span className={styles.dateTile} aria-hidden="true">
+      <b className="mono">{day}</b>
+      <small>{month}</small>
+    </span>
   );
 }
 
@@ -91,31 +91,13 @@ function AbsenceSubjectName({ record }: { record: FlatAbsence['record'] }) {
   return <>{lang === 'ar' ? record.subjectNameAr : record.subjectName}</>;
 }
 
-/**
- * The leading glyph. Decorative — the chip beside it names the state in words,
- * so announcing it again here would read the row twice.
- */
-function StatusDot({ state }: { state: JustificationState }) {
-  const className = `${styles.absenceIcon} ${ICON_CLASS[state]}`;
-
-  switch (state) {
-    case 'approved':
-      return <CheckIcon className={className} />;
-    case 'pending':
-      return <PendingIcon className={className} />;
-    case 'rejected':
-      return <RejectedIcon className={className} />;
-    default:
-      return <UnjustifiedIcon className={className} />;
-  }
-}
-
 /*
- * `expired` shares `none`'s styling: it is the same unjustified absence, and
- * only the word changes — "À justifier" on a row the "À justifier" filter
- * leaves out would contradict it.
+ * The prototype's .pill-status colours: unjustified and rejected on the danger
+ * tint, pending on the warning tint, approved on the jade tint. `expired` is
+ * not in the prototype: it is an unjustified absence nothing can be done about
+ * any more, so it takes the neutral tint rather than a call to act.
  */
-const CHIP_KEY: Record<JustificationState, TranslationKey> = {
+const PILL_KEY: Record<JustificationState, TranslationKey> = {
   none: 'attendance.status.none',
   expired: 'attendance.status.expired',
   pending: 'attendance.status.pending',
@@ -123,18 +105,10 @@ const CHIP_KEY: Record<JustificationState, TranslationKey> = {
   rejected: 'attendance.status.rejected',
 };
 
-const CHIP_CLASS: Record<JustificationState, string> = {
-  none: styles.chipNone,
-  expired: styles.chipNone,
-  pending: styles.chipPending,
-  approved: styles.chipApproved,
-  rejected: styles.chipRejected,
-};
-
-const ICON_CLASS: Record<JustificationState, string> = {
-  none: styles.iconNone,
-  expired: styles.iconNone,
-  pending: styles.iconPending,
-  approved: styles.iconApproved,
-  rejected: styles.iconRejected,
+const PILL_CLASS: Record<JustificationState, string> = {
+  none: styles.pillDanger,
+  expired: styles.pillNeutral,
+  pending: styles.pillWarning,
+  approved: styles.pillApproved,
+  rejected: styles.pillDanger,
 };

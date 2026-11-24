@@ -1,174 +1,110 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { Interpolated } from '@/components/dashboard/Interpolated';
-import type { AttendanceOverall } from '@/lib/api-types';
-import { fmtPercent, percentText } from '@/lib/bidi';
+import type { AttendanceOverall, AttendanceSubject } from '@/lib/api-types';
+import { percentText } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
-import type { TranslationKey } from '@/lib/i18n-types';
-import { WarningIcon } from './icons';
+import { levelCounts, overallLevel, type SubjectLevel } from './model';
 import { PresenceRing } from './PresenceRing';
 import styles from './attendance.module.css';
 
-/**
- * The line under the figure, per ROUND2-CLOSEOUT §4 "Hero line": which sentence,
- * and in which tone. Read off the SERVER's `band` and `absencesLeft` only — the
- * PWA never compares the percentage against the threshold.
- *
- * Term over is `absencesLeft === null`, and it is checked first: §4's term-over
- * rows apply whatever the band, so a term-over `near` reads `ended_ok` in the
- * neutral tone. On the green hero every band is drawn in the hero's ink, so
- * the sentence and its icon are what say it.
- */
-type HeroTone = 'neutral' | 'warning' | 'danger';
+const LEVELS: SubjectLevel[] = ['ok', 'near', 'below'];
 
-function heroLine(overall: AttendanceOverall): { key: TranslationKey; tone: HeroTone } {
-  if (overall.absencesLeft === null) {
-    return overall.band === 'below'
-      ? { key: 'attendance.hero.ended_below', tone: 'danger' }
-      : { key: 'attendance.hero.ended_ok', tone: 'neutral' };
-  }
-  switch (overall.band) {
-    case 'below':
-      return { key: 'attendance.hero.below', tone: 'danger' };
-    case 'near':
-      return { key: 'attendance.hero.near', tone: 'warning' };
-    case 'ok':
-      return { key: 'attendance.hero.threshold', tone: 'neutral' };
-  }
-}
-
-const TONE_CLASS: Record<HeroTone, string> = {
-  neutral: '',
-  warning: styles.heroThresholdNear,
-  danger: styles.heroThresholdBelow,
+const DOT_CLASS: Record<SubjectLevel, string> = {
+  ok: styles.heroDotOk,
+  near: styles.heroDotNear,
+  below: styles.heroDotBelow,
 };
 
+/** Plain words, not `.num`: the plural phrases carry their own figures. */
+const asWords = (_name: string, value: ReactNode) => value;
+
 /**
- * The hero stat: the semester's presence percentage, the gauge, and what the
- * percentage is measured against.
+ * The prototype's #pres-hero at layout b: the ring with the percentage inside,
+ * then "Taux de présence", the status pill and "N absences sur M séances", and
+ * at the inline end the three subject counts (Validées, Limite, À risque).
  *
- * THE THRESHOLD IS STATED HERE, not only implied by a colour on the subject
- * rows. A student who is at 92% needs to know where the line is before the number
- * means anything, and §10 forbids colour as the only signal anyway — so the
- * requirement is a sentence, and every non-ok state words its own sentence and
- * adds an icon on top of the colour rather than instead of it.
+ * THE STATUS IS THE SERVER'S. The pill reads `overall.band` through
+ * overallLevel, and the counts read each subject's `band` through levelCounts —
+ * the same rule the subject rows below are coloured by, so the hero and the
+ * card never disagree. The percentage is never compared with the threshold
+ * here; the threshold itself is stated in words in the "Par matière" card.
  *
- * The overall `absencesLeft` is NOT shown (§4): it is a pooled figure, and one
- * absence counts against one subject, so it can read "8 left" while a subject
- * has none. The subject rows carry the number instead.
+ * "Absences" is every missed session, unjustified and justified alike, which is
+ * exactly what the "Mes absences" list holds (the endpoint puts each ABSENT and
+ * each JUSTIFIED record there and nothing else).
  *
- * The caller does not mount this without a percentage: §5's fill "animates from
- * 0% to its target value", and a gauge pinned at zero reads as "you attended
- * nothing" — a different and much worse claim than "nothing has been recorded".
+ * The caller does not mount this without a percentage: a gauge pinned at 0
+ * would claim "you attended nothing" for what is really "nothing recorded".
  */
 export function Hero({
   overall,
+  subjects,
   percentage,
-  threshold,
 }: {
   overall: AttendanceOverall;
+  subjects: AttendanceSubject[];
   percentage: number;
-  /** From the response; see model.ts for why there is no local default.
-   *  Displayed only — the state comes from `overall.band`. */
-  threshold: number;
 }) {
-  const { t } = useI18n();
+  const { t, plural } = useI18n();
 
-  const line = heroLine(overall);
+  const status = overallLevel(overall);
+  const counts = levelCounts(subjects);
+  const absences = overall.absent + overall.justified;
 
   return (
-    <section className={styles.hero}>
+    <section className={styles.hero} aria-label={t('attendance.hero.label')}>
       {/* The prototype's .depth-circle: decoration, kept clear of the text (see
-          .heroDepth). */}
+          .heroDepth and .heroBreakdown). */}
       <div className={styles.heroDepth} aria-hidden="true" />
 
-      <PresenceRing
-        percentage={percentage}
-        label={t('attendance.hero.ring_label', { value: percentText(percentage) })}
-      />
+      <div className={styles.heroWrap}>
+        <PresenceRing
+          percentage={percentage}
+          label={t('attendance.hero.ring_label', { value: percentText(percentage) })}
+        />
 
-      <div className={styles.heroText}>
-        <p className={styles.heroLabel}>{t('attendance.hero.label')}</p>
+        <div className={styles.heroText}>
+          <p className={styles.heroLabel}>{t('attendance.hero.label')}</p>
 
-        <p className={styles.heroValue}>
-          {/* The figure stays on the Latin face in Arabic, like every other
-              number in the product — and in one LTR isolate, so the sign
-              follows the number there instead of leading it. Number and sign
-              are two sizes, hence two spans rather than fmtPercent; the form
-              is the same "92%". */}
-          <bdi dir="ltr" className={styles.heroFigure}>
-            <span className={`${styles.heroNumber} num`}>{Math.round(percentage)}</span>
-            <span className={`${styles.heroUnit} num`}>%</span>
-          </bdi>
-        </p>
+          {/* The status in words; the dot is the prototype's cue on top of
+              them, never instead of them (§10). */}
+          <p className={styles.heroPill}>
+            <span className={`${styles.heroDot} ${DOT_CLASS[status]}`} aria-hidden="true" />
+            <span>{t(`attendance.hero.status.${status}` as const)}</span>
+          </p>
 
-        <p className={styles.heroSessions}>
-          <Interpolated
-            template={t('attendance.hero.sessions')}
-            values={{ present: overall.present, total: overall.total }}
-          />
-        </p>
-
-        {/*
-          The requirement, always shown in every state's sentence — and when the
-          band is not ok, said in words with an icon beside them (§10) rather
-          than left to the colour alone.
-        */}
-        <p className={`${styles.heroThreshold} ${TONE_CLASS[line.tone]}`}>
-          {line.tone !== 'neutral' && <WarningIcon className={styles.heroThresholdIcon} />}
-          {/* One span around the sentence: Interpolated returns text and the
-              isolated figure as siblings, and as direct flex items they broke
-              into columns as soon as the line had to wrap (a phone). */}
-          <span>
-            <Interpolated template={t(line.key)} values={{ threshold: fmtPercent(threshold) }} />
-          </span>
-        </p>
-
-        {/*
-          The counts behind the percentage.
-
-          "Absences" IS EVERY MISSED SESSION — unjustified and justified alike —
-          because that is what the list further down holds: the endpoint puts
-          each ABSENT and each JUSTIFIED record in `absences`, and nothing else.
-          `overall.absent` on its own is only the unjustified ones, and printing
-          it here put "6" above a list of nine, with "of which justified: 3"
-          beside it claiming three of those six.
-
-          Justified absences are then broken out because they do NOT reduce the
-          percentage — the server credits a justified session at its full length
-          (utils/attendance.ts) — so a student wondering why the figure did not
-          move has the answer on the same line. What still needs their action is
-          the list's own filter, not this line.
-        */}
-        <p className={styles.heroCounts}>
-          <span className={styles.heroCount}>
+          <p className={styles.heroSummary}>
             <Interpolated
-              template={t('attendance.hero.absences')}
-              values={{ count: overall.absent + overall.justified }}
+              template={t('attendance.hero.summary')}
+              renderValue={asWords}
+              values={{
+                absences: (
+                  <Interpolated
+                    template={plural('attendance.hero.summary_absences', absences)}
+                    values={{ n: absences }}
+                  />
+                ),
+                sessions: (
+                  <Interpolated
+                    template={plural('attendance.hero.summary_sessions', overall.total)}
+                    values={{ n: overall.total }}
+                  />
+                ),
+              }}
             />
-          </span>
-          <span className={styles.heroCount}>
-            <Interpolated
-              template={t('attendance.hero.justified')}
-              values={{ count: overall.justified }}
-            />
-          </span>
-          {/*
-            PARTIAL sessions exist in the schema and are counted by the same
-            endpoint, but no record in the database uses the status yet. Shown
-            only when there is one, so the line does not carry a permanent zero.
-            Worded as its own count, not "of which": a partial session is not in
-            the absences total above and is not in the list.
-          */}
-          {overall.partial > 0 && (
-            <span className={styles.heroCount}>
-              <Interpolated
-                template={t('attendance.hero.partial')}
-                values={{ count: overall.partial }}
-              />
-            </span>
-          )}
-        </p>
+          </p>
+        </div>
+
+        <ul className={styles.heroBreakdown} aria-label={t('attendance.hero.levels.label')}>
+          {LEVELS.map((level) => (
+            <li key={level} className={styles.heroLevel}>
+              <span className={`${styles.heroLevelCount} mono`}>{counts[level]}</span>
+              <span className={styles.heroLevelLabel}>{t(`attendance.hero.levels.${level}` as const)}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

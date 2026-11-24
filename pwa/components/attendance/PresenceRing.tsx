@@ -5,65 +5,48 @@ import { takeOnce } from '@/components/dashboard/session-flags';
 import styles from './attendance.module.css';
 
 /*
- * The prototype's .hero-ring at layout b: 96px with an 8px stroke, scaled 1.15
- * — 110 and 9 here, drawn at that size rather than scaled, so the box the
- * layout measures is the box that is seen.
+ * The prototype's .hero-ring, drawn in its own 96-unit viewBox (r 40, stroke 8,
+ * the figure at 22 units on y 53) and rendered at layout b's 1.15 scale, 110.4px.
+ * .ring's negative margin gives the layout the prototype's 96px box, which is
+ * what `transform: scale(1.15)` leaves it, so the text beside the ring sits
+ * exactly where Design's does. Drawn at size rather than transformed, so the
+ * stroke and the figure are crisp.
  */
-const SIZE = 110;
-const STROKE = 9;
-const RADIUS = (SIZE - STROKE) / 2;
+const VIEW = 96;
+const STROKE = 8;
+const RADIUS = 40;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
-/*
- * ONE stroke for every band, the hero's ink. On the green hero the band
- * colours do not reach 3:1 (--warning-ink, --danger), so the band is said in
- * the Hero's sentence, in words and with its icon, and the gauge only shows the
- * figure. Whether the band also gets a colour cue on the hero is A2 in ASK.md.
- */
-
 /**
- * The presence gauge — §9 calls the fill-on-load "the hero moment of this
- * screen", so it is the largest of the three rings in the app.
+ * The presence gauge, with the percentage inside it (prototype `#pres-hero`
+ * text). ONE stroke for every band, the hero's ink: on the green the band
+ * colours do not reach 3:1, so the band is said by the status pill beside the
+ * ring, in words.
  *
  * §5: "animates from 0% to its target value once, on first paint of that view,
  * over --dur-slow with --ease-in-out. Re-visiting the same view in the same
- * session does not replay it." The travel itself is in CSS (stroke-dashoffset
- * against a dasharray of the full circumference), so prefers-reduced-motion can
- * switch it off with one rule while leaving the final value drawn — the gauge
- * stays correct, only the motion goes.
+ * session does not replay it." The travel is in CSS (stroke-dashoffset), so
+ * prefers-reduced-motion switches it off and leaves the final value drawn.
  *
  * The once-per-session flag is claimed in a lazy initialiser, so it is spent
- * when this component first renders WITH A VALUE rather than when the screen
- * mounts. The screen opens on a skeleton for at least 400ms, and claiming it on
- * mount would burn the flag before there was a ring, so the one fill the student
- * is owed would never play.
+ * when this first renders WITH A VALUE rather than when the screen mounts behind
+ * its 400ms skeleton.
  *
- * ── THIS IS THE THIRD COPY OF THIS COMPONENT ─────────────────────────────────
- *
- * components/dashboard/Ring.tsx and components/grades/GpaRing.tsx are the same
- * thirty lines with a different size, scale and session key, and this is a
- * fourth variation on them. They should be ONE component — the differences are
- * four props — and the duplication is now large enough to be worth collapsing.
- *
- * It is not collapsed here because doing so means editing the dashboard and
- * grades screens, which this change is scoped out of. Neither existing ring
- * could be imported as it stands either: GpaRing is hardcoded to a /20 scale,
- * and Ring's session key is `dashboard_ring_attendance`, shared with the
- * dashboard's own attendance card — the dashboard is the landing page, so by the
- * time a student reaches this screen that flag is always already spent and the
- * hero moment would never happen. Hence a local component with its own key, and
- * a note rather than a quiet fourth fork.
+ * Its own component rather than the dashboard's Ring or Notes' GpaRing: GpaRing
+ * is on a /20 scale, and Ring's session key is shared with the dashboard card,
+ * which is always spent by the time a student gets here.
  */
 export function PresenceRing({ percentage, label }: { percentage: number; label: string }) {
   const [filling] = useState(() => takeOnce('attendance_presence_ring'));
 
   const clamped = Math.max(0, Math.min(100, percentage));
   const offset = CIRCUMFERENCE * (1 - clamped / 100);
+  const centre = VIEW / 2;
 
   return (
     <svg
       className={styles.ring}
-      viewBox={`0 0 ${SIZE} ${SIZE}`}
+      viewBox={`0 0 ${VIEW} ${VIEW}`}
       role="img"
       aria-label={label}
       style={
@@ -73,20 +56,23 @@ export function PresenceRing({ percentage, label }: { percentage: number; label:
         } as React.CSSProperties
       }
     >
-      <circle
-        className={styles.ringTrack}
-        cx={SIZE / 2}
-        cy={SIZE / 2}
-        r={RADIUS}
-        strokeWidth={STROKE}
-      />
+      <circle className={styles.ringTrack} cx={centre} cy={centre} r={RADIUS} strokeWidth={STROKE} />
+      {/* Rotated on the circle, not the svg, so the figure stays upright. The
+          sweep is not mirrored in Arabic: a gauge is a dial, clockwise is
+          "more" in both directions. */}
       <circle
         className={`${styles.ringValue} ${filling ? styles.ringFilling : ''}`}
-        cx={SIZE / 2}
-        cy={SIZE / 2}
+        cx={centre}
+        cy={centre}
         r={RADIUS}
         strokeWidth={STROKE}
+        transform={`rotate(-90 ${centre} ${centre})`}
       />
+      {/* "87%" in that order in Arabic too: an LTR run, on the mono face. The
+          svg's aria-label carries it to assistive tech. */}
+      <text className={styles.ringText} x={centre} y={53} textAnchor="middle" direction="ltr">
+        {`${Math.round(clamped)}%`}
+      </text>
     </svg>
   );
 }

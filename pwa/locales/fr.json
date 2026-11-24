@@ -368,38 +368,60 @@
   "attendance": {
     "heading": "Présence",
     "hero": {
-      "label": "Présence ce semestre",
+      "label": "Taux de présence",
       "ring_label": "Présence : {{value}}",
-      "sessions": "{{present}} séances suivies sur {{total}}",
-      "threshold": "Seuil requis : {{threshold}}",
-      "near": "Seuil requis : {{threshold}} · marge faible",
-      "below": "Seuil requis de {{threshold}} hors d'atteinte ce semestre",
-      "ended_below": "Semestre terminé sous le seuil requis de {{threshold}}",
-      "ended_ok": "Semestre terminé · seuil requis : {{threshold}}",
-      "absences": "Absences : {{count}}",
-      "justified": "Dont justifiées : {{count}}",
-      "partial": "Séances partielles : {{count}}"
+      "status": {
+        "ok": "Régulier",
+        "near": "Proche de la limite",
+        "below": "Sous la limite"
+      },
+      "summary": "{{absences}} sur {{sessions}}",
+      "summary_absences": {
+        "zero": "Aucune absence",
+        "one": "1 absence",
+        "two": "{{n}} absences",
+        "few": "{{n}} absences",
+        "many": "{{n}} absences",
+        "other": "{{n}} absences"
+      },
+      "summary_sessions": {
+        "zero": "0 séance",
+        "one": "1 séance",
+        "two": "{{n}} séances",
+        "few": "{{n}} séances",
+        "many": "{{n}} séances",
+        "other": "{{n}} séances"
+      },
+      "levels": {
+        "label": "Matières par niveau de présence",
+        "ok": "Validées",
+        "near": "Limite",
+        "below": "À risque"
+      }
     },
     "subjects": {
       "title": "Par matière",
       "note": "Le seuil de présence requis est de {{threshold}}.",
-      "sessions": "{{present}} séances suivies sur {{total}}",
-      "near": {
+      "col_subject": "Matière",
+      "col_present": "Présences",
+      "col_rate": "Taux",
+      "col_left": "Absences restantes",
+      "sessions": "{{count}} séances",
+      "left": {
         "zero": "Plus aucune absence possible",
-        "one": "Encore 1 absence avant la limite",
-        "two": "Encore 2 absences avant la limite",
-        "few": "Encore {{n}} absences avant la limite",
-        "many": "Encore {{n}} absences avant la limite",
-        "other": "Encore {{n}} absences avant la limite"
+        "one": "1 absence possible",
+        "two": "{{n}} absences possibles",
+        "few": "{{n}} absences possibles",
+        "many": "{{n}} absences possibles",
+        "other": "{{n}} absences possibles"
       },
-      "below": "Limite d'absences dépassée",
-      "ended_below": "Semestre terminé sous le seuil",
+      "limit_reached": "Limite atteinte",
       "bar_label": "Présence en {{subject}}"
     },
     "absences": {
-      "title": "Absences",
+      "title": "Mes absences",
       "count": "Affichées : {{shown}} sur {{total}}",
-      "none_todo": "Aucune absence ne peut être justifiée pour le moment.",
+      "none_todo": "Aucune absence à justifier.",
       "none_at_all": "Vous n'avez aucune absence ce semestre. Vous avez assisté à toutes vos séances."
     },
     "absence": {

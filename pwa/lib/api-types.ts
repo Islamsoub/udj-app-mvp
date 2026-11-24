@@ -192,7 +192,12 @@ export interface AttendanceSubject {
   absent: number;
   justified: number;
   partial: number;
-  percentage: number;
+  /**
+   * NULLABLE on the client: null means no figure, never 0 (read it through
+   * subjectRate in components/attendance/model.ts). The server currently sends
+   * 0 when no session hours can be resolved (ASK A3, a backend task).
+   */
+  percentage: number | null;
   /** Computed server-side (`ok` | `near` | `below`); never derived locally. */
   band: AttendanceBand;
   /**

@@ -1,4 +1,9 @@
-import type { AbsenceRecord, AttendanceBand, AttendanceSubject } from '@/lib/api-types';
+import type {
+  AbsenceRecord,
+  AttendanceBand,
+  AttendanceOverall,
+  AttendanceSubject,
+} from '@/lib/api-types';
 import type { Lang } from '@/lib/i18n-shared';
 
 /**
@@ -96,6 +101,59 @@ export function flattenAbsences(subjects: AttendanceSubject[]): FlatAbsence[] {
 }
 
 /**
+ * A subject's presence figure, or null when it has none.
+ *
+ * NULL IS NOT 0. A subject with no session on record has no rate, and the
+ * screen says so in words ("Aucune séance enregistrée") rather than drawing a
+ * 0% that reads as "you missed everything". The server's `percentage` is typed
+ * nullable for that reason; today it still sends 0 when no session hours can
+ * be worked out (backend/src/routes/student.ts, `truncatedPercentage(hours) ??
+ * 0`), which only an API change can tell apart from a real 0 (ASK A3).
+ */
+export function subjectRate(entry: AttendanceSubject): number | null {
+  if (entry.total === 0) return null;
+  const rate = entry.percentage;
+  return typeof rate === 'number' && Number.isFinite(rate) ? rate : null;
+}
+
+/**
+ * The level a subject is drawn in: the prototype's validated / limite / risque,
+ * read off the SERVER's band (ROUND2-CLOSEOUT §4), never off the percentage.
+ *
+ * Term over (`absencesLeft === null`) is checked first, as on every other
+ * surface: a term-over `near` is no longer "close to the limit", since no
+ * absence can be added; a term-over `below` stays below.
+ *
+ * Null for a subject with no figure: its band was computed from nothing, so it
+ * is shown in no level and counted in none.
+ */
+export type SubjectLevel = AttendanceBand;
+
+export function subjectLevel(entry: AttendanceSubject): SubjectLevel | null {
+  if (subjectRate(entry) === null) return null;
+  if (entry.absencesLeft === null && entry.band === 'near') return 'ok';
+  return entry.band;
+}
+
+/** How many subjects sit in each level — the hero's three counts. Subjects
+ *  with no figure are in none of them. */
+export function levelCounts(subjects: AttendanceSubject[]): Record<SubjectLevel, number> {
+  const counts: Record<SubjectLevel, number> = { ok: 0, near: 0, below: 0 };
+  for (const entry of subjects) {
+    const level = subjectLevel(entry);
+    if (level !== null) counts[level] += 1;
+  }
+  return counts;
+}
+
+/** The student's overall status for the hero pill, by the same rule as
+ *  subjectLevel: the server's overall band, a term-over `near` read as ok. */
+export function overallLevel(overall: AttendanceOverall): SubjectLevel {
+  if (overall.absencesLeft === null && overall.band === 'near') return 'ok';
+  return overall.band;
+}
+
+/**
  * Band rank, worst first. The order is ROUND2-CLOSEOUT §3's, not a severity the
  * PWA infers: the band itself is the server's verdict.
  */
@@ -131,8 +189,14 @@ function compareSubjects(a: AttendanceSubject, b: AttendanceSubject, lang: Lang)
     return a.absencesLeft - b.absencesLeft;
   }
 
-  const rate = a.percentage - b.percentage;
-  if (rate !== 0) return rate;
+  const rateA = subjectRate(a);
+  const rateB = subjectRate(b);
+  if (rateA !== rateB) {
+    // No figure sorts after every real one: it is unknown, not zero.
+    if (rateA === null) return 1;
+    if (rateB === null) return -1;
+    return rateA - rateB;
+  }
 
   return (
     displayName(a, lang).localeCompare(displayName(b, lang), lang) ||
