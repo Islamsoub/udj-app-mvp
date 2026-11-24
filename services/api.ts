@@ -594,6 +594,39 @@ export const createCourseNote = (payload: CourseNoteCreate) =>
 export const deleteCourseNoteOnServer = (id: string) =>
   instance.delete(`/student/course-notes/${encodeURIComponent(id)}`).then(() => undefined);
 
+// ─── Saved news articles (/student/saved-articles) ───────────────────────────
+
+/** One saved article: its id (the article data comes from /news) and when it was saved. */
+export interface SavedArticleDto {
+  articleId: string;
+  createdAt: string;
+}
+
+export interface SavedArticlesResponse {
+  savedArticles: SavedArticleDto[];
+}
+
+/** The student's saved articles, newest save first. */
+export const getSavedArticlesFromServer = () =>
+  instance.get<SavedArticlesResponse>('/student/saved-articles').then((r) => r.data.savedArticles);
+
+/**
+ * 204, idempotent (saving twice is fine) · 400 not an article id / bad createdAt
+ * · 404 unknown or unpublished article · 429 over 60 a minute. `createdAt`
+ * (ISO) is optional; the app sends none — the phone never stored a save date.
+ */
+export const saveArticleOnServer = (articleId: string, createdAt?: string) =>
+  instance
+    .put(
+      `/student/saved-articles/${encodeURIComponent(articleId)}`,
+      createdAt ? { createdAt } : undefined,
+    )
+    .then(() => undefined);
+
+/** 204, idempotent (even if it was not saved) · 400 not an article id. */
+export const unsaveArticleOnServer = (articleId: string) =>
+  instance.delete(`/student/saved-articles/${encodeURIComponent(articleId)}`).then(() => undefined);
+
 /** HTTP status of a failed call; undefined when no response came back (offline, timeout). */
 export const httpStatusOf = (err: unknown): number | undefined =>
   axios.isAxiosError(err) ? err.response?.status : undefined;

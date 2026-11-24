@@ -6,6 +6,7 @@ import { useAuthStore, REFRESH_KEY, StudentProfile } from '@/stores/authStore';
 import api, { SECURE_OPTS } from './api';
 import { clearAllCache } from './db';
 import { clearCourseNotesOnLogout } from './courseNotesSync';
+import { clearSavedArticlesOnLogout } from './savedArticles';
 import { BIOMETRIC_ENABLED_KEY, BIOMETRIC_ASKED_KEY } from '@/services/biometric';
 
 // Identity shown on the login screen ("Bon retour, Ahmed") before re-auth.
@@ -85,6 +86,14 @@ export async function logout(): Promise<void> {
     await clearCourseNotesOnLogout();
   } catch {
     // A local database error must not block logout. Not logged: it could quote a note.
+  }
+  // Saved news articles live in their own table, which clearAllCache does not
+  // touch. Wipe this student's copies of the server's saves; keep the saves made
+  // on this phone that are not on the server yet, until a later upload succeeds.
+  try {
+    await clearSavedArticlesOnLogout();
+  } catch {
+    // A local database error must not block logout.
   }
 
   // Drop the remembered identity so the next login screen is anonymous.
