@@ -17,7 +17,7 @@ export { OFFLINE_CACHE_KEY };
  * The consent behind lib/offline-cache, which reads OFFLINE_CACHE_KEY on every
  * write and read and treats an absent value as OFF — the safe default on a
  * shared machine, and the default this control ships with. Profile mirrors this
- * switch (components/profile/OfflineDataRow) against the same key.
+ * switch (components/profile/OfflineStorage) against the same key.
  *
  * Turning it off empties the store at once, not at the next login: a student
  * who changes their mind at the lab's login screen must not leave their grades

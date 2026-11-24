@@ -3,23 +3,88 @@
 import { useState } from 'react';
 import { Interpolated } from '@/components/dashboard/Interpolated';
 import { mentionKey } from '@/components/grades/model';
+import { useOnline } from '@/components/shell/useOnline';
 import type { MeResponse } from '@/lib/api-types';
 import { fmtPercent, fmtRatio } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
 import type { TranslationKey } from '@/lib/i18n-types';
 import { initialsOf, levelKeyFor } from '@/lib/student';
+import {
+  CalendarIcon,
+  CapIcon,
+  ChartIcon,
+  ClockIcon,
+  DocumentIcon,
+  FlagIcon,
+  InfoIcon,
+  LayersIcon,
+  MailIcon,
+  PersonIcon,
+  PhoneIcon,
+  PinIcon,
+} from './icons';
+import { TileGroup, TileList, TileRow } from './tiles';
 import styles from './profile.module.css';
 
+const ICON = styles.tileGlyph;
+
 /**
- * Everything GET /student/me says about the student, read-only — there is no
- * endpoint that edits any of it; changes go through the scolarité.
+ * The prototype's .identity-block, centred: the avatar, the name, the
+ * matricule in mono, a pill with the REAL connection state, and one line
+ * "Filière · Faculté · Semestre n" from the account.
  *
- * Three groups: who (name, ID, email, status), where (programme and faculty,
- * with the faculty's contact details, which are the ones a student actually
- * needs from this page), and how it is going (the same stats the dashboard
- * draws, as plain figures).
+ * Read-only, like everything GET /student/me says: there is no endpoint that
+ * edits any of it; changes go through the scolarité.
  */
-export function StudentCard({
+export function Identity({ me }: { me: MeResponse }) {
+  const { t, lang } = useI18n();
+  const { online } = useOnline();
+  const ar = lang === 'ar';
+
+  return (
+    <section className={styles.identity} aria-label={`${me.firstName} ${me.lastName}`}>
+      <Avatar photoUrl={me.photoUrl} firstName={me.firstName} lastName={me.lastName} />
+      <h2 className={styles.name}>
+        {me.firstName} {me.lastName}
+      </h2>
+      {/* DM Mono via `.mono`, in both languages: an identifier the student reads
+          out at a counter, so it must look the same always. */}
+      <p className={`${styles.studentId} mono`}>
+        <bdi>{me.studentIdDisplay}</bdi>
+      </p>
+
+      {/* The connection, from the shell's own online state: a jade dot when
+          the device is online, a neutral one when it is not. In words too. */}
+      <p className={`${styles.statusPill} ${online ? styles.statusOnline : styles.statusOffline}`}>
+        <span className={styles.statusDot} aria-hidden="true" />
+        {t(online ? 'profile.identity.online' : 'profile.identity.offline')}
+      </p>
+
+      <p className={styles.identityLine}>
+        <Interpolated
+          template={t('profile.identity.line')}
+          values={{
+            programme: ar ? me.programme.nameAr : me.programme.nameFr,
+            faculty: ar ? me.faculty.nameAr : me.faculty.nameFr,
+            semester: me.currentSemester,
+          }}
+          // The two names are words in the page's language; only the semester
+          // number goes on the Latin face.
+          renderValue={(name, value) =>
+            name === 'semester' ? <span key={name} className="num">{value}</span> : <bdi key={name}>{value}</bdi>
+          }
+        />
+      </p>
+    </section>
+  );
+}
+
+/**
+ * "Informations", "Parcours" and "Contacter ma faculté" as the prototype's
+ * .tile-group, full width. The first is Design's; the other two are the PWA's
+ * own and kept (design-known-divergences.md).
+ */
+export function AccountGroups({
   me,
   anyPublished,
 }: {
@@ -35,54 +100,42 @@ export function StudentCard({
 
   return (
     <>
-      <section className={`${styles.card} ${styles.identity}`}>
-        <Avatar photoUrl={me.photoUrl} firstName={me.firstName} lastName={me.lastName} />
-
-        <div className={styles.identityText}>
-          <p className={styles.name}>
-            {me.firstName} {me.lastName}
-          </p>
-          {/* DM Mono via `.mono`, in both languages. The ID is an identifier the
-              student reads out at a counter, so it must look the same always. */}
-          <p className={`${styles.studentId} mono`}>{me.studentIdDisplay}</p>
-          <p className={styles.email}>
-            {/* An address, so its direction is its own, not the page's. */}
-            <bdi>{me.email}</bdi>
-          </p>
-          <span className={`${styles.statusPill} ${STATUS_CLASS[me.status] ?? ''}`}>
-            {t(STATUS_KEY[me.status] ?? 'profile.status.unknown')}
-          </span>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>{t('profile.studies.title')}</h2>
-
-        <dl className={`${styles.card} ${styles.facts}`}>
-          <Fact label={t('profile.studies.programme')}>
+      <TileGroup title={t('profile.info.title')}>
+        <TileList>
+          <TileRow icon={<PersonIcon className={ICON} />} tone="jade" label={t('profile.studies.programme')}>
             {ar ? me.programme.nameAr : me.programme.nameFr}
             <span className={`${styles.code} num`}>{me.programme.code}</span>
-          </Fact>
-          <Fact label={t('profile.studies.level')}>
+          </TileRow>
+          <TileRow icon={<CapIcon className={ICON} />} tone="jade" label={t('profile.studies.level')}>
             {t(levelKeyFor(me.programme.level) ?? 'profile.level.unknown')}
-          </Fact>
-          <Fact label={t('profile.studies.semester')}>
+          </TileRow>
+          <TileRow icon={<CalendarIcon className={ICON} />} tone="warning" label={t('profile.studies.semester')}>
             <Interpolated
               template={t('profile.studies.semester_value')}
               values={{ current: me.currentSemester, total: me.programme.durationSemesters }}
             />
-          </Fact>
-          <Fact label={t('profile.studies.faculty')}>
+          </TileRow>
+          <TileRow icon={<InfoIcon className={ICON} />} tone="info" label={t('profile.studies.faculty')}>
             {ar ? me.faculty.nameAr : me.faculty.nameFr}
-          </Fact>
-        </dl>
-      </section>
+          </TileRow>
+          <TileRow icon={<MailIcon className={ICON} />} tone="exam" label={t('profile.info.email')}>
+            {/* An address, so its direction is its own, not the page's. */}
+            <bdi className="mono">{me.email}</bdi>
+          </TileRow>
+          {/* The enrolment status, only when it is not the ordinary one: a
+              suspended or graduated account must still say so, now that the
+              identity pill shows the connection instead. */}
+          {me.status !== 'ACTIVE' && (
+            <TileRow icon={<FlagIcon className={ICON} />} tone="danger" label={t('profile.info.status')}>
+              {t(STATUS_KEY[me.status] ?? 'profile.status.unknown')}
+            </TileRow>
+          )}
+        </TileList>
+      </TileGroup>
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>{t('profile.progress.title')}</h2>
-
-        <dl className={`${styles.card} ${styles.facts}`}>
-          <Fact label={t('profile.progress.gpa')}>
+      <TileGroup title={t('profile.progress.title')}>
+        <TileList>
+          <TileRow icon={<ChartIcon className={ICON} />} tone="jade" label={t('profile.progress.gpa')}>
             {gpa === null ? (
               t('profile.progress.gpa_unpublished')
             ) : (
@@ -95,17 +148,13 @@ export function StudentCard({
                 )}
               </>
             )}
-          </Fact>
+          </TileRow>
           {/*
             "0 / 32" is a result; "nothing published yet" is the absence of one.
-            They are the same digits and mean different things, so each line
-            says which it is.
-
-            The semester: `gpa` is null exactly when no final result of the
-            current semester is published, so its credits are stated as what is
-            at stake, not as none earned.
+            `gpa` is null exactly when no final result of the current semester
+            is published, so its credits are then stated as what is at stake.
           */}
-          <Fact label={t('profile.progress.semester_credits')}>
+          <TileRow icon={<DocumentIcon className={ICON} />} tone="info" label={t('profile.progress.semester_credits')}>
             {gpa === null ? (
               <Interpolated
                 template={t('profile.progress.credits_pending')}
@@ -114,13 +163,10 @@ export function StudentCard({
             ) : (
               <span className="num">{fmtRatio(semesterCredits.earned, semesterCredits.total)}</span>
             )}
-          </Fact>
-          {/*
-            The whole course: "no result published" only when that is KNOWN —
-            zero earned with results out is a real zero and stays a figure, as
-            does the case where the lookup failed and nothing can be claimed.
-          */}
-          <Fact label={t('profile.progress.total_credits')}>
+          </TileRow>
+          {/* "No result published" only when that is KNOWN: zero earned with
+              results out is a real zero and stays a figure. */}
+          <TileRow icon={<LayersIcon className={ICON} />} tone="exam" label={t('profile.progress.total_credits')}>
             {totalCredits.earned === 0 && anyPublished === false ? (
               <Interpolated
                 template={t('profile.progress.credits_none')}
@@ -129,16 +175,16 @@ export function StudentCard({
             ) : (
               <span className="num">{fmtRatio(totalCredits.earned, totalCredits.total)}</span>
             )}
-          </Fact>
-          <Fact label={t('profile.progress.attendance')}>
+          </TileRow>
+          <TileRow icon={<ClockIcon className={ICON} />} tone="warning" label={t('profile.progress.attendance')}>
             {attendancePercentage === null ? (
               t('profile.progress.none')
             ) : (
               <span className="num">{fmtPercent(attendancePercentage)}</span>
             )}
-          </Fact>
-        </dl>
-      </section>
+          </TileRow>
+        </TileList>
+      </TileGroup>
 
       <FacultyContact faculty={me.faculty} />
     </>
@@ -147,7 +193,7 @@ export function StudentCard({
 
 /**
  * The faculty's contact details. Each line is omitted when empty rather than
- * shown blank, and the section goes entirely if all four are — a heading over
+ * shown blank, and the group goes entirely if all four are — a heading over
  * nothing reads as a failure to load.
  */
 function FacultyContact({ faculty }: { faculty: MeResponse['faculty'] }) {
@@ -161,50 +207,42 @@ function FacultyContact({ faculty }: { faculty: MeResponse['faculty'] }) {
   if (!email && !phone && !address && !hours) return null;
 
   return (
-    <section className={styles.section}>
-      <h2 className={styles.sectionTitle}>{t('profile.contact.title')}</h2>
-
-      <dl className={`${styles.card} ${styles.facts}`}>
+    <TileGroup title={t('profile.contact.title')}>
+      <TileList>
         {email && (
-          <Fact label={t('profile.contact.email')}>
+          <TileRow icon={<MailIcon className={ICON} />} tone="exam" label={t('profile.contact.email')}>
             <a className={styles.link} href={`mailto:${email}`}>
               <bdi>{email}</bdi>
             </a>
-          </Fact>
+          </TileRow>
         )}
         {phone && (
-          <Fact label={t('profile.contact.phone')}>
+          <TileRow icon={<PhoneIcon className={ICON} />} tone="jade" label={t('profile.contact.phone')}>
             {/* A number, so Latin and left-to-right whatever the page is. */}
             <a className={`${styles.link} num`} href={`tel:${phone.replace(/\s+/g, '')}`} dir="ltr">
               {phone}
             </a>
-          </Fact>
+          </TileRow>
         )}
-        {address && <Fact label={t('profile.contact.address')}>{address}</Fact>}
+        {address && (
+          <TileRow icon={<PinIcon className={ICON} />} tone="info" label={t('profile.contact.address')}>
+            {address}
+          </TileRow>
+        )}
         {hours && (
-          <Fact label={t('profile.contact.hours')}>
+          <TileRow icon={<ClockIcon className={ICON} />} tone="warning" label={t('profile.contact.hours')}>
             <bdi>{hours}</bdi>
-          </Fact>
+          </TileRow>
         )}
-      </dl>
-    </section>
-  );
-}
-
-function Fact({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className={styles.fact}>
-      <dt className={styles.factLabel}>{label}</dt>
-      <dd className={styles.factValue}>{children}</dd>
-    </div>
+      </TileList>
+    </TileGroup>
   );
 }
 
 /**
- * The photo when there is one and it loads; the initials otherwise. The same
- * rule as the news images — a failed external image becomes a designed
- * fallback, never a broken-image icon — in a fixed box, so neither case moves
- * the text beside it.
+ * The photo when there is one and it loads; the initials otherwise. A failed
+ * external image becomes the designed fallback, never a broken-image icon, in a
+ * fixed box, so neither case moves what is under it.
  */
 function Avatar({
   photoUrl,
@@ -235,9 +273,3 @@ const STATUS_KEY: Record<string, TranslationKey> = {
   SUSPENDED: 'profile.status.suspended',
   GRADUATED: 'profile.status.graduated',
 };
-
-const STATUS_CLASS: Record<string, string> = {
-  ACTIVE: styles.statusActive,
-  SUSPENDED: styles.statusSuspended,
-};
-

@@ -1,102 +1,73 @@
 /* ─────────────────────────────────────────────────────────────────────────────
-   Profile — the student's details, the notification preferences, appearance
-   and sign-out.
+   Profile — the prototype's view-profile: the identity block, the tile groups
+   (.tile-group, .tile-row, .tile-icon), the Préférences and Notifications cards
+   (.card, .settings-row, .radio-pill, .toggle-switch), Compte and Stockage hors
+   ligne.
 
    Every colour, radius, shadow, duration and easing is a token from
-   app/globals.css.
+   app/globals.css. Design's measurements are kept verbatim.
 
-   Logical properties only. The switch thumb's travel is the one thing that
+   Logical properties only. The switch knob's travel is the one thing that
    cannot be logical — a transform is never mirrored by `dir` — so it reads the
    direction from --switch-dir, set in JS (§6).
    ───────────────────────────────────────────────────────────────────────────── */
 
-.heading {
-  margin: 0 0 20px;
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-  color: var(--ink);
+/* The page's only h1, visually hidden, as on the other screens. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
-   because mirroring belongs to logical properties; letter-spacing belongs to
-   the script. Arabic letters join, and tracking pulls them apart in either
-   direction. This is not a breach of that rule, so do not remove it as one. */
-html[lang="ar"] .heading {
-  letter-spacing: normal;
-}
-
+/* The full content width, as the prototype; .grid-cards' 16px between blocks. */
 .page {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  max-width: 720px;
+  gap: 16px;
+  min-width: 0;
 }
 
 /* One grid cell for every state of the account half, so the skeleton and what
-   replaces it overlap during §5's crossfade. StateLayers' `.layer` spaces the
-   children. */
+   replaces it overlap during §5's crossfade. */
 .screen {
   display: grid;
 }
 
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-}
+/* ── Identity (.identity-block) ────────────────────────────────────────────── */
 
-.sectionTitle {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--ink);
-}
-
-.sectionNote {
-  margin: -4px 0 0;
-  max-width: 60ch;
-  font-size: 12.5px;
-  line-height: 1.6;
-  color: var(--ink2);
-}
-
-.card {
-  border: 1px solid var(--hair);
-  border-radius: var(--r-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-}
-
-/* ── Identity ──────────────────────────────────────────────────────────────── */
-
+/*
+ * Centred: the avatar, the name, the matricule, the pill, the line. Design's
+ * padding is 6 above and 20 below; StateLayers' layer already puts 20 between
+ * this and the first group, so the bottom padding is 0 here and the distance
+ * is Design's 20.
+ */
 .identity {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px;
-}
-
-.identityText {
-  display: flex;
-  flex: 1;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  min-width: 0;
+  align-items: center;
+  padding: 6px 0 0;
+  text-align: center;
 }
 
+/* .identity-avatar: 84px, --jade-faint, 30 / 700 initials in --jade-text, a
+   3px --surface ring inside a 2px --jade-faint one. */
 .avatar {
   display: flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
+  width: 84px;
+  height: 84px;
   overflow: hidden;
-  border-radius: 50%;
+  border-radius: 9999px;
   background: var(--jade-faint);
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 5px var(--jade-faint);
 }
 
 .avatarImg {
@@ -108,100 +79,269 @@ html[lang="ar"] .heading {
 /* Initials are Latin letters from the Latin name fields, so the Latin face. */
 .avatarInitials {
   font-family: var(--font-sans);
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 30px;
+  font-weight: 700;
   color: var(--jade-text);
 }
 
-/* The name and the address are Latin-script data in both languages, so they
-   stay on the Latin face rather than on Naskh's fallback Latin glyphs. */
-.name,
-.email {
-  font-family: var(--font-sans);
-}
-
+/* .identity-block h2: 19 / 700, 14 under the avatar. The name is Latin-script
+   data in both languages, so it stays on the Latin face. */
 .name {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 800;
-  line-height: 1.3;
+  margin: 14px 0 0;
+  font-family: var(--font-sans);
+  font-size: 19px;
+  font-weight: 700;
   color: var(--ink);
 }
 
+/* .identity-block .mono: 13px, --ink2, 4 under the name. */
 .studentId {
-  margin: 0;
+  margin: 4px 0 0;
   font-size: 13px;
   color: var(--ink2);
 }
 
-.email {
-  margin: 0;
-  max-width: 100%;
-  overflow: hidden;
+/*
+ * The connection pill (.hj-status-pill as the prototype's profile draws it):
+ * 5px 11px, 12.5 / 700, a 6px dot, 10 under the matricule. Online: --jade-faint
+ * with a --jade dot and --jade-text words. Offline: --sunken, an --ink3 dot
+ * (non-text) and --ink2 words. §5: the colour never animates on its own.
+ */
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 5px 11px;
+  border-radius: 9999px;
   font-size: 12.5px;
-  color: var(--ink2);
-  text-overflow: ellipsis;
+  font-weight: 700;
+  /* Design's "normal" for 12.5px (measured 15.2), so the pill is its 25.2 tall. */
+  line-height: 15.2px;
   white-space: nowrap;
 }
 
-/* §5: a status pill's colour "never animates on its own". */
-.statusPill {
-  display: inline-flex;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  background: var(--sunken);
-  color: var(--ink2);
-  font-size: 12px;
-  font-weight: 700;
+.statusDot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
 }
 
-.statusActive {
+.statusOnline {
   background: var(--jade-faint);
   color: var(--jade-text);
 }
 
-.statusSuspended {
-  background: var(--danger-bg);
-  color: var(--danger-ink);
+.statusOnline .statusDot {
+  background: var(--jade);
 }
 
-/* ── Facts (definition lists) ──────────────────────────────────────────────── */
-
-.facts {
-  margin: 0;
-  padding-inline: 16px;
-}
-
-.fact {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px 16px;
-  padding-block: 12px;
-  border-block-start: 1px solid var(--hair);
-}
-
-.fact:first-child {
-  border-block-start: none;
-}
-
-.factLabel {
-  font-size: 12.5px;
+.statusOffline {
+  background: var(--sunken);
   color: var(--ink2);
 }
 
-.factValue {
+.statusOffline .statusDot {
+  background: var(--ink3);
+}
+
+/* "Licence Informatique · Faculté des Sciences · Semestre 4": 13px, --ink2,
+   12 under the pill. */
+.identityLine {
+  margin: 12px 0 0;
+  max-width: 100%;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
+/* ── Tile groups (.tile-group) ─────────────────────────────────────────────── */
+
+/* The account groups, .grid-cards' 16px apart (the layer around them spaces
+   by 20, which is the identity block's distance). */
+.groups {
   display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* --surface, --r-lg, --shadow-card, 4px of inline padding, no border. */
+.tileGroup {
+  min-width: 0;
+  padding: 0 4px;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+/* .tile-group-lbl: 11.5 / 700, uppercase, 0.4px tracking, inside the group:
+   14 above, 8 below, 14 in from the start. --ink2, not Design's --ink3: a
+   heading is text. */
+.tileGroupLabel {
+  margin: 0;
+  padding: 14px 0 8px;
+  padding-inline-start: 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--ink2);
+}
+
+/* Keyed on language, not direction: letter-spacing belongs to the script. */
+html[lang="ar"] .tileGroupLabel {
+  letter-spacing: normal;
+}
+
+.tileList {
+  margin: 0;
+}
+
+/*
+ * .tile-row: the tile on the start, the label, the value on the end; 13px
+ * gaps, at least 58 tall, 10 above and below, 10 on the start and 12 on the
+ * end; a hairline above every row (the label is the group's first child).
+ */
+.tileRow {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 58px;
+  padding-block: 10px;
+  padding-inline: 10px 12px;
+  border-top: 1px solid var(--hair);
+}
+
+/* The label side: the tile and the words. */
+.trHead {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+}
+
+/* .tile-icon: 34px, radius 11, a 17px glyph. */
+.tileIcon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+}
+
+.tileGlyph {
+  width: 17px;
+  height: 17px;
+}
+
+/*
+ * The prototype's five tints. The glyphs are graphics (3:1): Design's hues on
+ * their tints, with --warning-ink where Design hardcodes #9a5b06.
+ */
+.toneJade {
+  background: var(--jade-faint);
+  color: var(--jade-text);
+}
+
+.toneInfo {
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.toneWarning {
+  background: var(--warning-bg);
+  color: var(--warning-ink);
+}
+
+.toneExam {
+  background: var(--exam-bg);
+  color: var(--exam);
+}
+
+.toneDanger {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* .tr-label: 14.5 / 600. */
+.trLabel {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/*
+ * .tr-value: 13.5px, --ink2, on the end. Design's values never wrap
+ * (white-space: nowrap); ours can be a faculty name or an address on a 352px
+ * phone, so they may wrap, never overflow — at most 60% of the row.
+ */
+.trValue {
+  display: flex;
+  flex: 0 1 auto;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: flex-end;
   gap: 4px 8px;
+  min-width: 0;
+  max-width: 60%;
   margin: 0;
   font-size: 13.5px;
-  font-weight: 600;
-  color: var(--ink);
+  color: var(--ink2);
   text-align: end;
+  overflow-wrap: anywhere;
+}
+
+/* A line under a tile row's label (the offline switch's explanation). */
+.trSub {
+  margin: 3px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink2);
+}
+
+/* .tile-row.nav: a whole row that is a button, --surface2 on hover. */
+.tileRowNav {
+  width: 100%;
+  border-inline: 0;
+  border-bottom: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.tileRowNav:hover:not(:disabled) {
+  background: var(--surface2);
+}
+
+.tileRowNav:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: -2px;
+}
+
+.tileRowNav:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tileRowNav:last-child {
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+}
+
+/* Design's "Se déconnecter" in red, with the danger tile. The words take
+   --danger-ink, not --danger: 14.5px text needs 4.5:1. */
+.logoutLabel {
+  color: var(--danger-ink);
 }
 
 .code {
@@ -211,7 +351,7 @@ html[lang="ar"] .heading {
 }
 
 .mention {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--jade-text);
 }
@@ -231,52 +371,94 @@ html[lang="ar"] .heading {
   border-radius: 2px;
 }
 
-/* ── Settings rows ─────────────────────────────────────────────────────────── */
+/* ── Cards (.grid-cards, .card) ────────────────────────────────────────────── */
 
-.row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+/* On this view .grid-cards is two columns from 1024px; one below. */
+.cards {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 16px;
-  padding: 14px 16px;
-  border-block-start: 1px solid var(--hair);
+  align-items: start;
 }
 
-.row:first-child {
-  border-block-start: none;
+@media (min-width: 1024px) {
+  .cards {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
-.rowStacked {
+/* .card: --surface, 1px --hair, --r-lg, 20px, --shadow-card. */
+.card {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+/* .card h3: 14 / 700, 14 above the first row. */
+.cardTitle {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* The one short line under "Notifications" (ours), between title and rows. */
+.cardNote {
+  margin: -8px 0 12px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink2);
+}
+
+/* .settings-row: label on the start, control on the end, 12px above and below,
+   a hairline above every row (the title is the card's first child). */
+.settingsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--hair);
+}
+
+/* Heures calmes: the label, then the two fields under it. */
+.settingsRowStacked {
   flex-direction: column;
   align-items: stretch;
   gap: 10px;
 }
 
-.rowText {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.rowLabel {
+/* .settings-row .lbl: 13.5 / 600, line-height 1.3. */
+.settingsLabel {
   margin: 0;
   font-size: 13.5px;
-  font-weight: 700;
+  font-weight: 600;
+  line-height: 1.3;
   color: var(--ink);
 }
 
-.rowHint {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
+/* .settings-row .sub: 11.5px, 5 under the label. --ink2, not --ink3: text. */
+.settingsSub {
+  margin: 5px 0 0;
+  font-size: 11.5px;
+  line-height: 1.3;
   color: var(--ink2);
+}
+
+.rowText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
 }
 
 /* Always rendered (it is a live region), empty until there is something to
    say, and it takes no space while empty. */
 .rowStatus {
-  margin: 0;
+  margin: 4px 0 0;
   font-size: 12px;
   font-weight: 600;
   color: var(--ink2);
@@ -295,51 +477,100 @@ html[lang="ar"] .heading {
 }
 
 .offlineHint {
-  margin: 0;
+  margin: 4px 0 0;
   font-size: 12.5px;
   color: var(--ink2);
 }
 
-/* ── Switch (login's pattern, §9's motion) ─────────────────────────────────── */
+/* ── Radio pills (.radio-pills, .radio-pill) ───────────────────────────────── */
+
+.radioPills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* 32px, 13px of padding, full radius, 1px --hair2 on --surface, 12 / 700
+   --ink2; pressed: --jade-faint, --jade-text, no border. The swap is instant. */
+.radioPill {
+  position: relative;
+  height: 32px;
+  padding: 0 13px;
+  border: 1px solid var(--hair2);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--ink2);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* 32px pill, 44px target. */
+.radioPill::before {
+  content: '';
+  position: absolute;
+  inset-block: -6px;
+  inset-inline: 0;
+}
+
+.radioPill:hover {
+  color: var(--ink);
+}
+
+.radioPillOn,
+.radioPillOn:hover {
+  border-color: transparent;
+  background: var(--jade-faint);
+  color: var(--jade-text);
+}
+
+.radioPill:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
+
+/* ── Switch (.toggle-switch) ───────────────────────────────────────────────── */
 
 /*
- * The same object as the login screen's switch — see login.module.css for why
- * off is an outline. Off: a 2px --ink2 outline and a 16px --ink2 knob. On: a
- * solid --jade track and a 22px --on-jade knob. Filled or not, knob size, and
- * knob position each carry the state on their own.
+ * Design's switch: a 42 x 24 track and an 18px white knob 3px in, with its
+ * small shadow, travelling 18px to the end. The knob's position carries the
+ * state; the track's colour repeats it.
+ *
+ * The track colours are not Design's (--sunken off, --jade on): those left the
+ * off switch at 1.20:1 against the card, and the dark on knob at 2.50:1 on its
+ * track. --switch-track-off / --switch-track-on (globals.css) reach 3:1 for
+ * both; see design-known-divergences.md.
  */
 .switch {
   position: relative;
   flex-shrink: 0;
-  width: 38px;
-  height: 22px;
-  margin-top: 1px;
+  width: 42px;
+  height: 24px;
   padding: 0;
   border: none;
   border-radius: 9999px;
-  background: transparent;
-  /* The outline, as an inset ring rather than a border — see the login switch. */
-  box-shadow: inset 0 0 0 2px var(--ink2);
+  background: var(--switch-track-off);
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
+  transition: background var(--dur-fast) var(--ease-out);
 }
 
-/* 22px tall + 11px either side = a 44px target, without inflating the box. */
+/* 24px tall + 10px either side = a 44px target, without inflating the box. */
 .switch::before {
   content: '';
   position: absolute;
-  inset-block: -11px;
-  inset-inline: -11px;
+  inset-block: -10px;
+  inset-inline: -2px;
 }
 
 .switchOn {
-  background: var(--jade);
-  box-shadow: inset 0 0 0 2px var(--jade);
+  background: var(--switch-track-on);
 }
 
 .switch:disabled,
-.switch[aria-disabled='true'] {
+.switch[aria-disabled="true"] {
   cursor: not-allowed;
 }
 
@@ -347,7 +578,7 @@ html[lang="ar"] .heading {
   opacity: 0.5;
 }
 
-.switch[aria-busy='true'] {
+.switch[aria-busy="true"] {
   cursor: progress;
 }
 
@@ -356,34 +587,21 @@ html[lang="ar"] .heading {
   outline-offset: 2px;
 }
 
-/*
- * A 22px box at the track's inline start, drawn at 16/22 while off. Its centre
- * is then 11px from the edge, so the 16px knob sits 1px clear of the 2px
- * outline on three sides.
- *
- * SIZE AND POSITION ARE ONE TRANSFORM, so growing and sliding cannot come apart
- * into two motions: one property, one duration, one curve, and no layout per
- * frame.
- */
 .switchThumb {
   position: absolute;
-  top: 0;
-  inset-inline-start: 0;
-  width: 22px;
-  height: 22px;
+  top: 3px;
+  inset-inline-start: 3px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: var(--ink2);
-  transform: translateX(0) scale(calc(16 / 22));
-  transition: transform var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out);
+  background: var(--switch-knob);
+  box-shadow: var(--switch-knob-shadow);
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 
-/* 38 - 22 = 16px of travel, toward the inline-end, where the full-size knob is
-   flush with the end of the track. No overshoot: flush leaves it nowhere to
-   run to without leaving the track. */
+/* Design's inset-inline-start 3 → 21: 18px toward the inline end. */
 .switchOn .switchThumb {
-  background: var(--on-jade);
-  transform: translateX(calc(var(--switch-dir, 1) * 16px)) scale(1);
+  transform: translateX(calc(var(--switch-dir, 1) * 18px));
 }
 
 /* ── Quiet hours ───────────────────────────────────────────────────────────── */
@@ -432,48 +650,105 @@ html[lang="ar"] .heading {
   cursor: not-allowed;
 }
 
-/* ── Account ───────────────────────────────────────────────────────────────── */
+/* ── Stockage hors ligne ───────────────────────────────────────────────────── */
 
-.logout {
-  display: flex;
+/* The prototype's settings-row inside the group: 2px and 10px of margin, 16px
+   between the text and the button. */
+.storageRow {
+  gap: 16px;
+  margin: 2px 10px;
+}
+
+/* "Jamais" is a word, on the page's face; the date itself is .mono. */
+.syncNever {
+  font-weight: 600;
+}
+
+.storageStatus {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--jade-text);
+}
+
+/* .btn-ghost: 34px, 14px of padding, full radius, 1px --hair2 on --surface,
+   12.5 / 700 --ink2. */
+.ghostButton {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 52px;
-  padding-inline: 16px;
-  border: none;
-  border-radius: var(--r-lg);
-  background: transparent;
-  /* The words in ink, the icon in danger: --danger on --surface is 3.8:1 in the
-     light theme, under AA for text this size. The icon carries the colour. */
-  color: var(--ink);
+  justify-content: center;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--hair2);
+  border-radius: 9999px;
+  background: var(--surface);
+  color: var(--ink2);
   font-family: inherit;
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-weight: 700;
-  text-align: start;
+  white-space: nowrap;
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-out);
+  transition: background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
 }
 
-.logout:hover {
-  background: var(--danger-bg);
+/* 34px button, 44px target. */
+.ghostButton::before {
+  content: '';
+  position: absolute;
+  inset-block: -5px;
+  inset-inline: 0;
 }
 
-.logout:disabled {
+.ghostButton:hover:not(:disabled) {
+  background: var(--jade-faint);
+  color: var(--jade-text);
+}
+
+.ghostButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.logout:focus-visible {
+.ghostButton:focus-visible {
   outline: 2px solid var(--jade);
   outline-offset: 2px;
 }
 
-.logoutIcon {
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  color: var(--danger);
+/* "Vider": the destructive choice, in --danger-ink (text, 4.5:1). */
+.ghostDanger {
+  color: var(--danger-ink);
+}
+
+.ghostDanger:hover:not(:disabled) {
+  background: var(--danger-bg);
+  color: var(--danger-ink);
+}
+
+/* The confirmation, where the button was: the question, then the choices. */
+.confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.confirmText {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: end;
+}
+
+.confirmActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 /* ── Error and offline states ──────────────────────────────────────────────── */
@@ -552,24 +827,73 @@ html[lang="ar"] .heading {
   }
 }
 
+/* The identity block's lines, at the loaded lines' measured heights and
+   margins: name 28.5, matricule 19.5, pill 25.2, line 19.5. */
 .skeletonName {
-  width: 55%;
-  height: 18px;
+  width: 170px;
+  height: 28.5px;
+  margin-top: 14px;
 }
 
-.skeletonShort {
-  width: 35%;
-  height: 12px;
+.skeletonId {
+  width: 110px;
+  height: 19.5px;
+  margin-top: 4px;
 }
 
-.skeletonHeading {
-  width: 120px;
+.skeletonPill {
+  width: 86px;
+  height: 25.2px;
+  margin-top: 10px;
+  border-radius: 9999px;
+}
+
+.skeletonLine {
+  width: min(320px, 90%);
+  height: 19.5px;
+  margin-top: 12px;
+}
+
+/* The group label's line box (11.5px text: 17.25), inside its own padding. */
+.skeletonLabel {
+  width: 96px;
+  height: 17.25px;
+}
+
+.skeletonRowLabel {
+  width: 130px;
   height: 16px;
 }
 
-.skeletonValue {
-  width: 30%;
+.skeletonRowValue {
+  width: 140px;
   height: 14px;
+  margin-inline-start: auto;
+}
+
+/* The Notifications card: title 21, the short line 18.75, three rows, then
+   Heures calmes (label, explanation, the two fields): measured 155.25 with its
+   hairline, so 130.45 of content inside the row's 12px padding. */
+.skeletonCardTitle {
+  width: 110px;
+  height: 21px;
+  margin-bottom: 14px;
+}
+
+.skeletonCardNote {
+  width: 70%;
+  height: 18.75px;
+  margin: -8px 0 12px;
+}
+
+.skeletonQuiet {
+  height: 130.45px;
+}
+
+.skeletonSwitch {
+  width: 42px;
+  height: 24px;
+  border-radius: 9999px;
 }
 
 /* ── Reduced motion (§2) ───────────────────────────────────────────────────── */
@@ -581,15 +905,15 @@ html[lang="ar"] .heading {
     animation: none;
   }
 
-  /* The thumb still changes place and size — they are the state — but in one
-     step, with no slide, as on the login switch. */
+  /* The knob still changes place — it is the state — but in one step. */
   .switchThumb {
     transition: none;
   }
 
   .switch,
   .select,
-  .logout,
+  .tileRowNav,
+  .ghostButton,
   .retryButton {
     transition-duration: var(--dur-instant);
     transition-timing-function: linear;

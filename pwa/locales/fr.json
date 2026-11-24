@@ -596,7 +596,6 @@
       "unknown": "—"
     },
     "studies": {
-      "title": "Études",
       "programme": "Filière",
       "level": "Niveau",
       "semester": "Semestre",
@@ -623,14 +622,12 @@
     },
     "notifs": {
       "title": "Notifications",
-      "intro": "Ces réglages concernent l'application mobile Unipocket sur votre téléphone : ils décident des notifications qu'elle reçoit. Ce navigateur n'affiche aucune notification. Ils sont liés à votre compte et s'appliquent sur tous vos téléphones.",
       "grades": "Notes",
-      "grades_hint": "Publication de vos notes de contrôle continu et d'examen.",
       "courses": "Emploi du temps",
-      "courses_hint": "Changements de salle, d'horaire ou annulations de cours.",
       "attendance": "Assiduité",
-      "attendance_hint": "Absences enregistrées et décisions sur vos justificatifs.",
-      "offline": "Connexion requise pour modifier vos notifications."
+      "offline": "Connexion requise pour modifier vos notifications.",
+      "short": "Réglages des notifications de l'application mobile.",
+      "unavailable": "Disponible une fois votre profil chargé."
     },
     "quiet": {
       "title": "Heures calmes",
@@ -646,8 +643,6 @@
       "error": "Échec de l'enregistrement. Votre réglage n'a pas été modifié ; réessayez."
     },
     "device": {
-      "title": "Cet appareil",
-      "intro": "Enregistrés sur ce navigateur uniquement.",
       "theme": "Thème",
       "light": "Clair",
       "dark": "Sombre",
@@ -656,6 +651,29 @@
     },
     "account": {
       "title": "Compte"
+    },
+    "identity": {
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "line": "{{programme}} · {{faculty}} · Semestre {{semester}}"
+    },
+    "info": {
+      "title": "Informations",
+      "email": "E-mail",
+      "status": "Statut"
+    },
+    "prefs": {
+      "title": "Préférences"
+    },
+    "storage": {
+      "title": "Stockage hors ligne",
+      "last_sync": "Dernière synchronisation",
+      "never": "Jamais",
+      "clear": "Vider le cache",
+      "confirm": "Effacer la copie hors ligne de cet appareil ?",
+      "confirm_yes": "Vider",
+      "cancel": "Annuler",
+      "cleared": "Copie hors ligne effacée."
     }
   },
   "pwa": {
