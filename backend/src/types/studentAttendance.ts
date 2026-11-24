@@ -70,8 +70,9 @@ export interface AttendanceSubject extends AttendanceBandFields {
   absent: number;
   justified: number;
   partial: number;
-  /** Truncated whole percent. */
-  percentage: number;
+  /** Truncated whole percent; null when no hours have been held ("—"), as on
+   *  `overall`. Never sent as 0 for missing data. */
+  percentage: number | null;
   absences: AttendanceAbsenceEntry[];
 }
 

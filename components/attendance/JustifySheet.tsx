@@ -52,19 +52,27 @@ export function JustifySheet({ visible, record, onClose, onSubmit }: JustifyShee
   const [editMode, setEditMode] = useState(false);
 
   const status = record?.justificationStatus ?? null;
-  // Edit by default for unjustified / rejected; view for pending / approved.
-  const baseEdit = status == null || status === 'REJECTED';
+  // The server's verdict. Null (a record cached before the app stored it) is
+  // unknown: the form is offered and the server decides on submit.
+  const canSubmit = record?.canSubmitJustification !== false;
+  // Edit by default for unjustified / rejected while the server still accepts
+  // an upload; view for pending / approved, and once the deadline has passed.
+  const openInEdit = (s: typeof status, allowed: boolean) =>
+    allowed && (s == null || s === 'REJECTED');
+  const baseEdit = openInEdit(status, canSubmit);
 
   // Reset per-record state whenever the sheet (re)opens or the record changes.
   useEffect(() => {
     if (visible && record) {
-      setNote(record.justificationNote ?? '');
+      // On a refused proof `justificationNote` is the reviewer's reason, not
+      // the student's: it is shown as the reason, and the new note starts empty.
+      setNote(status === 'REJECTED' ? '' : (record.justificationNote ?? ''));
       setFileUri(null);
       setFileName('');
       setFileSize(0);
       setFileMime('image/jpeg');
       setUploading(false);
-      setEditMode(status == null || status === 'REJECTED');
+      setEditMode(openInEdit(status, record.canSubmitJustification !== false));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, record?.id]);
@@ -149,7 +157,11 @@ export function JustifySheet({ visible, record, onClose, onSubmit }: JustifyShee
     i18n.language,
   );
   const metaDate = formatLocalDate(new Date(record.sessionDate));
-  const showRejectBanner = editMode && status === 'REJECTED';
+  const showRejectBanner = status === 'REJECTED';
+  // The refusal reason, when the reviewer left one.
+  const rejectReason = status === 'REJECTED' ? record.justificationNote?.trim() || null : null;
+  // Nothing filed or refused, and the server no longer accepts an upload.
+  const deadlinePassed = !canSubmit && (status == null || status === 'REJECTED');
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
@@ -183,6 +195,20 @@ export function JustifySheet({ visible, record, onClose, onSubmit }: JustifyShee
               <Ionicons name="warning" size={13} color={colors.danger} />
               <Text style={styles.rejectTitle}>{t('presence.justify_rejected')}</Text>
             </View>
+          )}
+
+          {rejectReason && (
+            <View style={styles.noteReadonly}>
+              <Text style={styles.noteCaption}>{t('presence.justify_reject_reason')}</Text>
+              <Text style={styles.noteBody}>{rejectReason}</Text>
+            </View>
+          )}
+
+          {editMode && status === 'REJECTED' && (
+            <Text style={styles.sheetHint}>{t('presence.justify_resend_hint')}</Text>
+          )}
+          {deadlinePassed && (
+            <Text style={styles.sheetHint}>{t('presence.justify_deadline_passed')}</Text>
           )}
 
           {editMode ? (
@@ -250,7 +276,9 @@ export function JustifySheet({ visible, record, onClose, onSubmit }: JustifyShee
             </ScrollView>
           ) : (
             <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollBody}>
-              {!!record.justificationNote && (
+              {/* The student's own note; on a refusal the note is the reason,
+                  already shown above. */}
+              {!!record.justificationNote && status !== 'REJECTED' && (
                 <View style={styles.noteReadonly}>
                   <Text style={styles.noteCaption}>{t('presence.justify_note_sent')}</Text>
                   <Text style={styles.noteBody}>{record.justificationNote}</Text>
@@ -301,7 +329,7 @@ export function JustifySheet({ visible, record, onClose, onSubmit }: JustifyShee
               </PressBox>
             ) : (
               <>
-                {status === 'PENDING' && (
+                {status === 'PENDING' && canSubmit && (
                   <PressBox
                     tier="button"
                     radius={radius.rBtn}
@@ -404,6 +432,14 @@ const makeStyles = (colors: Palette) =>
     },
     scrollBody: {
       flexGrow: 0,
+    },
+    // One line of guidance under the banner: "send a new one" or "too late".
+    sheetHint: {
+      fontSize: fz(12.5),
+      fontFamily: fonts.sans,
+      color: colors.textSecondary,
+      marginTop: spacing.sp8,
+      marginHorizontal: spacing.sp20,
     },
     fileLabel: {
       fontSize: fz(12.5),

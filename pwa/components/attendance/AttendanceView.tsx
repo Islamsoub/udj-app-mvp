@@ -35,8 +35,9 @@ const PANEL_ID = 'attendance-absences';
  * The loaded attendance screen: the hero gauge, the per-subject breakdown, the
  * filtered absence list, and the justification panel.
  *
- * The caller has already ruled out the two empty cases, so `overall` is non-null
- * here and its percentage is a number.
+ * The caller has already ruled out the empty case, so `overall` is non-null
+ * here. Its percentage can still be null (no countable hours): the hero then
+ * shows "no figure", never 0%.
  */
 export function AttendanceView({
   overall,
@@ -47,8 +48,8 @@ export function AttendanceView({
 }: {
   overall: AttendanceOverall;
   subjects: AttendanceSubject[];
-  /** Non-null by construction: the caller renders an empty state without one. */
-  percentage: number;
+  /** Null when no hours could be counted; the hero says so in words. */
+  percentage: number | null;
   /** `attendanceThreshold` from the response — the server's, never a local one. */
   threshold: number;
   /** `justificationDeadlineDays` from the response, stated by the expired panel. */

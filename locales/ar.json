@@ -586,7 +586,11 @@
     "justify_added": "أُضيف الآن",
     "justify_sent": "تم الإرسال",
     "justify_view_doc": "عرض المستند",
-    "justify_note_sent": "السبب المُرسَل"
+    "justify_note_sent": "السبب المُرسَل",
+    "no_figure": "لا توجد حصص مسجّلة",
+    "justify_reject_reason": "سبب الرفض",
+    "justify_resend_hint": "يمكنك إرسال مبرر جديد ما دامت المهلة لم تنقضِ.",
+    "justify_deadline_passed": "انقضت مهلة التبرير: لم يعد بالإمكان تبرير هذا الغياب عبر التطبيق. لأي استفسار، يُرجى مراجعة أمانة كليتك."
   },
   "attendance": {
     "title": "الحضور",

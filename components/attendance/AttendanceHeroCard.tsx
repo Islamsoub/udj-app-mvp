@@ -14,7 +14,9 @@ const STROKE_W = 8;
 const CIRC = 2 * Math.PI * RING_R;
 
 interface Props {
-  percentage: number;
+  /** Null: no countable hours — the ring's track alone with a dash, and the
+   *  no-figure words in the badge's place. Never 0% or "null%". */
+  percentage: number | null;
   absences: number;
   totalSessions: number;
   /** Server verdict for the overall figure; null → no badge (never computed locally). */
@@ -24,7 +26,9 @@ interface Props {
 
 export function AttendanceHeroCard({ percentage, absences, totalSessions, band, skeleton }: Props) {
   const { t } = useTranslation();
-  const badgeKey = heroBadgeKey(band);
+  // The server bands a null rate as "ok"; "Régulier" would be a claim nobody
+  // measured, so no badge without a figure.
+  const badgeKey = percentage === null ? null : heroBadgeKey(band);
 
   if (skeleton) {
     return (
@@ -34,8 +38,8 @@ export function AttendanceHeroCard({ percentage, absences, totalSessions, band, 
     );
   }
 
-  const pct = Math.min(100, Math.max(0, percentage));
-  const dashOffset = CIRC * (1 - pct / 100);
+  const pct = percentage === null ? null : Math.min(100, Math.max(0, percentage));
+  const dashOffset = pct === null ? CIRC : CIRC * (1 - pct / 100);
 
   return (
     <View style={styles.shadow}>
@@ -57,19 +61,21 @@ export function AttendanceHeroCard({ percentage, absences, totalSessions, band, 
               strokeWidth={STROKE_W}
               fill="none"
             />
-            <Circle
-              cx={RING_SIZE / 2}
-              cy={RING_SIZE / 2}
-              r={RING_R}
-              stroke="#FFFFFF"
-              strokeWidth={STROKE_W}
-              fill="none"
-              strokeLinecap="round"
-              strokeDasharray={`${CIRC} ${CIRC}`}
-              strokeDashoffset={dashOffset}
-              rotation={-90}
-              origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
-            />
+            {pct !== null && (
+              <Circle
+                cx={RING_SIZE / 2}
+                cy={RING_SIZE / 2}
+                r={RING_R}
+                stroke="#FFFFFF"
+                strokeWidth={STROKE_W}
+                fill="none"
+                strokeLinecap="round"
+                strokeDasharray={`${CIRC} ${CIRC}`}
+                strokeDashoffset={dashOffset}
+                rotation={-90}
+                origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
+              />
+            )}
             <SvgText
               x={RING_SIZE / 2}
               y={RING_SIZE / 2}
@@ -80,7 +86,7 @@ export function AttendanceHeroCard({ percentage, absences, totalSessions, band, 
               fontWeight="500"
               fontFamily={fonts.mono}
             >
-              {`${pct}%`}
+              {pct === null ? '—' : `${pct}%`}
             </SvgText>
           </Svg>
 
@@ -90,6 +96,11 @@ export function AttendanceHeroCard({ percentage, absences, totalSessions, band, 
               <View style={styles.pill}>
                 <View style={styles.dot} />
                 <Text style={styles.pillText}>{t(badgeKey)}</Text>
+              </View>
+            )}
+            {pct === null && (
+              <View style={styles.pill}>
+                <Text style={styles.pillText}>{t('presence.no_figure')}</Text>
               </View>
             )}
             <Text style={styles.summary}>

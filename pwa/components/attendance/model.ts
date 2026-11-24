@@ -105,10 +105,8 @@ export function flattenAbsences(subjects: AttendanceSubject[]): FlatAbsence[] {
  *
  * NULL IS NOT 0. A subject with no session on record has no rate, and the
  * screen says so in words ("Aucune séance enregistrée") rather than drawing a
- * 0% that reads as "you missed everything". The server's `percentage` is typed
- * nullable for that reason; today it still sends 0 when no session hours can
- * be worked out (backend/src/routes/student.ts, `truncatedPercentage(hours) ??
- * 0`), which only an API change can tell apart from a real 0 (ASK A3).
+ * 0% that reads as "you missed everything". The server sends null when no
+ * session hours could be counted, the same as for the overall figure.
  */
 export function subjectRate(entry: AttendanceSubject): number | null {
   if (entry.total === 0) return null;

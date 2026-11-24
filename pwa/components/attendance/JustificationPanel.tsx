@@ -35,7 +35,10 @@ import styles from './attendance.module.css';
  *
  * It POSTs to /student/attendance/:recordId/justification and, on success,
  * hands the response up through `onUploaded` so the record can be patched in
- * place. The other three are read-only views of a decision already taken.
+ * place. The rejected body shares it while the deadline is open: a refused
+ * proof can be replaced (the server accepts a new upload for an ABSENT record
+ * inside the window, and sends it back to PENDING). The others are read-only
+ * views of a decision already taken.
  */
 export function JustificationPanel({
   record,
@@ -59,7 +62,7 @@ export function JustificationPanel({
     case 'approved':
       return <ApprovedBody record={record} />;
     case 'rejected':
-      return <RejectedBody record={record} />;
+      return <RejectedBody record={record} deadlineDays={deadlineDays} onUploaded={onUploaded} />;
     default:
       return <UploadBody record={record} onUploaded={onUploaded} />;
   }
@@ -171,8 +174,21 @@ function ApprovedBody({ record }: { record: AbsenceRecord }) {
 /** Turned down. The absence counts, and the note says why if the faculty left
  *  one — `justificationNote` carries the student's reason on submission and the
  *  reviewer's overwrite on a decision, so on a rejected record it is the
- *  faculty's word. */
-function RejectedBody({ record }: { record: AbsenceRecord }) {
+ *  faculty's word.
+ *
+ *  Then, from the server's own `canSubmitJustification`: inside the deadline,
+ *  the upload form to send a new proof (which is why a refused absence sits
+ *  under "À justifier"); past it, the expired sentence, as for an absence
+ *  nothing was ever sent for. */
+function RejectedBody({
+  record,
+  deadlineDays,
+  onUploaded,
+}: {
+  record: AbsenceRecord;
+  deadlineDays: number;
+  onUploaded: (result: UploadJustificationResponse) => void;
+}) {
   const { t } = useI18n();
 
   return (
@@ -185,6 +201,20 @@ function RejectedBody({ record }: { record: AbsenceRecord }) {
 
       <Note note={record.justificationNote} label={t('attendance.panel.note_reason')} />
       <Attachment url={record.justificationUrl} />
+
+      {record.canSubmitJustification ? (
+        <>
+          <p className={styles.panelText}>{t('attendance.panel.rejected.resend')}</p>
+          <JustificationForm recordId={record.id} onUploaded={onUploaded} />
+        </>
+      ) : (
+        <p className={styles.panelText}>
+          <Interpolated
+            template={t('attendance.panel.expired.body')}
+            values={{ days: deadlineDays }}
+          />
+        </p>
+      )}
     </Body>
   );
 }

@@ -101,9 +101,11 @@ export function Attendance() {
  *
  * THE TWO EMPTIES ARE DIFFERENT NEWS and must not share a message.
  *
- *   • NOTHING RECORDED — no current semester, no records, or session lengths
- *     that could not be resolved, all of which land as a null `overall` or a
- *     null `percentage`. This one means the screen has no data, and says so.
+ *   • NOTHING RECORDED — no current semester or no records: a null `overall`
+ *     or a zero total. This one means the screen has no data, and says so.
+ *     Records whose hours could not be counted are NOT this case: they arrive
+ *     with a null `percentage`, and the screen still shows them (the absences
+ *     can still be justified) with the hero in its no-figure state.
  *
  *   • NO ABSENCES — records exist, the student attended all of them. This is
  *     good news and is written as good news. Reusing the "nothing recorded"
@@ -116,9 +118,8 @@ function Settled({ data }: { data: AttendanceResponse }) {
   const { t } = useI18n();
 
   const overall = data.overall;
-  const percentage = overall?.percentage ?? null;
 
-  if (overall === null || percentage === null || overall.total === 0) {
+  if (overall === null || overall.total === 0) {
     return (
       <div className={styles.emptyBox}>
         <p className={styles.emptyTitle}>{t('attendance.empty.none.title')}</p>
@@ -131,7 +132,7 @@ function Settled({ data }: { data: AttendanceResponse }) {
     <AttendanceView
       overall={overall}
       subjects={data.subjects}
-      percentage={percentage}
+      percentage={overall.percentage}
       threshold={data.attendanceThreshold}
       deadlineDays={data.justificationDeadlineDays}
     />

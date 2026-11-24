@@ -18,6 +18,8 @@ export interface AbsenceRecord {
   justificationStatus: null | 'PENDING' | 'APPROVED' | 'REJECTED';
   justificationUrl?: string | null;
   justificationNote?: string | null;
+  /** Server verdict: a new upload would be accepted now. Null when unknown. */
+  canSubmitJustification?: boolean | null;
 }
 
 /** Map the record's raw justification status to the DateTile/StatusBadge status. */

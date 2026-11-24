@@ -36,11 +36,20 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
  * is on a /20 scale, and Ring's session key is shared with the dashboard card,
  * which is always spent by the time a student gets here.
  */
-export function PresenceRing({ percentage, label }: { percentage: number; label: string }) {
-  const [filling] = useState(() => takeOnce('attendance_presence_ring'));
+export function PresenceRing({
+  percentage,
+  label,
+}: {
+  /** Null: no figure. The track alone, a dash inside, no fill — never 0%. */
+  percentage: number | null;
+  label: string;
+}) {
+  // Not spent on a ring with nothing to fill, so the one fill still plays the
+  // first time there is a figure.
+  const [filling] = useState(() => percentage !== null && takeOnce('attendance_presence_ring'));
 
-  const clamped = Math.max(0, Math.min(100, percentage));
-  const offset = CIRCUMFERENCE * (1 - clamped / 100);
+  const clamped = percentage === null ? null : Math.max(0, Math.min(100, percentage));
+  const offset = clamped === null ? CIRCUMFERENCE : CIRCUMFERENCE * (1 - clamped / 100);
   const centre = VIEW / 2;
 
   return (
@@ -60,18 +69,20 @@ export function PresenceRing({ percentage, label }: { percentage: number; label:
       {/* Rotated on the circle, not the svg, so the figure stays upright. The
           sweep is not mirrored in Arabic: a gauge is a dial, clockwise is
           "more" in both directions. */}
-      <circle
-        className={`${styles.ringValue} ${filling ? styles.ringFilling : ''}`}
-        cx={centre}
-        cy={centre}
-        r={RADIUS}
-        strokeWidth={STROKE}
-        transform={`rotate(-90 ${centre} ${centre})`}
-      />
+      {clamped !== null && (
+        <circle
+          className={`${styles.ringValue} ${filling ? styles.ringFilling : ''}`}
+          cx={centre}
+          cy={centre}
+          r={RADIUS}
+          strokeWidth={STROKE}
+          transform={`rotate(-90 ${centre} ${centre})`}
+        />
+      )}
       {/* "87%" in that order in Arabic too: an LTR run, on the mono face. The
           svg's aria-label carries it to assistive tech. */}
       <text className={styles.ringText} x={centre} y={53} textAnchor="middle" direction="ltr">
-        {`${Math.round(clamped)}%`}
+        {clamped === null ? '—' : `${Math.round(clamped)}%`}
       </text>
     </svg>
   );

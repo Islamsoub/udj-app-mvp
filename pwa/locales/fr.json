@@ -471,7 +471,8 @@
       },
       "rejected": {
         "title": "Justificatif refusé",
-        "body": "Votre faculté n'a pas retenu ce justificatif. Cette absence compte dans votre taux de présence."
+        "body": "Votre faculté n'a pas retenu ce justificatif. Cette absence compte dans votre taux de présence.",
+        "resend": "Vous pouvez envoyer un nouveau justificatif tant que le délai n'est pas écoulé."
       }
     },
     "upload": {

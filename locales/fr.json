@@ -586,7 +586,11 @@
     "justify_added": "ajouté à l'instant",
     "justify_sent": "Envoyé",
     "justify_view_doc": "Voir le document",
-    "justify_note_sent": "Motif transmis"
+    "justify_note_sent": "Motif transmis",
+    "no_figure": "Aucune séance enregistrée",
+    "justify_reject_reason": "Motif du refus",
+    "justify_resend_hint": "Vous pouvez envoyer un nouveau justificatif tant que le délai n'est pas écoulé.",
+    "justify_deadline_passed": "Le délai de justification est dépassé : cette absence ne peut plus être justifiée dans l'application. Pour toute question, adressez-vous au secrétariat de votre faculté."
   },
   "attendance": {
     "title": "Présence",

@@ -35,8 +35,11 @@ const asWords = (_name: string, value: ReactNode) => value;
  * exactly what the "Mes absences" list holds (the endpoint puts each ABSENT and
  * each JUSTIFIED record there and nothing else).
  *
- * The caller does not mount this without a percentage: a gauge pinned at 0
- * would claim "you attended nothing" for what is really "nothing recorded".
+ * NO FIGURE IS NOT 0%. With a null percentage (no countable hours) the ring
+ * is drawn as its empty track with a dash inside, and the status pill gives
+ * the no-figure wording instead of a status: the server bands a null rate as
+ * "ok", and "Régulier" would be a claim nobody measured. The summary and the
+ * counts are facts about sessions and subjects, so they stay.
  */
 export function Hero({
   overall,
@@ -45,7 +48,7 @@ export function Hero({
 }: {
   overall: AttendanceOverall;
   subjects: AttendanceSubject[];
-  percentage: number;
+  percentage: number | null;
 }) {
   const { t, plural } = useI18n();
 
@@ -62,7 +65,11 @@ export function Hero({
       <div className={styles.heroWrap}>
         <PresenceRing
           percentage={percentage}
-          label={t('attendance.hero.ring_label', { value: percentText(percentage) })}
+          label={
+            percentage === null
+              ? t('attendance.empty.none.title')
+              : t('attendance.hero.ring_label', { value: percentText(percentage) })
+          }
         />
 
         <div className={styles.heroText}>
@@ -71,8 +78,14 @@ export function Hero({
           {/* The status in words; the dot is the prototype's cue on top of
               them, never instead of them (§10). */}
           <p className={styles.heroPill}>
-            <span className={`${styles.heroDot} ${DOT_CLASS[status]}`} aria-hidden="true" />
-            <span>{t(`attendance.hero.status.${status}` as const)}</span>
+            {percentage === null ? (
+              <span>{t('attendance.empty.none.title')}</span>
+            ) : (
+              <>
+                <span className={`${styles.heroDot} ${DOT_CLASS[status]}`} aria-hidden="true" />
+                <span>{t(`attendance.hero.status.${status}` as const)}</span>
+              </>
+            )}
           </p>
 
           <p className={styles.heroSummary}>

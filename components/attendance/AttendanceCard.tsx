@@ -9,7 +9,9 @@ import { subjectSentence, subjectTone, toneColor } from '@/components/attendance
 
 interface AttendanceCardProps {
   name: string;
-  percentage: number;
+  /** Null: no countable hours. The card says so in words, with no bar, no
+   *  colour and no sentence — never 0% or "null%". */
+  percentage: number | null;
   attended: number;
   total: number;
   /** Server verdict; null for a row cached before band existed (neutral, no sentence). */
@@ -25,11 +27,17 @@ export function AttendanceCard({ name, percentage, attended, total, band, absenc
 
   // Colour and sentence are a mapping of the server's verdict — see verdict.ts.
   // Ended term: near reads as ok (no amber, no triangle) — see subjectTone.
-  const tone = subjectTone(band, absencesLeft);
+  // No figure: no verdict either. The server bands a null rate as "ok", which
+  // is not a claim worth colouring, so the card is drawn as for no band.
+  const verdictBand = percentage === null ? null : band;
+  const tone = subjectTone(verdictBand, absencesLeft);
   const levelColor = toneColor(tone, colors);
   const sentence = useMemo(
-    () => subjectSentence({ band, absencesLeft, percentage, perfect: total > 0 && attended === total }),
-    [band, absencesLeft, percentage, attended, total],
+    () =>
+      percentage === null
+        ? null
+        : subjectSentence({ band: verdictBand, absencesLeft, percentage, perfect: total > 0 && attended === total }),
+    [verdictBand, absencesLeft, percentage, attended, total],
   );
   const projection = sentence ? { text: t(sentence.key, sentence.params) } : null;
   const emphasised = tone === 'near' || tone === 'below';
@@ -48,13 +56,19 @@ export function AttendanceCard({ name, percentage, attended, total, band, absenc
             {t('presence.sessions', { present: attended, total })}
           </Text>
         </View>
-        <Text style={[styles.percentageText, { color: levelColor }]}>{percentage}%</Text>
+        {percentage !== null && (
+          <Text style={[styles.percentageText, { color: levelColor }]}>{percentage}%</Text>
+        )}
       </View>
 
-      {/* Progress bar */}
-      <View style={styles.progressTrack}>
-        <View style={[styles.progressFill, { width: `${percentage}%`, backgroundColor: levelColor }]} />
-      </View>
+      {percentage === null ? (
+        <Text style={[styles.projectionText, styles.noFigure]}>{t('presence.no_figure')}</Text>
+      ) : (
+        /* Progress bar */
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${percentage}%`, backgroundColor: levelColor }]} />
+        </View>
+      )}
 
       {/* Projection row — omitted entirely without a server verdict. */}
       {projection && (
@@ -132,5 +146,10 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   projectionText: {
     fontSize: fz(12.5),
     fontFamily: fonts.sans,
+  },
+  // "Aucune séance enregistrée" in the bar's place: same gap as the bar above.
+  noFigure: {
+    marginTop: 9,
+    color: colors.textSecondary,
   },
 });

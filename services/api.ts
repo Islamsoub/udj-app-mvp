@@ -99,7 +99,8 @@ export interface Attendance {
   sessionsTotal: number;
   sessionsPresent: number;
   sessionsRemaining: number;
-  percentage: number;
+  /** Null: no countable hours ("no figure"), never shown as 0%. */
+  percentage: number | null;
   /** Legacy column: the server's threshold as a fraction (75 → 0.75). Not read for any verdict. */
   threshold: number;
   /** The server's verdict. Null only for a row cached before band existed. */
@@ -386,6 +387,12 @@ export interface AbsenceRecord {
   justificationNote: string | null;
   // Hours attended for a PARTIAL session; null/absent otherwise.
   hoursAttended?: number | null;
+  /**
+   * The server's verdict: an upload would be accepted now (status ABSENT, no
+   * accepted proof, inside the deadline). Null for a record cached before the
+   * app stored it — the sheet then lets the server decide on submit.
+   */
+  canSubmitJustification?: boolean | null;
 }
 
 export interface AttendanceSubject {
@@ -400,7 +407,8 @@ export interface AttendanceSubject {
   absent: number;
   justified: number;
   partial: number;
-  percentage: number;
+  /** Truncated whole percent; null when no hours could be counted ("no figure"). */
+  percentage: number | null;
   absences: AbsenceRecord[];
   band: AttendanceBand;
   /** Null once the semester has ended: nothing left to spend. Never show it as 0. */
@@ -410,7 +418,8 @@ export interface AttendanceSubject {
 // Overall attendance figures. `percentage` is hours-based (Pass C §4.3). The
 // backend sends `overall: null` when there is no current semester.
 export interface AttendanceOverall {
-  percentage: number;
+  /** Null when no hours could be counted ("no figure"); never shown as 0%. */
+  percentage: number | null;
   total: number;
   present: number;
   absent: number;
