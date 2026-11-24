@@ -14,24 +14,6 @@ const strokeProps = {
   strokeLinejoin: 'round' as const,
 };
 
-/**
- * Warning triangle — the below-threshold marker.
- *
- * §10: "Status colors (danger/warning/info/exam) are never the only signal —
- * always paired with a label or icon." This is that icon, and the row carries
- * the words beside it as well: a student with a colour-vision deficiency, a
- * monochrome display, or a high-contrast OS theme reads the same warning.
- */
-export function WarningIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
-      <path d="M12 3.8 21 19.5H3L12 3.8Z" />
-      <path d="M12 10v4" />
-      <path d="M12 16.8h.01" />
-    </svg>
-  );
-}
-
 /** Check in a circle — an absence that has been excused. */
 export function CheckIcon({ className }: IconProps) {
   return (
@@ -100,16 +82,6 @@ export function ExternalIcon({ className }: IconProps) {
   );
 }
 
-/** A chevron pointing toward the inline-end — the absence row's affordance.
- *  Mirrored in RTL by the stylesheet, not by a second path. */
-export function ChevronIcon({ className }: IconProps) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps}>
-      <path d="m9.5 5 7 7-7 7" />
-    </svg>
-  );
-}
-
 /** Tray with an up arrow — the (inert) upload control. */
 export function UploadIcon({ className }: IconProps) {
   return (
@@ -117,6 +89,17 @@ export function UploadIcon({ className }: IconProps) {
       <path d="M12 15.5V4.5" />
       <path d="m8 8.5 4-4 4 4" />
       <path d="M4.5 15.5V18A1.5 1.5 0 0 0 6 19.5h12a1.5 1.5 0 0 0 1.5-1.5v-2.5" />
+    </svg>
+  );
+}
+
+/** Clock — the prototype's .as-proj glyph beside "N absences possibles". Drawn
+ *  at its stroke width of 2, as Design's. */
+export function ClockIcon({ className }: IconProps) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" {...strokeProps} strokeWidth={2}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 3" />
     </svg>
   );
 }

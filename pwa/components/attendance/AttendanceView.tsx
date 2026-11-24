@@ -56,7 +56,12 @@ export function AttendanceView({
 }) {
   const { t, lang } = useI18n();
 
-  const [filter, setFilter] = useState<Filter>('all');
+  /*
+   * Opens on "À justifier", as the prototype (absenceFilter = 'unjustified'):
+   * the screen's job is to act on absences. "Tout" is one tap away, and the
+   * count line under the list still says how many there are in all.
+   */
+  const [filter, setFilter] = useState<Filter>('todo');
   const [selected, setSelected] = useState<FlatAbsence | null>(null);
 
   /*
@@ -136,7 +141,7 @@ export function AttendanceView({
 
   return (
     <>
-      <Hero overall={overall} percentage={percentage} threshold={threshold} />
+      <Hero overall={overall} subjects={subjects} percentage={percentage} />
 
       <SubjectBreakdown subjects={subjects} threshold={threshold} />
 

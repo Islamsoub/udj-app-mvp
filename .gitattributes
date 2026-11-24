@@ -1,0 +1,17 @@
+# Line endings are stored as LF in the repository, whatever core.autocrlf is
+# set to on the laptop that commits. Text files are checked out as LF too, so
+# editors and scripts on Windows see the same bytes as CI.
+* text=auto eol=lf
+
+# Binary: never converted, never diffed as text.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.ico   binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.otf   binary

@@ -2,95 +2,66 @@
 
 import { Interpolated } from '@/components/dashboard/Interpolated';
 import type { AttendanceSubject } from '@/lib/api-types';
-import { fmtPercent } from '@/lib/bidi';
+import { fmtLtr, fmtPercent } from '@/lib/bidi';
 import { useI18n } from '@/lib/i18n';
-import type { TranslationKey } from '@/lib/i18n-types';
-import { WarningIcon } from './icons';
-import { sortSubjects } from './model';
+import { ClockIcon } from './icons';
+import { sortSubjects, subjectLevel, subjectRate, type SubjectLevel } from './model';
 import styles from './attendance.module.css';
 
-type RowTone = 'ok' | 'near' | 'below';
+/** Level -> the prototype's .lvl-* (text) and .bg-lvl-* (dot, bar) classes. */
+const TEXT_CLASS: Record<SubjectLevel, string> = {
+  ok: styles.lvlOk,
+  near: styles.lvlNear,
+  below: styles.lvlBelow,
+};
 
-type RowFlag =
-  | { kind: 'near'; n: number }
-  | { kind: 'text'; key: TranslationKey };
-
-/**
- * One subject's row state, per ROUND2-CLOSEOUT §4: the tone (border, bar fill,
- * figure) and the flag beside the session count.
- *
- * Term over (`absencesLeft === null`) is checked first, because §4's term-over
- * rows apply whatever the band. A term-over `below` keeps the below treatment
- * with the term-over sentence; a term-over `near` gets no flag and no near tone,
- * since "n absences left" means nothing once the term has ended.
- */
-function subjectRow(entry: AttendanceSubject): { tone: RowTone; flag: RowFlag | null } {
-  if (entry.absencesLeft === null) {
-    return entry.band === 'below'
-      ? { tone: 'below', flag: { kind: 'text', key: 'attendance.subjects.ended_below' } }
-      : { tone: 'ok', flag: null };
-  }
-  switch (entry.band) {
-    case 'below':
-      return { tone: 'below', flag: { kind: 'text', key: 'attendance.subjects.below' } };
-    case 'near':
-      return { tone: 'near', flag: { kind: 'near', n: entry.absencesLeft } };
-    case 'ok':
-      return { tone: 'ok', flag: null };
-  }
-}
-
-const ROW_CLASS: Record<RowTone, string> = {
-  ok: '',
-  near: styles.subjectNear,
-  below: styles.subjectBelow,
+const FILL_CLASS: Record<SubjectLevel, string> = {
+  ok: styles.bgLvlOk,
+  near: styles.bgLvlNear,
+  below: styles.bgLvlBelow,
 };
 
 /**
- * Attendance per subject, worst first.
+ * "Par matière", worst subject first (model.ts, sortSubjects).
  *
- * A meter rather than a table. The question this section answers is "which
- * subject is dragging me down", which is a comparison between bars rather than a
- * reading of eight numbers, and the threshold is drawn as a line ACROSS every
- * bar at the same place so "below the line" is literally visible.
+ * The prototype's two forms of one list, both rendered and switched by the
+ * stylesheet at Design's 640px breakpoint (.data-table is hidden under it):
+ *   - 640 and wider: the table — Matière, Présences "attended/total", Taux
+ *     coloured by level, Absences restantes; figures right-aligned in mono.
+ *   - phones: .attend-subject rows — level dot, name, "x/y séances", the
+ *     percentage, the bar, then "N absences possibles" or "Limite atteinte".
+ * The hidden one is display:none, so assistive tech reads only the visible one.
  *
- * EACH ROW'S STATE IS THE SERVER'S `band` AND `absencesLeft` for that subject
- * (ROUND2-CLOSEOUT §4, "Subject rows" and "Row treatment"); the percentage is
- * never compared against the threshold here. The threshold is still displayed:
- * in the section note and as the tick on every bar.
+ * The level is the SERVER's band (subjectLevel); the percentage is never
+ * compared with the threshold. The threshold is stated once, in words, under
+ * the title, and drawn as the tick on every phone bar.
  *
- * §10: "Status colors ... are never the only signal — always paired with a label
- * or icon." A `near` or `below` row therefore carries three independent markers:
- * the border, bar and figure colour, the triangle glyph, and a sentence —
- * "Encore 2 absences avant la limite", "Limite d'absences dépassée", or, once
- * the term is over, "Semestre terminé sous le seuil". Any one of them alone
- * carries it. The rows carry no background tint: §4's treatment table has no
- * background column (Flag 8, Design to confirm).
+ * NO FIGURE IS NOT 0%: a subject without a rate (subjectRate null) says
+ * "Aucune séance enregistrée" where the rate would be, draws no bar, and takes
+ * no level colour.
  *
- * NOT a native <meter>. Its bar is drawn by the UA with no reliable way to place
- * the threshold marker inside it, and its `low`/`optimum` shading is a colour
- * signal the design system does not define. A labelled progressbar gives the
- * same semantics with a bar the stylesheet owns.
+ * `absencesLeft: null` (the term is over) renders as a dash in the table and as
+ * nothing in the phone row, never "0" (lib/api-types.ts).
  */
 export function SubjectBreakdown({
   subjects,
   threshold,
 }: {
   subjects: AttendanceSubject[];
-  /** From the response; see model.ts for why there is no local default.
-   *  Displayed only — each row's state comes from its own `band`. */
+  /** From the response; displayed only — each row's level comes from its band. */
   threshold: number;
 }) {
   const { t, plural, lang } = useI18n();
 
   const ordered = sortSubjects(subjects, lang);
+  const noFigure = t('attendance.empty.none.title');
 
   return (
     <section className={styles.card}>
       <h2 className={styles.cardTitle}>{t('attendance.subjects.title')}</h2>
 
-      {/* The legend for the tick on every bar below: the mark itself, then what
-          it stands for. The value is the server's, never a constant. */}
+      {/* The legend for the tick on the phone bars, and the threshold the
+          table's colours are measured against. The value is the server's. */}
       <p className={styles.sectionNote}>
         <span className={styles.thresholdKey} aria-hidden="true" />
         <Interpolated
@@ -99,81 +70,157 @@ export function SubjectBreakdown({
         />
       </p>
 
-      <ul className={styles.subjects}>
+      <div className={styles.tableWrap}>
+        <table className={styles.dataTable}>
+          <thead>
+            <tr>
+              <th scope="col">{t('attendance.subjects.col_subject')}</th>
+              <th scope="col" className={styles.numCell}>
+                {t('attendance.subjects.col_present')}
+              </th>
+              <th scope="col" className={styles.numCell}>
+                {t('attendance.subjects.col_rate')}
+              </th>
+              <th scope="col" className={styles.numCell}>
+                {t('attendance.subjects.col_left')}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {ordered.map((entry) => {
+              const name = lang === 'ar' ? entry.subject.nameAr : entry.subject.nameFr;
+              const rate = subjectRate(entry);
+              const level = subjectLevel(entry);
+
+              return (
+                <tr key={entry.subject.id}>
+                  <th scope="row" className={styles.tableSubject}>
+                    {name}
+                    {/* The code is an identifier, so it stays Latin in Arabic. */}
+                    <span className={`${styles.subjectCode} num`}>{entry.subject.code}</span>
+                  </th>
+                  <td className={`${styles.numCell} mono`}>
+                    {fmtLtr(`${entry.present}/${entry.total}`)}
+                  </td>
+                  {rate === null ? (
+                    <td className={`${styles.numCell} ${styles.noFigure}`}>{noFigure}</td>
+                  ) : (
+                    <td
+                      className={`${styles.numCell} ${level === null ? '' : TEXT_CLASS[level]} mono`}
+                    >
+                      {fmtPercent(rate)}
+                    </td>
+                  )}
+                  <td className={`${styles.numCell} mono`}>
+                    {entry.absencesLeft === null ? (
+                      <span aria-hidden="true">—</span>
+                    ) : (
+                      entry.absencesLeft
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <ul className={styles.subjectList}>
         {ordered.map((entry) => {
           const name = lang === 'ar' ? entry.subject.nameAr : entry.subject.nameFr;
-          const value = Math.round(entry.percentage);
-          const row = subjectRow(entry);
+          const rate = subjectRate(entry);
+          const level = subjectLevel(entry);
 
           return (
-            <li key={entry.subject.id} className={`${styles.subject} ${ROW_CLASS[row.tone]}`}>
-              <div className={styles.subjectHead}>
-                <p className={styles.subjectName}>
-                  {name}
-                  {/* The code is an identifier, so it stays Latin in Arabic. */}
-                  <span className={`${styles.subjectCode} num`}>{entry.subject.code}</span>
-                </p>
-
-                <p className={`${styles.subjectValue} num`}>
-                  {fmtPercent(value)}
-                </p>
-              </div>
-
-              {/*
-                The bar carries the reading for sighted users; the role and its
-                aria-* attributes carry the same number to assistive tech, so the
-                percentage is never announced twice from the text beside it.
-              */}
-              <div
-                className={styles.bar}
-                role="progressbar"
-                aria-valuenow={value}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label={t('attendance.subjects.bar_label', { subject: name })}
-                style={
-                  {
-                    '--bar-value': `${Math.max(0, Math.min(100, value))}%`,
-                    '--bar-threshold': `${threshold}%`,
-                  } as React.CSSProperties
-                }
-              >
-                <span className={styles.barFill} />
-                {/* The threshold, drawn at the same inline offset on every bar.
-                    Decorative: the sentence above the list states it in words. */}
-                <span className={styles.barThreshold} aria-hidden="true" />
-              </div>
-
-              <p className={styles.subjectMeta}>
-                <span>
-                  <Interpolated
-                    template={t('attendance.subjects.sessions')}
-                    values={{ present: entry.present, total: entry.total }}
-                  />
-                </span>
-
-                {row.flag !== null && (
-                  <span
-                    className={`${styles.subjectFlag} ${row.tone === 'below' ? styles.subjectFlagBelow : ''}`}
-                  >
-                    <WarningIcon className={styles.subjectFlagIcon} />
-                    {row.flag.kind === 'near' ? (
-                      // {{n}} goes through .num, Western digits in both
-                      // languages; the zero/one/two forms carry no placeholder.
-                      <Interpolated
-                        template={plural('attendance.subjects.near', row.flag.n)}
-                        values={{ n: row.flag.n }}
-                      />
-                    ) : (
-                      t(row.flag.key)
-                    )}
-                  </span>
+            <li key={entry.subject.id} className={styles.attendSubject}>
+              <div className={styles.asTop}>
+                <span
+                  className={`${styles.asDot} ${level === null ? styles.bgLvlNone : FILL_CLASS[level]}`}
+                  aria-hidden="true"
+                />
+                <div className={styles.asMain}>
+                  <p className={styles.asName}>
+                    {name}
+                    <span className={`${styles.subjectCode} num`}>{entry.subject.code}</span>
+                  </p>
+                  <p className={styles.asSessions}>
+                    <Interpolated
+                      template={t('attendance.subjects.sessions')}
+                      values={{ count: fmtLtr(`${entry.present}/${entry.total}`) }}
+                    />
+                  </p>
+                </div>
+                {rate !== null && level !== null && (
+                  <p className={`${styles.asPct} ${TEXT_CLASS[level]} mono`}>{fmtPercent(rate)}</p>
                 )}
-              </p>
+              </div>
+
+              {rate === null || level === null ? (
+                <p className={`${styles.asProj} ${styles.noFigure}`}>{noFigure}</p>
+              ) : (
+                <>
+                  {/* The bar carries the reading for sighted users; the role
+                      carries the same number to assistive tech. */}
+                  <div
+                    className={styles.asBar}
+                    role="progressbar"
+                    aria-valuenow={Math.round(rate)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label={t('attendance.subjects.bar_label', { subject: name })}
+                    style={
+                      {
+                        '--bar-value': `${Math.max(0, Math.min(100, rate))}%`,
+                        '--bar-threshold': `${threshold}%`,
+                      } as React.CSSProperties
+                    }
+                  >
+                    <span className={`${styles.asFill} ${FILL_CLASS[level]}`} />
+                    <span className={styles.barThreshold} aria-hidden="true" />
+                  </div>
+
+                  <Projection entry={entry} level={level} plural={plural} t={t} />
+                </>
+              )}
             </li>
           );
         })}
       </ul>
     </section>
+  );
+}
+
+/**
+ * The prototype's .as-proj line: "Limite atteinte" for a subject below the
+ * limit, otherwise how many absences remain. Nothing once the term is over and
+ * the subject is not below (`absencesLeft: null` is not 0).
+ */
+function Projection({
+  entry,
+  level,
+  plural,
+  t,
+}: {
+  entry: AttendanceSubject;
+  level: SubjectLevel;
+  plural: ReturnType<typeof useI18n>['plural'];
+  t: ReturnType<typeof useI18n>['t'];
+}) {
+  if (level !== 'below' && entry.absencesLeft === null) return null;
+
+  return (
+    <p className={`${styles.asProj} ${TEXT_CLASS[level]}`}>
+      <ClockIcon className={styles.asProjIcon} />
+      <span>
+        {level === 'below' || entry.absencesLeft === null ? (
+          t('attendance.subjects.limit_reached')
+        ) : (
+          <Interpolated
+            template={plural('attendance.subjects.left', entry.absencesLeft)}
+            values={{ n: entry.absencesLeft }}
+          />
+        )}
+      </span>
+    </p>
   );
 }

@@ -40,29 +40,19 @@
   display: grid;
 }
 
-/* ── Hero (prototype #pres-hero, .hero-jade; §9 "the hero moment") ───────── */
+/* ── Hero (prototype #pres-hero at layout b, .hero-jade; §9 "the hero moment") */
 
 /*
  * The prototype's .hero-jade, as Notes and the dashboard draw it: radius 22,
  * padding 22, the jade gradient and shadow, white text. The gradient and the
  * text use the hero variables (--hero-card-bg, --hero-ink), not Design's raw
- * values: Design's start stop is 3.39:1 under white and its 78% / 85% whites
- * are lower still (see --hero-card-bg in globals.css).
- *
- * Every line is solid --hero-ink, with no reduced-opacity secondary text:
- * white is 4.53:1 on the gradient's start stop and 6.20:1 on its end stop.
- *
- * The band (near, below, ended below) is NOT coloured here. --warning-ink and
- * --danger fall under 3:1 on the green, and no existing variable reaches it, so
- * the band is said in the threshold sentence, in bold, with its warning icon,
- * all in --hero-ink. A colour cue on top of that is A2 in ASK.md.
+ * values: Design's start stop is 3.39:1 under white and its 78% / 85% / 70%
+ * whites are lower still (see --hero-card-bg in globals.css). Every line is
+ * solid --hero-ink: 4.53:1 on the start stop, 6.20:1 on the end stop.
  */
 .hero {
   position: relative;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  gap: 24px;
   padding: 22px;
   border-radius: 22px;
   background: var(--hero-card-bg);
@@ -72,12 +62,10 @@
 }
 
 /*
- * .depth-circle: 160px in the top inline-end corner, 48px past both edges, so it
- * covers the card's last 112px across and its first 112px down. White on it
- * drops under 4.5:1, so no text may sit there. On a wide card the text column
- * ends long before it; on a narrow one (content box under 520px) the label, the
- * figure and the sessions line would run under it, and there the circle, which
- * is decoration, is not drawn — the same rule as the Notes hero.
+ * .depth-circle: 160px in the top inline-end corner, 48px past both edges.
+ * White on it drops under 4.5:1, so no text may sit there (the Notes rule).
+ * Under a 520px content box the text column or the counts would run under it,
+ * and there the circle, which is decoration, is not drawn.
  */
 .heroDepth {
   position: absolute;
@@ -96,186 +84,168 @@
   }
 }
 
-.heroText {
+/*
+ * .hero-ring-wrap at layout b: one wrapping row, 32px gaps both ways, so the
+ * prototype's own stacking happens at the same widths. On a phone the counts
+ * drop to a second row, 32px under the ring, and keep to the inline end.
+ *
+ * Measured on the prototype (FR): 1280 gives 940.8 x 140 and 800 gives
+ * 660.8 x 140, one row; 400 gives 348.8 x 214.4, counts on the second row.
+ */
+.heroWrap {
   position: relative;
-  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 32px;
 }
 
 /*
- * ONE HEIGHT PER WIDTH, WHATEVER THE DATA OR THE LANGUAGE.
- *
- * The skeleton cannot know the band, the sentence, whether there are partial
- * sessions, or the language, so the hero is built to be the same height for all
- * of them at a given width — otherwise the page moves when the data lands.
- * Two things make that true:
- *
- * 1. Every text line has a fixed line-height in px, and what sits inside a line
- *    (figures on the Latin face inside Arabic text) has line-height 1, so it
- *    never pushes the line box taller. Arabic lines were 1-2px taller per line
- *    from that mixing alone.
- *
- * 2. The two lines that wrap — the threshold sentence and the counts — reserve
- *    the most lines they take at the width the text column has. The buckets
- *    below are by the hero's content box (C); the text column is C less the
- *    110 ring and its gap. Measured longest content, French: the "below"
- *    sentence (bold) about 330px, the three counts about 353px in a row, the
- *    longest single count about 140px.
- *      C >= 514  (text >= 380): sentence 1 line,  counts 1 line
- *      C >= 384  (text >= 250): sentence 2 lines, counts 2 lines
- *      C >= 304  (text >= 170): sentence 2 lines, counts 3 lines
- *      C <  304                : sentence 3 lines, counts 3 lines, and the
-                                label and the sessions line 2 lines each
- *    A shorter sentence, or no partial sessions, leaves the rest of its
- *    reserved height empty. The skeleton uses the same buckets on its own box,
- *    which has the same padding and so the same C.
+ * Every line height is fixed at the prototype's measured "normal" for Plus
+ * Jakarta Sans and DM Mono, and what sits inside a line has line-height 1, so
+ * the Arabic face (taller by nature) does not change the card's height and the
+ * skeleton can match it.
  */
-.heroText p * {
+.heroText {
+  min-width: 0;
+}
+
+/* The summary's figures and words (Interpolated's spans). Not the pill: it is
+   a flex row, so its word span is a flex item that sets the line itself. */
+.heroSummary * {
   line-height: 1;
 }
 
 /* .hj-label: 12.5 / 700, uppercase, 0.4px tracking. */
 .heroLabel {
   margin: 0;
-  line-height: 18.75px;
   font-size: 12.5px;
   font-weight: 700;
+  line-height: 15.2px;
   letter-spacing: 0.4px;
   text-transform: uppercase;
 }
 
-/* Keyed on language, not direction. CLAUDE.md forbids [dir="rtl"] selectors
-   because mirroring belongs to logical properties; letter-spacing belongs to
-   the script. Arabic letters join, and tracking pulls them apart in either
-   direction. This is not a breach of that rule, so do not remove it as one. */
+/* Keyed on language, not direction: letter-spacing belongs to the script.
+   Arabic letters join, and tracking pulls them apart. Not a [dir] selector. */
 html[lang="ar"] .heroLabel {
   letter-spacing: normal;
 }
 
-.heroValue {
+/*
+ * .hj-status-pill: 12.5 / 700, 5px 11px, a 6px dot, 8px under the label. The
+ * pill is --hero-badge, the dark pill Notes uses, not Design's
+ * rgba(255,255,255,.18): white on that light pill is 3.34:1 on the gradient's
+ * start stop (4.24 on the end), under AA for 12.5px text; on --hero-badge it is
+ * 5.96 / 7.95.
+ */
+.heroPill {
   display: flex;
-  margin: 6px 0 0;
-}
-
-/* The number and its sign, laid out inside the LTR isolate that keeps "92%" in
-   that order in Arabic. The gap and baseline live here, on the element that
-   actually holds the two spans. */
-.heroFigure {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 2px;
-}
-
-.heroValue {
-  height: 47px;
-}
-
-.heroNumber {
-  font-size: 44px;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.03em;
-}
-
-.heroUnit {
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.heroSessions {
-  margin: 10px 0 0;
-  font-size: 13px;
-  line-height: 19.5px;
-}
-
-/* Top-aligned, so a one-line sentence in a two-line reservation stays on the
-   first line; the icon is centred on that first line ((19.5 - 16) / 2). */
-.heroThreshold {
-  display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 6px;
-  min-height: 19.5px;
+  width: fit-content;
   margin: 8px 0 0;
-  font-size: 13px;
-  line-height: 19.5px;
-}
-
-/* near, below and ended below: the same ink, said in bold and with the warning
-   icon beside the sentence (§10: never colour alone; here not colour at all,
-   see the note at .hero). */
-.heroThresholdNear,
-.heroThresholdBelow {
-  font-weight: 700;
-}
-
-.heroThresholdIcon {
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  margin-top: 1.75px;
-}
-
-.heroCounts {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  gap: 6px 14px;
-  min-height: 18.75px;
-  margin: 10px 0 0;
-}
-
-.heroCount {
+  padding: 5px 11px;
+  border-radius: 9999px;
+  background: var(--hero-badge);
   font-size: 12.5px;
-  line-height: 18.75px;
+  font-weight: 700;
+  line-height: 15.2px;
+  white-space: nowrap;
 }
 
-/* The reservations, by the hero's content box (see the note at .heroText).
-   Sentence: n x 19.5. Counts: n x 18.75 + (n - 1) x 6. */
-@container (width < 514px) {
-  .heroThreshold {
-    min-height: 39px;
-  }
+.heroDot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
 
-  .heroCounts {
-    min-height: 43.5px;
+/* Ratios against the pill (--hero-badge over each gradient stop) are with the
+   tokens in globals.css. The words beside the dot carry the status. */
+.heroDotOk {
+  background: var(--hero-dot-ok);
+}
+
+.heroDotNear {
+  background: var(--hero-dot-near);
+}
+
+.heroDotBelow {
+  background: var(--hero-dot-below);
+}
+
+/* .hj-summary: 13px, 10 under the pill, at most 220 wide. */
+.heroSummary {
+  max-width: 220px;
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 16.8px;
+}
+
+/*
+ * .hj-breakdown: pushed to the inline end, 20px between the three counts.
+ *
+ * On a row of its own the circle is above it; on the ring's row it would sit
+ * under the circle, so from a 520px content box (where the circle is drawn) it
+ * stops 90px short of the inline-end padding, the Notes label's rule.
+ */
+.heroBreakdown {
+  display: flex;
+  gap: 20px;
+  margin: 0;
+  margin-inline-start: auto;
+  padding: 0;
+  list-style: none;
+}
+
+@container (width >= 520px) {
+  .heroBreakdown {
+    margin-inline-end: 90px;
   }
 }
 
-@container (width < 384px) {
-  .heroCounts {
-    min-height: 68.25px;
-  }
+.heroLevel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
-/* The narrowest phones (a 360px screen: text column 142): the label and the
-   sessions line wrap too. */
-@container (width < 304px) {
-  .heroLabel {
-    min-height: 37.5px;
-  }
+/* 22 / 600 on DM Mono, which ships 400 and 500: the 600 is the browser's
+   synthesised weight, exactly as in the prototype (it loads the same two). */
+.heroLevelCount {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 28.8px;
+}
 
-  .heroSessions {
-    min-height: 39px;
-  }
+.heroLevelLabel {
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 13.6px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 
-  .heroThreshold {
-    min-height: 58.5px;
-  }
+html[lang="ar"] .heroLevelLabel {
+  letter-spacing: normal;
 }
 
 /* ── Presence ring (§5) ────────────────────────────────────────────────────── */
 
-/* The prototype's .hero-ring at layout b: 96 scaled 1.15, so 110 here. */
+/*
+ * The prototype's .hero-ring: 96 scaled 1.15, so 110.4 drawn, and a -7.2px
+ * margin so the layout box is the prototype's 96 (a transform does not change
+ * layout). The ring stands 7.2px into the card's padding, as Design's does.
+ */
 .ring {
-  position: relative;
   flex-shrink: 0;
-  width: 110px;
-  height: 110px;
-  /*
-   * The SVG is drawn with 0 at 12 o'clock going clockwise. Rotating -90deg puts
-   * the start there; the sweep is not mirrored in RTL because a gauge is a dial,
-   * not a line of text — clockwise means "more" in both directions.
-   */
-  transform: rotate(-90deg);
+  width: 110.4px;
+  height: 110.4px;
+  margin: -7.2px;
 }
 
 /* The prototype's track, rgba(255,255,255,.25), as the hero variable. */
@@ -285,15 +255,9 @@ html[lang="ar"] .heroLabel {
 }
 
 /*
- * §5: fills from 0 to its value once, on first paint of the view, over
- * --dur-slow with --ease-in-out.
- *
- * Done with stroke-dashoffset in CSS rather than in JS so prefers-reduced-motion
- * can switch it off with one rule and leave the final value rendered — the gauge
- * stays correct, only the travel goes.
- *
- * --hero-ink in every band (see PresenceRing). A graphic, so 3:1 is the bar:
- * white is 4.53:1 on the gradient's lighter stop.
+ * §5: fills from 0 to its value once, over --dur-slow with --ease-in-out, in
+ * CSS so prefers-reduced-motion can drop the travel and keep the value.
+ * --hero-ink in every band: a graphic, 4.53:1 on the lighter stop.
  */
 .ringValue {
   fill: none;
@@ -311,6 +275,15 @@ html[lang="ar"] .heroLabel {
   from {
     stroke-dashoffset: var(--ring-circumference);
   }
+}
+
+/* The percentage inside the ring: .hero-ring text, mono 22 / 500, white. In
+   viewBox units, so 25.3px drawn at the 1.15 scale, as Design's. */
+.ringText {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 500;
+  fill: var(--hero-ink);
 }
 
 /* ── Sections ──────────────────────────────────────────────────────────────── */
@@ -347,140 +320,255 @@ html[lang="ar"] .heroLabel {
 
 /* ── Per-subject breakdown ─────────────────────────────────────────────────── */
 
-.subjects {
-  margin: 0;
+/*
+ * Two forms of one list, switched at the prototype's 640px breakpoint
+ * (`.data-table{display:none}` under 640): the table from 640, the bar list on
+ * a phone. display:none, so only the visible one reaches assistive tech.
+ */
+.tableWrap {
+  margin-top: 14px;
+}
+
+.subjectList {
+  display: none;
+  margin: 14px 0 0;
   padding: 0;
   list-style: none;
 }
 
-/*
- * Rows inside the card, as the prototype's rows: inset by the card's padding,
- * a hairline between two rows, no border, radius or shadow of their own. The
- * band is carried by the bar, the figure and the flag sentence with its icon,
- * so the coloured outline the rows used to have is not needed.
- */
-.subject {
-  padding: 14px 0;
-}
+@media (max-width: 639px) {
+  .tableWrap {
+    display: none;
+  }
 
-.subject + .subject {
-  border-top: 1px solid var(--hair);
-}
-
-.subject:last-child {
-  padding-bottom: 0;
+  .subjectList {
+    display: block;
+  }
 }
 
 /*
- * The subject's own band, ROUND2-CLOSEOUT §4 "Row treatment": bar fill and
- * figure (the row border went with the per-row cards). Never on its own — the
- * row also carries the triangle glyph and a sentence (.subjectFlag), because
- * §10 forbids colour as the only signal.
+ * .data-table: 13.5px, header 11 / 700 uppercase with 0.4px tracking, cells
+ * 12px all round, a hairline under each row but the last, --surface2 under a
+ * row on hover. Line heights fixed at Design's measured "normal" (header
+ * 14.4, rows 17.6, so 34.8 and 42.4 tall with the collapsed hairlines), with line-height 1 inside a cell, so
+ * Arabic rows are the same height and the skeleton matches them.
  *
- * No background tint: §4's table has no background column, so --warning-bg is
- * no longer used here (Flag 8, Design to confirm). --warning is not used either
- * (A3: 2.15:1 on --surface in light).
- *
- * near: all three in --warning-ink, which is text-safe on the card and holds as
- * a graphic on the track — 6.39 light / 8.36 dark on --surface, 5.33 light /
- * 9.88 dark against the --sunken track (§4 quotes the 5.33).
- *
- * below (and term-over below): border and fill in the --danger hue, a graphic at
- * 3.76 light / 5.56 dark on --surface and 3.14 light / 6.57 dark on --sunken; the
- * figure is text, so it takes --danger-ink, 6.54 light / 7.59 dark on --surface.
+ * Header ink is --ink2, not Design's --ink3: --ink3 is under AA and the PWA
+ * keeps it for non-text (CLAUDE.md).
  */
-.subjectHead {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.subjectName {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px;
-  margin: 0;
-  min-width: 0;
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
   font-size: 13.5px;
-  font-weight: 700;
+  line-height: 17.6px;
   color: var(--ink);
 }
 
+.dataTable th *,
+.dataTable td * {
+  line-height: 1;
+}
+
+.dataTable thead th {
+  padding: 10px 12px;
+  line-height: 14.4px;
+  border-bottom: 1px solid var(--hair);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-align: start;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink2);
+}
+
+html[lang="ar"] .dataTable thead th {
+  letter-spacing: normal;
+}
+
+.dataTable td,
+.dataTable tbody th {
+  padding: 12px;
+  border-bottom: 1px solid var(--hair);
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.dataTable tbody tr:last-child > * {
+  border-bottom: none;
+}
+
+.dataTable tbody tr:hover > * {
+  background: var(--surface2);
+}
+
+/* The row's subject: a row header, at the body weight as Design's cell. */
+.tableSubject {
+  font-weight: 400;
+  text-align: start;
+}
+
+/* th.num / td.num: end-aligned. The figures take .mono in the markup; Design
+   also sets the numeric HEADERS in mono, which holds for Latin words only. */
+.dataTable .numCell {
+  text-align: end;
+  white-space: nowrap;
+}
+
+.dataTable thead .numCell {
+  font-family: var(--font-mono);
+}
+
+html[lang="ar"] .dataTable thead .numCell {
+  font-family: inherit;
+}
+
+/* "Aucune séance enregistrée" where a rate would be: words, so the body face. */
+.noFigure {
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--ink2);
+}
+
+.dataTable .noFigure {
+  white-space: normal;
+}
+
 .subjectCode {
+  margin-inline-start: 8px;
   font-size: 11px;
   font-weight: 600;
   color: var(--ink2);
 }
 
-.subjectValue {
-  flex-shrink: 0;
-  margin: 0;
-  font-size: 17px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--ink);
+/*
+ * Level colours, the prototype's .lvl-* and .bg-lvl-*, on the server's band.
+ * Text (Taux, the phone %, the projection line) on --surface:
+ *   ok    --jade-text
+ *   near  --warning-ink (Design's #9a5b06 light, --warning dark): 6.39 light,
+ *         8.36 dark
+ *   below --danger-ink, not Design's --danger: 6.54 light, 7.59 dark
+ * Dots and bar fills are graphics (3:1):
+ *   ok    --jade
+ *   near  --warning-ink, not Design's --warning (2.15:1 on --surface, light)
+ *   below --danger, 3.76 light / 5.56 dark
+ */
+.lvlOk {
+  color: var(--jade-text);
 }
 
-.subjectNear .subjectValue {
+.lvlNear {
   color: var(--warning-ink);
 }
 
-.subjectBelow .subjectValue {
+.lvlBelow {
   color: var(--danger-ink);
 }
 
-/* ── Bars ──────────────────────────────────────────────────────────────────── */
+.bgLvlOk {
+  background: var(--jade);
+}
 
-/*
- * The track. `position: relative` so the fill and the threshold marker can be
- * placed against it, and `overflow: hidden` so the fill's rounded end is clipped
- * to the track rather than sticking out at 100%.
- */
-/* Not clipped: the threshold tick has to stand proud of the bar, above and
-   below. The fill carries its own radius, so nothing needs the clip. */
-.bar {
-  position: relative;
-  height: 8px;
-  margin: 10px 0 0;
-  border-radius: 9999px;
-  background: var(--sunken);
+.bgLvlNear {
+  background: var(--warning-ink);
+}
+
+.bgLvlBelow {
+  background: var(--danger);
+}
+
+/* No figure: no level. --ink3 is a non-text use here. */
+.bgLvlNone {
+  background: var(--ink3);
+}
+
+/* .attend-subject: 13px rows, a hairline between, the first flush to the top. */
+.attendSubject {
+  padding: 13px 0;
+  border-top: 1px solid var(--hair);
+}
+
+/* Lines fixed at Design's measured "normal", line-height 1 inside them, so an
+   Arabic row is a French row's height and the skeleton can match it. */
+.attendSubject p * {
+  line-height: 1;
+}
+
+.attendSubject:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.attendSubject:last-child {
+  padding-bottom: 0;
+}
+
+.asTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.asDot {
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  margin-top: 4px;
+  border-radius: 50%;
+}
+
+.asMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.asName {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 17.6px;
+}
+
+/* .as-sessions in --ink2 rather than --ink3 (text). */
+.asSessions {
+  margin: 1px 0 0;
+  font-size: 11.5px;
+  line-height: 14.4px;
+  color: var(--ink2);
+}
+
+.asPct {
+  flex-shrink: 0;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 20.8px;
 }
 
 /*
- * Anchored to the inline-start and sized by a percentage, so it grows from the
- * start edge in French and from the right-hand edge in Arabic with no second
- * rule. A transform would have needed a direction sign; a width does not.
+ * .as-bar: 6px on --hair2. Not clipped, so the threshold tick can stand 3px
+ * proud above and below; the fill carries its own radius. Anchored to the
+ * inline start and sized by width, so it grows from the right in Arabic.
  */
-.barFill {
+.asBar {
+  position: relative;
+  height: 6px;
+  margin-top: 9px;
+  border-radius: 9999px;
+  background: var(--hair2);
+}
+
+.asFill {
   position: absolute;
   inset-block: 0;
   inset-inline-start: 0;
   width: var(--bar-value);
   border-radius: 9999px;
-  background: var(--jade);
-}
-
-/* Fill colours per band; the ratios are with .subjectNear / .subjectBelow. */
-.subjectNear .barFill {
-  background: var(--warning-ink);
-}
-
-.subjectBelow .barFill {
-  background: var(--danger);
 }
 
 /*
- * The threshold, at the same inline offset on every bar — which is what makes
- * "below the line" visible as a comparison rather than as eight separate
- * readings. It is the most important mark on the screen, so it is drawn to be
- * seen: solid --ink2, 2px wide, standing 3px proud of the bar above and below.
- * The ends are what carry it — they sit on the card, where --ink2 has text
- * contrast in both themes, whatever colour the fill behind the middle is.
- *
- * Centred on the value: the 1px pulls the 2px tick back so its middle, not its
- * leading edge, marks the threshold.
+ * The threshold, at the same inline offset on every bar: solid --ink2, 2px
+ * wide, 3px proud of the bar, centred on the value. Not in the prototype; kept
+ * from the PWA's bars (see design-known-divergences.md).
  */
 .barThreshold {
   position: absolute;
@@ -490,8 +578,7 @@ html[lang="ar"] .heroLabel {
   background: var(--ink2);
 }
 
-/* The same tick, in the sentence that says what it means — the mark is labelled
-   once for the section rather than on every bar. */
+/* The same tick, in the sentence that says what it means. */
 .thresholdKey {
   display: inline-block;
   width: 2px;
@@ -501,45 +588,27 @@ html[lang="ar"] .heroLabel {
   background: var(--ink2);
 }
 
-.subjectMeta {
+/* .as-proj: 12px, 8 under the bar, a 12px clock in the line's colour. */
+.asProj {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px 12px;
+  gap: 6px;
   margin: 8px 0 0;
-  font-size: 11.5px;
-  color: var(--ink2);
+  font-size: 12px;
+  line-height: 15px;
 }
 
-/* The row's sentence and its triangle, which follows the text through
-   currentColor (§4). Text on the card --surface: --warning-ink for near (6.39
-   light / 8.36 dark), --danger-ink for below and term-over below (6.54 / 7.59). */
-.subjectFlag {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--warning-ink);
-  font-weight: 700;
-}
-
-.subjectFlagBelow {
-  color: var(--danger-ink);
-}
-
-.subjectFlagIcon {
+.asProjIcon {
   flex-shrink: 0;
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
 }
 
 /* ── Absence list ──────────────────────────────────────────────────────────── */
 
 /*
  * The prototype's .card-head: the title and the compact filter on one line at
- * every width (157px of switch fits a 352px phone card beside the title), 14px
- * above the list. Never stacked: a head that went to two lines on a phone was
- * the one thing in the card that changed shape.
+ * every width, 14px above the list.
  */
 .absencesHead {
   display: flex;
@@ -564,10 +633,10 @@ html[lang="ar"] .heroLabel {
 }
 
 /*
- * Rows inside the card, as the prototype's .absence-row: a hairline between two,
- * no border or shadow of their own. The list is pulled 10px out into the card's
- * padding and each row padded 10px back in, so the text keeps the card's 20px
- * inset while the hover tint has room around it.
+ * .absence-row: date tile, subject, status pill, 12px gaps, a hairline between
+ * two rows, --surface2 under a row on hover. The list is pulled 10px into the
+ * card's padding and each row padded 10px back, so the content keeps the card's
+ * inset while the hover tint has room around the tile instead of touching it.
  */
 .absences {
   margin: 0 -10px;
@@ -591,61 +660,57 @@ html[lang="ar"] .heroLabel {
   background: none;
   color: inherit;
   font-family: inherit;
+  line-height: normal;
   text-align: start;
   cursor: pointer;
   transition: background-color var(--dur-fast) var(--ease-out);
 }
 
-/* The prototype's row hover: --surface2 under the row, nothing moving. A row
-   in a list does not lift like a card, and a 0.97 press would shrink a
-   900px-wide row by 27px. */
 .absence:hover {
   background: var(--surface2);
 }
 
-.absenceIcon {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-}
-
-.absenceText {
+/* .date-tile: 46 wide, radius 8, 7px top and bottom, the day 15px mono over
+   the month 9 / 700 in capitals (--ink2, not Design's --ink3: text). On hover
+   it takes --sunken, so it stays a tile on the row's --surface2. */
+.dateTile {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+  flex-shrink: 0;
+  width: 46px;
+  padding: 7px 0;
+  border-radius: 8px;
+  background: var(--surface2);
+  text-align: center;
 }
 
-.absenceSubject {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px;
-  font-size: 13.5px;
-  font-weight: 700;
+.absence:hover .dateTile {
+  background: var(--sunken);
+}
+
+.dateTile b {
+  display: block;
+  font-size: 15px;
+  line-height: 20px;
   color: var(--ink);
 }
 
-.absenceCode {
-  font-size: 11px;
-  font-weight: 600;
+/* Fixed line boxes, Design's measured 54px tile in both languages. */
+.dateTile small {
+  display: block;
+  font-size: 9px;
+  line-height: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
   color: var(--ink2);
 }
 
-.absenceDate {
-  font-size: 12px;
-  color: var(--ink2);
-}
-
-.absenceChevron {
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  color: var(--ink3);
-  /* "Forward" points end-ward, and a transform is never mirrored by `dir`, so
-     the sign arrives from JS. */
-  transform: scaleX(var(--chevron-flip, 1));
+.absenceSubject {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
 }
 
 /* 14 under the list (decision 5), inside the card. */
@@ -655,73 +720,55 @@ html[lang="ar"] .heroLabel {
   color: var(--ink2);
 }
 
-/* Both filtered views can be empty, and both are good news rather than a fault
-   — so this is plain text at the body colour, with no warning tone. Centred,
-   20px padding and no box of its own: it is already inside the card (the
-   prototype's empty line). */
+/* The prototype's empty line: centred, 13px, 20px above and below, inside the
+   card (--ink2, not --ink3: text). Good news, so no warning tone. */
 .filterEmpty {
   margin: 0;
-  padding: 20px;
+  padding: 20px 0;
   font-size: 13px;
   line-height: 1.6;
   text-align: center;
   color: var(--ink2);
 }
 
-/* ── Status chips and glyph colours ────────────────────────────────────────── */
+/* ── Status pills ──────────────────────────────────────────────────────────── */
 
-/* §5: status pill colour "never animates on its own". Nothing here transitions. */
-.chip {
+/*
+ * .pill-status: 4px 10px, 11.5 / 700, full radius. §5: a status pill's colour
+ * "never animates on its own", so nothing here transitions. The inks are the
+ * text-safe ones, not Design's --danger / --warning (both under 4.5:1 on their
+ * tints): --danger-ink, --warning-ink (5.74 light / 6.08 dark on --warning-bg),
+ * --jade-text.
+ */
+.pillStatus {
   flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: 9999px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
+  line-height: 14px;
   white-space: nowrap;
 }
 
-/*
- * Nothing filed. NEUTRAL, not danger: an unjustified absence is a fact about the
- * record rather than a fault the student has been found in, and the student may
- * well have a perfectly good reason they have not sent yet. §10 forbids colour
- * as the only signal anyway — the label says which of the four this is.
- */
-.chipNone {
-  background: var(--sunken);
-  color: var(--ink2);
-}
-
-.chipPending {
-  background: var(--info-bg);
-  color: var(--info-ink);
-}
-
-.chipApproved {
-  background: var(--jade-faint);
-  color: var(--jade-text);
-}
-
-.chipRejected {
+.pillDanger {
   background: var(--danger-bg);
   color: var(--danger-ink);
 }
 
-.iconNone {
-  color: var(--ink3);
+.pillWarning {
+  background: var(--warning-bg);
+  color: var(--warning-ink);
 }
 
-.iconPending {
-  color: var(--info);
+.pillApproved {
+  background: var(--jade-faint);
+  color: var(--jade-text);
 }
 
-.iconApproved {
-  color: var(--jade);
-}
-
-.iconRejected {
-  color: var(--danger);
+/* "Délai dépassé": nothing left to do, so no call to act. */
+.pillNeutral {
+  background: var(--sunken);
+  color: var(--ink2);
 }
 
 /* ── Justification panel bodies ────────────────────────────────────────────── */
@@ -1333,12 +1380,14 @@ html[lang="ar"] .formLabel {
 
 /*
  * The hero's box: radius 22, padding 22, no border (the loaded hero has none),
- * on --surface — the green is for the figure, not for a promise of one.
+ * on --surface — the green is for the figure, not for a promise of one. Inside
+ * it, the loaded hero's own .heroWrap, .heroText and .heroBreakdown, with blocks
+ * at the loaded lines' heights and the French content's widths, so it wraps at
+ * the same widths and is the loaded hero's height: 140 on one row, 214.4 with
+ * the counts on a second.
  */
 .skeletonHero {
-  display: flex;
-  align-items: center;
-  gap: 24px;
+  position: relative;
   padding: 22px;
   container-type: inline-size;
   border-radius: 22px;
@@ -1346,88 +1395,44 @@ html[lang="ar"] .formLabel {
   box-shadow: var(--shadow-card);
 }
 
+/* The ring's drawn 110.4 on its 96 layout box, as .ring. */
 .skeletonRing {
   flex-shrink: 0;
-  width: 110px;
-  height: 110px;
+  width: 110.4px;
+  height: 110.4px;
+  margin: -7.2px;
   border-radius: 50%;
 }
 
-/*
- * The loaded text column, line by line: label 18.75, figure 6 + 47, sessions
- * 10 + 19.5, threshold sentence 8 + 19.5 or more, counts 10 + 18.75 or more.
- * The last two take the loaded hero's reservations, by the same container
- * buckets on this box (see the note at .heroText), so the skeleton is the
- * loaded hero's height at every width: 201.5 when the content box is 514 or
- * wider, 245.75 down to 384, 270.5 down to 304, 328.25 under that.
- */
 .skeletonHeroText {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  min-width: 0;
+  width: 170px;
 }
 
 .skeletonHeroLabel {
-  width: 40%;
-  height: 18.75px;
+  width: 128px;
+  height: 15.2px;
 }
 
-.skeletonHeroFigure {
-  width: 96px;
-  height: 47px;
-  margin-top: 6px;
-}
-
-.skeletonHeroSessions {
-  width: 55%;
-  height: 19.5px;
-  margin-top: 10px;
-}
-
-.skeletonHeroThreshold {
-  width: 70%;
-  min-height: 19.5px;
+.skeletonHeroPill {
+  width: 84px;
+  height: 25.2px;
   margin-top: 8px;
+  border-radius: 9999px;
 }
 
-.skeletonHeroCounts {
-  width: 60%;
-  min-height: 18.75px;
+.skeletonHeroSummary {
+  width: 170px;
+  height: 16.8px;
   margin-top: 10px;
 }
 
-/* The loaded hero's buckets (see .heroText), on the skeleton's own box. */
-@container (width < 514px) {
-  .skeletonHeroThreshold {
-    min-height: 39px;
-  }
-
-  .skeletonHeroCounts {
-    min-height: 43.5px;
-  }
+/* One count: 28.8 of figure and 13.6 of label. */
+.skeletonHeroLevel {
+  width: 52px;
+  height: 42.4px;
 }
-
-@container (width < 384px) {
-  .skeletonHeroCounts {
-    min-height: 68.25px;
-  }
-}
-
-@container (width < 304px) {
-  .skeletonHeroLabel {
-    min-height: 37.5px;
-  }
-
-  .skeletonHeroSessions {
-    min-height: 39px;
-  }
-
-  .skeletonHeroThreshold {
-    min-height: 58.5px;
-  }
-}
-
 
 /* The compact filter's footprint: 157 x 40 (a 3px track around 34px options). */
 .skeletonStrip {
@@ -1435,7 +1440,6 @@ html[lang="ar"] .formLabel {
   height: 40px;
   border-radius: 9999px;
 }
-
 
 /* A card title's line box (14px text: 21) and its 14px below. */
 .skeletonCardTitle {
@@ -1450,10 +1454,24 @@ html[lang="ar"] .formLabel {
   height: 18.75px;
 }
 
-/* A subject row's content on one line each: name 20.25, bar 10 + 8, meta
-   8 + 22.5 — 68.75, inside the row's own 14px padding. */
+/* One line inside a loaded table cell: the cell's line box at 13.5px (header
+   11px), so a skeleton row is a loaded row's height. */
+/* Block cells in the table are line-height 1, so they set the line: 17.6 and
+   14.4, the loaded rows' lines. */
+.skeletonCell {
+  height: 17.6px;
+}
+
+.skeletonHeadCell {
+  width: 64px;
+  height: 14.4px;
+}
+
+/* A phone subject row's content, during a semester: name 17.6, 1, sessions
+   14.4, the bar 9 + 6, the projection 8 + 15. (Once the term is over an "ok"
+   row has no projection line and is 23px shorter.) */
 .skeletonSubject {
-  height: 68.75px;
+  height: 71px;
 }
 
 /* The title inside a card head: its line box, with the head's own margin. */
@@ -1462,27 +1480,14 @@ html[lang="ar"] .formLabel {
   height: 21px;
 }
 
-/* An absence row: the loaded button's 12px 10px padding around its content —
-   the subject line and the date under it, 40.25 — so a row is 64.25 (65.25
-   with the hairline), as loaded. */
+/* An absence row: the loaded button's 12px 10px padding around the 46 x 54
+   date tile, so a row is 78 (79 with the hairline), as loaded. */
 .skeletonAbsenceRow {
   padding: 12px 10px;
 }
 
 .skeletonAbsence {
-  height: 40.25px;
-}
-
-/* ── Responsive ────────────────────────────────────────────────────────────── */
-
-@media (max-width: 639px) {
-  /* The ring stays beside the text on a phone, closer to it: 352 - 44 of
-     padding - 110 - 16 leaves the text 182px, enough for each line to wrap on
-     whole words, with no half-empty row beside a ring on its own. */
-  .hero,
-  .skeletonHero {
-    gap: 16px;
-  }
+  height: 54px;
 }
 
 /* ── Focus ring (§3, §10) ──────────────────────────────────────────────────── */

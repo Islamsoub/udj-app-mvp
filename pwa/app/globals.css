@@ -258,6 +258,13 @@
   /* The credits bar's track on that hero (prototype .hj-credits-track). Non-text
      and decorative: the credits are written above it in words and figures. */
   --hero-track: rgba(255, 255, 255, .25);
+  /* The Présence hero's status dot, on its --hero-badge pill. A graphic beside
+     the status word, so 3:1 is the bar. Measured against --hero-badge over the
+     gradient's start / end stop: ok 4.40 / 5.86 (Design's #7DF3C4), near
+     4.13 / 5.51, below 3.11 / 4.15. Same in both themes, like the card. */
+  --hero-dot-ok: #7DF3C4;
+  --hero-dot-near: #FFD166;
+  --hero-dot-below: #FFA39B;
   --shadow-hero: 0 14px 30px rgba(15, 110, 86, .30);
   /* Mention dots on the badge (prototype-v1 MENTIONS). Decorative: the mention
      is always written beside its dot, so these carry no information alone. */
@@ -350,6 +357,13 @@
   /* The credits bar's track on that hero (prototype .hj-credits-track). Non-text
      and decorative: the credits are written above it in words and figures. */
   --hero-track: rgba(255, 255, 255, .25);
+  /* The Présence hero's status dot, on its --hero-badge pill. A graphic beside
+     the status word, so 3:1 is the bar. Measured against --hero-badge over the
+     gradient's start / end stop: ok 4.40 / 5.86 (Design's #7DF3C4), near
+     4.13 / 5.51, below 3.11 / 4.15. Same in both themes, like the card. */
+  --hero-dot-ok: #7DF3C4;
+  --hero-dot-near: #FFD166;
+  --hero-dot-below: #FFA39B;
   --shadow-hero: 0 14px 30px rgba(15, 110, 86, .30);
   --mention-tres-bien: #7DF3C4;
   --mention-bien: #9CC7F5;
