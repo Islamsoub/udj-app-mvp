@@ -6,13 +6,14 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  I18nManager,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Polyline, Polygon, Circle, Line } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { fonts, fz, radius, spacing, scrimColor, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
-import { publishedRuns, type GPADataPoint } from '@/utils/gpaHistory';
+import { gpaChartLayout, publishedRuns, type GPADataPoint } from '@/utils/gpaHistory';
 
 export type { GPADataPoint };
 
@@ -26,11 +27,18 @@ interface Props {
 const CHART_H = 160;
 const Y_MIN   = 0;
 const Y_MAX   = 20;
-const PAD_L   = 28;
-const PAD_R   = 12;
+/** Gutter on the reading-start side, for the y-axis labels. */
+const PAD_START = 28;
+/** Gutter on the reading-end side. */
+const PAD_END   = 12;
 const PAD_T   = 20;
 const PAD_B   = 24;
 const INNER_H = CHART_H - PAD_T - PAD_B;
+/**
+ * A semester label's box, centred on its point: as wide as the sheet's two
+ * side margins, so a label at either end of the plot stays on the sheet.
+ */
+const X_LABEL_W = spacing.sp20 * 2;
 
 const Y_TICKS      = [20, 15, 10, 5, 0];
 const ADMISSION_Y  = PAD_T + INNER_H - ((10 - Y_MIN) / (Y_MAX - Y_MIN)) * INNER_H;
@@ -46,7 +54,15 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [chartWidth, setChartWidth] = useState(0);
 
-  const innerW = chartWidth > 0 ? chartWidth - PAD_L - PAD_R : 0;
+  /*
+   * RTL. The direction the rest of the screen is laid out in (forceRTL in
+   * app/_layout.tsx), so the chart mirrors with it. Semesters then run right
+   * to left for the points, the line AND the labels: all of them take their x
+   * from gpaChartLayout, in physical pixels, and every overlay below sits in a
+   * `direction: 'ltr'` box, so none of them is flipped automatically while the
+   * SVG is not.
+   */
+  const rtl = I18nManager.isRTL;
 
   /*
    * Every semester in order; `value` is the server's published average, or
@@ -62,10 +78,16 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
     .map((d, i) => ({ i, value: d.value }))
     .filter((d): d is { i: number; value: number } => d.value !== null);
 
-  function toX(index: number) {
-    if (data.length <= 1 || innerW <= 0) return PAD_L + innerW / 2;
-    return PAD_L + (index / (data.length - 1)) * innerW;
-  }
+  const layout = gpaChartLayout(
+    data.length,
+    { width: chartWidth, padStart: PAD_START, padEnd: PAD_END, rtl },
+    X_LABEL_W
+  );
+  const toX = (index: number) => layout.slots[index].x;
+  // Physical side of each overlay: the y-axis on the reading start, the
+  // admission label and the latest-average tooltip on the reading end.
+  const startSide = rtl ? 'right' : 'left';
+  const endSide   = rtl ? 'left' : 'right';
 
   const point = (i: number) => `${toX(i)},${toY(data[i].value as number)}`;
   const lineRuns = runs.filter((run) => run.length >= 2);
@@ -118,9 +140,9 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
                   {Y_TICKS.map((tick) => (
                     <Line
                       key={tick}
-                      x1={PAD_L}
+                      x1={layout.plotLeft}
                       y1={toY(tick)}
-                      x2={chartWidth - PAD_R}
+                      x2={layout.plotRight}
                       y2={toY(tick)}
                       stroke={colors.hair}
                       strokeWidth={1}
@@ -130,9 +152,9 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
 
                   {/* Admission threshold at 10 */}
                   <Line
-                    x1={PAD_L}
+                    x1={layout.plotLeft}
                     y1={ADMISSION_Y}
-                    x2={chartWidth - PAD_R}
+                    x2={layout.plotRight}
                     y2={ADMISSION_Y}
                     stroke={withAlpha(colors.jade400, 0.35)}
                     strokeWidth={1}
@@ -174,8 +196,8 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
                 </Svg>
               )}
 
-              {/* Y-axis labels (overlay, left side) */}
-              <View style={StyleSheet.absoluteFill} pointerEvents="none">
+              {/* Y-axis labels (overlay, reading-start gutter) */}
+              <View style={[StyleSheet.absoluteFill, styles.physical]} pointerEvents="none">
                 {Y_TICKS.map((tick) => {
                   const pct = ((Y_MAX - tick) / Y_MAX) * 100;
                   return (
@@ -186,7 +208,9 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
                         {
                           position: 'absolute',
                           top: `${pct}%` as unknown as number,
-                          start: 0,
+                          [startSide]: 0,
+                          // Flush against the plot, whichever side it is on.
+                          textAlign: endSide,
                           transform: [{ translateY: -7 }],
                         },
                       ]}
@@ -197,36 +221,34 @@ export function GPAHistorySheet({ visible, onClose, gpaData }: Props) {
                 })}
               </View>
 
-              {/* Admission label (right side at 10) */}
-              <View
-                style={[
-                  StyleSheet.absoluteFill,
-                  { justifyContent: 'center', alignItems: 'flex-end' },
-                ]}
-                pointerEvents="none"
-              >
-                <Text style={[styles.admissionLabel, { position: 'absolute', top: '50%' as unknown as number, end: 0 }]}>
+              {/* Admission label (reading-end side, at 10) */}
+              <View style={[StyleSheet.absoluteFill, styles.physical]} pointerEvents="none">
+                <Text style={[styles.admissionLabel, { position: 'absolute', top: '50%' as unknown as number, [endSide]: 0 }]}>
                   {t('gpa_history.admission')}
                 </Text>
               </View>
 
               {/* Current semester tooltip */}
               {currentGpa !== null && (
-                <View style={[styles.tooltip, { position: 'absolute', end: 4, top: 4 }]}>
-                  <Text style={styles.tooltipText}>
-                    {currentGpa.toFixed(1)}
-                  </Text>
+                <View style={[StyleSheet.absoluteFill, styles.physical]} pointerEvents="none">
+                  <View style={[styles.tooltip, { position: 'absolute', [endSide]: spacing.sp4, top: spacing.sp4 }]}>
+                    <Text style={styles.tooltipText}>
+                      {currentGpa.toFixed(1)}
+                    </Text>
+                  </View>
                 </View>
               )}
             </View>
 
-            {/* X-axis labels */}
-            <View style={styles.xAxis}>
-              {data.map((d, i) => (
+            {/* X-axis labels: each centred under its own point */}
+            <View style={[styles.xAxis, styles.physical]}>
+              {chartWidth > 0 && data.map((d, i) => (
                 <Text
                   key={`${d.label}-${i}`}
+                  numberOfLines={1}
                   style={[
                     styles.xLabel,
+                    { left: layout.slots[i].labelLeft },
                     i === latest?.i && styles.xLabelActive,
                   ]}
                 >
@@ -309,12 +331,19 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
   },
 
   // ── Axis labels
+  /*
+   * The overlays are positioned in physical pixels (gpaChartLayout): inside
+   * this box, left and right are the screen's left and right in French and in
+   * Arabic, so they line up with the SVG, which never mirrors.
+   */
+  physical: {
+    direction: 'ltr',
+  },
   yLabel: {
     fontSize: fz(11),
     fontFamily: fonts.mono,
     color: colors.textTertiary,
     width: 22,
-    textAlign: 'right',
   },
   admissionLabel: {
     fontSize: fz(11),
@@ -322,17 +351,20 @@ const makeStyles = (colors: Palette) => StyleSheet.create({
     fontFamily: fonts.sans,
     color: colors.textTertiary,
   },
+  // Same horizontal frame as chartWrapper, so a label's x is its point's x.
   xAxis: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.sp20,
+    height: spacing.sp20,
+    marginHorizontal: spacing.sp20,
     marginTop: spacing.sp8,
+    overflow: 'visible',
   },
   xLabel: {
+    position: 'absolute',
+    top: 0,
+    width: X_LABEL_W,
     fontSize: fz(12),
     fontFamily: fonts.mono,
     color: colors.textTertiary,
-    flex: 1,
     textAlign: 'center',
   },
   xLabelActive: {
