@@ -13,9 +13,8 @@ import styles from './profile.module.css';
  * danger tile, the label in red). The same call and the same destination as
  * the avatar menu's, so the two cannot end a session differently.
  *
- * Not here yet (design-known-divergences.md): Design's "Télécharger mes
- * données" row and the "Sécurité" password form — the password change is a
- * separate task.
+ * Not here (design-known-divergences.md): Design's "Télécharger mes données"
+ * row. The "Sécurité" password form is its own card, SecurityCard, just above.
  */
 export function AccountActions() {
   const { t } = useI18n();

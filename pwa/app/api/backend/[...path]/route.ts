@@ -178,8 +178,34 @@ export async function GET(req: Request, context: Context) {
   return forward(req, context);
 }
 
-/** PATCH /api/backend/{student,news}/... — JSON body forwarded as received. */
+/**
+ * The three PATCH targets the PWA uses, and nothing else:
+ *   student/notifications/read-all
+ *   student/notifications/{uuid}/read
+ *   student/preferences
+ *
+ * Exact, as the other write verbs. Above all, student/password is NOT one: its
+ * success body carries a new refresh token, which this relay would hand to page
+ * JS, and the cookie would keep the token the change just revoked. It goes
+ * through app/api/auth/password, which stores it in the cookie as sign-in does.
+ */
+function isAllowedPatch(segments: string[]): boolean {
+  if (segments[0] !== 'student') return false;
+  if (segments.length === 2) return segments[1] === 'preferences';
+  if (segments.length === 3) return segments[1] === 'notifications' && segments[2] === 'read-all';
+  if (segments.length === 4) {
+    return segments[1] === 'notifications' && UUID.test(segments[2]) && segments[3] === 'read';
+  }
+  return false;
+}
+
+/** PATCH /api/backend/student/... — the targets above only; JSON body forwarded as received. */
 export async function PATCH(req: Request, context: Context) {
+  const { path } = await context.params;
+  const target = upstreamPath(path, new URL(req.url).search);
+  if (!target || !path || !isAllowedPatch(path)) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  }
   return forward(req, context, await req.text());
 }
 

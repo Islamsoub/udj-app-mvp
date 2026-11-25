@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import {
   View,
   Text,
-  ScrollView,
   StyleSheet,
   StatusBar,
   Image,
@@ -13,6 +12,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useTranslation } from 'react-i18next';
 import { elevation, fonts, radius, spacing, fz, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
@@ -26,6 +26,7 @@ import {
 import { StudentCard } from '@/components/profile/StudentCard';
 import { InfoRow } from '@/components/profile/InfoRow';
 import { ProfileSkeleton } from '@/components/profile/ProfileSkeleton';
+import { SecuritySection } from '@/components/profile/SecuritySection';
 import { Ionicons } from '@expo/vector-icons';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { useAuthStore } from '@/stores/authStore';
@@ -225,6 +226,9 @@ function ProfileBody({
           isLast
         />
       </View>
+
+      {/* Card 4: Sécurité — change the password (before the account's logout) */}
+      <SecuritySection />
 
       {/* Logout — standalone, outside cards */}
       <View style={styles.logoutRow}>
@@ -428,9 +432,14 @@ export default function ProfileScreen() {
 
       <OfflineBanner />
 
-      <ScrollView
+      {/* KeyboardAwareScrollView: the Sécurité section's fields scroll above
+          the keyboard; "handled" lets its button take the first tap while the
+          keyboard is open (CLAUDE.md, Keyboard Handling Rules). */}
+      <KeyboardAwareScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={spacing.sp24}
         showsVerticalScrollIndicator={false}
         onScroll={(e) => setIsScrolled(e.nativeEvent.contentOffset.y > 2)}
         scrollEventThrottle={16}
@@ -472,7 +481,7 @@ export default function ProfileScreen() {
         {profileState === 'incomplete' && <IncompleteBody styles={styles} />}
 
         <View style={{ height: 88 + insets.bottom }} />
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <SessionExpiredModal
         visible={profileState === 'session'}
