@@ -15,6 +15,7 @@ import { AccountActions } from './AccountActions';
 import { PreferencesCard } from './DeviceSettings';
 import { NotificationPrefs } from './NotificationPrefs';
 import { OfflineStorage } from './OfflineStorage';
+import { SecurityCard } from './SecurityCard';
 import { NotificationsSkeleton, ProfileSkeleton } from './skeletons';
 import { AccountGroups, Identity } from './StudentCard';
 import styles from './profile.module.css';
@@ -51,6 +52,7 @@ async function loadProfile(): Promise<ProfileData> {
  *   identity block (centred)
  *   Informations · Parcours · Contacter ma faculté      tile groups, full width
  *   Préférences | Notifications                         side by side from 1024px
+ *   Sécurité                                            card, the password form
  *   Compte                                              tile group
  *   Stockage hors ligne                                 tile group
  *
@@ -67,6 +69,10 @@ async function loadProfile(): Promise<ProfileData> {
  *   • THIS DEVICE — Préférences, Compte, Stockage hors ligne — needs no network
  *     and is always rendered, outside those states, so it keeps working offline
  *     or after the account failed to load.
+ *
+ *   • SÉCURITÉ is always rendered too: changing a password needs the session,
+ *     not /student/me. It disables itself offline. The student ID, when /me has
+ *     loaded, rides along as a hidden username for password managers.
  */
 export function Profile() {
   const { t } = useI18n();
@@ -123,6 +129,9 @@ export function Profile() {
           )}
         </div>
 
+        <SecurityCard
+          username={state.phase === 'ready' ? state.data.me.studentIdDisplay : undefined}
+        />
         <AccountActions />
         <OfflineStorage />
       </div>

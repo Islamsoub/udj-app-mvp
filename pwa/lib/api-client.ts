@@ -135,7 +135,7 @@ function isSessionDead(err: unknown): boolean {
  * as it was and reaches the caller as an ordinary error, which its screen shows
  * as an error — or as offline, if the browser reports no connection.
  */
-function refreshOnce(): Promise<string> {
+export function refreshOnce(): Promise<string> {
   if (isRefreshing) {
     return new Promise<string>((resolve, reject) => {
       waiters.push({ resolve, reject });

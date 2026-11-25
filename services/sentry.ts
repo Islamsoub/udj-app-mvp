@@ -70,15 +70,18 @@ function redactDeep(
   return out;
 }
 
-// Course notes (/student/course-notes) are free text a student writes about a
-// class: no pattern can scrub them, so for that endpoint every body is dropped
-// whole. A request keeps only its URL and method; a breadcrumb only its URL,
-// method and status code.
-const COURSE_NOTES_RE = /\/student\/course-notes/;
+// Endpoints whose bodies no pattern can scrub, so every body is dropped whole.
+// A request keeps only its URL and method; a breadcrumb only its URL, method
+// and status code.
+//   /student/course-notes — free text a student writes about a class.
+//   /student/password     — the current and new passwords going up, a new
+//                           refresh token (a bare UUID, which no pattern
+//                           here matches) coming back.
+const PRIVATE_BODY_RE = /\/student\/(course-notes|password)\b/;
 const BREADCRUMB_KEEP = ['url', 'method', 'status_code'];
 
-export function isCourseNotesUrl(url: unknown): boolean {
-  return typeof url === 'string' && COURSE_NOTES_RE.test(url);
+export function hasPrivateBody(url: unknown): boolean {
+  return typeof url === 'string' && PRIVATE_BODY_RE.test(url);
 }
 
 type SentryOptions = NonNullable<Parameters<typeof Sentry.init>[0]>;
@@ -106,7 +109,7 @@ export const scrubEvent: BeforeSend = (event) => {
       if (typeof crumb.message === 'string') {
         crumb.message = redact(crumb.message);
       }
-      if (crumb.data && isCourseNotesUrl(crumb.data.url)) {
+      if (crumb.data && hasPrivateBody(crumb.data.url)) {
         crumb.data = Object.fromEntries(
           Object.entries(crumb.data).filter(([k]) => BREADCRUMB_KEEP.includes(k)),
         ) as typeof crumb.data;
@@ -128,7 +131,7 @@ export const scrubEvent: BeforeSend = (event) => {
         request.query_string = redactDeep(request.query_string) as typeof request.query_string;
       }
       if (request.data !== undefined) {
-        request.data = isCourseNotesUrl(request.url) ? REDACTED : redactDeep(request.data);
+        request.data = hasPrivateBody(request.url) ? REDACTED : redactDeep(request.data);
       }
     }
 
@@ -144,8 +147,9 @@ export const filterBreadcrumb: BeforeBreadcrumb = (breadcrumb) => {
   // Console breadcrumbs are the most likely carrier of a logged response body
   // and are worth nothing in a production crash report.
   if (breadcrumb.category === 'console') return null;
-  // A course-notes request is recorded as URL, method and status only (see above).
-  if (breadcrumb.data && isCourseNotesUrl(breadcrumb.data.url)) {
+  // A course-notes or password request is recorded as URL, method and status
+  // only (see above).
+  if (breadcrumb.data && hasPrivateBody(breadcrumb.data.url)) {
     breadcrumb.data = Object.fromEntries(
       Object.entries(breadcrumb.data).filter(([k]) => BREADCRUMB_KEEP.includes(k)),
     );

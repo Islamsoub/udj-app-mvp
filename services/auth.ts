@@ -138,3 +138,39 @@ export async function restoreSession(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * PATCH /student/password — the student changes their own password.
+ *
+ * On success the backend revokes EVERY refresh token of the student, this
+ * phone's included, and returns a fresh pair in the login format. The pair
+ * replaces the old one at once, exactly where login puts it: the access token
+ * in the auth store (memory), the refresh token in SecureStore under
+ * REFRESH_KEY with SECURE_OPTS. Without that the next refresh would present a
+ * revoked token and the student would be signed out.
+ *
+ * Goes through the shared `api` instance, so an expired access token is
+ * refreshed and the call replayed once by its interceptor. A wrong current
+ * password is a 400, never a 401, so it is not retried.
+ *
+ * Throws the axios error unchanged; the caller reads only its status and the
+ * body's `error`. Neither this function nor its caller logs anything: the
+ * error's `config.data` holds both passwords.
+ */
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const { data } = await api.patch<LoginResponse>('/student/password', {
+    currentPassword,
+    newPassword,
+  });
+
+  if (typeof data?.accessToken !== 'string' || typeof data?.refreshToken !== 'string') {
+    // The password has changed upstream and every session is revoked; there is
+    // no pair to keep. The next request's refresh fails and the app-wide
+    // session-expired flow takes over.
+    throw new Error('Malformed password response');
+  }
+
+  await SecureStore.setItemAsync(REFRESH_KEY, data.refreshToken, SECURE_OPTS);
+  useAuthStore.getState().setTokens(data.accessToken);
+  if (data.student) useAuthStore.getState().setStudent(data.student);
+}

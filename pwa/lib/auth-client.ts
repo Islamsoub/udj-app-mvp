@@ -1,4 +1,4 @@
-import { ApiError, refreshAccessToken } from '@/lib/api-client';
+import { ApiError, refreshAccessToken, refreshOnce } from '@/lib/api-client';
 import { getAccessToken, setAccessToken } from '@/lib/auth-token';
 import { adoptStudent, endOfflineSession, markSessionValidated } from '@/lib/offline-cache';
 import type { StudentSummary } from '@/lib/api-types';
@@ -14,6 +14,7 @@ import type { StudentSummary } from '@/lib/api-types';
 
 const LOGIN_PATH = '/api/auth/login';
 const LOGOUT_PATH = '/api/auth/logout';
+const PASSWORD_PATH = '/api/auth/password';
 
 export interface LoginResult {
   student: StudentSummary;
@@ -167,4 +168,58 @@ export async function restoreSession(): Promise<SessionRestore> {
     }
     return 'unknown';
   }
+}
+
+/**
+ * Changes the student's password through app/api/auth/password.
+ *
+ * On success the backend has revoked every session of the student, this one's
+ * included. The route has already put the new refresh token in the httpOnly
+ * cookie; the new access token it returns replaces the one held in memory, so
+ * the student stays signed in. Neither token is stored anywhere else.
+ *
+ * A 401 means the access token expired: one refresh (the shared single-flight
+ * one, so it cannot race a dashboard refresh), then one retry, as apiFetch does.
+ * A wrong current password is a 400, never a 401, so it is not retried.
+ *
+ * Throws ApiError with the route's status and body (400, 429, 502, 504...), or
+ * the fetch TypeError when the request never arrived. Neither the passwords nor
+ * the response are logged.
+ */
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const body = JSON.stringify({ currentPassword, newPassword });
+
+  const send = () => {
+    const token = getAccessToken();
+    return fetch(PASSWORD_PATH, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      credentials: 'same-origin',
+      cache: 'no-store',
+      body,
+    });
+  };
+
+  let res = await send();
+  if (res.status === 401) {
+    await parseBody(res);
+    // Throws if the refresh failed; a 401 there has already raised the
+    // session-expired sheet.
+    await refreshOnce();
+    res = await send();
+  }
+
+  const data = await parseBody(res);
+  if (!res.ok) throw new ApiError(res.status, data);
+
+  const { accessToken } = (data ?? {}) as { accessToken?: unknown };
+  if (typeof accessToken !== 'string') {
+    throw new ApiError(502, { error: 'Malformed password response' });
+  }
+
+  setAccessToken(accessToken);
+  markSessionValidated();
 }
