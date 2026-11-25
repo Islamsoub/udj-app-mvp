@@ -7,6 +7,19 @@ const router = Router();
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/**
+ * Published means `publishedAt` has been reached: an article dated in the
+ * future is a scheduled one, not yet out. NewsArticle has no other status
+ * (savedArticles.ts applies the same rule). Students never see a scheduled
+ * article; the admin portal lists and edits them through /admin/news, which is
+ * a separate router and is not filtered.
+ *
+ * Built per request, so an article appears as soon as its date passes.
+ */
+function publishedNow() {
+  return { publishedAt: { lte: new Date() } };
+}
+
 // ── GET /news/categories ──────────────────────────────────────────────────────
 // PUBLIC (registered before the auth middleware): category names aren't sensitive
 // and the mobile filter chips must load before the user authenticates/scrolls.
@@ -37,7 +50,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
     const offset = Math.max(parseInt((req.query.offset as string) || '0', 10), 0);
 
     const articles = await prisma.newsArticle.findMany({
-      where: category ? { category } : undefined,
+      where: { ...publishedNow(), ...(category ? { category } : {}) },
       orderBy: { publishedAt: 'desc' },
       take: limit,
       skip: offset,
@@ -65,8 +78,10 @@ router.get('/:id', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = String(req.params.id);
     if (!UUID_RE.test(id)) throw new AppError('Invalid article ID', 400);
-    const article = await prisma.newsArticle.findUnique({
-      where: { id },
+    // An unknown and a scheduled article answer the same 404, so the API never
+    // confirms that a scheduled article exists.
+    const article = await prisma.newsArticle.findFirst({
+      where: { id, ...publishedNow() },
     });
 
     if (!article) throw new AppError('Article not found', 404);
