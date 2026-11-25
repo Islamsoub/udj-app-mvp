@@ -177,3 +177,18 @@ export const savedArticleWriteLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+/**
+ * 5 per 15 minutes per student on PATCH /student/password. Every attempt
+ * counts, right or wrong: this is a check of the current password by someone
+ * holding a session, and the login lockout counters are deliberately not used
+ * for it. Runs after authMiddleware, so req.studentId is the verified id.
+ */
+export const passwordChangeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  keyGenerator: (req) => `student:${req.studentId ?? `ip:${clientIpKey(req)}`}`,
+  message: TOO_MANY,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
