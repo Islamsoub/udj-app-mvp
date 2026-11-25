@@ -8,9 +8,14 @@ import prisma from '../utils/prisma';
 import { env } from '../utils/env';
 import { supabase, JUSTIFICATION_BUCKET } from '../utils/supabase';
 import authMiddleware from '../middleware/auth';
-import { courseNoteWriteLimiter, savedArticleWriteLimiter } from '../middleware/rateLimiter';
+import {
+  courseNoteWriteLimiter,
+  passwordChangeLimiter,
+  savedArticleWriteLimiter,
+} from '../middleware/rateLimiter';
 import { createCourseNotesRouter } from './courseNotes';
 import { createSavedArticlesRouter } from './savedArticles';
+import { createStudentPasswordRouter } from './studentPassword';
 import { AppError } from '../utils/AppError';
 import { resolveCurrentSemester } from '../utils/currentSemester';
 import {
@@ -58,6 +63,10 @@ router.use('/course-notes', createCourseNotesRouter(prisma, courseNoteWriteLimit
 // /student/saved-articles — the news articles a student saved, shared by the
 // app and the PWA. Behind authMiddleware above.
 router.use('/saved-articles', createSavedArticlesRouter(prisma, savedArticleWriteLimiter));
+
+// PATCH /student/password — the student changes their own password. Behind
+// authMiddleware above; its own rate limit (5 per 15 minutes).
+router.use('/password', createStudentPasswordRouter(prisma, passwordChangeLimiter));
 
 // ── Multer for justification uploads ──────────────────────────────────────────
 

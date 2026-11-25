@@ -8,6 +8,13 @@ import { env } from '../utils/env';
 import { authLoginLimiter, authRefreshLimiter } from '../middleware/rateLimiter';
 import authMiddleware from '../middleware/auth';
 import { hashToken } from '../utils/hash';
+import {
+  STUDENT_SESSION_INCLUDE,
+  newRefreshToken,
+  signStudentAccessToken,
+  studentSessionView,
+} from '../utils/studentSession';
+import { PASSWORD_MAX } from '../utils/passwordPolicy';
 
 const router = Router();
 
@@ -19,7 +26,9 @@ const DUMMY_HASH = '$2b$12$LJ3m4ys3Lf0YOm/.0RqRC.6TYnKLkRFMGpdVHw1P6W5yBxJvzNDtC
 // every cold start and must not share the tight login budget.
 const loginSchema = z.object({
   studentId: z.string().min(1).max(20).trim(),
-  password: z.string().min(1).max(100),
+  // The longest password a student can set (PATCH /student/password), so a
+  // password set there can always be used here.
+  password: z.string().min(1).max(PASSWORD_MAX),
 });
 
 const refreshSchema = z.object({
@@ -47,13 +56,7 @@ router.post('/login', authLoginLimiter, async (req: Request, res: Response, next
           mode: 'insensitive',
         },
       },
-      include: {
-        programme: {
-          include: {
-            faculty: true,
-          },
-        },
-      },
+      include: STUDENT_SESSION_INCLUDE,
     });
 
     if (!student) {
@@ -112,54 +115,14 @@ router.post('/login', authLoginLimiter, async (req: Request, res: Response, next
       data: { failedLoginAttempts: 0, lockedUntil: null },
     });
 
-    const accessToken = jwt.sign(
-      { studentId: student.id, type: 'access' },
-      env.JWT_SECRET,
-      { expiresIn: '15m' }
-    );
-
-    const plainRefreshToken = crypto.randomUUID();
-    const refreshTokenHash = hashToken(plainRefreshToken);
-
-    const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-    await prisma.refreshToken.create({
-      data: {
-        studentId: student.id,
-        tokenHash: refreshTokenHash,
-        deviceName: ((req.headers['user-agent'] as string) || '').slice(0, 256) || null,
-        issuedAt: now,
-        expiresAt,
-        isRevoked: false,
-      },
-    });
+    const accessToken = signStudentAccessToken(student.id);
+    const refresh = newRefreshToken(student.id, req.headers['user-agent'], now);
+    await prisma.refreshToken.create({ data: refresh.data });
 
     res.status(200).json({
       accessToken,
-      refreshToken: plainRefreshToken,
-      student: {
-        id: student.id,
-        firstName: student.firstName,
-        lastName: student.lastName,
-        studentIdDisplay: student.studentIdDisplay,
-        email: student.email,
-        photoUrl: student.photoUrl,
-        currentSemester: student.currentSemester,
-        status: student.status,
-        programme: {
-          id: student.programme.id,
-          nameFr: student.programme.nameFr,
-          nameAr: student.programme.nameAr,
-          code: student.programme.code,
-          level: student.programme.level,
-        },
-        faculty: {
-          id: student.programme.faculty.id,
-          nameFr: student.programme.faculty.nameFr,
-          nameAr: student.programme.faculty.nameAr,
-          code: student.programme.faculty.code,
-        },
-      },
+      refreshToken: refresh.plain,
+      student: studentSessionView(student),
     });
   } catch (err) {
     next(err);
