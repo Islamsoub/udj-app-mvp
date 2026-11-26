@@ -1,0 +1,6 @@
+# Kept in the repo, never published. Paths are relative to landing/.
+_design/
+DESIGN-SPEC.md
+README.md
+assets/images/testimonial-*.png
+assets/images/testimonial-*.webp

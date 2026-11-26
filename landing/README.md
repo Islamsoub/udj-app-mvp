@@ -23,7 +23,13 @@ This is a static site with no build step: plain HTML, CSS and JS. Nothing loads 
 
 Scripts load with `defer` in this order: `config/links.js` → `i18n/strings.js` → `js/main.js` → block scripts. They are classic scripts, not ES modules, so they still run from `file://`.
 
-## Deploy
+## Hosting
+Production runs on Vercel as a plain static site. The Vercel project's **Root Directory** must be `landing`, so it picks up the two files below.
+
+- **`vercel.json`**: no framework, no install and no build, and the folder itself is the output. `cleanUrls` serves `privacy.html` at `/privacy` and redirects `/privacy.html` there. Vercel serves `404.html` for any unknown address. Every response gets `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options` and `Permissions-Policy` headers. `assets/fonts`, `icons`, `brand`, `favicons` and `images` are cached for 30 days, and everything else (pages, CSS, JS, `config/links.js`, screenshots) is revalidated on every visit. The two cache rules never match the same path. File names aren't hashed, so when you replace a long-cached asset, give it a new name or wait up to 30 days for visitors to see it.
+- **`.vercelignore`**: keeps `_design/`, `DESIGN-SPEC.md`, this README and the testimonial photos off the live site. They stay in the repo. When the proof block goes live with real photos, remove the two `testimonial-*` lines.
+
+## Deploy elsewhere
 Copy the folder to any static host (GitHub Pages, Netlify, Cloudflare Pages, nginx). Exclude `_design/`. Configure `404.html` as the not-found page. Turn on gzip or brotli, and set long cache headers on `assets/`.
 
 ## Swapping placeholders
