@@ -26,7 +26,7 @@ These are not decided. The page ships with the default shown in brackets.
 14. **`uploads/Logo.svg` (a U with a mortarboard).** Is it an official brand variant? *[Not used. Brand = the U app icon plus the "Unipocket" wordmark.]*
 15. **Product claims** (§10). Each one has to be checked against the shipped app before launch.
 16. **Testimonials and figures.** Is there consented, real content? *[Block hidden by default.]*
-17. **University positioning.** *[The page is university-neutral: no university name or logo, "ton université" / "toute université est la bienvenue". The "Inscrire mon université" button uses `staffContact` in `config/links.js`.]* When a launch partner is confirmed, do you want its name or logo back on the page?
+17. **University positioning.** *[The page is university-neutral: no university name or logo, "ton université" / "leur université". The university card's "Nous contacter" button uses `staffContact` in `config/links.js` (empty = "coming soon" toast).]* When a launch partner is confirmed, do you want its name or logo back on the page?
 18. **Screenshots in the app images** still show fictional demo data from the prototypes (names, courses, rooms). Fine for launch, or replace with a dedicated demo account?
 
 ---
@@ -181,8 +181,8 @@ RTL in general: `<html dir="rtl" lang="ar">`. The layout uses logical properties
 
 ### 2.9 Who it's for (`#pour-qui`)
 - **Purpose:** students on one side, the university on the other.
-- **1280:** 2 equal cards. Students: light card, tag, h3 26px, text, 4 checks, "Télécharger l'app" button. University: jade-900 card, tag in the top row, h3, text, 4 checks, "Inscrire mon université" (white button). The staff login button was removed: the admin portal is linked from the footer only (§2.14).
-- **768 / 360:** stacked. At 360 the button fills the row.
+- **1280:** 2 equal cards. Students: light card, tag, h3 26px, text, 4 checks, "Télécharger l'app" button. University: jade-900 card, tag in the top row, h3, text, 4 checks, "Nous contacter" (white button, `staffContact`). The staff login button was removed: the admin portal is linked from the footer only (§2.14).
+- **768 / 360:** stacked. The button keeps its natural width (the button row sizes to its content).
 - **RTL:** mirrored.
 
 ### 2.10 Testimonials and figures (proof block): **off by default**
@@ -426,7 +426,7 @@ All text lives in `i18n/strings.js`. French is also written directly in the HTML
 | | FR | AR ⚠ |
 |---|---|---|
 | Title | Unipocket — Ton université dans ta poche | Unipocket — جامعتك في جيبك |
-| Description | Emploi du temps, notes, présences, actualités et carte étudiante QR. Application mobile et site étudiant pour toutes les universités, en français et en arabe, même hors-ligne. | الجدول الدراسي، النتائج، الحضور، الأخبار والبطاقة الطلابية QR. تطبيق للهاتف وموقع طلابي لكل الجامعات، بالعربية والفرنسية، حتى بدون اتصال. |
+| Description | Emploi du temps, notes, présences, actualités et carte étudiante QR. Application mobile et site étudiant pour ton université, en français et en arabe, même hors-ligne. | الجدول الدراسي، النتائج، الحضور، الأخبار والبطاقة الطلابية QR. تطبيق للهاتف وموقع طلابي لجامعتك، بالعربية والفرنسية، حتى بدون اتصال. |
 | Share title (og) | Unipocket — Ton université dans ta poche | Unipocket — جامعتك في جيبك |
 | Share text (og) | Emploi du temps, notes, carte étudiante et actualités. Bilingue FR · AR, fonctionne hors-ligne. | الجدول الدراسي، النتائج، البطاقة الطلابية والأخبار. بالعربية والفرنسية، ويعمل بدون إنترنت. |
 
@@ -494,7 +494,7 @@ Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"ج�
 | `tGrades` | Notes | النتائج | ⚠ |
 | `tNews` | Actus | الأخبار | ⚠ |
 | `tProfile` | Profil | حسابي | ⚠ |
-| `stripTitle` | Pensée pour les étudiants, quelle que soit leur université | صُمّم للطلاب، أيّاً كانت جامعتهم | ⚠ |
+| `stripTitle` | Pensée pour les étudiants et leur université | صُمّم للطلاب ولجامعتهم | ⚠ |
 | `p1` | Fonctionne hors-ligne | يعمل بدون إنترنت | ⚠ |
 | `p2` | Français &amp; Arabe | العربية والفرنسية | ⚠ |
 | `p3` | Données sécurisées | بيانات آمنة | ⚠ |
@@ -543,7 +543,7 @@ Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"ج�
 | `f4t` | Présences &amp; absences | الحضور والغياب | ⚠ |
 | `f4d` | Ton taux par matière, tes absences et une projection avant d'atteindre la limite de 75%. | نسبة حضورك في كل مادة، غياباتك، وتوقّع قبل بلوغ حد 75%. | ⚠ |
 | `f5t` | Notifications utiles | إشعارات مفيدة | ⚠ |
-| `f5d` | Notes publiées, cours dans 15 min, alerte présence. Et le silence de 22h à 7h. | نشر النتائج، محاضرة بعد 15 دقيقة، تنبيه الحضور. وهدوء تام من 22:00 إلى 07:00. | ⚠ |
+| `f5d` | Notes publiées, cours dans 15 min, alerte présence. Et des heures de silence que tu choisis. | نشر النتائج، محاضرة بعد 15 دقيقة، تنبيه الحضور. وساعات هدوء تختارها بنفسك. | ⚠ |
 | `nt1` | Nouvelles notes | نتائج جديدة | ⚠ |
 | `nt1d` | Chimie Organique : 15/20 | الكيمياء العضوية: 20/15 | ⚠ |
 | `nt2` | Cours dans 15 min | محاضرة بعد 15 دقيقة | ⚠ |
@@ -602,7 +602,7 @@ Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"ج�
 | `langTry` | Voir cette page en arabe | Voir cette page en français |  |
 | `whoEyebrow` | Pour qui ? | لمن؟ | ⚠ |
 | `whoH2a` | Pour les étudiants. | للطلاب. | ⚠ |
-| `whoH2b` | Et pour chaque université. | ولكل جامعة. | ⚠ |
+| `whoH2b` | Et pour leur université. | ولجامعتهم. | ⚠ |
 | `whoStT` | Tes études, au même endroit | دراستك، في مكان واحد | ⚠ |
 | `whoStD` | Sur ton téléphone ou sur le web, même quand le réseau ne suit pas. | على هاتفك أو على الويب، حتى عندما تضعف الشبكة. | ⚠ |
 | `whoS1` | Ton emploi du temps et tes salles, chaque jour | جدولك وقاعاتك، كل يوم | ⚠ |
@@ -611,13 +611,13 @@ Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"ج�
 | `whoS4` | Ta carte étudiante QR, toujours sur toi | بطاقتك الطلابية QR، معك دائماً | ⚠ |
 | `whoStCta` | Télécharger l'app | حمّل التطبيق | ⚠ |
 | `tagUni` | Université | الجامعة | ⚠ |
-| `whoUnT` | Toute université est la bienvenue | كل جامعة مرحّب بها | ⚠ |
-| `whoUnD` | Unipocket s'adapte à n'importe quel établissement. Le portail d'administration permet au personnel de publier et de mettre à jour les informations que les étudiants reçoivent dans l'app et sur le site. | يتكيّف Unipocket مع أي مؤسسة جامعية. تتيح بوابة الإدارة للموظفين نشر وتحديث المعلومات التي يتلقاها الطلاب في التطبيق وعلى الموقع. | ⚠ |
+| `whoUnT` | S'adapte au fonctionnement de l'université | يتكيّف مع طريقة عمل الجامعة | ⚠ |
+| `whoUnD` | Unipocket suit les règles de l'université : ses facultés et filières, son calendrier, sa notation et son seuil de présence. Le portail d'administration permet au personnel de publier et de mettre à jour les informations que les étudiants reçoivent dans l'app et sur le site. | يتبع Unipocket قواعد الجامعة: كلياتها وتخصصاتها، تقويمها، نظام التقييم فيها وحدّ الحضور المطلوب. تتيح بوابة الإدارة للموظفين نشر وتحديث المعلومات التي يتلقاها الطلاب في التطبيق وعلى الموقع. | ⚠ |
 | `whoU1` | Publier des actualités officielles et des notifications | نشر الأخبار الرسمية والإشعارات | ⚠ |
 | `whoU2` | Mettre à jour les emplois du temps et les salles | تحديث الجداول الدراسية والقاعات | ⚠ |
 | `whoU3` | Saisir les notes et suivre les présences | إدخال النتائج ومتابعة الحضور | ⚠ |
 | `whoU4` | Gérer les dossiers étudiants | إدارة ملفات الطلاب | ⚠ |
-| `whoUnCta` | Inscrire mon université | سجّل جامعتك | ⚠ |
+| `whoUnCta` | Nous contacter | تواصل معنا | ⚠ |
 | `proofEyebrow` | Ils utilisent Unipocket | يستخدمون Unipocket | ⚠ |
 | `proofH2` | Ce qu'en disent les étudiants et le personnel | ماذا يقول الطلاب والموظفون | ⚠ |
 | `stEyebrow` | Démarrer | البداية | ⚠ |
@@ -625,14 +625,14 @@ Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"ج�
 | `st1t` | Télécharge l'app | حمّل التطبيق | ⚠ |
 | `st1d` | Depuis Google Play ou directement via le fichier APK. Gratuite, sans publicité. | من Google Play أو مباشرة عبر ملف APK. مجاني وبدون إعلانات. | ⚠ |
 | `st2t` | Connecte-toi | سجّل الدخول | ⚠ |
-| `st2d` | Avec ton numéro étudiant (ex. <code>ETU-2024-0432</code>) et ton mot de passe universitaire. Active ensuite l'empreinte ou Face ID. | برقمك الطلابي (مثال: <code>ETU-2024-0432</code>) وكلمة مرور الجامعة. ثم فعّل البصمة أو Face ID. | ⚠ |
+| `st2d` | Avec ton numéro étudiant (ex. <code>ETU-2024-0432</code>) et le mot de passe fourni par ton université. Active ensuite l'empreinte ou Face ID. | برقمك الطلابي (مثال: <code>ETU-2024-0432</code>) وكلمة المرور التي تمنحها لك جامعتك. ثم فعّل البصمة أو Face ID. | ⚠ |
 | `st3t` | Personnalise | خصّص | ⚠ |
 | `st3d` | Choisis ta langue et tes notifications. Ton emploi du temps et tes notes sont déjà là. | اختر لغتك وإشعاراتك. جدولك ونتائجك موجودة بالفعل. | ⚠ |
 | `faqH2` | Questions fréquentes | الأسئلة الشائعة | ⚠ |
 | `q1` | L'application est-elle gratuite ? | هل التطبيق مجاني؟ | ⚠ |
 | `a1` | Oui. Unipocket est entièrement gratuite pour les étudiants, sans publicité. | نعم. Unipocket مجاني بالكامل للطلاب، وبدون إعلانات. | ⚠ |
 | `q2` | Quels identifiants dois-je utiliser ? | ما هي بيانات الدخول؟ | ⚠ |
-| `a2` | Ton numéro étudiant et ton mot de passe universitaire. Après 3 essais incorrects, le compte est bloqué 5 minutes par sécurité. En cas d'oubli, adresse-toi à la scolarité. | رقمك الطلابي وكلمة مرور الجامعة. بعد 3 محاولات خاطئة يُقفل الحساب 5 دقائق للأمان. إذا نسيت كلمة المرور، توجّه إلى مصلحة الشؤون الطلابية. | ⚠ |
+| `a2` | Ton numéro étudiant et le mot de passe fourni par ton université. Après 3 essais incorrects, le compte est bloqué 5 minutes par sécurité. En cas d'oubli, adresse-toi à la scolarité. | رقمك الطلابي وكلمة المرور التي تمنحها لك جامعتك. بعد 3 محاولات خاطئة يُقفل الحساب 5 دقائق للأمان. إذا نسيت كلمة المرور، توجّه إلى مصلحة الشؤون الطلابية. | ⚠ |
 | `q3` | Est-ce que ça marche sans internet ? | هل يعمل بدون إنترنت؟ | ⚠ |
 | `a3` | Oui. Emploi du temps, notes, carte QR, présences et centre d'information restent disponibles hors-ligne. Seules les actions qui nécessitent un envoi (justificatifs, par exemple) attendent le retour du réseau, puis partent automatiquement. | نعم. الجدول، النتائج، بطاقة QR، الحضور ومركز المعلومات متاحة بدون اتصال. فقط العمليات التي تتطلب إرسالاً (مثل المبررات) تنتظر عودة الشبكة، ثم تُرسل تلقائياً. | ⚠ |
 | `q7` | Puis-je utiliser Unipocket sur ordinateur ? | هل يمكنني استخدام Unipocket على الحاسوب؟ | ⚠ |
@@ -647,7 +647,7 @@ Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"ج�
 | `ctaLead` | En 10 secondes, tu sais ce que tu as aujourd'hui, où tu en es, et ce que l'université doit te dire. | في 10 ثوانٍ تعرف ما لديك اليوم، وأين وصلت، وما تريد الجامعة إخبارك به. | ⚠ |
 | `ctaWeb` | Ouvrir le site étudiant | افتح الموقع الطلابي | ⚠ |
 | `scan` | Scanne avec ton téléphone pour télécharger | امسح الرمز بهاتفك للتحميل | ⚠ |
-| `footAbout2` | Le portail étudiant pour toutes les universités : application mobile, site étudiant et portail d'administration. En français et en arabe. | البوابة الطلابية لكل الجامعات: تطبيق الهاتف، الموقع الطلابي وبوابة الإدارة. بالعربية والفرنسية. | ⚠ |
+| `footAbout2` | Le portail étudiant de ton université : application mobile, site étudiant et portail d'administration. En français et en arabe. | البوابة الطلابية لجامعتك: تطبيق الهاتف، الموقع الطلابي وبوابة الإدارة. بالعربية والفرنسية. | ⚠ |
 | `footApp` | Application | التطبيق | ⚠ |
 | `footAccess` | Accès | الوصول | ⚠ |
 | `footWeb` | Site étudiant | الموقع الطلابي | ⚠ |
@@ -694,7 +694,7 @@ Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"ج�
 | `toast.appSoon` | L'app est en cours de publication — le lien arrive très bientôt | التطبيق قيد النشر — سيتوفر الرابط قريباً | ⚠ |
 | `toast.linkSoon` | Lien bientôt disponible | الرابط سيتوفر قريباً | ⚠ |
 | `meta.home.title` | Unipocket — Ton université dans ta poche | Unipocket — جامعتك في جيبك | ⚠ |
-| `meta.home.description` | Emploi du temps, notes, présences, actualités et carte étudiante QR. Application mobile et site étudiant pour toutes les universités, en français et en arabe, même hors-ligne. | الجدول الدراسي، النتائج، الحضور، الأخبار والبطاقة الطلابية QR. تطبيق للهاتف وموقع طلابي لكل الجامعات، بالعربية والفرنسية، حتى بدون اتصال. | ⚠ |
+| `meta.home.description` | Emploi du temps, notes, présences, actualités et carte étudiante QR. Application mobile et site étudiant pour ton université, en français et en arabe, même hors-ligne. | الجدول الدراسي، النتائج، الحضور، الأخبار والبطاقة الطلابية QR. تطبيق للهاتف وموقع طلابي لجامعتك، بالعربية والفرنسية، حتى بدون اتصال. | ⚠ |
 | `meta.home.shareTitle` | Unipocket — Ton université dans ta poche | Unipocket — جامعتك في جيبك | ⚠ |
 | `meta.home.shareDescription` | Emploi du temps, notes, carte étudiante et actualités. Bilingue FR · AR, fonctionne hors-ligne. | الجدول الدراسي، النتائج، البطاقة الطلابية والأخبار. بالعربية والفرنسية، ويعمل بدون إنترنت. | ⚠ |
 | `meta.404.title` | Page introuvable — Unipocket | الصفحة غير موجودة — Unipocket | ⚠ |
@@ -715,16 +715,16 @@ Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"ج�
 | 3 | Works offline: schedule, grades, QR card, attendance, info centre | `p1`, `fOff`, `fOffSub`, `annot2`, `offLead`, `os1d`–`os3d`, `s1`–`s5`, `a3`, `calcC2` |
 | 4 | Things you send while offline (absence notes) are queued and go out automatically | `os2d`, `os3d`, `s6`, `off.status.*`, `a3` |
 | 5 | Offline banner shows the last sync time | `os2d`, `off.banner.off` |
-| 6 | 75% attendance limit, with a projection | `f4d`, `pAttMin` |
+| 6 | 75% attendance limit, with a projection. Check against claim 25, which says the threshold is set by each university | `f4d`, `pAttMin` |
 | 7 | QR code renewed every 60s; a screenshot is useless | `fQrRenew`, `qrLead`, `idRenew`, `a6` |
 | 8 | QR signed with HMAC-SHA256, can be verified offline by the student and the scanner | `qrC1`, `qrC2` |
 | 9 | QR used for the library, campus access and student discounts | `qrLead` |
 | 10 | Card shows name, number, programme, year and enrolment status | `qrC3` |
-| 11 | Login = student number + university password | `st2d`, `a2` |
+| 11 | Login = student number + the password the university provides | `st2d`, `a2` |
 | 12 | 3 wrong attempts → account locked for 5 min | `a2` |
 | 13 | Fingerprint / Face ID after the first login | `st2d` |
 | 14 | Login tokens stored in the phone's encrypted storage; data never sold | `a6`, `p3` |
-| 15 | Notifications: grades published, class in 15 min, attendance alert; quiet hours 22:00–07:00 | `f5d`, `nt2` |
+| 15 | Notifications: grades published, class in 15 min, attendance alert; quiet hours **the student chooses** (the app must let the student set them) | `f5d`, `nt2` |
 | 16 | Grades: notification on publication, "at risk" alert | `f2d` |
 | 17 | Export the semester to the phone calendar | `f1d` |
 | 18 | Info centre: FAQ, campus directory, step-by-step procedures, forms (re-enrolment, transcript, resits) | `f6d` |
@@ -733,7 +733,7 @@ Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"ج�
 | 21 | Admin portal: publish news and notifications, schedules and rooms, grades, attendance, student records | `w3d`, `whoU1`–`whoU4` |
 | 22 | Calculator is 100% local and shows its formula | `calcLead`, `calcC1`–`calcC3` |
 | 23 | "Made for students, by students" | `footMade` |
-| 25 | Works for any university ("toute université est la bienvenue") — onboarding a new university must actually be possible | `whoH2b`, `whoUnT`, `whoUnD`, `whoUnCta`, `stripTitle`, `footAbout2` |
+| 25 | Adapts to each university's own rules: faculties and programmes, calendar, grading and attendance threshold must be configurable per university. Universities get in touch via "Nous contacter" (`staffContact`). The "any university" wording was toned down to "leur / ton université"; `meta.privacy.description`, `meta.terms.description` and `site.webmanifest` still say "toutes les universités" | `whoH2b`, `whoUnT`, `whoUnD`, `whoUnCta`, `stripTitle`, `footAbout2`, `meta.home.description` |
 | 24 | Only download the APK from this page (implies the APK is hosted here) | `a5` |
 
 ---

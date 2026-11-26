@@ -10,7 +10,7 @@ window.UNIPOCKET_LINKS = {
   privacy: 'privacy.html',
   terms: 'terms.html',
   supportEmail: '',      // e-mail address only, e.g. 'support@unipocket.io'; mailto: is added automatically
-  staffContact: '',      // e-mail or URL behind "Inscrire mon université" (universities that want to join)
+  staffContact: '',      // e-mail or URL behind "Nous contacter" on the university card (universities that want to get in touch)
   socials: {
     facebook: '',
     instagram: '',
