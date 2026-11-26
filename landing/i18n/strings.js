@@ -263,8 +263,8 @@ window.UNIPOCKET_STRINGS = {
     "toast.linkSoon": "Lien bientôt disponible",
     "meta.home.title": "Unipocket — Ton université dans ta poche",
     "meta.home.description": "Emploi du temps, notes, présences, actualités et carte étudiante QR. Application mobile et site étudiant pour toutes les universités, en français et en arabe, même hors-ligne.",
-    "meta.home.shareTitle": "Unipocket — Ta vie étudiante, dans ta poche",
-    "meta.home.shareDescription": "Ton université dans ta poche. Bilingue FR · AR, fonctionne hors-ligne.",
+    "meta.home.shareTitle": "Unipocket — Ton université dans ta poche",
+    "meta.home.shareDescription": "Emploi du temps, notes, carte étudiante et actualités. Bilingue FR · AR, fonctionne hors-ligne.",
     "meta.404.title": "Page introuvable — Unipocket",
     "meta.404.description": "Cette page n'existe pas ou a été déplacée.",
     "meta.privacy.title": "Politique de confidentialité — Unipocket",
@@ -531,8 +531,8 @@ window.UNIPOCKET_STRINGS = {
     "toast.linkSoon": "الرابط سيتوفر قريباً",
     "meta.home.title": "Unipocket — جامعتك في جيبك", // ⚠ new tagline, needs native proofreading
     "meta.home.description": "الجدول الدراسي، النتائج، الحضور، الأخبار والبطاقة الطلابية QR. تطبيق للهاتف وموقع طلابي لكل الجامعات، بالعربية والفرنسية، حتى بدون اتصال.",
-    "meta.home.shareTitle": "Unipocket — حياتك الجامعية في جيبك",
-    "meta.home.shareDescription": "جامعتك في جيبك. بالعربية والفرنسية، ويعمل بدون إنترنت.", // ⚠ new tagline, needs native proofreading
+    "meta.home.shareTitle": "Unipocket — جامعتك في جيبك", // ⚠ new share text, needs native proofreading
+    "meta.home.shareDescription": "الجدول الدراسي، النتائج، البطاقة الطلابية والأخبار. بالعربية والفرنسية، ويعمل بدون إنترنت.", // ⚠ new share text, needs native proofreading
     "meta.404.title": "الصفحة غير موجودة — Unipocket",
     "meta.404.description": "هذه الصفحة غير موجودة أو تم نقلها.",
     "meta.privacy.title": "سياسة الخصوصية — Unipocket",

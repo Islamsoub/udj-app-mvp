@@ -320,7 +320,7 @@ The menu (2 bars → X), the FAQ "+" and the status dots are drawn in CSS, not i
 - `assets/brand/unipocket-mark.svg` / `-mark-white.svg`: the U alone (jade-600 / white).
 - `assets/brand/unipocket-logo.svg` / `-logo-white.svg`: icon + "Unipocket" wordmark in Plus Jakarta Sans 800, converted to outlines. `unipocket-logo-512.png` (512×109).
 - `assets/favicons/`: `favicon.svg`, `favicon-16.png`, `favicon-32.png`, `apple-touch-icon-180.png` (square, iOS applies the mask), `icon-192.png` and `icon-512.png` (rounded, `purpose: any`), `icon-512-maskable.png` (full bleed; the U sits inside the 80% safe zone).
-- Share images: `assets/images/share-fr-1200x630.jpg` (referenced by `og:image`) and `share-ar-1200x630.jpg` (for the Arabic page once it exists; open question 4).
+- Share images: `assets/images/share-fr-1200x630.jpg` (referenced by `og:image`) and `share-ar-1200x630.jpg` (for the Arabic page once it exists; open question 4). Both show the logo, the headline "Ta vie étudiante. Dans ta poche." and the tagline ("Ton université dans ta poche" / "جامعتك في جيبك"). They are cached for 30 days by `_headers`, so after launch a changed image needs a new file name.
 - `assets/images/qr-download-unipocket-io.svg`: real, scannable QR (version 2, level M, 4-module quiet zone), jade-900 on white.
 
 ---
@@ -427,10 +427,10 @@ All text lives in `i18n/strings.js`. French is also written directly in the HTML
 |---|---|---|
 | Title | Unipocket — Ton université dans ta poche | Unipocket — جامعتك في جيبك |
 | Description | Emploi du temps, notes, présences, actualités et carte étudiante QR. Application mobile et site étudiant pour toutes les universités, en français et en arabe, même hors-ligne. | الجدول الدراسي، النتائج، الحضور، الأخبار والبطاقة الطلابية QR. تطبيق للهاتف وموقع طلابي لكل الجامعات، بالعربية والفرنسية، حتى بدون اتصال. |
-| Share title (og) | Unipocket — Ta vie étudiante, dans ta poche | Unipocket — حياتك الجامعية في جيبك |
-| Share text (og) | Ton université dans ta poche. Bilingue FR · AR, fonctionne hors-ligne. | جامعتك في جيبك. بالعربية والفرنسية، ويعمل بدون إنترنت. |
+| Share title (og) | Unipocket — Ton université dans ta poche | Unipocket — جامعتك في جيبك |
+| Share text (og) | Emploi du temps, notes, carte étudiante et actualités. Bilingue FR · AR, fonctionne hors-ligne. | الجدول الدراسي، النتائج، البطاقة الطلابية والأخبار. بالعربية والفرنسية، ويعمل بدون إنترنت. |
 
-Tagline (pill, title, share text): **"Ton université dans ta poche"** / **"جامعتك في جيبك"** ⚠ (Arabic not yet proofread). It replaced "Le portail étudiant de ton université".
+Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"جامعتك في جيبك"** ⚠ (Arabic not yet proofread). It replaced "Le portail étudiant de ton université".
 
 `og:*` tags are static French in `index.html` (crawlers don't run JS). The Arabic values are ready for the `/ar/` page (open question 4).
 
@@ -695,8 +695,8 @@ Tagline (pill, title, share text): **"Ton université dans ta poche"** / **"جا
 | `toast.linkSoon` | Lien bientôt disponible | الرابط سيتوفر قريباً | ⚠ |
 | `meta.home.title` | Unipocket — Ton université dans ta poche | Unipocket — جامعتك في جيبك | ⚠ |
 | `meta.home.description` | Emploi du temps, notes, présences, actualités et carte étudiante QR. Application mobile et site étudiant pour toutes les universités, en français et en arabe, même hors-ligne. | الجدول الدراسي، النتائج، الحضور، الأخبار والبطاقة الطلابية QR. تطبيق للهاتف وموقع طلابي لكل الجامعات، بالعربية والفرنسية، حتى بدون اتصال. | ⚠ |
-| `meta.home.shareTitle` | Unipocket — Ta vie étudiante, dans ta poche | Unipocket — حياتك الجامعية في جيبك | ⚠ |
-| `meta.home.shareDescription` | Ton université dans ta poche. Bilingue FR · AR, fonctionne hors-ligne. | جامعتك في جيبك. بالعربية والفرنسية، ويعمل بدون إنترنت. | ⚠ |
+| `meta.home.shareTitle` | Unipocket — Ton université dans ta poche | Unipocket — جامعتك في جيبك | ⚠ |
+| `meta.home.shareDescription` | Emploi du temps, notes, carte étudiante et actualités. Bilingue FR · AR, fonctionne hors-ligne. | الجدول الدراسي، النتائج، البطاقة الطلابية والأخبار. بالعربية والفرنسية، ويعمل بدون إنترنت. | ⚠ |
 | `meta.404.title` | Page introuvable — Unipocket | الصفحة غير موجودة — Unipocket | ⚠ |
 | `meta.404.description` | Cette page n'existe pas ou a été déplacée. | هذه الصفحة غير موجودة أو تم نقلها. | ⚠ |
 | `meta.privacy.title` | Politique de confidentialité — Unipocket | سياسة الخصوصية — Unipocket | ⚠ |
