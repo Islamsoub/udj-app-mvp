@@ -27,6 +27,7 @@ Production runs on **Cloudflare Pages** as a plain static site.
 | `index.html`, `404.html`, `privacy.html`, `terms.html` | Pages. Each one inlines the icon sprite right after `<body>` |
 | `css/tokens.css` | Every colour, font, size, spacing step, radius, shadow and motion token, plus the `@font-face` rules |
 | `css/styles.css` | Layout and components. Uses tokens only |
+| `ecrans.html`, `css/ecrans.css`, `js/ecrans.js` | Screens page: 7 screenshots of the app, the student website and the admin portal (DESIGN-SPEC §2.17). `ecrans.js` only swaps the FR / AR screenshot files |
 | `js/main.js` | Language switch, links, menu, sticky bar, reveal, toast. Exposes `window.Unipocket` |
 | `js/calculator.js`, `js/qr-card.js`, `js/offline-demo.js` | One file per interactive block |
 | `i18n/strings.js` | All FR and AR text, keyed like the `data-i18n` attributes |
@@ -47,6 +48,7 @@ Every placeholder in the HTML carries `data-placeholder="…"`, so you can find 
 
 1. **Links:** fill in `config/links.js`. Any key left empty shows a "coming soon" toast when clicked. A social network is only shown once its value is set.
 2. **Screenshots (3, already filled from the project prototypes):** to refresh, overwrite the files in `assets/screenshots/` using the **same names and sizes**: `*-1280x800.webp`, `*-640x400.webp` and `*-1280x800.png`. No HTML change is needed. Export the WebP files at quality ~80.
+   The screens page uses its own set in `assets/screenshots/ecrans/` (`{product}-{screen}-{lang}-{W}x{H}`, FR and AR, DESIGN-SPEC §6 row 5b). Refresh those the same way: same names and sizes. The designer's notes for that page are in `design/landing-handoff/landing-ecrans-INTEGRATION.md` (not published); it describes the original 18-screenshot version, of which 7 were kept.
 3. **Testimonials and figures:** in `index.html`, find `BEGIN proof-block`. Remove `hidden` from the `<section>` and replace every `[ … ]`. Add the AR text for those strings to `i18n/strings.js` and give each element a `data-i18n` key. If you have no real content, delete everything from `BEGIN` to `END proof-block`.
    The photos are kept out of the site until then. To turn them on:
    - Copy the real (consented) photos into `landing/assets/images/`. The placeholders are in `design/landing-handoff/testimonial-photos/`.

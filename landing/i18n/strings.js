@@ -9,6 +9,7 @@ window.UNIPOCKET_STRINGS = {
     "brandSub": "Portail étudiant",
     "navWhat": "Unipocket",
     "navFeatures": "Fonctionnalités",
+    "navScreens": "Écrans",
     "navOffline": "Hors-ligne",
     "navWho": "Pour qui",
     "navFaq": "FAQ",
@@ -23,6 +24,7 @@ window.UNIPOCKET_STRINGS = {
     "apkLabel": "Fichier APK",
     "soon": "Bientôt sur",
     "webLink": "Pas d'Android ? Ouvre le site étudiant",
+    "storeName": "Sur le Play Store, l'app porte le nom de ton université.",
     "metaLangs": "Français · العربية",
     "metaAndroid": "Android en priorité, iOS bientôt",
     "annot1": "fini les captures<br>WhatsApp !",
@@ -226,7 +228,7 @@ window.UNIPOCKET_STRINGS = {
     "footTerms": "Conditions d'utilisation",
     "footFollow": "Nous suivre",
     "footMade": "Fait pour les étudiants, par des étudiants",
-    "mCta": "Télécharger Unipocket",
+    "mCta": "Télécharger l'app",
     "mWeb": "Site web",
     "ariaNav": "Navigation principale",
     "ariaHome": "Unipocket — accueil",
@@ -268,15 +270,47 @@ window.UNIPOCKET_STRINGS = {
     "meta.404.title": "Page introuvable — Unipocket",
     "meta.404.description": "Cette page n'existe pas ou a été déplacée.",
     "meta.privacy.title": "Politique de confidentialité — Unipocket",
-    "meta.privacy.description": "Politique de confidentialité de Unipocket, le portail étudiant pour toutes les universités.",
+    "meta.privacy.description": "Politique de confidentialité de Unipocket, le portail étudiant de ton université.",
     "meta.terms.title": "Conditions d'utilisation — Unipocket",
-    "meta.terms.description": "Conditions d'utilisation de Unipocket, le portail étudiant pour toutes les universités."
+    "meta.terms.description": "Conditions d'utilisation de Unipocket, le portail étudiant de ton université.",
+    "meta.ecrans.title": "Écrans — Unipocket",
+    "meta.ecrans.description": "Découvre l'application mobile, le site étudiant et le portail d'administration Unipocket, écran par écran.",
+    "ecr.eyebrow": "Visite guidée",
+    "ecr.h1a": "Unipocket,",
+    "ecr.h1b": "écran par écran",
+    "ecr.lead": "Voici à quoi ressemblent l'application mobile, le site étudiant et le portail d'administration.",
+    "ecr.demo": "Captures de nos prototypes · données fictives",
+    "ecr.app.h2": "L'application mobile",
+    "ecr.app.lead": "Tout ce dont tu as besoin dans ta journée, en français et en arabe, même hors-ligne.",
+    "ecr.app.home.t": "Accueil",
+    "ecr.app.home.d": "Ta journée d'un coup d'œil : cours du jour, moyenne et présences.",
+    "ecr.app.schedule.t": "Emploi du temps",
+    "ecr.app.schedule.d": "Ta semaine jour par jour, avec les salles, les enseignants et les horaires.",
+    "ecr.app.grades.t": "Notes",
+    "ecr.app.grades.d": "Ta moyenne du semestre et le détail de chaque matière.",
+    "ecr.app.attendance.t": "Présences",
+    "ecr.app.attendance.d": "Ton taux de présence par matière et les absences qu'il te reste.",
+    "ecr.app.qr.t": "Carte étudiante QR",
+    "ecr.app.qr.d": "Un code qui se renouvelle tout seul, à présenter à l'entrée.",
+    "ecr.web.h2": "Le site étudiant",
+    "ecr.web.lead": "Le même compte et les mêmes informations, dans n'importe quel navigateur.",
+    "ecr.web.dashboard.t": "Tableau de bord",
+    "ecr.web.dashboard.d": "Les cours du jour, la moyenne générale et l'assiduité, dès la connexion.",
+    "ecr.admin.h2": "Le portail d'administration",
+    "ecr.admin.lead": "Pour le personnel : publier, mettre à jour et suivre, depuis un seul tableau de bord.",
+    "ecr.admin.note": "Le portail d'administration est présenté ici en français.",
+    "ecr.admin.dashboard.t": "Tableau de bord",
+    "ecr.admin.dashboard.d": "Inscrits, présence moyenne, répartition des moyennes et justificatifs à traiter.",
+    "ecr.cta.h2": "Prêt à essayer ?",
+    "ecr.cta.lead": "Télécharge l'application ou ouvre le site étudiant.",
+    "ecr.jump": "Aller à la section"
   },
   ar: {
     "skip": "انتقل إلى المحتوى",
     "brandSub": "البوابة الطلابية",
     "navWhat": "Unipocket",
     "navFeatures": "المميزات",
+    "navScreens": "الشاشات", // ⚠ new, needs native proofreading
     "navOffline": "بدون إنترنت",
     "navWho": "لمن؟",
     "navFaq": "الأسئلة الشائعة",
@@ -291,6 +325,7 @@ window.UNIPOCKET_STRINGS = {
     "apkLabel": "ملف APK",
     "soon": "قريباً على",
     "webLink": "لا تملك أندرويد؟ افتح الموقع الطلابي",
+    "storeName": "على متجر Google Play، يحمل التطبيق اسم جامعتك.", // ⚠ new, needs native proofreading
     "metaLangs": "العربية · Français",
     "metaAndroid": "أندرويد أولاً، iOS قريباً",
     "annot1": "وداعاً لصور<br>الواتساب!",
@@ -494,7 +529,7 @@ window.UNIPOCKET_STRINGS = {
     "footTerms": "شروط الاستخدام",
     "footFollow": "تابعنا",
     "footMade": "صُنع للطلاب، من الطلاب",
-    "mCta": "حمّل Unipocket",
+    "mCta": "حمّل التطبيق", // ⚠ new wording, needs native proofreading
     "mWeb": "الموقع",
     "ariaNav": "التنقل الرئيسي",
     "ariaHome": "Unipocket — الصفحة الرئيسية",
@@ -536,8 +571,39 @@ window.UNIPOCKET_STRINGS = {
     "meta.404.title": "الصفحة غير موجودة — Unipocket",
     "meta.404.description": "هذه الصفحة غير موجودة أو تم نقلها.",
     "meta.privacy.title": "سياسة الخصوصية — Unipocket",
-    "meta.privacy.description": "سياسة الخصوصية لـ Unipocket، البوابة الطلابية لكل الجامعات.",
+    "meta.privacy.description": "سياسة الخصوصية لـ Unipocket، البوابة الطلابية لجامعتك.", // ⚠ new wording, needs native proofreading
     "meta.terms.title": "شروط الاستخدام — Unipocket",
-    "meta.terms.description": "شروط الاستخدام لـ Unipocket، البوابة الطلابية لكل الجامعات."
+    "meta.terms.description": "شروط الاستخدام لـ Unipocket، البوابة الطلابية لجامعتك.", // ⚠ new wording, needs native proofreading
+    "meta.ecrans.title": "الشاشات — Unipocket", // ⚠ new, needs native proofreading
+    "meta.ecrans.description": "اكتشف تطبيق الهاتف والموقع الطلابي وبوابة الإدارة في Unipocket، شاشة بشاشة.", // ⚠ new, needs native proofreading
+    "ecr.eyebrow": "جولة مصوّرة", // ⚠ new, needs native proofreading
+    "ecr.h1a": "Unipocket،", // ⚠ new, needs native proofreading
+    "ecr.h1b": "شاشة بشاشة", // ⚠ new, needs native proofreading
+    "ecr.lead": "هكذا يبدو تطبيق الهاتف والموقع الطلابي وبوابة الإدارة.", // ⚠ new, needs native proofreading
+    "ecr.demo": "لقطات من نماذجنا الأولية · بيانات وهمية", // ⚠ new, needs native proofreading
+    "ecr.app.h2": "تطبيق الهاتف", // ⚠ new, needs native proofreading
+    "ecr.app.lead": "كل ما تحتاجه في يومك، بالعربية والفرنسية، حتى بدون إنترنت.", // ⚠ new, needs native proofreading
+    "ecr.app.home.t": "الرئيسية", // ⚠ new, needs native proofreading
+    "ecr.app.home.d": "يومك في لمحة: محاضرات اليوم، المعدل والحضور.", // ⚠ new, needs native proofreading
+    "ecr.app.schedule.t": "الجدول الدراسي", // ⚠ new, needs native proofreading
+    "ecr.app.schedule.d": "أسبوعك يوماً بيوم، مع القاعات والأساتذة والمواعيد.", // ⚠ new, needs native proofreading
+    "ecr.app.grades.t": "النتائج", // ⚠ new, needs native proofreading
+    "ecr.app.grades.d": "معدل الفصل وتفاصيل كل مادة.", // ⚠ new, needs native proofreading
+    "ecr.app.attendance.t": "الحضور", // ⚠ new, needs native proofreading
+    "ecr.app.attendance.d": "نسبة حضورك في كل مادة والغيابات المتبقية لك.", // ⚠ new, needs native proofreading
+    "ecr.app.qr.t": "البطاقة الطلابية QR", // ⚠ new, needs native proofreading
+    "ecr.app.qr.d": "رمز يتجدد تلقائياً، تعرضه عند المدخل.", // ⚠ new, needs native proofreading
+    "ecr.web.h2": "الموقع الطلابي", // ⚠ new, needs native proofreading
+    "ecr.web.lead": "نفس الحساب ونفس المعلومات، في أي متصفح.", // ⚠ new, needs native proofreading
+    "ecr.web.dashboard.t": "لوحة التحكم", // ⚠ new, needs native proofreading
+    "ecr.web.dashboard.d": "محاضرات اليوم والمعدل العام والمواظبة، فور تسجيل الدخول.", // ⚠ new, needs native proofreading
+    "ecr.admin.h2": "بوابة الإدارة", // ⚠ new, needs native proofreading
+    "ecr.admin.lead": "للموظفين: النشر والتحديث والمتابعة، من لوحة تحكم واحدة.", // ⚠ new, needs native proofreading
+    "ecr.admin.note": "تُعرض بوابة الإدارة هنا باللغة الفرنسية.", // ⚠ new, needs native proofreading
+    "ecr.admin.dashboard.t": "لوحة التحكم", // ⚠ new, needs native proofreading
+    "ecr.admin.dashboard.d": "عدد المسجلين، متوسط الحضور، توزيع المعدلات والمبررات قيد المعالجة.", // ⚠ new, needs native proofreading
+    "ecr.cta.h2": "مستعد للتجربة؟", // ⚠ new, needs native proofreading
+    "ecr.cta.lead": "حمّل التطبيق أو افتح الموقع الطلابي.", // ⚠ new, needs native proofreading
+    "ecr.jump": "انتقل إلى القسم" // ⚠ new, needs native proofreading
   }
 };

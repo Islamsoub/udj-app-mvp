@@ -35,6 +35,8 @@
   Cache-Control: public, max-age=0, must-revalidate
 /terms
   Cache-Control: public, max-age=0, must-revalidate
+/ecrans
+  Cache-Control: public, max-age=0, must-revalidate
 /404
   Cache-Control: public, max-age=0, must-revalidate
 /*.html

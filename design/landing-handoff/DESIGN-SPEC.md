@@ -16,7 +16,7 @@ These are not decided. The page ships with the default shown in brackets.
 4. **Arabic URL / SEO.** *[One page; Arabic via `?lang=ar` and JS. Without JS the page is French.]* Do you want a static `/ar/` page at launch (recommended for search engines and shared links), or later?
 5. **Download QR target.** *[`assets/images/qr-download-unipocket-io.svg` encodes `https://unipocket.io/`.]* Once the Play Store listing exists, should the QR point there instead? It needs regenerating (see README).
 6. **Social networks.** Which ones, and their URLs? *[None shown: the footer "Nous suivre" block stays hidden while every value in `config/links.js → socials` is empty.]*
-7. **App screens tour.** The original design had a second page (`ecrans.html`). *[Removed: it was tied to one university. Nav link removed.]* Rebuild it later as a neutral page?
+7. **App screens tour.** *[Done: `ecrans.html` is back as a neutral page with 7 screenshots (§2.17). Its own open questions (demo people differ between products, admin portal French-only, Arabic digits, image sharpness) are in `design/landing-handoff/landing-ecrans-INTEGRATION.md` §8.]*
 8. **Store name and package.** Confirm the public app name ("Unipocket"), the package ID and the listing URL.
 9. **Student ID format.** *[Neutral example `ETU-2024-0432` (step 2, QR card).]* Each university has its own format; keep the neutral one or change it.
 10. **Fictional demo people.** Ahmed Omar Said, Pr. Abdi Hassan, Pr. Warsama and Pr. Djibril are made up. Check they don't match real staff or students, or swap in neutral names.
@@ -130,16 +130,17 @@ RTL in general: `<html dir="rtl" lang="ar">`. The layout uses logical properties
 - **768:** links hidden; brand, toggle, "Télécharger", 44px menu button.
 - **360:** brand subtitle and "Télécharger" hidden; brand, toggle, menu button. No blur (white 96%).
 - **RTL:** order mirrors (brand on the right). Pill padding mirrors.
-- **Elements:** `.brand`, `.nav-links` (Unipocket, Fonctionnalités, Hors-ligne, Pour qui, FAQ), `.lang-toggle`, `.nav-cta`, `.menu-btn`, `#menuSheet`.
+- **Elements:** `.brand`, `.nav-links` (Fonctionnalités, Écrans, Hors-ligne, Pour qui, FAQ), `.lang-toggle`, `.nav-cta`, `.menu-btn`, `#menuSheet`.
+- **Links:** the desktop nav has no "Unipocket" (`navWhat`) link: "Écrans" (`navScreens` → `ecrans.html`) took its place, so the pill keeps 5 links (6 get tight between 1101 and 1280px, especially in Arabic). The phone menu keeps both: Unipocket, Fonctionnalités, Écrans, Hors-ligne, Pour qui, FAQ, then the download button. `ecrans.html` uses the same nav, with `aria-current="page"` on "Écrans".
 
 ### 2.3 Hero
 - **Purpose:** say what Unipocket is in one line and offer the download.
-- **1280:** sky gradient (sky-top → bg-light) with 6 drifting clouds. Centred copy (max 820px): pill ("Nouveau" + tagline "Ton université dans ta poche"), h1 in 2 lines (line 2 in a jade gradient), lead (max 580px), store row (Google Play dark, APK jade-600, App Store "soon" ghost), link to the student website, meta line (FR · العربية · Android first · version). Below that a 1000×620 stage: 300×620 phone mock centred, 4 floating cards around it (next class top-left, average top-right, QR bottom-right, offline bottom-left), 2 Caveat notes.
+- **1280:** sky gradient (sky-top → bg-light) with 6 drifting clouds. Centred copy (max 820px): pill ("Nouveau" + tagline "Ton université dans ta poche"), h1 in 2 lines (line 2 in a jade gradient), lead (max 580px), store row (Google Play dark, APK jade-600, App Store "soon" ghost), one 13px text-secondary line under the buttons ("Sur le Play Store, l'app porte le nom de ton université.", `storeName`, `.store-note`), link to the student website, meta line (FR · العربية · Android first · version). Below that a 1000×620 stage: 300×620 phone mock centred, 4 floating cards around it (next class top-left, average top-right, QR bottom-right, offline bottom-left), 2 Caveat notes.
 - **768:** floating cards pulled to the edges, notes hidden.
 - **≤760:** the stage becomes a column: phone 280×580 first, then the "next class" and "QR" cards stacked (max 320px). The other two cards are hidden.
 - **360:** store buttons full width, App Store button hidden (iOS is still mentioned in the meta line), pill text wraps, clouds static, 2 large clouds hidden. Top padding 120px.
 - **RTL:** card positions mirror (`inset-inline-*`), the note arrow mirrors, phone mock content is Arabic and RTL.
-- **Elements:** `.pill`, `h1`, `.lead`, `#heroStores`, `.web-link`, `.store-meta`, `.stage` (`.float.f-next/.f-gpa/.f-qr/.f-off`, `.annot.a1/.a2`, `.phone`).
+- **Elements:** `.pill`, `h1`, `.lead`, `#heroStores`, `.store-note`, `.web-link`, `.store-meta`, `.stage` (`.float.f-next/.f-gpa/.f-qr/.f-off`, `.annot.a1/.a2`, `.phone`).
 
 ### 2.4 Pillars
 - **Purpose:** four reasons in one glance.
@@ -205,12 +206,13 @@ RTL in general: `<html dir="rtl" lang="ar">`. The layout uses logical properties
 
 ### 2.13 Final CTA (`#telecharger`)
 - **Purpose:** the download moment.
-- **1280:** rounded 20px panel (jade-600 → jade-900 at 150° with a soft jade glow), 2 columns: h2, lead, store row (white buttons, App Store translucent), 1 text link (student website; the admin portal link was removed, it is in the footer only) | white QR panel (180px QR + caption).
+- **1280:** rounded 20px panel (jade-600 → jade-900 at 150° with a soft jade glow), 2 columns: h2, lead, store row (white buttons, App Store translucent), the `storeName` line (13px, white at 85%, same as the hero), 1 text link (student website; the admin portal link was removed, it is in the footer only) | white QR panel (180px QR + caption).
 - **768 / 360:** 1 column, centred. QR panel below.
 - **RTL:** mirrored.
 
 ### 2.14 Footer
-- **1280:** 4 columns: brand and about line | Application | Accès (includes "Portail admin", `adminPortal`: the only admin portal link on the page) | Légal (+ "Nous suivre", hidden until a social link exists). Legal row: © year, tagline.
+- **1280:** 4 columns: brand and about line | Application (Fonctionnalités, Écrans, Hors-ligne, Télécharger) | Accès (includes "Portail admin", `adminPortal`: the only admin portal link on the page) | Légal (+ "Nous suivre", hidden until a social link exists). Legal row: © year, tagline.
+- `404.html`, `privacy.html` and `terms.html` have a one-line footer (legal links only) with no page list, so they have no "Écrans" link.
 - **768:** 2 columns (brand full width). **360:** 1 column. 104px bottom padding at ≤760 so the sticky bar never covers it.
 - **RTL:** mirrored.
 
@@ -220,6 +222,15 @@ RTL in general: `<html dir="rtl" lang="ar">`. The layout uses logical properties
 ### 2.16 Other pages
 - **404.html:** sky-to-bg gradient, big "404" in DM Mono jade-400, h1, lead, "Retour à l'accueil" (primary) and "Voir la FAQ" (ghost). `noindex`.
 - **privacy.html / terms.html:** same simple nav, back link, h1, "Dernière mise à jour : [JJ/MM/AAAA]", white 20px-radius `.prose` box holding a marked placeholder. Replace the `.prose` content with the approved text (h2 / p / ul are already styled).
+
+### 2.17 Screens page (`ecrans.html`)
+- **Purpose:** show the real products, screen by screen. `<body data-page="ecrans">`, so the title and description come from `meta.ecrans.*`. Same nav and footer as `index.html` (admin portal linked from the footer only, no staff buttons). Files: `ecrans.html`, `css/ecrans.css` (page-only, tokens only), `js/ecrans.js` (screenshot switcher only; all text is in `i18n/strings.js`, keys `navScreens`, `meta.ecrans.*`, `ecr.*`, §9.3).
+- **Header:** eyebrow "Visite guidée", h1 "Unipocket, écran par écran", lead, three 44px jump links (#app, #site, #admin), "Captures de nos prototypes · données fictives".
+- **Application mobile (#app):** 5 phone screenshots, numbered 01–05: Accueil, Emploi du temps, Notes, Présences, Carte étudiante QR. Each has a title and a one-line caption. Grid: 5 columns ≥1101px (one row), 3 columns 701–1100, 2 columns ≤700 with the 5th centred on its own row.
+- **Site étudiant (#site)** and **Portail d'administration (#admin):** one screenshot each (the dashboard) in a light browser frame (`app.unipocket.io` / `admin.unipocket.io`). From 901px the section head sits beside the image (5:7 grid, vertically centred), so the two sections mirror each other; below 901px the image goes under the head. In Arabic a line says the admin portal is shown in French (`ecr.admin.note`).
+- **CTA band:** "Télécharger" (→ `index.html#telecharger`) and "Site étudiant" (`btn-outline-light`, `data-link="studentWebsite"`).
+- **Language:** on every switch `js/ecrans.js` points each `<picture data-shot>` at the `-fr-` or `-ar-` files. The admin image exists in French only (`data-langs="fr"`), so it stays French. Without JS: French text and French images.
+- **Other edits it needed:** `.btn-outline-light` is back in `styles.css` (this page uses it); `sitemap.xml` lists `ecrans.html` with fr / ar / x-default alternates; `_headers` revalidates `/ecrans`.
 
 ---
 
@@ -247,7 +258,7 @@ Shared states: **hover** applies on pointer devices only. **Focus** = 3px `--jad
    - Sheet: white, radius 20, shadow-lg, 8px padding. Links 48px high, 16/600, hover jade-50 / jade-600. A full-width primary button at the end.
    - Keyboard: when it opens, focus moves to the first link. Esc closes and returns focus to the button. Tapping a link or outside closes it. It closes itself when the window grows past 1100px.
    - No JS: the button is hidden and the links show as a horizontal scroller.
-6. **Sticky download bar** `.m-cta` (≤760): fixed bottom bar, white 97%, top border, safe-area padding, 12px/16px padding. Primary "Télécharger Unipocket" (flex 1) + ghost "Site web". At ≤380px both buttons use 12px side padding (French needs 365px at full padding). If a device's fonts run wider, the primary label wraps rather than pushing "Site web" off the screen.
+6. **Sticky download bar** `.m-cta` (≤760): fixed bottom bar, white 97%, top border, safe-area padding, 12px/16px padding. Primary "Télécharger l'app" (flex 1; the app is listed under each university's own name on Google Play, so the label doesn't name it) + ghost "Site web". At ≤380px both buttons use 12px side padding (this was sized for the older, longer "Télécharger Unipocket"; it stays as a safety margin). If a device's fonts run wider, the primary label wraps rather than pushing "Site web" off the screen.
    - Hidden: translateY(110%) plus `inert`. Shown: slides in over 250ms once the hero store row has scrolled above the viewport; hides again while `#telecharger` is on screen.
    - While it is shown the toast moves up to 88px.
 7. **Pill** `.pill`: radius full, padding 6px 14px 6px 6px (mirrored in RTL), white 65% with blur, 13/500 jade-900. Inner badge jade-600, 11/700 white.
@@ -334,6 +345,7 @@ All raster images use `<picture>` (WebP, with a PNG fallback), carry `width`/`he
 | 3 | App screenshots (**filled**) | `assets/screenshots/screenshot-app-home-1280x800.webp`, `-640x400.webp`, `-1280x800.png` | WebP q82 + PNG | "What Unipocket is" → card 1 | Taken from the project prototype `UDJ - Polished Prototype.html`: Accueil, Emploi du temps, Notes, as three phones on #F5F7F6. Re-shoot from the shipped app later if wanted |
 | 4 | Student website (**filled**) | `assets/screenshots/screenshot-student-website-1280x800.*` | WebP + PNG | Card 2 | From `Unipocket PWA - Standalone.html` (dashboard) in a minimal browser frame, URL `app.unipocket.io` |
 | 5 | Admin portal (**filled**) | `assets/screenshots/screenshot-admin-dashboard-1280x800.*` | WebP + PNG | Card 3 | From `Unipocket Admin Portal.html` (dashboard) in the same browser frame, URL `admin.unipocket.io`; university codes neutralised (`UNI-…`) |
+| 5b | Screens page (**filled**) | `assets/screenshots/ecrans/`: `app-{home,schedule,grades,attendance,qr-card}-{fr,ar}-384x836.webp/.png`, `web-dashboard-{fr,ar}-924x540.webp`, `-640x374.webp/.png`, `admin-dashboard-fr-1280x800.webp`, `-640x400.webp/.png` (29 files) | WebP + PNG fallback at the smallest size | `ecrans.html` | Captured from the same three prototypes, light theme, university names and codes neutralised (details: `landing-ecrans-INTEGRATION.md` §5). To refresh, overwrite with the same names and sizes. Only the 7 screens on the page are in the repo; the handoff had 76 files |
 | 6 | Testimonial photos (optional) | `testimonial-student-160x160.webp/.png`, `testimonial-staff-160x160.*`, kept offline in `design/landing-handoff/testimonial-photos/` until the proof block goes live (see README → Swapping placeholders §3) | WebP + PNG | Proof block (hidden) | Square portrait, face centred, plain background, shown as a 48px circle. Written consent needed |
 | 7 | Figures × 3 | Text in the HTML: `[000]` + `[Légende…]` (`data-placeholder="figure-N"`) | – | Proof block | A real, sourced number (no estimates) + a short caption, FR + AR |
 | 8 | Quotes × 2 | Text in the HTML: `[Citation réelle…]`, `[Prénom Nom]`, `[Filière, année]` / `[Fonction, service]` | – | Proof block | Real quotes with permission, FR + AR |
@@ -441,6 +453,7 @@ Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"ج�
 | `brandSub` | Portail étudiant | البوابة الطلابية | ⚠ |
 | `navWhat` | Unipocket | Unipocket |  |
 | `navFeatures` | Fonctionnalités | المميزات | ⚠ |
+| `navScreens` | Écrans | الشاشات | ⚠ |
 | `navOffline` | Hors-ligne | بدون إنترنت | ⚠ |
 | `navWho` | Pour qui | لمن؟ | ⚠ |
 | `navFaq` | FAQ | الأسئلة الشائعة | ⚠ |
@@ -455,6 +468,7 @@ Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"ج�
 | `apkLabel` | Fichier APK | ملف APK | ⚠ |
 | `soon` | Bientôt sur | قريباً على | ⚠ |
 | `webLink` | Pas d'Android ? Ouvre le site étudiant | لا تملك أندرويد؟ افتح الموقع الطلابي | ⚠ |
+| `storeName` | Sur le Play Store, l'app porte le nom de ton université. | على متجر Google Play، يحمل التطبيق اسم جامعتك. | ⚠ |
 | `metaLangs` | Français · العربية | العربية · Français | ⚠ |
 | `metaAndroid` | Android en priorité, iOS bientôt | أندرويد أولاً، iOS قريباً | ⚠ |
 | `annot1` | fini les captures<br>WhatsApp ! | وداعاً لصور<br>الواتساب! | ⚠ |
@@ -658,7 +672,7 @@ Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"ج�
 | `footTerms` | Conditions d'utilisation | شروط الاستخدام | ⚠ |
 | `footFollow` | Nous suivre | تابعنا | ⚠ |
 | `footMade` | Fait pour les étudiants, par des étudiants | صُنع للطلاب، من الطلاب | ⚠ |
-| `mCta` | Télécharger Unipocket | حمّل Unipocket | ⚠ |
+| `mCta` | Télécharger l'app | حمّل التطبيق | ⚠ |
 | `mWeb` | Site web | الموقع | ⚠ |
 | `ariaNav` | Navigation principale | التنقل الرئيسي | ⚠ |
 | `ariaHome` | Unipocket — accueil | Unipocket — الصفحة الرئيسية | ⚠ |
@@ -700,9 +714,47 @@ Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"ج�
 | `meta.404.title` | Page introuvable — Unipocket | الصفحة غير موجودة — Unipocket | ⚠ |
 | `meta.404.description` | Cette page n'existe pas ou a été déplacée. | هذه الصفحة غير موجودة أو تم نقلها. | ⚠ |
 | `meta.privacy.title` | Politique de confidentialité — Unipocket | سياسة الخصوصية — Unipocket | ⚠ |
-| `meta.privacy.description` | Politique de confidentialité de Unipocket, le portail étudiant pour toutes les universités. | سياسة الخصوصية لـ Unipocket، البوابة الطلابية لكل الجامعات. | ⚠ |
+| `meta.privacy.description` | Politique de confidentialité de Unipocket, le portail étudiant de ton université. | سياسة الخصوصية لـ Unipocket، البوابة الطلابية لجامعتك. | ⚠ |
 | `meta.terms.title` | Conditions d'utilisation — Unipocket | شروط الاستخدام — Unipocket | ⚠ |
-| `meta.terms.description` | Conditions d'utilisation de Unipocket, le portail étudiant pour toutes les universités. | شروط الاستخدام لـ Unipocket، البوابة الطلابية لكل الجامعات. | ⚠ |
+| `meta.terms.description` | Conditions d'utilisation de Unipocket, le portail étudiant de ton université. | شروط الاستخدام لـ Unipocket، البوابة الطلابية لجامعتك. | ⚠ |
+
+
+### 9.3 Screens page (`ecrans.html`)
+Also reuses `skip`, `aria*`, `brandSub`, `nav*`, `w1t`–`w3t`, `tagStudents`, `tagStaff` and the footer keys.
+
+| Key | FR | AR | Proof |
+|---|---|---|---|
+| `meta.ecrans.title` | Écrans — Unipocket | الشاشات — Unipocket | ⚠ |
+| `meta.ecrans.description` | Découvre l'application mobile, le site étudiant et le portail d'administration Unipocket, écran par écran. | اكتشف تطبيق الهاتف والموقع الطلابي وبوابة الإدارة في Unipocket، شاشة بشاشة. | ⚠ |
+| `ecr.eyebrow` | Visite guidée | جولة مصوّرة | ⚠ |
+| `ecr.h1a` | Unipocket, | Unipocket، | ⚠ |
+| `ecr.h1b` | écran par écran | شاشة بشاشة | ⚠ |
+| `ecr.lead` | Voici à quoi ressemblent l'application mobile, le site étudiant et le portail d'administration. | هكذا يبدو تطبيق الهاتف والموقع الطلابي وبوابة الإدارة. | ⚠ |
+| `ecr.demo` | Captures de nos prototypes · données fictives | لقطات من نماذجنا الأولية · بيانات وهمية | ⚠ |
+| `ecr.app.h2` | L'application mobile | تطبيق الهاتف | ⚠ |
+| `ecr.app.lead` | Tout ce dont tu as besoin dans ta journée, en français et en arabe, même hors-ligne. | كل ما تحتاجه في يومك، بالعربية والفرنسية، حتى بدون إنترنت. | ⚠ |
+| `ecr.app.home.t` | Accueil | الرئيسية | ⚠ |
+| `ecr.app.home.d` | Ta journée d'un coup d'œil : cours du jour, moyenne et présences. | يومك في لمحة: محاضرات اليوم، المعدل والحضور. | ⚠ |
+| `ecr.app.schedule.t` | Emploi du temps | الجدول الدراسي | ⚠ |
+| `ecr.app.schedule.d` | Ta semaine jour par jour, avec les salles, les enseignants et les horaires. | أسبوعك يوماً بيوم، مع القاعات والأساتذة والمواعيد. | ⚠ |
+| `ecr.app.grades.t` | Notes | النتائج | ⚠ |
+| `ecr.app.grades.d` | Ta moyenne du semestre et le détail de chaque matière. | معدل الفصل وتفاصيل كل مادة. | ⚠ |
+| `ecr.app.attendance.t` | Présences | الحضور | ⚠ |
+| `ecr.app.attendance.d` | Ton taux de présence par matière et les absences qu'il te reste. | نسبة حضورك في كل مادة والغيابات المتبقية لك. | ⚠ |
+| `ecr.app.qr.t` | Carte étudiante QR | البطاقة الطلابية QR | ⚠ |
+| `ecr.app.qr.d` | Un code qui se renouvelle tout seul, à présenter à l'entrée. | رمز يتجدد تلقائياً، تعرضه عند المدخل. | ⚠ |
+| `ecr.web.h2` | Le site étudiant | الموقع الطلابي | ⚠ |
+| `ecr.web.lead` | Le même compte et les mêmes informations, dans n'importe quel navigateur. | نفس الحساب ونفس المعلومات، في أي متصفح. | ⚠ |
+| `ecr.web.dashboard.t` | Tableau de bord | لوحة التحكم | ⚠ |
+| `ecr.web.dashboard.d` | Les cours du jour, la moyenne générale et l'assiduité, dès la connexion. | محاضرات اليوم والمعدل العام والمواظبة، فور تسجيل الدخول. | ⚠ |
+| `ecr.admin.h2` | Le portail d'administration | بوابة الإدارة | ⚠ |
+| `ecr.admin.lead` | Pour le personnel : publier, mettre à jour et suivre, depuis un seul tableau de bord. | للموظفين: النشر والتحديث والمتابعة، من لوحة تحكم واحدة. | ⚠ |
+| `ecr.admin.note` | Le portail d'administration est présenté ici en français. | تُعرض بوابة الإدارة هنا باللغة الفرنسية. | ⚠ |
+| `ecr.admin.dashboard.t` | Tableau de bord | لوحة التحكم | ⚠ |
+| `ecr.admin.dashboard.d` | Inscrits, présence moyenne, répartition des moyennes et justificatifs à traiter. | عدد المسجلين، متوسط الحضور، توزيع المعدلات والمبررات قيد المعالجة. | ⚠ |
+| `ecr.cta.h2` | Prêt à essayer ? | مستعد للتجربة؟ | ⚠ |
+| `ecr.cta.lead` | Télécharge l'application ou ouvre le site étudiant. | حمّل التطبيق أو افتح الموقع الطلابي. | ⚠ |
+| `ecr.jump` | Aller à la section | انتقل إلى القسم | ⚠ |
 
 ---
 
@@ -733,8 +785,10 @@ Tagline (pill, title, share title): **"Ton université dans ta poche"** / **"ج�
 | 21 | Admin portal: publish news and notifications, schedules and rooms, grades, attendance, student records | `w3d`, `whoU1`–`whoU4` |
 | 22 | Calculator is 100% local and shows its formula | `calcLead`, `calcC1`–`calcC3` |
 | 23 | "Made for students, by students" | `footMade` |
-| 25 | Adapts to each university's own rules: faculties and programmes, calendar, grading and attendance threshold must be configurable per university. Universities get in touch via "Nous contacter" (`staffContact`). The "any university" wording was toned down to "leur / ton université"; `meta.privacy.description`, `meta.terms.description` and `site.webmanifest` still say "toutes les universités" | `whoH2b`, `whoUnT`, `whoUnD`, `whoUnCta`, `stripTitle`, `footAbout2`, `meta.home.description` |
+| 25 | Adapts to each university's own rules: faculties and programmes, calendar, grading and attendance threshold must be configurable per university. Universities get in touch via "Nous contacter" (`staffContact`). The "any university" wording is gone everywhere: it now says "leur / ton université" (including `meta.privacy.description`, `meta.terms.description` and `site.webmanifest`) | `whoH2b`, `whoUnT`, `whoUnD`, `whoUnCta`, `stripTitle`, `footAbout2`, `meta.home.description`, `meta.privacy.description`, `meta.terms.description` |
 | 24 | Only download the APK from this page (implies the APK is hosted here) | `a5` |
+| 26 | On Google Play the app carries the university's own name (one listing per university). The download buttons no longer say "Télécharger Unipocket" | `storeName`, `mCta` |
+| 27 | Screens page captions: home shows today's classes, average and attendance; schedule with rooms, lecturers and times; grades per subject; attendance rate and absences left per subject; QR code renews itself; website dashboard; admin dashboard with enrolments, average attendance, grade distribution and absence notes to review. Screenshots come from prototypes (`ecr.demo` says so) | `ecr.app.*`, `ecr.web.*`, `ecr.admin.*` |
 
 ---
 

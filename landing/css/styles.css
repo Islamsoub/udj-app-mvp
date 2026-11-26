@@ -53,6 +53,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .store-btn.soon { background: rgba(255,255,255,.75); color: var(--text-primary); border: 1px solid var(--border); box-shadow: none; cursor: default; }
 .store-btn.soon:hover { transform: none; background: rgba(255,255,255,.75); }
 .store-meta { margin-top: 16px; font-size: 13px; color: var(--text-secondary); text-align: center; }
+/* Under the download buttons: the app is listed under each university's own name on Google Play. Takes the alignment of its container. */
+.store-note { margin-top: 12px; font-size: 13px; color: var(--text-secondary); }
 
 /* ── Navigation ──────────────────────────────────────────── */
 .nav-wrap { position: fixed; inset-inline: 0; top: calc(14px + env(safe-area-inset-top, 0px)); z-index: 100; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
@@ -425,6 +427,7 @@ html[dir="rtl"] .lang-demo .ar-text { font-family: var(--font-ar); }
 .cta h2 { font-size: clamp(30px, 4vw, 48px); line-height: 1.1; font-weight: 800; letter-spacing: -.03em; }
 .cta p { margin-top: 16px; font-size: 17px; opacity: .85; max-width: 480px; }
 .cta .store-row { justify-content: flex-start; margin-top: 32px; }
+.cta .store-note { margin-top: 12px; font-size: 13px; color: inherit; }
 .cta .store-btn { background: var(--white); color: var(--text-primary); }
 .cta .store-btn:hover { background: var(--jade-50); }
 .cta .store-btn.soon { background: rgba(255,255,255,.12); color: var(--white); border-color: rgba(255,255,255,.25); }
@@ -606,6 +609,8 @@ html[dir="rtl"] .hero h1,html[dir="rtl"] h2,html[dir="rtl"] h3,html[dir="rtl"] .
 .who-actions{display:flex;gap:8px;flex-wrap:wrap}
 .btn-light{background:var(--white);color:var(--jade-900)}
 .btn-light:hover{background:var(--jade-50);color:var(--jade-900)}
+.btn-outline-light{border:1px solid rgba(255,255,255,.35);color:var(--white)}
+.btn-outline-light:hover{background:rgba(255,255,255,.08);color:var(--white)}
 /* Proof placeholders */
 .proof-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:40px}
 .proof-stats .ph-slot{min-height:136px}

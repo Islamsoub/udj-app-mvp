@@ -7,6 +7,12 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://unipocket.io/"/>
   </url>
   <url>
+    <loc>https://unipocket.io/ecrans.html</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://unipocket.io/ecrans.html?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://unipocket.io/ecrans.html?lang=ar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://unipocket.io/ecrans.html"/>
+  </url>
+  <url>
     <loc>https://unipocket.io/privacy.html</loc>
     <xhtml:link rel="alternate" hreflang="fr" href="https://unipocket.io/privacy.html?lang=fr"/>
     <xhtml:link rel="alternate" hreflang="ar" href="https://unipocket.io/privacy.html?lang=ar"/>

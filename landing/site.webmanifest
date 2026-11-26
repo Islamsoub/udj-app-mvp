@@ -3,7 +3,7 @@
   "short_name": "Unipocket",
   "lang": "fr",
   "dir": "auto",
-  "description": "Le portail étudiant pour toutes les universités.",
+  "description": "Le portail étudiant de ton université.",
   "start_url": "./",
   "scope": "./",
   "display": "browser",
