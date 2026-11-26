@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Unipocket — Le portail étudiant de l'Portail étudiant</title>
+<title>Unipocket — Ton université dans ta poche</title>
 <meta name="description" content="Emploi du temps, notes, présences, actualités et carte étudiante QR de l'Portail étudiant. Application mobile et site étudiant, en français et en arabe, même hors-ligne.">
 <meta name="theme-color" content="#1D9E75">
 <meta property="og:title" content="Unipocket — Ta vie étudiante, dans ta poche">
-<meta property="og:description" content="Le portail étudiant de l'Portail étudiant. Bilingue FR · AR, fonctionne hors-ligne.">
+<meta property="og:description" content="Ton université dans ta poche. Bilingue FR · AR, fonctionne hors-ligne.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://unipocket.io/">
 <meta property="og:image" content="https://unipocket.io/assets/images/share-fr-1200x630.jpg">
@@ -68,7 +68,7 @@
 <header class="hero" id="hero">
 <div class="clouds" aria-hidden="true"><span class="cloud c1"></span><span class="cloud c2"></span><span class="cloud c3"></span><span class="cloud c4"></span><span class="cloud c5"></span><span class="cloud c6"></span></div>
 <div class="container hero-copy" id="main">
-<span class="pill"><b data-i18n="pillNew">Nouveau</b> <span data-i18n="pillText">Le portail étudiant de l'Portail étudiant</span></span>
+<span class="pill"><b data-i18n="pillNew">Nouveau</b> <span data-i18n="pillText">Ton université dans ta poche</span></span>
 <h1><span data-i18n="h1a">Ta vie étudiante.</span><br><span class="accent" data-i18n="h1b">Dans ta poche.</span></h1>
 <p class="lead" data-i18n="lead">Emploi du temps, notes, présences, actualités et carte étudiante de l'Portail étudiant — sur ton téléphone ou sur le web, en français et en arabe, même sans connexion.</p>
 <div class="store-row" id="heroStores">
@@ -189,7 +189,7 @@
 <div class="ic" style="background:var(--jade-50);color:var(--jade-600)"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-calendar"></use></svg></div>
 <h3 data-i18n="f1t">Emploi du temps toujours à jour</h3>
 <p data-i18n="f1d">Vue jour et semaine, salles, enseignants, examens en surbrillance. Exporte tout ton semestre vers le calendrier de ton téléphone.</p>
-<div class="demo"><div class="week" aria-hidden="true">
+<div class="demo week-demo"><div class="week" aria-hidden="true">
 <div class="col"><div class="d" data-i18n="dMon">Lun</div><div class="blk g" data-i18n="wk1">Maths<br>A1</div><div class="blk b" data-i18n="wk2">Physique</div></div>
 <div class="col"><div class="d" data-i18n="dTue">Mar</div><div class="blk p" data-i18n="wk3">Chimie</div><div class="blk e">·</div><div class="blk g" data-i18n="wk4">Algo</div></div>
 <div class="col"><div class="d today" data-i18n="dWed">Mer</div><div class="blk g" data-i18n="wk5">Maths</div><div class="blk a" data-i18n="exam">Examen</div></div>
@@ -273,6 +273,7 @@
 <div class="result" id="result" aria-live="polite">
 <div class="lbl" data-i18n="needLabel">Il te faut à l'examen</div>
 <div class="big mono" id="need">11.4 / 20</div>
+<div class="note" id="needNote" hidden></div>
 <div class="formula" id="formula">(10 − 0.4 × 8) ÷ 0.6 = 11.33</div>
 </div>
 </div>
@@ -393,7 +394,7 @@
 <li data-i18n="whoU3">Saisir les notes et suivre les présences</li>
 <li data-i18n="whoU4">Gérer les dossiers étudiants</li>
 </ul>
-<div class="who-actions"><a href="#" class="btn btn-light" data-link="staffContact" data-i18n="whoUnCta">Inscrire mon université</a><a href="#" class="btn btn-outline-light" data-link="adminPortal" data-i18n="whoUnLogin">Accès personnel</a></div>
+<div class="who-actions"><a href="#" class="btn btn-light" data-link="staffContact" data-i18n="whoUnCta">Inscrire mon université</a></div>
 </article>
 </div>
 </div>
@@ -449,7 +450,7 @@
 <a class="store-btn" data-link="apk" href="#"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-download"></use></svg><span><small data-i18n="directDl">Téléchargement direct</small><strong data-i18n="apkLabel">Fichier APK</strong></span></a>
 <span class="store-btn soon" aria-disabled="true"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-smartphone"></use></svg><span><small data-i18n="soon">Bientôt sur</small><strong>App Store</strong></span></span>
 </div>
-<div class="cta-links"><a href="#" data-link="studentWebsite"><span data-i18n="ctaWeb">Ouvrir le site étudiant</span> <svg class="i arr" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a><a href="#" data-link="adminPortal"><span data-i18n="ctaAdmin">Personnel : portail d'administration</span> <svg class="i arr" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a></div>
+<div class="cta-links"><a href="#" data-link="studentWebsite"><span data-i18n="ctaWeb">Ouvrir le site étudiant</span> <svg class="i arr" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a></div>
 </div>
 <div class="qr-dl"><img class="dl-qr" src="assets/images/qr-download-unipocket-io.svg" width="180" height="180" alt="QR code : unipocket.io" data-i18n-alt="altDlQr"><p data-i18n="scan">Scanne avec ton téléphone pour télécharger</p></div>
 </div>

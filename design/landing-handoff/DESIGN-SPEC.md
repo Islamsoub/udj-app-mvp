@@ -134,7 +134,7 @@ RTL in general: `<html dir="rtl" lang="ar">`. The layout uses logical properties
 
 ### 2.3 Hero
 - **Purpose:** say what Unipocket is in one line and offer the download.
-- **1280:** sky gradient (sky-top → bg-light) with 6 drifting clouds. Centred copy (max 820px): pill ("Nouveau" + portal line), h1 in 2 lines (line 2 in a jade gradient), lead (max 580px), store row (Google Play dark, APK jade-600, App Store "soon" ghost), link to the student website, meta line (FR · العربية · Android first · version). Below that a 1000×620 stage: 300×620 phone mock centred, 4 floating cards around it (next class top-left, average top-right, QR bottom-right, offline bottom-left), 2 Caveat notes.
+- **1280:** sky gradient (sky-top → bg-light) with 6 drifting clouds. Centred copy (max 820px): pill ("Nouveau" + tagline "Ton université dans ta poche"), h1 in 2 lines (line 2 in a jade gradient), lead (max 580px), store row (Google Play dark, APK jade-600, App Store "soon" ghost), link to the student website, meta line (FR · العربية · Android first · version). Below that a 1000×620 stage: 300×620 phone mock centred, 4 floating cards around it (next class top-left, average top-right, QR bottom-right, offline bottom-left), 2 Caveat notes.
 - **768:** floating cards pulled to the edges, notes hidden.
 - **≤760:** the stage becomes a column: phone 280×580 first, then the "next class" and "QR" cards stacked (max 320px). The other two cards are hidden.
 - **360:** store buttons full width, App Store button hidden (iOS is still mentioned in the meta line), pill text wraps, clouds static, 2 large clouds hidden. Top padding 120px.
@@ -161,6 +161,7 @@ RTL in general: `<html dir="rtl" lang="ar">`. The layout uses logical properties
 - **1280:** 6-column bento: schedule and grades (3 + 3, with demos: week grid, grade rows), news, attendance and notifications (2 + 2 + 2, with demos), info centre (full width, icon and text in one row).
 - **768:** 2 columns; wide cards span both.
 - **360:** 1 column.
+- **≤440 (week grid):** with 5 equal columns, the grid fits only from about 440px. Below that, the longest word ("Physique") made Friday spill out of the card. On phones the week demo borrows half of the card padding (`margin-inline: −12px`, padding 8), the gaps drop to 4px and the blocks to 10px text with 4px side padding. All 5 days fit at 320px and up. Tablet and desktop are unchanged (their cards are never narrower than 327px).
 - **RTL:** mirrored. The week grid starts on the right. Progress bars grow from the right.
 - **Elements:** `.bento .card`, `.demo` blocks (illustrations; demo data is fictional).
 
@@ -180,8 +181,8 @@ RTL in general: `<html dir="rtl" lang="ar">`. The layout uses logical properties
 
 ### 2.9 Who it's for (`#pour-qui`)
 - **Purpose:** students on one side, the university on the other.
-- **1280:** 2 equal cards. Students: light card, tag, h3 26px, text, 4 checks, "Télécharger l'app" button. University: jade-900 card, tag in the top row, h3, text, 4 checks, "Inscrire mon université" (white button) and "Accès personnel" (outline) buttons.
-- **768 / 360:** stacked. At 360 the two buttons share the row equally.
+- **1280:** 2 equal cards. Students: light card, tag, h3 26px, text, 4 checks, "Télécharger l'app" button. University: jade-900 card, tag in the top row, h3, text, 4 checks, "Inscrire mon université" (white button). The staff login button was removed: the admin portal is linked from the footer only (§2.14).
+- **768 / 360:** stacked. At 360 the button fills the row.
 - **RTL:** mirrored.
 
 ### 2.10 Testimonials and figures (proof block): **off by default**
@@ -204,12 +205,12 @@ RTL in general: `<html dir="rtl" lang="ar">`. The layout uses logical properties
 
 ### 2.13 Final CTA (`#telecharger`)
 - **Purpose:** the download moment.
-- **1280:** rounded 20px panel (jade-600 → jade-900 at 150° with a soft jade glow), 2 columns: h2, lead, store row (white buttons, App Store translucent), 2 text links (student website, admin portal) | white QR panel (180px QR + caption).
+- **1280:** rounded 20px panel (jade-600 → jade-900 at 150° with a soft jade glow), 2 columns: h2, lead, store row (white buttons, App Store translucent), 1 text link (student website; the admin portal link was removed, it is in the footer only) | white QR panel (180px QR + caption).
 - **768 / 360:** 1 column, centred. QR panel below.
 - **RTL:** mirrored.
 
 ### 2.14 Footer
-- **1280:** 4 columns: brand and about line | Application | Accès | Légal (+ "Nous suivre", hidden until a social link exists). Legal row: © year, tagline.
+- **1280:** 4 columns: brand and about line | Application | Accès (includes "Portail admin", `adminPortal`: the only admin portal link on the page) | Légal (+ "Nous suivre", hidden until a social link exists). Legal row: © year, tagline.
 - **768:** 2 columns (brand full width). **360:** 1 column. 104px bottom padding at ≤760 so the sticky bar never covers it.
 - **RTL:** mirrored.
 
@@ -230,7 +231,6 @@ Shared states: **hover** applies on pointer devices only. **Focus** = 3px `--jad
    - Primary: jade-600, white text, shadow 0 8px 20px −6px jade-600/.55. Hover jade-900 and translateY(−1px).
    - Ghost-dark: white, 1px border, jade-600 text. Hover border jade-200.
    - Light (on dark): white with jade-900 text. Hover jade-50.
-   - Outline-light: 1px white/.35 border. Hover white/.08 fill.
    - No loading state (no button submits anything).
 2. **Store button** `.store-btn`: min 58px high, padding 8px 24px 8px 20px, radius 16px, 26px icon + two-line label.
    - Dark: text-primary background, black on hover.
@@ -247,7 +247,7 @@ Shared states: **hover** applies on pointer devices only. **Focus** = 3px `--jad
    - Sheet: white, radius 20, shadow-lg, 8px padding. Links 48px high, 16/600, hover jade-50 / jade-600. A full-width primary button at the end.
    - Keyboard: when it opens, focus moves to the first link. Esc closes and returns focus to the button. Tapping a link or outside closes it. It closes itself when the window grows past 1100px.
    - No JS: the button is hidden and the links show as a horizontal scroller.
-6. **Sticky download bar** `.m-cta` (≤760): fixed bottom bar, white 97%, top border, safe-area padding, 12px/16px padding. Primary "Télécharger Unipocket" (flex 1) + ghost "Site web".
+6. **Sticky download bar** `.m-cta` (≤760): fixed bottom bar, white 97%, top border, safe-area padding, 12px/16px padding. Primary "Télécharger Unipocket" (flex 1) + ghost "Site web". At ≤380px both buttons use 12px side padding (French needs 365px at full padding). If a device's fonts run wider, the primary label wraps rather than pushing "Site web" off the screen.
    - Hidden: translateY(110%) plus `inert`. Shown: slides in over 250ms once the hero store row has scrolled above the viewport; hides again while `#telecharger` is on screen.
    - While it is shown the toast moves up to 88px.
 7. **Pill** `.pill`: radius full, padding 6px 14px 6px 6px (mirrored in RTL), white 65% with blur, 13/500 jade-900. Inner badge jade-600, 11/700 white.
@@ -258,11 +258,11 @@ Shared states: **hover** applies on pointer devices only. **Focus** = 3px `--jad
 12. **Calculator** `.calc` (white panel, radius 20, padding 28/20):
     - Weighting radiogroup: 3 chips, 44px high, radius full, 13/600. Checked = jade-600 fill and white text. Arrow keys move the selection (mirrored in RTL). Roving tabindex.
     - Two sliders (0–20, step 0.5, 44px hit height, jade-600 accent), each with its value in DM Mono 15/500.
-    - Result box (radius 16, padding 20):
-      - normal: jade-50 background, big value DM Mono 40/500 jade-600;
+    - Result box (radius 16, padding 20). The big value always stays on **one line**: its size follows the box width (`container-type: inline-size`, sizes in `cqi`), capped at the desktop size. At 320px the numbers are about 31px and the word states about 22px:
+      - normal: jade-50 background, big value DM Mono 40/500 jade-600 (`min(40px, 18cqi)`);
       - warn (needed ≥15): warning-bg / warning-800;
-      - bad (needed >20): danger-bg / danger-700 text "impossible", 22px;
-      - done (≤0): "Déjà acquis ✓" at 28px.
+      - bad (needed >20): danger-bg / danger-700. Big line "Impossible" at 28px (`min(28px, 12.5cqi)`), then a 14/600 danger-700 note "Contacte ton département." (`#needNote`, shown only in this state). The old one-line sentence needed a ~6px font at 320px;
+      - done (≤0): "Déjà acquis ✓" at 28px (`min(28px, 12.5cqi)`).
     - The formula line is DM Mono 12.5px, always LTR. `aria-live="polite"`.
 13. **Student QR card** `.idcard`:
     - Max 380px, radius 20, padding 24, gradient jade-600 → jade-900 at 145° with a soft highlight and a ring motif.
@@ -391,7 +391,7 @@ Every `[data-link="key"]` gets its URL from `config/links.js`.
 ### 8.3 Calculator
 - needed = (target − w_cc × CC) ÷ w_exam, with w_cc ∈ {0.4, 0.5, 0.3} and w_exam = 1 − w_cc.
 - Shown rounded **up** to 0.1 ("11.4 / 20").
-- Rules: needed > 20 → "impossible" (red); needed ≤ 0 → "Déjà acquis ✓"; needed ≥ 15 → amber.
+- Rules: needed > 20 → "Impossible" + "Contacte ton département." note (red); needed ≤ 0 → "Déjà acquis ✓"; needed ≥ 15 → amber.
 - The formula line shows the real values to 2 decimals.
 - Defaults: 40/60, CC 8, target 10.
 - The hint says the weighting is only an example; in the app each subject has its own.
@@ -425,10 +425,12 @@ All text lives in `i18n/strings.js`. French is also written directly in the HTML
 ### 9.1 Page meta
 | | FR | AR ⚠ |
 |---|---|---|
-| Title | Unipocket — Le portail étudiant de ton université | Unipocket — البوابة الطلابية لجامعتك |
+| Title | Unipocket — Ton université dans ta poche | Unipocket — جامعتك في جيبك |
 | Description | Emploi du temps, notes, présences, actualités et carte étudiante QR. Application mobile et site étudiant pour toutes les universités, en français et en arabe, même hors-ligne. | الجدول الدراسي، النتائج، الحضور، الأخبار والبطاقة الطلابية QR. تطبيق للهاتف وموقع طلابي لكل الجامعات، بالعربية والفرنسية، حتى بدون اتصال. |
 | Share title (og) | Unipocket — Ta vie étudiante, dans ta poche | Unipocket — حياتك الجامعية في جيبك |
-| Share text (og) | Le portail étudiant pour toutes les universités. Bilingue FR · AR, fonctionne hors-ligne. | البوابة الطلابية لكل الجامعات. بالعربية والفرنسية، ويعمل بدون إنترنت. |
+| Share text (og) | Ton université dans ta poche. Bilingue FR · AR, fonctionne hors-ligne. | جامعتك في جيبك. بالعربية والفرنسية، ويعمل بدون إنترنت. |
+
+Tagline (pill, title, share text): **"Ton université dans ta poche"** / **"جامعتك في جيبك"** ⚠ (Arabic not yet proofread). It replaced "Le portail étudiant de ton université".
 
 `og:*` tags are static French in `index.html` (crawlers don't run JS). The Arabic values are ready for the `/ar/` page (open question 4).
 
@@ -444,7 +446,7 @@ All text lives in `i18n/strings.js`. French is also written directly in the HTML
 | `navFaq` | FAQ | الأسئلة الشائعة | ⚠ |
 | `navCta` | Télécharger | تحميل | ⚠ |
 | `pillNew` | Nouveau | جديد | ⚠ |
-| `pillText` | Le portail étudiant de ton université | البوابة الطلابية لجامعتك | ⚠ |
+| `pillText` | Ton université dans ta poche | جامعتك في جيبك | ⚠ |
 | `h1a` | Ta vie étudiante. | حياتك الجامعية. | ⚠ |
 | `h1b` | Dans ta poche. | في جيبك. | ⚠ |
 | `lead` | Emploi du temps, notes, présences, actualités et carte étudiante de ton université — sur ton téléphone ou sur le web, en français et en arabe, même sans connexion. | الجدول الدراسي، النتائج، الحضور، الأخبار والبطاقة الطلابية لجامعتك — على هاتفك أو على الويب، بالعربية والفرنسية، حتى بدون اتصال. | ⚠ |
@@ -616,7 +618,6 @@ All text lives in `i18n/strings.js`. French is also written directly in the HTML
 | `whoU3` | Saisir les notes et suivre les présences | إدخال النتائج ومتابعة الحضور | ⚠ |
 | `whoU4` | Gérer les dossiers étudiants | إدارة ملفات الطلاب | ⚠ |
 | `whoUnCta` | Inscrire mon université | سجّل جامعتك | ⚠ |
-| `whoUnLogin` | Accès personnel | دخول الموظفين | ⚠ |
 | `proofEyebrow` | Ils utilisent Unipocket | يستخدمون Unipocket | ⚠ |
 | `proofH2` | Ce qu'en disent les étudiants et le personnel | ماذا يقول الطلاب والموظفون | ⚠ |
 | `stEyebrow` | Démarrer | البداية | ⚠ |
@@ -645,7 +646,6 @@ All text lives in `i18n/strings.js`. French is also written directly in the HTML
 | `ctaH2` | Commence ta journée avec Unipocket. | ابدأ يومك مع Unipocket. | ⚠ |
 | `ctaLead` | En 10 secondes, tu sais ce que tu as aujourd'hui, où tu en es, et ce que l'université doit te dire. | في 10 ثوانٍ تعرف ما لديك اليوم، وأين وصلت، وما تريد الجامعة إخبارك به. | ⚠ |
 | `ctaWeb` | Ouvrir le site étudiant | افتح الموقع الطلابي | ⚠ |
-| `ctaAdmin` | Personnel : portail d'administration | الموظفون: بوابة الإدارة | ⚠ |
 | `scan` | Scanne avec ton téléphone pour télécharger | امسح الرمز بهاتفك للتحميل | ⚠ |
 | `footAbout2` | Le portail étudiant pour toutes les universités : application mobile, site étudiant et portail d'administration. En français et en arabe. | البوابة الطلابية لكل الجامعات: تطبيق الهاتف، الموقع الطلابي وبوابة الإدارة. بالعربية والفرنسية. | ⚠ |
 | `footApp` | Application | التطبيق | ⚠ |
@@ -680,7 +680,8 @@ All text lives in `i18n/strings.js`. French is also written directly in the HTML
 | `legalPrivacyH1` | Politique de confidentialité | سياسة الخصوصية | ⚠ |
 | `legalUpdated` | Dernière mise à jour : | آخر تحديث: | ⚠ |
 | `legalTermsH1` | Conditions d'utilisation | شروط الاستخدام | ⚠ |
-| `calc.impossible` | Validation impossible — contacte ton département | النجاح مستحيل — تواصل مع قسمك | ⚠ |
+| `calc.impossible` | Impossible | مستحيل | ⚠ |
+| `calc.impossibleNote` | Contacte ton département. | تواصل مع قسمك. | ⚠ |
 | `calc.acquired` | Déjà acquis ✓ | مضمون مسبقاً ✓ | ⚠ |
 | `off.banner.on` | Connecté · Données à jour | متصل · البيانات محدّثة | ⚠ |
 | `off.banner.off` | Mode hors-ligne · Dernière synchro : aujourd'hui 07:42 | وضع عدم الاتصال · آخر مزامنة: اليوم 07:42 | ⚠ |
@@ -692,10 +693,10 @@ All text lives in `i18n/strings.js`. French is also written directly in the HTML
 | `off.status.auto` | Envoyé automatiquement | أُرسل تلقائياً | ⚠ |
 | `toast.appSoon` | L'app est en cours de publication — le lien arrive très bientôt | التطبيق قيد النشر — سيتوفر الرابط قريباً | ⚠ |
 | `toast.linkSoon` | Lien bientôt disponible | الرابط سيتوفر قريباً | ⚠ |
-| `meta.home.title` | Unipocket — Le portail étudiant de ton université | Unipocket — البوابة الطلابية لجامعتك | ⚠ |
+| `meta.home.title` | Unipocket — Ton université dans ta poche | Unipocket — جامعتك في جيبك | ⚠ |
 | `meta.home.description` | Emploi du temps, notes, présences, actualités et carte étudiante QR. Application mobile et site étudiant pour toutes les universités, en français et en arabe, même hors-ligne. | الجدول الدراسي، النتائج، الحضور، الأخبار والبطاقة الطلابية QR. تطبيق للهاتف وموقع طلابي لكل الجامعات، بالعربية والفرنسية، حتى بدون اتصال. | ⚠ |
 | `meta.home.shareTitle` | Unipocket — Ta vie étudiante, dans ta poche | Unipocket — حياتك الجامعية في جيبك | ⚠ |
-| `meta.home.shareDescription` | Le portail étudiant pour toutes les universités. Bilingue FR · AR, fonctionne hors-ligne. | البوابة الطلابية لكل الجامعات. بالعربية والفرنسية، ويعمل بدون إنترنت. | ⚠ |
+| `meta.home.shareDescription` | Ton université dans ta poche. Bilingue FR · AR, fonctionne hors-ligne. | جامعتك في جيبك. بالعربية والفرنسية، ويعمل بدون إنترنت. | ⚠ |
 | `meta.404.title` | Page introuvable — Unipocket | الصفحة غير موجودة — Unipocket | ⚠ |
 | `meta.404.description` | Cette page n'existe pas ou a été déplacée. | هذه الصفحة غير موجودة أو تم نقلها. | ⚠ |
 | `meta.privacy.title` | Politique de confidentialité — Unipocket | سياسة الخصوصية — Unipocket | ⚠ |

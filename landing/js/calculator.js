@@ -6,7 +6,8 @@
   var wCC = 0.4;
   var out = {
     cc: document.getElementById('ccOut'), target: document.getElementById('targetOut'),
-    box: document.getElementById('result'), big: document.getElementById('need'), formula: document.getElementById('formula')
+    box: document.getElementById('result'), big: document.getElementById('need'), formula: document.getElementById('formula'),
+    note: document.getElementById('needNote')
   };
   function r2(n) { return Math.round(n * 100) / 100; }
   function update() {
@@ -14,6 +15,7 @@
     var need = (g - wCC * c) / wEx;
     out.cc.textContent = c; out.target.textContent = g;
     out.box.classList.remove('warn', 'bad', 'done');
+    if (out.note) { out.note.hidden = need <= 20; out.note.textContent = need > 20 ? U.t('calc.impossibleNote') : ''; }
     if (need > 20) { out.box.classList.add('bad'); out.big.textContent = U.t('calc.impossible'); }
     else if (need <= 0) { out.box.classList.add('done'); out.big.textContent = U.t('calc.acquired'); }
     else {
