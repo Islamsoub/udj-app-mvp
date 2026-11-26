@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /_design/
+
+Sitemap: https://unipocket.io/sitemap.xml

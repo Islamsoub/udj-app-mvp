@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="fr" dir="ltr" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Unipocket — Le portail étudiant de l'Portail étudiant</title>
+<meta name="description" content="Emploi du temps, notes, présences, actualités et carte étudiante QR de l'Portail étudiant. Application mobile et site étudiant, en français et en arabe, même hors-ligne.">
+<meta name="theme-color" content="#1D9E75">
+<meta property="og:title" content="Unipocket — Ta vie étudiante, dans ta poche">
+<meta property="og:description" content="Le portail étudiant de l'Portail étudiant. Bilingue FR · AR, fonctionne hors-ligne.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://unipocket.io/">
+<meta property="og:image" content="https://unipocket.io/assets/images/share-fr-1200x630.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:locale:alternate" content="ar_AR">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://unipocket.io/">
+<link rel="alternate" hreflang="fr" href="https://unipocket.io/?lang=fr">
+<link rel="alternate" hreflang="ar" href="https://unipocket.io/?lang=ar">
+<link rel="alternate" hreflang="x-default" href="https://unipocket.io/">
+<link rel="icon" href="assets/favicons/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="assets/favicons/favicon-16.png" sizes="16x16" type="image/png">
+<link rel="apple-touch-icon" href="assets/favicons/apple-touch-icon-180.png">
+<link rel="manifest" href="site.webmanifest">
+<link rel="preload" href="assets/fonts/plus-jakarta-sans-var-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/styles.css">
+<script>document.documentElement.className=document.documentElement.className.replace('no-js','js')</script>
+</head>
+<body data-page="home">
+<!-- ICON SPRITE (copy of assets/icons/icons.svg) -->
+<svg xmlns="http://www.w3.org/2000/svg" class="sprite" aria-hidden="true" focusable="false"><symbol id="i-play" viewBox="0 0 24 24" fill="currentColor"><path d="M4 3.5v17a1 1 0 0 0 1.5.86l14.7-8.5a1 1 0 0 0 0-1.72L5.5 2.64A1 1 0 0 0 4 3.5z"/></symbol><symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol><symbol id="i-smartphone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></symbol><symbol id="i-arrow-hand" viewBox="0 0 60 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6c14 2 30 10 40 26M44 32l-1-10M44 32l-10-3"/></symbol><symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol><symbol id="i-wifi-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.8M19 12.9a10 10 0 0 0-2-1.5M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8A15 15 0 0 0 11 5M12 20h.01"/></symbol><symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol><symbol id="i-chart-line" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></symbol><symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol><symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol><symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></symbol><symbol id="i-shield-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></symbol><symbol id="i-devices" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="14" height="11" rx="2"/><rect x="15" y="8" width="7" height="12" rx="1.5"/><path d="M6 19h6"/></symbol><symbol id="i-monitor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 22h8M12 18v4"/></symbol><symbol id="i-dashboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></symbol><symbol id="i-newspaper" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9h4"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></symbol><symbol id="i-user-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M16 11l2 2 4-4"/></symbol><symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol><symbol id="i-help-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></symbol><symbol id="i-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol><symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></symbol></svg>
+<a href="#main" class="skip" data-i18n="skip">Aller au contenu</a>
+
+<!-- NAV -->
+<div class="nav-wrap">
+<nav class="nav" aria-label="Navigation principale" data-i18n-aria="ariaNav">
+<a href="#top" class="brand" aria-label="Unipocket — accueil" data-i18n-aria="ariaHome"><span class="brand-mark"><img src="assets/brand/unipocket-icon.svg" alt="" width="34" height="34"></span><span>Unipocket <small data-i18n="brandSub">Portail étudiant</small></span></a>
+<div class="nav-links">
+<a href="#unipocket" data-i18n="navWhat">Unipocket</a>
+<a href="#fonctionnalites" data-i18n="navFeatures">Fonctionnalités</a>
+<a href="#hors-ligne" data-i18n="navOffline">Hors-ligne</a>
+<a href="#pour-qui" data-i18n="navWho">Pour qui</a>
+<a href="#faq" data-i18n="navFaq">FAQ</a>
+</div>
+<div class="nav-actions">
+<div class="lang-toggle" role="group" aria-label="Langue" data-i18n-aria="ariaLang"><button type="button" data-lang="fr" lang="fr" aria-pressed="true" aria-label="Français">FR</button><button type="button" data-lang="ar" lang="ar" aria-pressed="false" aria-label="العربية">ع</button></div>
+<a href="#telecharger" class="btn btn-primary btn-sm nav-cta" data-i18n="navCta">Télécharger</a>
+<button type="button" class="menu-btn" aria-expanded="false" aria-controls="menuSheet" aria-label="Menu" data-i18n-aria="ariaMenu"><span></span><span></span></button>
+</div>
+</nav>
+<div class="menu-sheet" id="menuSheet" hidden>
+<a href="#unipocket" data-i18n="navWhat">Unipocket</a>
+<a href="#fonctionnalites" data-i18n="navFeatures">Fonctionnalités</a>
+<a href="#hors-ligne" data-i18n="navOffline">Hors-ligne</a>
+<a href="#pour-qui" data-i18n="navWho">Pour qui</a>
+<a href="#faq" data-i18n="navFaq">FAQ</a>
+<a href="#telecharger" class="btn btn-primary" data-i18n="navCta">Télécharger</a>
+</div>
+</div>
+
+<main id="top">
+
+<!-- HERO -->
+<header class="hero" id="hero">
+<div class="clouds" aria-hidden="true"><span class="cloud c1"></span><span class="cloud c2"></span><span class="cloud c3"></span><span class="cloud c4"></span><span class="cloud c5"></span><span class="cloud c6"></span></div>
+<div class="container hero-copy" id="main">
+<span class="pill"><b data-i18n="pillNew">Nouveau</b> <span data-i18n="pillText">Le portail étudiant de l'Portail étudiant</span></span>
+<h1><span data-i18n="h1a">Ta vie étudiante.</span><br><span class="accent" data-i18n="h1b">Dans ta poche.</span></h1>
+<p class="lead" data-i18n="lead">Emploi du temps, notes, présences, actualités et carte étudiante de l'Portail étudiant — sur ton téléphone ou sur le web, en français et en arabe, même sans connexion.</p>
+<div class="store-row" id="heroStores">
+<a class="store-btn" data-link="googlePlay" href="#"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-play"></use></svg><span><small data-i18n="getOn">Disponible sur</small><strong>Google Play</strong></span></a>
+<a class="store-btn apk" data-link="apk" href="#"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-download"></use></svg><span><small data-i18n="directDl">Téléchargement direct</small><strong data-i18n="apkLabel">Fichier APK</strong></span></a>
+<span class="store-btn soon" aria-disabled="true"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-smartphone"></use></svg><span><small data-i18n="soon">Bientôt sur</small><strong>App Store</strong></span></span>
+</div>
+<p class="store-meta"><a href="#" class="web-link" data-link="studentWebsite"><span data-i18n="webLink">Pas d'Android ? Ouvre le site étudiant</span> <svg class="i arr" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a></p>
+<p class="store-meta"><span data-i18n="metaLangs">Français · العربية</span> · <span data-i18n="metaAndroid">Android en priorité, iOS bientôt</span> · <span class="mono" data-version>v1.0</span></p>
+</div>
+
+<div class="stage">
+<div class="annot a1 hand" aria-hidden="true"><span data-i18n="annot1">fini les captures<br>WhatsApp !</span><svg class="i" aria-hidden="true" focusable="false"><use href="#i-arrow-hand"></use></svg></div>
+<div class="annot a2 hand" aria-hidden="true"><span data-i18n="annot2">même sans<br>réseau</span></div>
+
+<div class="float f-next" aria-hidden="true">
+<div class="f-label"><span data-i18n="fNext">Prochain cours</span><span class="countdown" data-i18n="fIn">dans 12 min</span></div>
+<div class="f-row"><div class="f-icon" style="background:var(--jade-50);color:var(--jade-600)"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-calendar"></use></svg></div><div><div class="f-title" data-i18n="cMath">Mathématiques Générales</div><div class="f-sub" data-i18n="cMathRoom">08:00 · Amphi A1</div></div></div>
+</div>
+<div class="float f-gpa" aria-hidden="true">
+<div class="f-label"><span data-i18n="fGpa">Moyenne · S2</span><span class="badge ok" data-i18n="mention">Mention Bien</span></div>
+<div class="gpa-big mono">14.2<small>↑ +0.8</small></div>
+<svg class="spark" viewBox="0 0 200 46" preserveAspectRatio="none"><defs><linearGradient id="sg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#1D9E75" stop-opacity=".25"></stop><stop offset="1" stop-color="#1D9E75" stop-opacity="0"></stop></linearGradient></defs><path d="M0 36 C30 34 40 26 70 28 S110 18 140 16 S180 6 200 4 V46 H0Z" fill="url(#sg)"></path><path d="M0 36 C30 34 40 26 70 28 S110 18 140 16 S180 6 200 4" fill="none" stroke="#1D9E75" stroke-width="2.5" stroke-linecap="round"></path><circle cx="200" cy="4" r="3.5" fill="#1D9E75"></circle></svg>
+</div>
+<div class="float f-qr" aria-hidden="true">
+<div class="f-label"><span data-i18n="fCard">Carte étudiante</span></div>
+<div class="qr-mini"><svg class="qr" data-qr viewBox="0 0 25 25"></svg><div><div class="f-title" data-i18n="fQrValid">Valide</div><div class="f-sub" data-i18n="fQrRenew">Se renouvelle toutes les 60 s</div></div></div>
+</div>
+<div class="float f-off" aria-hidden="true">
+<div class="f-row" style="margin-top:0"><div class="f-icon" style="background:var(--offline-bg);color:var(--offline)"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-wifi-off"></use></svg></div><div><div class="f-title" data-i18n="fOff">Mode hors-ligne</div><div class="f-sub" data-i18n="fOffSub">Tes données restent accessibles</div></div></div>
+</div>
+
+<div class="phone" role="img" aria-label="Aperçu de l'écran d'accueil de Unipocket" data-i18n-aria="ariaPhone">
+<div class="screen">
+<div class="sb"><span class="mono">09:41</span><span class="sb-icons"><i style="width:14px;height:8px"></i><i style="width:18px;height:9px;border-radius:3px"></i></span></div>
+<div class="app-body">
+<div class="app-date" data-i18n="pDate">Lundi 23 mars</div>
+<div class="app-hello" data-i18n="pHello">Bonjour, Ahmed 👋</div>
+<div class="app-sub" data-i18n="pSub">3 cours aujourd'hui · Prochain dans <b>12 min</b></div>
+<div class="mini-stats">
+<div class="ms"><span data-i18n="pGpa">Moyenne</span><strong class="mono">14.2</strong><em>↑ +0.8</em></div>
+<div class="ms"><span data-i18n="pAtt">Présences</span><strong class="mono">87%</strong><em data-i18n="pAttMin">min. 75%</em></div>
+<div class="ms"><span data-i18n="pCred">Crédits</span><strong class="mono">18<small style="font-size:10px;color:var(--text-secondary)">/30</small></strong><em data-i18n="pSem">ce sem.</em></div>
+</div>
+<div class="sec-h"><span data-i18n="pAgenda">Agenda du jour</span><a data-i18n="pSeeAll">Voir tout</a></div>
+<div class="cls"><div class="bar"></div><div><div class="t mono">08:00 – 10:00</div><div class="n" data-i18n="cMath">Mathématiques Générales</div><div class="r" data-i18n="r1">Pr. Abdi Hassan · Amphi A1</div></div><span class="tag" data-i18n="pSoon">12 min</span></div>
+<div class="cls exam"><div class="bar"></div><div><div class="t mono">14:00 – 16:00</div><div class="n" data-i18n="cInfo">TP Informatique</div><div class="r" data-i18n="r2">Pr. Warsama · Labo 3</div></div><span class="tag" data-i18n="pExam">Examen</span></div>
+<div class="cls"><div class="bar" style="background:var(--info)"></div><div><div class="t mono">16:30 – 18:00</div><div class="n" data-i18n="cPhys">Physique Générale</div><div class="r" data-i18n="r3">Pr. Djibril · Salle 204</div></div></div>
+<div class="sec-h"><span data-i18n="pNews">Actualités</span><a data-i18n="pSeeAll">Voir tout</a></div>
+<div class="news-mini"><span data-i18n="pNewsItem">Calendrier des examens S2 disponible</span></div>
+</div>
+<nav class="tabbar" aria-hidden="true">
+<div class="on"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-home"></use></svg><span data-i18n="tHome">Accueil</span></div>
+<div><svg class="i" aria-hidden="true" focusable="false"><use href="#i-calendar"></use></svg><span data-i18n="tAgenda">Agenda</span></div>
+<div><svg class="i" aria-hidden="true" focusable="false"><use href="#i-chart-line"></use></svg><span data-i18n="tGrades">Notes</span></div>
+<div><svg class="i" aria-hidden="true" focusable="false"><use href="#i-bell"></use></svg><span data-i18n="tNews">Actus</span></div>
+<div><svg class="i" aria-hidden="true" focusable="false"><use href="#i-user"></use></svg><span data-i18n="tProfile">Profil</span></div>
+</nav>
+</div>
+</div>
+</div>
+</header>
+
+<!-- PILLARS -->
+<section class="strip" data-screen-label="Piliers">
+<div class="container">
+<h2 data-i18n="stripTitle">Pensée pour les étudiants de l'Portail étudiant</h2>
+<div class="pillars">
+<div class="pillar"><span class="ic"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-wifi-off"></use></svg></span><span data-i18n="p1">Fonctionne hors-ligne</span></div>
+<div class="pillar"><span class="ic"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-globe"></use></svg></span><span data-i18n="p2">Français &amp; Arabe</span></div>
+<div class="pillar"><span class="ic"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-shield-check"></use></svg></span><span data-i18n="p3">Données sécurisées</span></div>
+<div class="pillar"><span class="ic"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-devices"></use></svg></span><span data-i18n="p4">Mobile &amp; web</span></div>
+</div>
+</div>
+</section>
+
+<!-- WHAT IS UNIPOCKET -->
+<section class="block" id="unipocket" data-screen-label="Qu'est-ce que Unipocket">
+<div class="container">
+<div class="sec-title reveal">
+<span class="eyebrow" data-i18n="whatEyebrow">Qu'est-ce que Unipocket ?</span>
+<h2><span data-i18n="whatH2a">Un seul portail,</span> <span class="accent" data-i18n="whatH2b">trois façons d'y accéder</span></h2>
+<p data-i18n="whatLead">Unipocket réunit au même endroit tout ce que l'Portail étudiant partage avec ses étudiants. Les mêmes informations, à jour, sur chaque écran.</p>
+</div>
+<div class="trio">
+<article class="card reveal">
+<div class="trio-head"><div class="ic" style="background:var(--jade-50);color:var(--jade-600)"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-smartphone"></use></svg></div><span class="who-tag" data-i18n="tagStudents">Étudiants</span></div>
+<h3 data-i18n="w1t">Application mobile</h3>
+<p data-i18n="w1d">Pour le quotidien. Android d'abord, iOS bientôt. Fonctionne même sans réseau.</p>
+<picture class="shot"><source type="image/webp" srcset="assets/screenshots/screenshot-app-home-640x400.webp 640w, assets/screenshots/screenshot-app-home-1280x800.webp 1280w" sizes="(min-width: 901px) 320px, calc(100vw - 96px)"><img src="assets/screenshots/screenshot-app-home-1280x800.png" width="1280" height="800" loading="lazy" decoding="async" alt="Application Unipocket sur téléphone, écran d'accueil" data-i18n-alt="altShotApp" data-placeholder="screenshot-app-home"></picture>
+</article>
+<article class="card reveal">
+<div class="trio-head"><div class="ic" style="background:var(--info-bg);color:var(--info)"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-monitor"></use></svg></div><span class="who-tag" data-i18n="tagStudents">Étudiants</span></div>
+<h3 data-i18n="w2t">Site étudiant</h3>
+<p data-i18n="w2d">Le même compte depuis n'importe quel navigateur : ordinateur de la bibliothèque, tablette ou iPhone.</p>
+<picture class="shot"><source type="image/webp" srcset="assets/screenshots/screenshot-student-website-640x400.webp 640w, assets/screenshots/screenshot-student-website-1280x800.webp 1280w" sizes="(min-width: 901px) 320px, calc(100vw - 96px)"><img src="assets/screenshots/screenshot-student-website-1280x800.png" width="1280" height="800" loading="lazy" decoding="async" alt="Le site étudiant Unipocket dans un navigateur" data-i18n-alt="altShotWeb" data-placeholder="screenshot-student-website"></picture>
+</article>
+<article class="card reveal">
+<div class="trio-head"><div class="ic" style="background:var(--jade-900);color:#fff"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-dashboard"></use></svg></div><span class="who-tag staff" data-i18n="tagStaff">Personnel</span></div>
+<h3 data-i18n="w3t">Portail d'administration</h3>
+<p data-i18n="w3d">Pour le personnel de l'université : publier les actualités, gérer les emplois du temps, les notes et les présences.</p>
+<picture class="shot"><source type="image/webp" srcset="assets/screenshots/screenshot-admin-dashboard-640x400.webp 640w, assets/screenshots/screenshot-admin-dashboard-1280x800.webp 1280w" sizes="(min-width: 901px) 320px, calc(100vw - 96px)"><img src="assets/screenshots/screenshot-admin-dashboard-1280x800.png" width="1280" height="800" loading="lazy" decoding="async" alt="Tableau de bord du portail d'administration" data-i18n-alt="altShotAdmin" data-placeholder="screenshot-admin-dashboard"></picture>
+</article>
+</div>
+</div>
+</section>
+
+<!-- FEATURES -->
+<section class="block" id="fonctionnalites" style="padding-top:24px" data-screen-label="Fonctionnalités">
+<div class="container">
+<div class="sec-title reveal">
+<span class="eyebrow" data-i18n="featEyebrow">Fonctionnalités</span>
+<h2><span data-i18n="featH2a">Tout ce dont tu as besoin,</span> <span class="accent" data-i18n="featH2b">au même endroit</span></h2>
+<p data-i18n="featLead">Plus besoin de courir entre le tableau d'affichage, le portail web et les groupes WhatsApp.</p>
+</div>
+<div class="bento">
+<article class="card span-3 wide reveal">
+<div class="ic" style="background:var(--jade-50);color:var(--jade-600)"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-calendar"></use></svg></div>
+<h3 data-i18n="f1t">Emploi du temps toujours à jour</h3>
+<p data-i18n="f1d">Vue jour et semaine, salles, enseignants, examens en surbrillance. Exporte tout ton semestre vers le calendrier de ton téléphone.</p>
+<div class="demo"><div class="week" aria-hidden="true">
+<div class="col"><div class="d" data-i18n="dMon">Lun</div><div class="blk g" data-i18n="wk1">Maths<br>A1</div><div class="blk b" data-i18n="wk2">Physique</div></div>
+<div class="col"><div class="d" data-i18n="dTue">Mar</div><div class="blk p" data-i18n="wk3">Chimie</div><div class="blk e">·</div><div class="blk g" data-i18n="wk4">Algo</div></div>
+<div class="col"><div class="d today" data-i18n="dWed">Mer</div><div class="blk g" data-i18n="wk5">Maths</div><div class="blk a" data-i18n="exam">Examen</div></div>
+<div class="col"><div class="d" data-i18n="dThu">Jeu</div><div class="blk b" data-i18n="wk2">Physique</div><div class="blk p" data-i18n="wk3">Chimie</div></div>
+<div class="col"><div class="d" data-i18n="dFri">Ven</div><div class="blk e">·</div><div class="blk g" data-i18n="wk6">Algo<br>Labo 3</div></div>
+</div></div>
+</article>
+<article class="card span-3 wide reveal">
+<div class="ic" style="background:var(--info-bg);color:var(--info)"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-chart-line"></use></svg></div>
+<h3 data-i18n="f2t">Notes &amp; moyenne en temps réel</h3>
+<p data-i18n="f2d">Contrôle continu, examen, coefficient. Une notification dès la publication — et une alerte si une matière est à risque.</p>
+<div class="demo">
+<div class="grade-row"><span class="sub" data-i18n="cMath">Mathématiques Générales</span><span class="val mono">14.2</span><span class="badge ok" data-i18n="ok">Validé</span></div>
+<div class="grade-row"><span class="sub" data-i18n="cAlgo">Algorithmique</span><span class="val mono">17.4</span><span class="badge ok" data-i18n="ok">Validé</span></div>
+<div class="grade-row"><span class="sub" data-i18n="cPhys">Physique Générale</span><span class="val mono">8.0</span><span class="badge risk" data-i18n="risk">À risque</span></div>
+</div>
+</article>
+<article class="card span-2 reveal">
+<div class="ic" style="background:var(--exam-bg);color:var(--exam)"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-newspaper"></use></svg></div>
+<h3 data-i18n="f3t">Actualités officielles</h3>
+<p data-i18n="f3d">Les annonces vérifiées de l'université, sans rumeurs ni transferts douteux.</p>
+<div class="demo">
+<div class="news-item"><span class="cat" style="background:var(--danger-bg);color:#b91c1c" data-i18n="catOff">Officiel</span><span data-i18n="n1">Examens S2 — session juin</span></div>
+<div class="news-item"><span class="cat" style="background:var(--exam-bg);color:#6d28d9" data-i18n="catEv">Événement</span><span data-i18n="n2">Remise des diplômes</span></div>
+</div>
+</article>
+<article class="card span-2 reveal">
+<div class="ic" style="background:var(--warning-bg);color:#b45309"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-user-check"></use></svg></div>
+<h3 data-i18n="f4t">Présences &amp; absences</h3>
+<p data-i18n="f4d">Ton taux par matière, tes absences et une projection avant d'atteindre la limite de 75%.</p>
+<div class="demo att">
+<svg class="ring" viewBox="0 0 36 36" aria-hidden="true"><circle cx="18" cy="18" r="15.5" fill="none" stroke="#E8ECE9" stroke-width="4"></circle><circle cx="18" cy="18" r="15.5" fill="none" stroke="#1D9E75" stroke-width="4" stroke-linecap="round" stroke-dasharray="84.8 97.4" transform="rotate(-90 18 18)"></circle><text x="18" y="21" text-anchor="middle" font-size="7.5" font-weight="500" fill="#1C2320" font-family="DM Mono, monospace">87%</text></svg>
+<div class="att-lines">
+<div class="att-line"><span data-i18n="wk5">Maths</span><div class="track"><i style="width:94%"></i></div></div>
+<div class="att-line"><span data-i18n="wk2">Physique</span><div class="track"><i class="w" style="width:78%"></i></div></div>
+</div>
+</div>
+</article>
+<article class="card span-2 reveal">
+<div class="ic" style="background:var(--offline-bg);color:var(--offline)"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-bell"></use></svg></div>
+<h3 data-i18n="f5t">Notifications utiles</h3>
+<p data-i18n="f5d">Notes publiées, cours dans 15 min, alerte présence. Et le silence de 22h à 7h.</p>
+<div class="demo">
+<div class="notif"><span class="ni" style="background:var(--info-bg);color:var(--info)"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-chart-line"></use></svg></span><div><b data-i18n="nt1">Nouvelles notes</b><span data-i18n="nt1d">Chimie Organique : 15/20</span></div></div>
+<div class="notif"><span class="ni" style="background:var(--jade-50);color:var(--jade-600)"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg></span><div><b data-i18n="nt2">Cours dans 15 min</b><span data-i18n="nt2d">Physique · Salle 204</span></div></div>
+</div>
+</article>
+<article class="card span-6 wide reveal info-row">
+<div class="ic" style="background:var(--jade-50);color:var(--jade-600)"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-help-circle"></use></svg></div>
+<div class="info-copy"><h3 data-i18n="f6t">Centre d'information</h3><p data-i18n="f6d">FAQ, annuaire du campus, démarches pas à pas et formulaires : réinscription, relevé de notes, rattrapages… sans faire la queue au guichet.</p></div>
+</article>
+</div>
+</div>
+</section>
+
+<!-- SPOTLIGHTS -->
+<section class="block" id="carte" style="padding-top:24px" data-screen-label="Calculateur & carte QR">
+<div class="container">
+<div class="spot">
+<div class="spot-copy reveal">
+<span class="eyebrow" data-i18n="calcEyebrow">Calculateur de moyenne</span>
+<h2 data-i18n="calcH2">« Combien il me faut à l'examen ? »</h2>
+<p data-i18n="calcLead">La question que tout étudiant se pose. Unipocket y répond en une seconde, avec la formule affichée — pas de boîte noire.</p>
+<ul class="checks">
+<li data-i18n="calcC1">Choisis ta note cible, l'app calcule la note minimale à l'examen</li>
+<li data-i18n="calcC2">Fonctionne sans connexion : calcul 100% local</li>
+<li data-i18n="calcC3">Alerte claire quand la validation devient impossible</li>
+</ul>
+</div>
+<div class="panel-bg reveal">
+<div class="panel calc">
+<h4 data-i18n="tryIt">Essaie-le maintenant</h4>
+<div class="hint" data-i18n="calcHint2">Pondération d'exemple — dans l'app, chaque matière a la sienne.</div>
+<div class="weights" role="radiogroup" aria-label="Pondération" data-i18n-aria="ariaWeights">
+<button type="button" role="radio" aria-checked="true" data-w="0.4"><span data-i18n="wCC">CC</span> <span class="mono">40</span> · <span data-i18n="wEx">Exam</span> <span class="mono">60</span></button>
+<button type="button" role="radio" aria-checked="false" tabindex="-1" data-w="0.5"><span data-i18n="wCC">CC</span> <span class="mono">50</span> · <span data-i18n="wEx">Exam</span> <span class="mono">50</span></button>
+<button type="button" role="radio" aria-checked="false" tabindex="-1" data-w="0.3"><span data-i18n="wCC">CC</span> <span class="mono">30</span> · <span data-i18n="wEx">Exam</span> <span class="mono">70</span></button>
+</div>
+<div class="field"><label for="cc"><span data-i18n="ccLabel">Note de contrôle continu</span><output id="ccOut" class="mono">8</output></label><input type="range" id="cc" min="0" max="20" step="0.5" value="8"></div>
+<div class="field"><label for="target"><span data-i18n="targetLabel">Note finale visée</span><output id="targetOut" class="mono">10</output></label><input type="range" id="target" min="0" max="20" step="0.5" value="10"></div>
+<div class="result" id="result" aria-live="polite">
+<div class="lbl" data-i18n="needLabel">Il te faut à l'examen</div>
+<div class="big mono" id="need">11.4 / 20</div>
+<div class="formula" id="formula">(10 − 0.4 × 8) ÷ 0.6 = 11.33</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="spot rev">
+<div class="spot-copy reveal">
+<span class="eyebrow" data-i18n="qrEyebrow">Carte étudiante digitale</span>
+<h2 data-i18n="qrH2">Ta carte étudiante, toujours sur toi.</h2>
+<p data-i18n="qrLead">Un QR code sécurisé pour la bibliothèque, l'accès au campus et les réductions étudiantes. Il change toutes les 60 secondes : une capture d'écran ne sert à rien.</p>
+<ul class="checks">
+<li data-i18n="qrC1">Signé cryptographiquement (HMAC-SHA256)</li>
+<li data-i18n="qrC2">Vérifiable sans connexion, par toi comme par le scanner</li>
+<li data-i18n="qrC3">Nom, numéro, filière, année et statut d'inscription</li>
+</ul>
+</div>
+<div class="panel-bg reveal">
+<div class="idcard">
+<div class="idc-top"><span data-i18n="idTitle">Carte étudiante</span><span class="idc-brand"><img src="assets/brand/unipocket-icon.svg" alt="" width="16" height="16">Unipocket</span></div>
+<div class="idc-main">
+<div class="qr-box"><svg class="qr" data-qr viewBox="0 0 25 25" role="img" aria-label="QR code de démonstration" data-i18n-aria="ariaQrDemo"></svg></div>
+<div>
+<div class="idc-name" data-i18n="idName">Ahmed Omar Said</div>
+<div class="idc-id">ETU-2024-0432</div>
+<div class="idc-meta">
+<div><span data-i18n="idProg">Programme</span><b data-i18n="idProgV">Sc. Exactes L2</b></div>
+<div><span data-i18n="idYear">Année</span><b class="mono">2025–2026</b></div>
+<div><span data-i18n="idStatus">Statut</span><b class="status" data-i18n="idActive">Actif</b></div>
+</div>
+</div>
+</div>
+<div class="idc-foot"><span data-i18n="idRenew">Nouveau code dans</span><span class="timer" id="qrTimer">0:60</span></div>
+<div class="qr-progress" aria-hidden="true"><i id="ringBar"></i></div>
+</div>
+<p class="under-card" data-i18n="demoNote">Démonstration — données fictives</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- OFFLINE -->
+<section class="block" id="hors-ligne" style="padding-top:24px" data-screen-label="Mode hors-ligne">
+<div class="container">
+<div class="sec-title reveal">
+<span class="eyebrow" data-i18n="offEyebrow">Conçue pour les réseaux instables</span>
+<h2><span data-i18n="offH2a">Le réseau coupe ?</span> <span class="accent" data-i18n="offH2b">Unipocket continue.</span></h2>
+<p data-i18n="offLead">La connexion n'est pas toujours fiable. Unipocket garde une copie de tes données sur ton téléphone, pour que tu ne sois jamais bloqué.</p>
+</div>
+<div class="off-grid" id="offDemo" data-state="on">
+<ol class="off-steps">
+<li data-state="on"><button type="button"><span class="num mono">1</span><span><b data-i18n="os1t">Avec réseau</b><span data-i18n="os1d">À chaque ouverture, Unipocket enregistre ton emploi du temps, tes notes, tes présences et ta carte sur le téléphone.</span></span></button></li>
+<li data-state="off"><button type="button"><span class="num mono">2</span><span><b data-i18n="os2t">Sans réseau</b><span data-i18n="os2d">Tu consultes tout normalement. Un bandeau orange affiche l'heure de la dernière synchronisation. Ce que tu envoies est mis en attente.</span></span></button></li>
+<li data-state="back"><button type="button"><span class="num mono">3</span><span><b data-i18n="os3t">Le réseau revient</b><span data-i18n="os3d">L'app se met à jour toute seule et envoie ce qui attendait. Rien à faire de ton côté.</span></span></button></li>
+</ol>
+<div class="off-panel panel-bg">
+<div class="seg" role="tablist" aria-label="État du réseau" data-i18n-aria="ariaNet">
+<button type="button" role="tab" aria-controls="offDevice" data-state="on" aria-selected="true"><i class="sd on"></i><span data-i18n="segOn">En ligne</span></button>
+<button type="button" role="tab" aria-controls="offDevice" data-state="off" aria-selected="false" tabindex="-1"><i class="sd off"></i><span data-i18n="segOff">Hors-ligne</span></button>
+<button type="button" role="tab" aria-controls="offDevice" data-state="back" aria-selected="false" tabindex="-1"><i class="sd back"></i><span data-i18n="segBack">Réseau revenu</span></button>
+</div>
+<div class="off-device" id="offDevice" role="tabpanel" aria-live="polite">
+<div class="off-banner"><span class="dot"></span><span id="offBanner">Connecté · Données à jour</span></div>
+<ul class="off-list">
+<li><span data-i18n="s1">Emploi du temps</span><span class="st" data-st>À jour</span></li>
+<li><span data-i18n="s2">Notes &amp; moyenne</span><span class="st" data-st>À jour</span></li>
+<li><span data-i18n="s3">Carte QR</span><span class="st" data-st>À jour</span></li>
+<li><span data-i18n="s4">Présences</span><span class="st" data-st>À jour</span></li>
+<li><span data-i18n="s5">Centre d'info</span><span class="st" data-st>À jour</span></li>
+<li class="send"><span data-i18n="s6">Envoi d'un justificatif</span><span class="st" id="offSend">Envoyé</span></li>
+</ul>
+</div>
+</div>
+</div>
+
+<article class="card bi reveal">
+<div>
+<div class="ic" style="background:var(--jade-50);color:var(--jade-600)"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-globe"></use></svg></div>
+<h3 data-i18n="o2t">Français &amp; Arabe</h3>
+<p data-i18n="o2d">Change de langue dès l'écran de connexion. Tout l'affichage bascule instantanément, y compris l'orientation de droite à gauche.</p>
+<button type="button" class="btn btn-ghost-dark btn-sm" id="langTry" data-lang-switch data-i18n="langTry">Voir cette page en arabe</button>
+</div>
+<div class="lang-demo">
+<div class="bubble"><small>FR</small><p>Bonjour, Ahmed 👋</p></div>
+<div class="bubble"><small>AR</small><p class="ar-text">أهلاً، أحمد 👋</p></div>
+</div>
+</article>
+</div>
+</section>
+
+<!-- WHO -->
+<section class="block" id="pour-qui" style="padding-top:24px" data-screen-label="Pour qui">
+<div class="container">
+<div class="sec-title reveal">
+<span class="eyebrow" data-i18n="whoEyebrow">Pour qui ?</span>
+<h2><span data-i18n="whoH2a">Pour les étudiants.</span> <span class="accent" data-i18n="whoH2b">Et pour chaque université.</span></h2>
+</div>
+<div class="who">
+<article class="card who-card reveal">
+<span class="who-tag" data-i18n="tagStudents">Étudiants</span>
+<h3 data-i18n="whoStT">Tes études, au même endroit</h3>
+<p data-i18n="whoStD">Sur ton téléphone ou sur le web, même quand le réseau ne suit pas.</p>
+<ul class="checks">
+<li data-i18n="whoS1">Ton emploi du temps et tes salles, chaque jour</li>
+<li data-i18n="whoS2">Tes notes et ta moyenne, avec le calculateur</li>
+<li data-i18n="whoS3">Tes présences et tes absences, matière par matière</li>
+<li data-i18n="whoS4">Ta carte étudiante QR, toujours sur toi</li>
+</ul>
+<a href="#telecharger" class="btn btn-primary" data-i18n="whoStCta">Télécharger l'app</a>
+</article>
+<article class="card who-card dark reveal">
+<div class="who-top"><span class="who-tag staff" data-i18n="tagUni">Université</span></div>
+<h3 data-i18n="whoUnT">Toute université est la bienvenue</h3>
+<p data-i18n="whoUnD">Unipocket s'adapte à n'importe quel établissement. Le portail d'administration permet au personnel de publier et de mettre à jour les informations que les étudiants reçoivent dans l'app et sur le site.</p>
+<ul class="checks">
+<li data-i18n="whoU1">Publier des actualités officielles et des notifications</li>
+<li data-i18n="whoU2">Mettre à jour les emplois du temps et les salles</li>
+<li data-i18n="whoU3">Saisir les notes et suivre les présences</li>
+<li data-i18n="whoU4">Gérer les dossiers étudiants</li>
+</ul>
+<div class="who-actions"><a href="#" class="btn btn-light" data-link="staffContact" data-i18n="whoUnCta">Inscrire mon université</a><a href="#" class="btn btn-outline-light" data-link="adminPortal" data-i18n="whoUnLogin">Accès personnel</a></div>
+</article>
+</div>
+</div>
+</section>
+
+<!-- BEGIN proof-block · OFF by default (hidden). To turn on: delete the word hidden on the <section> and replace every [ … ]. To remove for good: delete everything down to END proof-block. -->
+<section class="block proof" hidden style="padding-top:24px" data-screen-label="Témoignages &amp; chiffres" aria-labelledby="proofTitle">
+<div class="container">
+<div class="sec-title reveal"><span class="eyebrow" data-i18n="proofEyebrow">Ils utilisent Unipocket</span><h2 id="proofTitle" data-i18n="proofH2">Ce qu'en disent les étudiants et le personnel</h2></div>
+<div class="proof-stats"><div class="fig"><strong class="mono" data-placeholder="figure-1">[000]</strong><span data-placeholder="figure-1-label">[Légende du chiffre 1]</span></div><div class="fig"><strong class="mono" data-placeholder="figure-2">[000]</strong><span data-placeholder="figure-2-label">[Légende du chiffre 2]</span></div><div class="fig"><strong class="mono" data-placeholder="figure-3">[000]</strong><span data-placeholder="figure-3-label">[Légende du chiffre 3]</span></div></div>
+<div class="proof-quotes"><figure class="quote"><blockquote data-placeholder="quote-student">[Citation réelle — étudiant·e]</blockquote><figcaption><picture><source type="image/webp" srcset="assets/images/testimonial-student-160x160.webp"><img src="assets/images/testimonial-student-160x160.png" width="80" height="80" loading="lazy" decoding="async" alt="" data-placeholder="testimonial-student"></picture><span><b data-placeholder="quote-student-name">[Prénom Nom]</b><span data-placeholder="quote-student-role">[Filière, année]</span></span></figcaption></figure><figure class="quote"><blockquote data-placeholder="quote-staff">[Citation réelle — membre du personnel]</blockquote><figcaption><picture><source type="image/webp" srcset="assets/images/testimonial-staff-160x160.webp"><img src="assets/images/testimonial-staff-160x160.png" width="80" height="80" loading="lazy" decoding="async" alt="" data-placeholder="testimonial-staff"></picture><span><b data-placeholder="quote-staff-name">[Prénom Nom]</b><span data-placeholder="quote-staff-role">[Fonction, service]</span></span></figcaption></figure></div>
+</div>
+</section>
+<!-- END proof-block -->
+
+<!-- STEPS -->
+<section class="block" style="padding-top:24px" data-screen-label="Démarrer">
+<div class="container">
+<div class="sec-title reveal"><span class="eyebrow" data-i18n="stEyebrow">Démarrer</span><h2 data-i18n="stH2b">Trois étapes, et c'est prêt</h2></div>
+<div class="steps">
+<div class="step reveal"><div class="num mono">1</div><h3 data-i18n="st1t">Télécharge l'app</h3><p data-i18n="st1d">Depuis Google Play ou directement via le fichier APK. Gratuite, sans publicité.</p></div>
+<div class="step reveal"><div class="num mono">2</div><h3 data-i18n="st2t">Connecte-toi</h3><p data-i18n="st2d">Avec ton numéro étudiant (ex. <code>ETU-2024-0432</code>) et ton mot de passe universitaire. Active ensuite l'empreinte ou Face ID.</p></div>
+<div class="step reveal"><div class="num mono">3</div><h3 data-i18n="st3t">Personnalise</h3><p data-i18n="st3d">Choisis ta langue et tes notifications. Ton emploi du temps et tes notes sont déjà là.</p></div>
+</div>
+</div>
+</section>
+
+<!-- FAQ -->
+<section class="block" id="faq" style="padding-top:24px" data-screen-label="FAQ">
+<div class="container">
+<div class="sec-title reveal"><span class="eyebrow" data-i18n="navFaq">FAQ</span><h2 data-i18n="faqH2">Questions fréquentes</h2></div>
+<div class="faq">
+<details><summary data-i18n="q1">L'application est-elle gratuite ?</summary><p data-i18n="a1">Oui. Unipocket est entièrement gratuite pour tous les étudiants de l'Portail étudiant, sans publicité.</p></details>
+<details><summary data-i18n="q2">Quels identifiants dois-je utiliser ?</summary><p data-i18n="a2">Ton numéro étudiant et ton mot de passe universitaire. Après 3 essais incorrects, le compte est bloqué 5 minutes par sécurité. En cas d'oubli, adresse-toi à la scolarité.</p></details>
+<details><summary data-i18n="q3">Est-ce que ça marche sans internet ?</summary><p data-i18n="a3">Oui. Emploi du temps, notes, carte QR, présences et centre d'information restent disponibles hors-ligne. Seules les actions qui nécessitent un envoi (justificatifs, par exemple) attendent le retour du réseau, puis partent automatiquement.</p></details>
+<details><summary data-i18n="q7">Puis-je utiliser Unipocket sur ordinateur ?</summary><p data-i18n="a7">Oui. Le site étudiant donne accès aux mêmes informations, avec le même compte, depuis n'importe quel navigateur.</p></details>
+<details><summary data-i18n="q4">Et sur iPhone ?</summary><p data-i18n="a4b">La version iOS arrive bientôt sur l'App Store. En attendant, tu peux utiliser le site étudiant depuis ton iPhone.</p></details>
+<details><summary data-i18n="q5">Comment installer le fichier APK ?</summary><p data-i18n="a5">Télécharge le fichier, ouvre-le, puis autorise l'installation depuis cette source quand Android le demande. Ne télécharge l'APK que depuis cette page officielle.</p></details>
+<details><summary data-i18n="q6">Mes données sont-elles protégées ?</summary><p data-i18n="a6">Tes jetons de connexion sont stockés dans l'espace chiffré du téléphone, et le QR code est signé et expire après 60 secondes. Tes données ne sont jamais revendues.</p></details>
+</div>
+</div>
+</section>
+
+<!-- CTA -->
+<section id="telecharger" style="scroll-margin-top:90px" data-screen-label="Appel à l'action">
+<div class="container">
+<div class="cta reveal">
+<div>
+<h2 data-i18n="ctaH2">Commence ta journée avec Unipocket.</h2>
+<p data-i18n="ctaLead">En 10 secondes, tu sais ce que tu as aujourd'hui, où tu en es, et ce que l'université doit te dire.</p>
+<div class="store-row">
+<a class="store-btn" data-link="googlePlay" href="#"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-play"></use></svg><span><small data-i18n="getOn">Disponible sur</small><strong>Google Play</strong></span></a>
+<a class="store-btn" data-link="apk" href="#"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-download"></use></svg><span><small data-i18n="directDl">Téléchargement direct</small><strong data-i18n="apkLabel">Fichier APK</strong></span></a>
+<span class="store-btn soon" aria-disabled="true"><svg class="i" aria-hidden="true" focusable="false"><use href="#i-smartphone"></use></svg><span><small data-i18n="soon">Bientôt sur</small><strong>App Store</strong></span></span>
+</div>
+<div class="cta-links"><a href="#" data-link="studentWebsite"><span data-i18n="ctaWeb">Ouvrir le site étudiant</span> <svg class="i arr" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a><a href="#" data-link="adminPortal"><span data-i18n="ctaAdmin">Personnel : portail d'administration</span> <svg class="i arr" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a></div>
+</div>
+<div class="qr-dl"><img class="dl-qr" src="assets/images/qr-download-unipocket-io.svg" width="180" height="180" alt="QR code : unipocket.io" data-i18n-alt="altDlQr"><p data-i18n="scan">Scanne avec ton téléphone pour télécharger</p></div>
+</div>
+</div>
+</section>
+</main>
+
+<footer>
+<div class="container">
+<div class="foot">
+<div>
+<a href="#top" class="brand"><span class="brand-mark"><img src="assets/brand/unipocket-icon.svg" alt="" width="34" height="34"></span><span>Unipocket</span></a>
+<p data-i18n="footAbout2">Le portail étudiant de l'Portail étudiant : application mobile, site étudiant et portail d'administration. En français et en arabe.</p>
+</div>
+<div><h5 data-i18n="footApp">Application</h5><ul>
+<li><a href="#fonctionnalites" data-i18n="navFeatures">Fonctionnalités</a></li>
+<li><a href="#hors-ligne" data-i18n="navOffline">Hors-ligne</a></li>
+<li><a href="#telecharger" data-i18n="navCta">Télécharger</a></li>
+</ul></div>
+<div><h5 data-i18n="footAccess">Accès</h5><ul>
+<li><a href="#" data-link="studentWebsite" data-i18n="footWeb">Site étudiant</a></li>
+<li><a href="#" data-link="adminPortal" data-i18n="footAdmin">Portail admin</a></li>
+<li><a href="#faq" data-i18n="navFaq">FAQ</a></li>
+<li><a href="#" data-link="supportEmail" data-i18n="footContact">Contact &amp; support</a></li>
+</ul></div>
+<div><h5 data-i18n="footLegal">Légal</h5><ul>
+<li><a href="#" data-link="privacy" data-i18n="footPrivacy">Confidentialité</a></li>
+<li><a href="#" data-link="terms" data-i18n="footTerms">Conditions d'utilisation</a></li>
+</ul>
+<div data-socials-wrap hidden><h5 data-i18n="footFollow">Nous suivre</h5><ul data-socials></ul></div></div>
+</div>
+<div class="legal"><span>© <span id="year" class="mono">2026</span> Unipocket</span><span data-i18n="footMade">Fait pour les étudiants, par des étudiants</span></div>
+</div>
+</footer>
+
+<div class="m-cta" id="mCta" aria-hidden="true">
+<a href="#telecharger" class="btn btn-primary" data-i18n="mCta">Télécharger Unipocket</a>
+<a href="#" class="btn btn-ghost-dark" data-link="studentWebsite" data-i18n="mWeb">Site web</a>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="config/links.js" defer></script>
+<script src="i18n/strings.js" defer></script>
+<script src="js/main.js" defer></script>
+<script src="js/calculator.js" defer></script>
+<script src="js/qr-card.js" defer></script>
+<script src="js/offline-demo.js" defer></script>
+</body>
+</html>

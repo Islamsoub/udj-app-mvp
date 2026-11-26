@@ -1,0 +1,76 @@
+/* Unipocket landing: design tokens. Values marked (app) are reused from the Unipocket app. */
+
+/* Fonts: subset WOFF2, self-hosted. Each file downloads only when a matching glyph renders:
+   Arabic only loads in Arabic mode, Caveat only on screens wider than 1100px. */
+@font-face{font-family:'Plus Jakarta Sans';src:url('../assets/fonts/plus-jakarta-sans-var-latin.woff2') format('woff2');font-weight:400 800;font-style:normal;font-display:swap}
+@font-face{font-family:'Noto Naskh Arabic';src:url('../assets/fonts/noto-naskh-arabic-var-arabic.woff2') format('woff2');font-weight:400 700;font-style:normal;font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200F}
+@font-face{font-family:'DM Mono';src:url('../assets/fonts/dm-mono-400-latin.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'DM Mono';src:url('../assets/fonts/dm-mono-500-latin.woff2') format('woff2');font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:'Caveat';src:url('../assets/fonts/caveat-600-latin.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap}
+
+:root{
+  /* Brand (app) */
+  --jade-50:#E6F7F1;--jade-100:#B3E4D3;--jade-200:#7FCEAF;--jade-300:#3FB88E;
+  --jade-400:#1D9E75;--jade-600:#0F6E56;--jade-900:#0A3D2E;
+
+  /* Neutrals (app, except --text-secondary, darkened for WCAG AA; see DESIGN-SPEC) */
+  --bg-light:#F5F7F6;--surface:#FFFFFF;--white:#FFFFFF;--black:#000000;
+  --border:#E8ECE9;
+  --text-primary:#1C2320;
+  --text-secondary:#56665F;   /* app value #6B7B74 */
+  --text-tertiary:#9EADA7;    /* decorative/illustration only, never for real text */
+  --text-hero:#2F4A40;
+
+  /* Status (app) + dark text shades for AA on tinted backgrounds */
+  --warning:#F59E0B;--warning-bg:#FEF3C7;--warning-700:#B45309;--warning-800:#92400E;
+  --danger:#EF4444;--danger-bg:#FEE2E2;--danger-700:#B91C1C;
+  --info:#3B82F6;--info-bg:#DBEAFE;--info-700:#1E40AF;
+  --exam:#8B5CF6;--exam-bg:#EDE9FE;--exam-700:#6D28D9;
+  --offline:#F97316;--offline-bg:#FFEDD5;--offline-800:#9A3412;
+  --success-300:#86EFAC;
+
+  /* Landing-only surfaces */
+  --sky-top:#9FD3EE;--sky-2:#B7E0F1;--sky-mid:#CDEAF3;--sky-low:#EAF7F2;
+  --panel-1:#D9F2E8;--panel-2:#EAF6FB;--panel-3:#E7F0FF;
+  --stripe-a:#EEF2F0;--stripe-b:#F7F9F8;
+  --device:#0F1513;--device-edge:#2B3531;
+
+  /* Typography */
+  --font-sans:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font-ar:'Noto Naskh Arabic','Plus Jakarta Sans',system-ui,sans-serif;
+  --font-mono:'DM Mono',ui-monospace,'Cascadia Code',monospace;
+  --font-hand:'Caveat','Comic Sans MS',cursive;
+  --fs-display:clamp(38px,6.4vw,74px);  /* hero h1, 800, lh 1.04, ls -.035em */
+  --fs-h2:clamp(30px,4.2vw,48px);       /* section h2, 800, lh 1.1, ls -.03em */
+  --fs-h2-spot:clamp(28px,3.6vw,42px);  /* spotlight h2, 800, lh 1.12 */
+  --fs-h3:20px;                         /* card h3, 700 */
+  --fs-h3-lg:24px;                      /* large card h3, 700 */
+  --fs-lead:17px;                       /* section intros, 400, lh 1.6 */
+  --fs-body:15px;                       /* card body, 400, lh 1.6 */
+  --fs-small:13px;                      /* meta, eyebrow, 500–600 */
+  --fs-micro:11px;                      /* badges, 700 */
+  --lh-tight:1.1;--lh-body:1.6;
+
+  /* Spacing: 8px grid, 4px half-step */
+  --s-1:4px;--s-2:8px;--s-3:12px;--s-4:16px;--s-5:20px;--s-6:24px;--s-7:28px;--s-8:32px;
+  --s-10:40px;--s-12:48px;--s-14:56px;--s-16:64px;--s-18:72px;--s-24:96px;--s-30:120px;
+
+  /* Radii (app scale; nothing above r-2xl except pills and the device mock) */
+  --r-sm:6px;--r-md:8px;--r-lg:12px;--r-xl:16px;--r-2xl:20px;--r-full:9999px;
+  --r-3xl:20px;  /* alias kept for older selectors, same as r-2xl */
+  --r-device:46px;--r-device-screen:36px;
+
+  /* Shadows (app sm/md/lg + landing xl) */
+  --shadow-sm:0 1px 3px rgba(28,35,32,.08),0 1px 2px rgba(28,35,32,.04);
+  --shadow-md:0 4px 12px rgba(28,35,32,.10),0 2px 4px rgba(28,35,32,.05);
+  --shadow-lg:0 8px 24px rgba(28,35,32,.12),0 4px 8px rgba(28,35,32,.06);
+  --shadow-xl:0 30px 60px -12px rgba(10,61,46,.28),0 12px 24px -8px rgba(10,61,46,.14);
+
+  /* Layout */
+  --container:1180px;--gutter:24px;--tap:44px;
+
+  /* Motion */
+  --ease:cubic-bezier(.2,.7,.2,1);
+  --t-fast:.15s;--t-base:.25s;--t-reveal:.7s;
+}
+html[dir="rtl"]{--font-mono:'DM Mono','Noto Naskh Arabic',ui-monospace,monospace}
