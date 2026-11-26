@@ -2,7 +2,7 @@
    Keys match the data-i18n / data-i18n-aria / data-i18n-alt attributes in the HTML.
    Dotted keys (calc.*, off.*, toast.*, meta.*) are set from JavaScript.
    French is also written directly in the HTML, so the page reads fine without JavaScript.
-   ⚠ None of the Arabic has been reviewed by a native speaker yet. See DESIGN-SPEC.md → Copy. */
+   ⚠ None of the Arabic has been reviewed by a native speaker yet. See design/landing-handoff/DESIGN-SPEC.md → Copy. */
 window.UNIPOCKET_STRINGS = {
   fr: {
     "skip": "Aller au contenu",

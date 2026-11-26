@@ -1,0 +1,49 @@
+# Cloudflare Pages response headers. Not served itself; Pages reads it at deploy.
+# When several rules match one request, Pages JOINS their values with a comma.
+# For Cache-Control that gives an invalid value, so no request may match two
+# Cache-Control rules: "/*" sets only the security headers, and the two cache
+# groups below never cover the same path. Keep it that way when adding rules.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  # Pages adds "Access-Control-Allow-Origin: *" by default. Nothing here is
+  # meant for other sites to fetch, and project rule is never "*", so drop it.
+  ! Access-Control-Allow-Origin
+
+# Long cache (30 days). File names are not hashed: when you replace one of these
+# files, give it a new name, or visitors may keep the old one for up to 30 days.
+/assets/fonts/*
+  Cache-Control: public, max-age=2592000
+/assets/icons/*
+  Cache-Control: public, max-age=2592000
+/assets/brand/*
+  Cache-Control: public, max-age=2592000
+/assets/favicons/*
+  Cache-Control: public, max-age=2592000
+/assets/images/*
+  Cache-Control: public, max-age=2592000
+
+# Revalidate on every visit: pages (clean and .html paths), CSS, JS, config.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+/index
+  Cache-Control: public, max-age=0, must-revalidate
+/privacy
+  Cache-Control: public, max-age=0, must-revalidate
+/terms
+  Cache-Control: public, max-age=0, must-revalidate
+/404
+  Cache-Control: public, max-age=0, must-revalidate
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+/css/*
+  Cache-Control: public, max-age=0, must-revalidate
+/js/*
+  Cache-Control: public, max-age=0, must-revalidate
+/i18n/*
+  Cache-Control: public, max-age=0, must-revalidate
+/config/*
+  Cache-Control: public, max-age=0, must-revalidate

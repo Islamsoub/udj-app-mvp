@@ -13,7 +13,7 @@
   --jade-50:#E6F7F1;--jade-100:#B3E4D3;--jade-200:#7FCEAF;--jade-300:#3FB88E;
   --jade-400:#1D9E75;--jade-600:#0F6E56;--jade-900:#0A3D2E;
 
-  /* Neutrals (app, except --text-secondary, darkened for WCAG AA; see DESIGN-SPEC) */
+  /* Neutrals (app, except --text-secondary, darkened for WCAG AA; see design/landing-handoff/DESIGN-SPEC.md) */
   --bg-light:#F5F7F6;--surface:#FFFFFF;--white:#FFFFFF;--black:#000000;
   --border:#E8ECE9;
   --text-primary:#1C2320;
