@@ -142,6 +142,37 @@
     new IntersectionObserver(function (es) { atEnd = es[0].isIntersecting; upd(); }).observe(finalCta);
   }
 
+  /* Clean address bar. A link to a section of the current page scrolls there
+     without adding "#section" to the address. A "#section" or "?lang=" that
+     arrives with the page (a link from another page, a search result) is
+     applied once the page has loaded, then removed from the address. */
+  function cleanUrl() {
+    if (!location.hash && !location.search) return;
+    try { history.replaceState(history.state, '', location.pathname); } catch (e) {}
+  }
+  function goTo(id, smooth) {
+    var el = id && document.getElementById(id);
+    if (!el) return false;
+    el.scrollIntoView({ behavior: smooth && !reduce ? 'smooth' : 'auto', block: 'start' });
+    /* Move keyboard focus with the scroll, as a native jump to "#section" does */
+    if (!el.hasAttribute('tabindex') && !/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) el.setAttribute('tabindex', '-1');
+    el.focus({ preventScroll: true });
+    return true;
+  }
+  document.addEventListener('click', function (e) {
+    /* Runs after the per-link handlers: a "coming soon" link has already prevented its default */
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    var a = e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a || a.target === '_blank') return;
+    var url = new URL(a.href, location.href);
+    if (url.origin !== location.origin || url.pathname !== location.pathname || url.hash.length < 2) return;
+    if (goTo(decodeURIComponent(url.hash.slice(1)), true)) { e.preventDefault(); cleanUrl(); }
+  });
+  window.addEventListener('load', function () {
+    if (location.hash.length > 1) goTo(decodeURIComponent(location.hash.slice(1)), false);
+    cleanUrl();
+  });
+
   /* Public API for the block scripts */
   window.Unipocket = {
     t: t,
@@ -151,10 +182,12 @@
     reduceMotion: reduce
   };
 
-  /* Init: ?lang= wins (not saved), then the saved choice, then the browser language */
+  /* Init: ?lang= wins, then the saved choice, then the browser language.
+     ?lang= is saved, because it is removed from the address after load
+     (cleanUrl) and a reload must keep the language the visitor came in with. */
   var saved = null;
   try { saved = localStorage.getItem('unipocket-lang'); } catch (e) {}
   var initial = urlLang || saved || ((navigator.language || '').toLowerCase().indexOf('ar') === 0 ? 'ar' : 'fr');
   /* setLang runs after the block scripts register, so they render in the right language */
-  document.addEventListener('DOMContentLoaded', function () { setLang(initial, false); });
+  document.addEventListener('DOMContentLoaded', function () { setLang(initial, !!urlLang); });
 })();
