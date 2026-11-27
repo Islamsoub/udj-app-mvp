@@ -7,21 +7,21 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://unipocket.io/"/>
   </url>
   <url>
-    <loc>https://unipocket.io/ecrans.html</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://unipocket.io/ecrans.html?lang=fr"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://unipocket.io/ecrans.html?lang=ar"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://unipocket.io/ecrans.html"/>
+    <loc>https://unipocket.io/ecrans</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://unipocket.io/ecrans?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://unipocket.io/ecrans?lang=ar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://unipocket.io/ecrans"/>
   </url>
   <url>
-    <loc>https://unipocket.io/privacy.html</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://unipocket.io/privacy.html?lang=fr"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://unipocket.io/privacy.html?lang=ar"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://unipocket.io/privacy.html"/>
+    <loc>https://unipocket.io/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://unipocket.io/privacy?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://unipocket.io/privacy?lang=ar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://unipocket.io/privacy"/>
   </url>
   <url>
-    <loc>https://unipocket.io/terms.html</loc>
-    <xhtml:link rel="alternate" hreflang="fr" href="https://unipocket.io/terms.html?lang=fr"/>
-    <xhtml:link rel="alternate" hreflang="ar" href="https://unipocket.io/terms.html?lang=ar"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://unipocket.io/terms.html"/>
+    <loc>https://unipocket.io/terms</loc>
+    <xhtml:link rel="alternate" hreflang="fr" href="https://unipocket.io/terms?lang=fr"/>
+    <xhtml:link rel="alternate" hreflang="ar" href="https://unipocket.io/terms?lang=ar"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://unipocket.io/terms"/>
   </url>
 </urlset>
