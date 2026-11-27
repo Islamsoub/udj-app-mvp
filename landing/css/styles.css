@@ -57,6 +57,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .store-note { margin-top: 12px; font-size: 13px; color: var(--text-secondary); }
 
 /* ── Navigation ──────────────────────────────────────────── */
+/* Jumping to a section (menu links, /#faq from another page) stops below the
+   fixed top bar, which ends about 89px down (14px offset + bar), instead of
+   hiding the section's first line under it. */
+section[id] { scroll-margin-top: calc(104px + env(safe-area-inset-top, 0px)); }
 .nav-wrap { position: fixed; inset-inline: 0; top: calc(14px + env(safe-area-inset-top, 0px)); z-index: 100; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 .nav {
   max-width: 1040px; margin-inline: auto;
