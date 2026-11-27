@@ -9,8 +9,8 @@ window.UNIPOCKET_LINKS = {
   adminPortal: 'https://admin.unipocket.io',     // the staff portal (admin/), e.g. 'https://admin.unipocket.io'
   privacy: 'privacy.html',
   terms: 'terms.html',
-  supportEmail: '',      // e-mail address only, e.g. 'support@unipocket.io'; mailto: is added automatically
-  staffContact: '',      // e-mail or URL behind "Nous contacter" on the university card (universities that want to get in touch)
+  supportEmail: 'contact@unipocket.io', // e-mail address only, e.g. 'support@unipocket.io'; mailto: is added automatically
+  staffContact: 'contact@unipocket.io', // e-mail or URL behind "Nous contacter" on the university card (universities that want to get in touch)
   socials: {
     facebook: '',
     instagram: '',

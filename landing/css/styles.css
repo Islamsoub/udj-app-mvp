@@ -718,7 +718,9 @@ html[dir="rtl"] .legal-page h1,html[dir="rtl"] .nf h1{letter-spacing:0;line-heig
 .prose{margin-top:32px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-2xl);padding:32px}
 .prose h2{font-size:var(--fs-h3);margin-top:32px}
 .prose p,.prose li{margin-top:12px;color:var(--text-primary);font-size:16px;line-height:1.7}
-.legal-slot{min-height:320px}
+.prose section:first-child h2{margin-top:0}
+.prose ul{list-style:disc;padding-inline-start:24px}
+.prose a{color:var(--jade-600);text-decoration:underline}
 /* no-JS fallbacks */
 .no-js .menu-btn,.no-js .lang-toggle,.no-js .m-cta,.no-js #langTry{display:none!important}
 @media (max-width:1100px){.no-js .nav-links{display:flex;overflow-x:auto;margin-inline-start:0}}
