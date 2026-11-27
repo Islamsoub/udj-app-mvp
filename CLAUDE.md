@@ -66,6 +66,14 @@ which before applying it.
 | `pwa/` | Student web app | Next.js 16 App Router, React 19, CSS Modules | none |
 | `backend/` | API | Express 5, Prisma 5, Postgres (Supabase) | `backend` |
 
+Live addresses:
+- Landing page: https://unipocket.io
+- Student website (pwa/): https://app.unipocket.io
+- Admin portal (admin/): https://admin.unipocket.io
+- API (backend/): https://api.unipocket.io
+
+The old pwa-test, admin-test and api-test addresses no longer exist.
+
 `admin/`, `pwa/` and `backend/` each install independently, with their own
 package.json and lockfile. Run npm inside the folder you are working in, never
 at the repo root for those three.
@@ -352,8 +360,11 @@ non-recoverable data. allowBackup remains false. Requires an EAS dev/native
 build — SQLCipher will not run in Expo Go.
 
 ### Privacy policy — DEPLOYED
-Privacy policy is hosted and linked from Settings → Confidentialité:
-https://udj-api.onrender.com/public/privacy-policy.html
+Privacy policy is hosted on the landing site (landing/privacy.html, FR + AR)
+and linked from the login screen and Settings → Confidentialité:
+https://unipocket.io/privacy (constants/links.ts, PRIVACY_POLICY_URL).
+backend/public/privacy-policy.html stays online only for app builds testers
+installed before the link changed; do not link to it.
 Data collected: student profile, grades, attendance, FCM push token,
 course notes (local only). No location. Crash reporting via Sentry
 sends no PII (sendDefaultPii: false). Satisfies the Google Play
@@ -369,9 +380,9 @@ Runs on Cloudflare Workers (OpenNext, admin/wrangler.jsonc), as pwa/ does.
 
 ## Testing signed in
 Anything that needs an admin session is tested at
-https://admin-test.islamsoubere.com — not on Vercel (being switched off), and
-never on a local server: the backend refuses admin logins from any other
-origin. Changes not deployed there yet are checked locally without a session
+https://admin.unipocket.io — never on a local server: the backend refuses
+admin logins from any other origin. Changes not deployed there yet are
+checked locally without a session
 (markup, or `npm run preview` for pages like /login).
 
 ## French only

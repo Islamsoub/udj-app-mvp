@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { elevation, fonts, fz, spacing, radius, type Palette } from '@/constants/theme';
+import { PRIVACY_POLICY_URL } from '@/constants/links';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { SessionExpiredModal } from '@/components/ui/SessionExpiredModal';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -265,7 +266,7 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
         />
         <SettingsRow
           label={t('settings.row.privacy')}
-          onPress={() => void Linking.openURL('https://udj-api.onrender.com/public/privacy-policy.html')}
+          onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}
         />
         <SettingsRow
           label={t('settings.row.logout')}
