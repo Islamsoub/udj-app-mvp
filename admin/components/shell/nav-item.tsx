@@ -45,7 +45,7 @@ export function NavItem({ href, icon, label, active, badge }: NavItemProps) {
       </span>
       <span className="flex-1 truncate">{label}</span>
       {badge != null && badge > 0 && (
-        <span className="rounded-full bg-jade px-[7px] py-[1px] font-mono text-[11px] font-medium text-white">
+        <span className="rounded-full bg-jade6 px-[7px] py-[1px] font-mono text-[11px] font-medium text-white">
           {badge}
         </span>
       )}

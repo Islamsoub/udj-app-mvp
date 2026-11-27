@@ -9,7 +9,9 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { useRouter } from 'next/navigation';
 import {
+  DOCUMENT_TITLES,
   arMessages,
   frMessages,
   type PluralKey,
@@ -128,6 +130,7 @@ export interface I18nProviderProps {
 
 export function I18nProvider({ initialLang = DEFAULT_LANG, children }: I18nProviderProps) {
   const [lang, setLangState] = useState<Lang>(initialLang);
+  const router = useRouter();
 
   // Reconciles the two stores once on mount.
   //
@@ -157,6 +160,9 @@ export function I18nProvider({ initialLang = DEFAULT_LANG, children }: I18nProvi
     if (isLang(stored)) {
       setLangState(stored);
       writeLangCookie(stored);
+      // The server rendered this page without the cookie, so in French; see
+      // setLang for why its output has to be re-rendered.
+      if (stored !== DEFAULT_LANG) router.refresh();
     }
     // `lang` is read but intentionally not a dependency: this runs once, at
     // mount, against the value the server chose.
@@ -170,14 +176,33 @@ export function I18nProvider({ initialLang = DEFAULT_LANG, children }: I18nProvi
     const el = document.documentElement;
     el.lang = lang;
     el.dir = dirFor(lang);
+
+    // The tab title, when it is the app's default one (app/layout.tsx's
+    // generateMetadata) in the other language. Matching on the exact default
+    // strings is what leaves a page's own title ("Connexion — Unipocket") and
+    // the PDF export's temporary one untouched. The next navigation renders
+    // the title on the server from the cookie setLang has already written.
+    const titles = Object.values(DOCUMENT_TITLES);
+    if (titles.includes(document.title) && document.title !== DOCUMENT_TITLES[lang]) {
+      document.title = DOCUMENT_TITLES[lang];
+    }
   }, [lang]);
 
-  const setLang = useCallback((next: Lang) => {
-    setLangState(next);
-    // Cookie first — it is the one that decides what the next navigation renders.
-    writeLangCookie(next);
-    writeLangStorage(next);
-  }, []);
+  const setLang = useCallback(
+    (next: Lang) => {
+      setLangState(next);
+      // Cookie first — it is the one that decides what the next navigation renders.
+      writeLangCookie(next);
+      writeLangStorage(next);
+      // Everything the server rendered from the old cookie is now stale: the
+      // tab title in the root layout's metadata above all, and the client
+      // router cache holds prefetched pages carrying it. Without this, the
+      // next client navigation put the old language's title back. refresh()
+      // re-renders the current route with the new cookie and empties that cache.
+      router.refresh();
+    },
+    [router]
+  );
 
   const t = useCallback(
     (key: TranslationKey, params?: TranslationParams): string => {

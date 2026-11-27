@@ -268,7 +268,7 @@ export default function NotificationsPage() {
               <div className="flex items-start gap-2">
                 <span
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] text-[13px] font-extrabold text-white"
-                  style={{ background: 'linear-gradient(135deg, var(--jade), var(--jade6))' }}
+                  style={{ background: 'linear-gradient(135deg, var(--jade6), var(--jade7))' }}
                 >
                   U
                 </span>

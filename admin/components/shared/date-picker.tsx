@@ -128,7 +128,7 @@ export function DatePicker({
                   className={cn(
                     'flex h-8 cursor-pointer items-center justify-center rounded-[8px] border-0 text-[12.5px] transition-colors',
                     value && isSameDay(d, value)
-                      ? 'bg-jade font-bold text-white'
+                      ? 'bg-jade6 font-bold text-white'
                       : isAllowed(d)
                         ? 'bg-transparent text-ink hover:bg-jade-faint'
                         : 'cursor-not-allowed bg-transparent text-ink3 opacity-40',

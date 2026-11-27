@@ -81,7 +81,7 @@ export function PillFilter({
             className={cn(
               'cursor-pointer rounded-full border px-[13px] py-[6px] text-[12.5px] font-semibold transition-colors',
               isActive
-                ? 'border-transparent bg-jade text-white'
+                ? 'border-transparent bg-jade6 text-white'
                 : 'border-hair2 bg-surface text-ink2 hover:bg-sunken'
             )}
           >

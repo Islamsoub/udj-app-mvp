@@ -482,7 +482,7 @@ export default function SettingsPage() {
             <div className="flex gap-[6px]">
               <button
                 type="button"
-                className="cursor-default rounded-[9px] border-0 bg-jade px-[13px] py-[7px] text-[13px] font-bold text-white"
+                className="cursor-default rounded-[9px] border-0 bg-jade6 px-[13px] py-[7px] text-[13px] font-bold text-white"
               >
                 Français
               </button>

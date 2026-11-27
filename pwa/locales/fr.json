@@ -2,7 +2,8 @@
   "app": {
     "name": "Unipocket",
     "university": "Université de Djibouti",
-    "tagline": "Votre espace étudiant"
+    "tagline": "Votre espace étudiant",
+    "document_title": "Unipocket — Portail étudiant"
   },
   "login": {
     "title": "Connexion requise",

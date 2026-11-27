@@ -1084,8 +1084,9 @@ html[lang="ar"] .tileGroupLabel {
   color: var(--danger-ink);
 }
 
-/* .btn-primary: full width, 52 high, --r-md, jade with its shadow. Text is
-   --on-jade, not the prototype's white (3.39:1, under AA). */
+/* .btn-primary: full width, 52 high, --r-md, jade with its shadow. The fill is
+   --jade-fill, not the prototype's --jade, on which white is 3.39:1 (under
+   AA); white --on-jade-fill on it is 6.20:1 light, 4.53:1 dark. */
 .securitySubmit {
   display: flex;
   align-items: center;
@@ -1094,8 +1095,8 @@ html[lang="ar"] .tileGroupLabel {
   height: 52px;
   border: none;
   border-radius: var(--r-md);
-  background: var(--jade);
-  color: var(--on-jade);
+  background: var(--jade-fill);
+  color: var(--on-jade-fill);
   font-family: inherit;
   font-size: 15px;
   font-weight: 700;
@@ -1106,7 +1107,7 @@ html[lang="ar"] .tileGroupLabel {
 }
 
 .securitySubmit:hover:not(:disabled) {
-  background: var(--jade-hover);
+  background: var(--jade-fill-hover);
 }
 
 .securitySubmit:active:not(:disabled) {

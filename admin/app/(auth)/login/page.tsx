@@ -80,7 +80,7 @@ export default function LoginPage() {
         <div className="relative flex items-center gap-3">
           <span
             className="flex h-[34px] w-[34px] items-center justify-center rounded-[10px] text-[17px] font-extrabold text-white"
-            style={{ background: `linear-gradient(135deg, ${C.jade}, ${C.jade6})` }}
+            style={{ background: `linear-gradient(135deg, ${C.jade6}, ${C.jade7})` }}
           >
             U
           </span>

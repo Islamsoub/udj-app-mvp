@@ -825,8 +825,8 @@ html[lang="ar"] .detailLabel {
   padding-inline: 16px;
   border: 0;
   border-radius: var(--r-md);
-  background: var(--jade);
-  color: var(--on-jade);
+  background: var(--jade-fill);
+  color: var(--on-jade-fill);
   font-family: inherit;
   font-size: 13.5px;
   font-weight: 700;
@@ -836,7 +836,7 @@ html[lang="ar"] .detailLabel {
 }
 
 .notesSave:hover:not(:disabled) {
-  background: var(--jade-hover);
+  background: var(--jade-fill-hover);
 }
 
 .notesSave:active:not(:disabled) {

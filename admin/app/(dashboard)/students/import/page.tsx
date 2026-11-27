@@ -69,7 +69,7 @@ function Stepper({ step }: { step: number }) {
                 <span
                   className={cn(
                     'flex h-7 w-7 items-center justify-center rounded-full text-[12px] font-bold',
-                    done && 'bg-jade text-white',
+                    done && 'bg-jade6 text-white',
                     current && 'border border-jade bg-jade-faint text-jade-text',
                     !done && !current && 'bg-surface2 text-ink3'
                   )}
@@ -353,7 +353,7 @@ export default function StudentsImportPage() {
         {/* ── Step 3: result ── */}
         {step === 3 && result && (
           <div className="flex flex-col items-center py-8 text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-jade text-white">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-jade6 text-white">
               <Check size={22} strokeWidth={3} />
             </span>
             <div className="mt-4 text-[19px] font-extrabold text-ink">

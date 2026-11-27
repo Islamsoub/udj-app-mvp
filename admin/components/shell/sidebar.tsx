@@ -107,7 +107,7 @@ export function Sidebar() {
         <span
           className="flex h-[34px] w-[34px] items-center justify-center text-[16px] font-extrabold text-white"
           style={{
-            background: 'linear-gradient(150deg, var(--jade), var(--jade6))',
+            background: 'linear-gradient(150deg, var(--jade6), var(--jade7))',
             borderRadius: '30%',
             boxShadow: '0 4px 12px rgba(29,158,117,0.35)',
           }}

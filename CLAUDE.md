@@ -380,6 +380,8 @@ difference from the app and the PWA.
   the Tailwind utility.
 - Off-grid values (13.5px, 9px radius) are intentional — verbatim measurements
   from the reference prototype. Do not round them to the 8px grid.
+- White text sits on bg-jade6 (#0f6e56, 6.20:1), hovering to bg-jade7, never on
+  bg-jade (#1d9e75, 3.39:1). bg-jade is for dots, lines and icon-only marks.
 
 ## Data
 - All server data goes through a hook in hooks/queries/. Never call useQuery or
@@ -419,8 +421,11 @@ deliberate — adding a runtime dependency here needs a reason, not a habit.
 - Tokens are CSS custom properties in app/globals.css, under
   [data-theme="light"] and [data-theme="dark"].
 - The PWA palette is NOT the mobile app palette and must not be harmonized with
-  it. --bg is #F7F4EE (warm) against the app's #F5F7F6, and text on jade is
-  dark ink (--on-jade #1E231F), not white — white was 3.39:1 and failed AA.
+  it. --bg is #F7F4EE (warm) against the app's #F5F7F6.
+- Text on a jade fill is white on #0F6E56 (--on-jade-fill on --jade-fill,
+  6.20:1, as on the landing page), never white on #1D9E75 (3.39:1, fails AA).
+  --jade (#1D9E75) is for accents, icons, dots, bars and switch tracks only.
+  Dark --jade-fill is #168666 (white 4.53:1, 3.70:1 against --bg).
 - Most token comments carry a measured contrast ratio. Changing a color means
   re-measuring and updating the comment in the same edit.
 - --ink3 is for non-text uses only. It is under AA and must not carry

@@ -189,22 +189,27 @@
   --hair: rgba(30, 35, 31, .10);
   --hair2: rgba(30, 35, 31, .16);
 
+  /* Accents, icons, dots, progress bars — never a fill behind text: white on
+     it is 3.39:1 and fails AA. A filled button uses --jade-fill. */
   --jade: #1D9E75;
-  /* A background, never text: it is lighter than --jade so --on-jade clears AA
-     on it too (5.8:1). Text hovers use --jade-text. */
-  --jade-hover: #22B083;
   --jade-text: #0F6E56;
   --jade-faint: rgba(29, 158, 117, .10);
-  /* Text and marks on a solid jade surface — buttons, switches. 4.71:1 on
-     --jade. Replaces white, which was 3.39:1. */
-  --on-jade: #1E231F;
+  /* The solid fill behind text — primary buttons, the skip link, the toast
+     action — as on the landing page: white on #0F6E56. --on-jade-fill on it is
+     6.20:1; the button against --bg is 5.65:1, against --surface 6.20:1.
+     Hover darkens to jade-900, 12.21:1 for the white text. Text hovers use
+     --jade-text. */
+  --jade-fill: #0F6E56;
+  --jade-fill-hover: #0A3D2E;
+  /* Text and marks on --jade-fill: button labels, the login spinner. */
+  --on-jade-fill: #FFFFFF;
 
   /* The login hero's background. A jade gradient (Round 2 close-out,
      2026-11-09), from #168666 to --jade-text's #0F6E56. The angle is physical,
      not logical: the start stop is ALWAYS the top-left corner, in Arabic too.
      Used only as `background:` on the login .hero, so a gradient is safe.
-     Never --jade (white on it is 3.39:1) and never --jade-hover, which is for
-     hover states.
+     Never --jade (white on it is 3.39:1) and never --jade-fill-hover, which is
+     for hover states.
      Contrast for white, WCAG 2.x, sRGB, blends composited in 8-bit: 4.53:1 on
      the start stop, 6.20:1 on the end stop. The worst case is 4.23:1 — white on
      the start stop, in the top-left corner, under the 4% decorative circle
@@ -339,18 +344,28 @@
   --hair: rgba(255, 255, 255, .08);
   --hair2: rgba(255, 255, 255, .14);
 
+  /* Accents only, as in light: white on it is 2.50:1. */
   --jade: #2BB989;
-  --jade-hover: #3FCB9A;
   --jade-text: #5FD3A6;
   --jade-faint: rgba(43, 185, 137, .16);
-  /* 7.3:1 on --jade. White was 2.5:1 here. */
-  --on-jade: #0F1713;
+  /* #168666, the hero gradient's start stop. No step of the jade scale clears
+     both bars here: #0F6E56 carries white at 6.20:1 but is 2.70:1 against
+     --bg, #1D9E75 is 4.95:1 against --bg but white on it is 3.39:1. On
+     #168666 white is 4.53:1, and the button is 3.70:1 against --bg, 3.40:1
+     against --surface.
+     Hover: #0F6E56, white 6.20:1. It is 2.70:1 against --bg (2.49:1 against
+     --surface), under the 3:1 the resting button meets; no existing jade both
+     darkens the fill and keeps 3:1 on this background. Only while the pointer
+     is on the button. */
+  --jade-fill: #168666;
+  --jade-fill-hover: #0F6E56;
+  --on-jade-fill: #FFFFFF;
 
   /* The login hero's background: a jade gradient in dark too (Round 2
      close-out, 2026-11-09), from #0F5E48 to jade-900 #0A3D2E. Both stops are
      darker than the light ones, so the hero stays quieter than the jade submit
-     button below it: #2BB989 measures 2.82:1 against the hero's lightest point
-     (start stop under the 4% circle), 3.10:1 against the bare start stop.
+     button below it (--jade-fill, #168666): 1.71:1 against the bare start
+     stop.
      White text, WCAG 2.x, sRGB, blends composited in 8-bit: 7.73:1 on the start
      stop, 12.21:1 on the end stop, 7.05:1 at the worst point — the start stop
      under the 4% decorative circle. */
