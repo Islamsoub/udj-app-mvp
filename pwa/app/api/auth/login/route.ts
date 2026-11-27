@@ -6,10 +6,9 @@ import {
   backendFetch,
   backendHeaders,
   cookieOptions,
+  readJson,
 } from '@/lib/proxy';
 import { rateLimitHeaders } from '@/lib/rate-limit-headers';
-// TEMP DIAGNOSTIC: remove after the Render 429 investigation (restore readJson from @/lib/proxy).
-import { readJsonWithDiagnostic } from '@/lib/upstream-diagnostic';
 
 export const runtime = 'nodejs';
 // Long enough to sit through a Render free-tier cold start (30-50s).
@@ -52,8 +51,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Authentication server unreachable' }, { status: 502 });
   }
 
-  // TEMP DIAGNOSTIC: remove after the Render 429 investigation (was readJson(upstream)).
-  const data = await readJsonWithDiagnostic(upstream, 'login');
+  const data = await readJson(upstream);
 
   // Passed through unchanged so the client can tell 401 (bad credentials) from
   // 423 (locked, carries lockedUntil) from 429 (rate limited).
