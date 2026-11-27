@@ -33,3 +33,9 @@ next-env.d.ts
 # written by `next dev` (Next.js agent rules); never committed
 /AGENTS.md
 /CLAUDE.md
+
+# cloudflare (OpenNext build output, wrangler state, local secrets)
+/.open-next/
+/.wrangler/
+.dev.vars
+.dev.vars.*
