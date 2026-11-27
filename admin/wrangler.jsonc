@@ -7,6 +7,10 @@
   "name": "unipocket-admin",
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-11-01",
+  // Served only on its own domain. Both are off in the dashboard too; without
+  // these lines the next deploy would switch them back on.
+  "workers_dev": false,
+  "preview_urls": false,
   "compatibility_flags": [
     // Node.js APIs, required by the Next.js server (and Buffer in proxy.ts).
     "nodejs_compat",

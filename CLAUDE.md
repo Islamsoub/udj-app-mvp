@@ -66,6 +66,14 @@ which before applying it.
 | `pwa/` | Student web app | Next.js 16 App Router, React 19, CSS Modules | none |
 | `backend/` | API | Express 5, Prisma 5, Postgres (Supabase) | `backend` |
 
+Live addresses:
+- Landing page: https://unipocket.io
+- Student website (pwa/): https://app.unipocket.io
+- Admin portal (admin/): https://admin.unipocket.io
+- API (backend/): https://api.unipocket.io
+
+The old pwa-test, admin-test and api-test addresses no longer exist.
+
 `admin/`, `pwa/` and `backend/` each install independently, with their own
 package.json and lockfile. Run npm inside the folder you are working in, never
 at the repo root for those three.
@@ -369,9 +377,9 @@ Runs on Cloudflare Workers (OpenNext, admin/wrangler.jsonc), as pwa/ does.
 
 ## Testing signed in
 Anything that needs an admin session is tested at
-https://admin-test.islamsoubere.com — not on Vercel (being switched off), and
-never on a local server: the backend refuses admin logins from any other
-origin. Changes not deployed there yet are checked locally without a session
+https://admin.unipocket.io — never on a local server: the backend refuses
+admin logins from any other origin. Changes not deployed there yet are
+checked locally without a session
 (markup, or `npm run preview` for pages like /login).
 
 ## French only
