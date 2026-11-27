@@ -1,0 +1,37 @@
+{
+  // Cloudflare Workers config for the student web app, built by the OpenNext
+  // adapter (@opennextjs/cloudflare). `npm run preview` builds and serves it
+  // locally in the Workers runtime; `npm run deploy` publishes it.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "unipocket-pwa",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": [
+    // Node.js APIs, required by the Next.js server.
+    "nodejs_compat",
+    // fetch() may only reach public addresses.
+    "global_fetch_strictly_public"
+  ],
+  // Static files (/_next/static, public/) served by Cloudflare before the Worker runs.
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Lets the Worker call itself (used by the adapter for caching/revalidation).
+  // Must match "name" above.
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "unipocket-pwa"
+    }
+  ],
+  // No "images" binding: the app does not use next/image (plain <img> so the
+  // service worker can cache them).
+  //
+  // Runtime variables are not declared here. Locally they come from .dev.vars
+  // (gitignored); in production NEXT_PUBLIC_API_URL is a build variable and
+  // PWA_PROXY_SECRET a Worker secret, both set in the Cloudflare dashboard.
+  "observability": {
+    "enabled": true
+  }
+}

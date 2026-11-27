@@ -8,7 +8,8 @@ import type { NextConfig } from 'next';
  * offered the update (components/pwa). The worker also names its caches after
  * it, so a deploy's caches are discarded when its successor activates.
  *
- * The commit SHA when the platform provides one (Vercel sets it on every build);
+ * The commit SHA when the platform provides one (Vercel sets
+ * VERCEL_GIT_COMMIT_SHA, Cloudflare Workers Builds sets WORKERS_CI_COMMIT_SHA);
  * otherwise the build time, which still changes on every build.
  *
  * Stored in process.env on first evaluation: `next build` loads this file more
@@ -18,6 +19,7 @@ import type { NextConfig } from 'next';
  */
 const BUILD_ID = (process.env.UNIPOCKET_BUILD_ID ||=
   process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ||
+  process.env.WORKERS_CI_COMMIT_SHA?.slice(0, 12) ||
   process.env.GIT_COMMIT_SHA?.slice(0, 12) ||
   `t${Date.now().toString(36)}`);
 
