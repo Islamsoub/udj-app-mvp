@@ -266,15 +266,13 @@ export default function NotificationsPage() {
               style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)' }}
             >
               <div className="flex items-start gap-2">
-                <span
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] text-[13px] font-extrabold text-white"
-                  style={{ background: 'linear-gradient(135deg, var(--jade6), var(--jade7))' }}
-                >
-                  U
-                </span>
+                {/* The app icon, as on the student's phone: the landing page's
+                    icon, byte for byte (public/brand/). */}
+                <img src="/brand/unipocket-icon.svg" alt="" width={28} height={28} className="block shrink-0" />
                 <div className="min-w-0 flex-1">
+                  {/* The app name a phone shows: "name" in the mobile app's app.json. */}
                   <div className="text-[10.5px]" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                    Unipocket · à l&rsquo;instant
+                    UDJ · à l&rsquo;instant
                   </div>
                   <div className="mt-[2px] break-words text-[12.5px] font-bold text-white">
                     {title.trim() || 'Titre de la notification'}

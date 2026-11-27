@@ -104,16 +104,10 @@ export function Sidebar() {
     >
       {/* Brand block */}
       <div className="mb-4 flex items-center gap-[10px] border-b pb-4" style={{ borderColor: 'var(--side-hair)' }}>
-        <span
-          className="flex h-[34px] w-[34px] items-center justify-center text-[16px] font-extrabold text-white"
-          style={{
-            background: 'linear-gradient(150deg, var(--jade6), var(--jade7))',
-            borderRadius: '30%',
-            boxShadow: '0 4px 12px rgba(29,158,117,0.35)',
-          }}
-        >
-          U
-        </span>
+        {/* The landing page's icon, byte for byte (public/brand/). Square,
+            gradient and corners come from the file. Decorative: "Unipocket"
+            is written beside it. */}
+        <img src="/brand/unipocket-icon.svg" alt="" width={34} height={34} className="block shrink-0" />
         <div>
           <div className="text-[15.5px] font-extrabold leading-tight text-white">Unipocket</div>
           <div className="font-mono text-[10px]" style={{ color: 'var(--side-muted)' }}>

@@ -22,7 +22,7 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Unipocket Admin — Université de Djibouti',
+  title: "Unipocket — Portail d'administration",
   description:
     "Portail d'administration Unipocket : étudiants, notes, présence, actualités, emploi du temps.",
   // Byte-for-byte copies of the landing page's icons (landing/assets/favicons/),
