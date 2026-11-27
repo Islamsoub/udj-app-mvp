@@ -1,0 +1,37 @@
+{
+  // Cloudflare Workers config for the admin portal, built by the OpenNext
+  // adapter (@opennextjs/cloudflare), the same setup as pwa/wrangler.jsonc.
+  // `npm run preview` builds and serves it locally in the Workers runtime;
+  // `npm run deploy` publishes it.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "unipocket-admin",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": [
+    // Node.js APIs, required by the Next.js server (and Buffer in proxy.ts).
+    "nodejs_compat",
+    // fetch() may only reach public addresses.
+    "global_fetch_strictly_public"
+  ],
+  // Static files (/_next/static, public/) served by Cloudflare before the Worker runs.
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  // Lets the Worker call itself (used by the adapter for caching/revalidation).
+  // Must match "name" above.
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "unipocket-admin"
+    }
+  ],
+  // No "images" binding: the portal does not use next/image.
+  //
+  // No secrets: the portal is a pure API client. NEXT_PUBLIC_API_URL is read at
+  // build time (lib/api.ts, and proxy.ts for the CSP connect-src), so it is a
+  // build variable in the Cloudflare dashboard, not a Worker variable.
+  "observability": {
+    "enabled": true
+  }
+}
