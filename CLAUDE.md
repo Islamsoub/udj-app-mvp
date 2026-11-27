@@ -365,6 +365,14 @@ privacy-policy-URL requirement for production submission.
 
 Next.js 16 App Router, React 19, TypeScript strict, Tailwind CSS 4.
 Dev server: `npm run dev` in admin/, documented at http://localhost:3001.
+Runs on Cloudflare Workers (OpenNext, admin/wrangler.jsonc), as pwa/ does.
+
+## Testing signed in
+Anything that needs an admin session is tested at
+https://admin-test.islamsoubere.com — not on Vercel (being switched off), and
+never on a local server: the backend refuses admin logins from any other
+origin. Changes not deployed there yet are checked locally without a session
+(markup, or `npm run preview` for pages like /login).
 
 ## French only
 No i18n layer, no locale files, no RTL. User-facing strings are written inline
