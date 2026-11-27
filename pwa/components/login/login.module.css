@@ -511,7 +511,8 @@ html[lang="ar"] .brand {
  * is FILLED, the knob's SIZE, and the knob's POSITION.
  *
  *   off — an empty track drawn as a 2px --ink2 outline, a 16px --ink2 knob
- *   on  — a solid --jade track, a 22px --on-jade knob
+ *   on  — a solid --switch-track-on track, a 22px white --switch-knob, the
+ *         same track and knob as Profile's switches (globals.css)
  *
  * Off is an outline rather than a filled neutral so that it cannot out-shine
  * the on state: the old white knob on --sunken was the brightest thing in the
@@ -571,11 +572,13 @@ html[lang="ar"] .brand {
     background var(--dur-fast) var(--ease-out);
 }
 
-/* The ring takes the track's jade rather than disappearing, so its colour
-   fades with the fill instead of snapping. */
+/* The ring takes the track's colour rather than disappearing, so its colour
+   fades with the fill instead of snapping. --switch-track-on rather than
+   --jade: in dark, --jade (#2BB989) under the white knob is 2.50:1, the track
+   token is 3.39:1 in both themes. */
 .switchOn {
-  background: var(--jade);
-  box-shadow: inset 0 0 0 2px var(--jade);
+  background: var(--switch-track-on);
+  box-shadow: inset 0 0 0 2px var(--switch-track-on);
 }
 
 /* On: 22px, the full height of the track and flush with its inline end
@@ -585,7 +588,8 @@ html[lang="ar"] .brand {
   inset-inline-start: 16px;
   width: 22px;
   height: 22px;
-  background: var(--on-jade);
+  background: var(--switch-knob);
+  box-shadow: var(--switch-knob-shadow);
 }
 
 /* ── Forgot password ───────────────────────────────────────────────────────── */
@@ -612,8 +616,8 @@ html[lang="ar"] .brand {
   transition: color var(--dur-fast) var(--ease-out);
 }
 
-/* --jade-text, not --jade-hover: the hover jade is a background colour now and
-   too light for text. The underline carries the hover state. */
+/* --jade-text, not a fill token: --jade-fill-hover is a button background and
+   too dark against the card in dark. The underline carries the hover state. */
 .linkButton:hover {
   color: var(--jade-text);
   text-decoration: underline;
@@ -648,8 +652,8 @@ html[lang="ar"] .brand {
   height: 52px;
   border: none;
   border-radius: var(--r-md);
-  background: var(--jade);
-  color: var(--on-jade);
+  background: var(--jade-fill);
+  color: var(--on-jade-fill);
   font-family: inherit;
   font-size: 15px;
   font-weight: 700;
@@ -661,7 +665,7 @@ html[lang="ar"] .brand {
 }
 
 .submit:hover:not(:disabled) {
-  background: var(--jade-hover);
+  background: var(--jade-fill-hover);
 }
 
 .submit:active:not(:disabled) {
@@ -754,10 +758,10 @@ html[lang="ar"] .brand {
 .spinner {
   width: 16px;
   height: 16px;
-  /* It spins inside the jade submit button, so it is drawn in --on-jade: the
-     track a faint wash of it, the moving arc solid. */
-  border: 2.5px solid color-mix(in srgb, var(--on-jade) 35%, transparent);
-  border-top-color: var(--on-jade);
+  /* It spins inside the jade submit button, so it is drawn in --on-jade-fill:
+     the track a faint wash of it, the moving arc solid. */
+  border: 2.5px solid color-mix(in srgb, var(--on-jade-fill) 35%, transparent);
+  border-top-color: var(--on-jade-fill);
   border-radius: 50%;
   animation: spin 800ms linear infinite;
 }

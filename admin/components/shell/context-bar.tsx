@@ -37,8 +37,11 @@ export function isScopedPath(pathname: string): boolean {
   return SCOPED_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
+// One 46px row from 1280px up, as designed. Narrower, the groups wrap onto
+// extra rows (the bar grows) instead of squeezing the dropdowns or pushing
+// the counter out of the window.
 const BAR_BASE =
-  'sticky top-16 z-30 flex h-[46px] items-center gap-3 border-b px-8 transition-colors';
+  'sticky top-16 z-30 flex min-h-[46px] flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-2 transition-colors md:px-6 lg:px-8 xl:h-[46px] xl:flex-nowrap xl:py-0';
 
 // Compact override for the Dropdown trigger so the ~40px control fits the 46px
 // strip (~32px → 7px breathing room). Dropdown's `className` prop lands on its
@@ -160,7 +163,7 @@ function FacultyProgrammeBar() {
         )}
       </div>
 
-      <span className="text-ink3">·</span>
+      <span className="text-ink3 max-xl:hidden">·</span>
 
       <div className="flex items-center gap-[8px]">
         <CtxLabel>Programme</CtxLabel>

@@ -139,7 +139,7 @@ function StudentsInner() {
         accessorKey: 'matricule',
         header: 'Matricule',
         cell: ({ row }) => (
-          <span className="font-mono text-[12px] text-ink2">{row.original.matricule}</span>
+          <span className="whitespace-nowrap font-mono text-[12px] text-ink2">{row.original.matricule}</span>
         ),
       },
       {
@@ -244,8 +244,8 @@ function StudentsInner() {
         <StudentsSkeleton />
       ) : (
         <Card pad={0}>
-          <div className="flex items-center gap-3 border-b border-hair p-4">
-            <div className="w-[300px]">
+          <div className="flex flex-wrap items-center gap-3 border-b border-hair p-4">
+            <div className="w-full sm:w-[300px]">
               <TextInput
                 icon={<Search size={15} />}
                 placeholder="Rechercher par nom ou matricule…"
@@ -275,7 +275,7 @@ function StudentsInner() {
           </div>
 
           {filtersOpen && (
-            <div className="grid grid-cols-2 items-end gap-4 border-b border-hair bg-surface2 p-4">
+            <div className="grid grid-cols-1 items-end gap-4 border-b border-hair bg-surface2 p-4 sm:grid-cols-2">
               <div>
                 <div className="mb-[7px] flex items-center justify-between text-[12.5px] font-semibold text-ink2">
                   <span>Moyenne minimale</span>
@@ -303,6 +303,7 @@ function StudentsInner() {
 
           <DataTable<StudentRow>
             columns={columns}
+            minWidth={760}
             data={rows}
             pageSize={PAGE_SIZE}
             onRowClick={(row) => router.push(`/students/${row.id}`)}

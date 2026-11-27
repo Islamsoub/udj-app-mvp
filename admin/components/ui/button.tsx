@@ -15,7 +15,7 @@ const buttonVariants = cva(
     variants: {
       kind: {
         primary:
-          'bg-jade text-white shadow-[0_1px_2px_rgba(15,110,86,0.25)] hover:bg-jade6 hover:shadow-none',
+          'bg-jade6 text-white shadow-[0_1px_2px_rgba(15,110,86,0.25)] hover:bg-jade7 hover:shadow-none',
         ghost: 'border-hair2 bg-transparent text-ink hover:bg-sunken',
         soft: 'bg-jade-faint text-jade-text hover:bg-jade-faint2',
         danger: 'bg-danger-bg text-danger hover:bg-danger hover:text-white',

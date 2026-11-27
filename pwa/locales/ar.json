@@ -2,7 +2,8 @@
   "app": {
     "name": "Unipocket",
     "university": "جامعة جيبوتي",
-    "tagline": "مساحتك الطلابية"
+    "tagline": "مساحتك الطلابية",
+    "document_title": "Unipocket — بوابة الطالب"
   },
   "login": {
     "title": "تسجيل الدخول مطلوب",

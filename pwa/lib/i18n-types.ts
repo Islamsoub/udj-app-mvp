@@ -1,6 +1,6 @@
 import ar from '@/locales/ar.json';
 import fr from '@/locales/fr.json';
-import type { PluralCategory } from '@/lib/i18n-shared';
+import type { Lang, PluralCategory } from '@/lib/i18n-shared';
 
 /**
  * Compile-time enforcement that the two locale files hold exactly the same keys.
@@ -89,3 +89,14 @@ export type PluralKey = PluralPaths<TranslationTree>;
 
 /** Values substituted into `{{placeholders}}`. */
 export type TranslationParams = Record<string, string | number>;
+
+/**
+ * The browser-tab title in each language, for pages with no title of their
+ * own. Read on the server by the root layout's generateMetadata (from the
+ * language cookie) and on the client by the I18nProvider (on a switch), so it
+ * lives here: this module is not 'use client', and both sides can import it.
+ */
+export const DOCUMENT_TITLES: Record<Lang, string> = {
+  fr: fr.app.document_title,
+  ar: ar.app.document_title,
+};

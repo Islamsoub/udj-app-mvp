@@ -188,7 +188,7 @@ export default function GradesPage() {
           />
 
           {isLoading ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="h-[120px] animate-pulse rounded-[16px] bg-sunken" />
               ))}
@@ -237,7 +237,7 @@ export default function GradesPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {subjects.map((subject) => {
                 const stage = stageBySubject.get(subject.id) ?? 1;
                 const avg = classAverage(subject.id);

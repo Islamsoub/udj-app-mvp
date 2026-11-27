@@ -132,7 +132,7 @@ function NewsEditor() {
         }
       />
 
-      <div className="grid gap-5" style={{ gridTemplateColumns: '1fr 320px' }}>
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_320px]">
         {/* Editor */}
         <Card>
           <input
@@ -176,7 +176,7 @@ function NewsEditor() {
                   className={cn(
                     'cursor-pointer rounded-full border-0 px-3 py-[6px] text-[12.5px] font-semibold transition-colors',
                     category === c.slug
-                      ? 'bg-jade text-white'
+                      ? 'bg-jade6 text-white'
                       : 'bg-surface2 text-ink2 hover:bg-sunken'
                   )}
                 >

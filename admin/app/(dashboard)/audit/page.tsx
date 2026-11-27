@@ -156,7 +156,7 @@ export default function AuditPage() {
       ) : (
         <Card pad={0} className="overflow-visible">
           <div className="flex flex-wrap items-center gap-3 border-b border-hair p-4">
-            <div className="w-[280px]">
+            <div className="w-full sm:w-[280px]">
               <TextInput
                 icon={<Search size={15} />}
                 placeholder="Rechercher par auteur, action, cible…"
@@ -199,7 +199,7 @@ export default function AuditPage() {
           {filtered.length === 0 ? (
             <EmptyState icon={<ListX size={20} />} message="Aucune activité enregistrée." />
           ) : (
-            <Table>
+            <Table className="min-w-[820px]">
               <THead>
                 <tr>
                   <Th>Action</Th>

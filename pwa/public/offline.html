@@ -72,7 +72,7 @@
     color-scheme: light;
     --bg: #F7F4EE; --surface: #FFFFFF; --surface2: #F8F5EF;
     --ink: #1E231F; --ink2: #656B60; --hair2: rgba(30, 35, 31, .16);
-    --jade: #1D9E75; --jade-hover: #22B083; --jade-text: #0F6E56; --on-jade: #1E231F;
+    --jade: #1D9E75; --jade-text: #0F6E56; --jade-fill: #0F6E56; --jade-fill-hover: #0A3D2E; --on-jade-fill: #FFFFFF;
     --hero-bg: linear-gradient(155deg, #168666, #0F6E56); --hero-ink: #FFFFFF; --hero-mark: var(--hero-ink);
     --shadow-lg: 0 12px 32px rgba(30, 35, 31, .12);
   }
@@ -80,7 +80,7 @@
     color-scheme: dark;
     --bg: #15201A; --surface: #1C2721; --surface2: #22302A;
     --ink: #EDF2ED; --ink2: #9FB0A6; --hair2: rgba(255, 255, 255, .14);
-    --jade: #2BB989; --jade-hover: #3FCB9A; --on-jade: #0F1713;
+    --jade: #2BB989; --jade-fill: #168666; --jade-fill-hover: #0F6E56; --on-jade-fill: #FFFFFF;
     --hero-bg: linear-gradient(155deg, #0F5E48, #0A3D2E); --hero-ink: #FFFFFF; --hero-mark: var(--hero-ink);
     --shadow-lg: 0 0 0 1px rgba(255, 255, 255, .08), 0 16px 40px rgba(0, 0, 0, .55);
   }
@@ -109,10 +109,10 @@
   .body { padding: 28px 28px 30px; }
   .notice { margin-bottom: 16px; padding: 12px 14px; border: 1px solid var(--hair2); border-radius: var(--r-md); background: var(--surface2); color: var(--ink2); font-size: 12.5px; line-height: 1.45; }
   .notice-title { display: block; margin-bottom: 2px; color: var(--ink); font-size: 13.5px; font-weight: 700; }
-  .retry { display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; border: none; border-radius: var(--r-md); background: var(--jade); color: var(--on-jade);
+  .retry { display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; border: none; border-radius: var(--r-md); background: var(--jade-fill); color: var(--on-jade-fill);
     font-family: inherit; font-size: 15px; font-weight: 700; box-shadow: 0 8px 20px rgba(15, 110, 86, 0.25); cursor: pointer;
     transition: background var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out); }
-  .retry:hover { background: var(--jade-hover); }
+  .retry:hover { background: var(--jade-fill-hover); }
   .retry:active { transform: scale(0.97); }
   .retry:focus-visible { outline: 2px solid var(--jade); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { .retry { transition: none; } .retry:active { transform: none; } }

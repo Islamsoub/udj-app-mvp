@@ -22,9 +22,19 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Unipocket Admin — Université de Djibouti',
+  title: "Unipocket — Portail d'administration",
   description:
     "Portail d'administration Unipocket : étudiants, notes, présence, actualités, emploi du temps.",
+  // Byte-for-byte copies of the landing page's icons (landing/assets/favicons/),
+  // the same files as the student web app's, so every Unipocket tab looks alike.
+  icons: {
+    icon: [
+      { url: '/icons/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icons/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/favicon-16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [{ url: '/icons/apple-touch-icon-180.png', sizes: '180x180', type: 'image/png' }],
+  },
 };
 
 export default async function RootLayout({ children }: { children: ReactNode }) {

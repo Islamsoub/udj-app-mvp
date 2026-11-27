@@ -92,12 +92,12 @@ export default function NotificationsPage() {
     <>
       <PageHead title="Notifications" sub="Envoyez une notification push aux étudiants" />
 
-      <div className="grid grid-cols-[1fr_340px] gap-5">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_340px]">
         {/* ─── Composer ──────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-5">
           <Card>
             <div className="mb-3 text-[15.5px] font-bold text-ink">Destinataires</div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {NOTIFICATION_TARGETS.map((t) => {
                 const active = t.key === target;
                 return (
@@ -136,7 +136,7 @@ export default function NotificationsPage() {
             )}
 
             {target === 'programme' && (
-              <div className="mt-4 grid grid-cols-2 gap-[14px]">
+              <div className="mt-4 grid grid-cols-1 gap-[14px] sm:grid-cols-2">
                 <FField label="Faculté" required>
                   <Dropdown
                     value={facultyId}
@@ -266,15 +266,13 @@ export default function NotificationsPage() {
               style={{ background: 'rgba(255,255,255,0.12)', backdropFilter: 'blur(8px)' }}
             >
               <div className="flex items-start gap-2">
-                <span
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[8px] text-[13px] font-extrabold text-white"
-                  style={{ background: 'linear-gradient(135deg, var(--jade), var(--jade6))' }}
-                >
-                  U
-                </span>
+                {/* The app icon, as on the student's phone: the landing page's
+                    icon, byte for byte (public/brand/). */}
+                <img src="/brand/unipocket-icon.svg" alt="" width={28} height={28} className="block shrink-0" />
                 <div className="min-w-0 flex-1">
+                  {/* The app name a phone shows: "name" in the mobile app's app.json. */}
                   <div className="text-[10.5px]" style={{ color: 'rgba(255,255,255,0.6)' }}>
-                    Unipocket · à l&rsquo;instant
+                    UDJ · à l&rsquo;instant
                   </div>
                   <div className="mt-[2px] break-words text-[12.5px] font-bold text-white">
                     {title.trim() || 'Titre de la notification'}
@@ -325,7 +323,7 @@ export default function NotificationsPage() {
                   />
                 </button>
                 {expanded && (
-                  <div className="grid grid-cols-2 gap-3 bg-surface2 p-4 text-[12.5px]">
+                  <div className="grid grid-cols-1 gap-3 bg-surface2 p-4 text-[12.5px] sm:grid-cols-2">
                     <div>
                       <SectionLabel>Cible</SectionLabel>
                       <div className="mt-[2px] text-ink">{targetLabel(h.target)}</div>

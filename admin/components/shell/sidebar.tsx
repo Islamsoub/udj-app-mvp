@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import {
   Bell,
@@ -21,6 +22,7 @@ import { useAdmin } from '@/hooks/use-admin';
 import { useLogout } from '@/hooks/use-auth';
 import { useAttendance } from '@/hooks/queries/use-attendance';
 import { canAccess, type PageKey } from '@/lib/constants';
+import { cn } from '@/lib/utils';
 
 /**
  * Sidebar (impl spec §7): 248px, sticky full-height, bg #0A3D2E. Brand block,
@@ -56,8 +58,28 @@ const SYSTEME: NavDef[] = [
   { page: 'settings', href: '/settings', label: 'Paramètres', icon: ICON(<Settings size={20} strokeWidth={1.7} />) },
 ];
 
-export function Sidebar() {
+/** The panel's id, for the TopBar menu button's aria-controls. */
+export const SIDEBAR_ID = 'admin-sidebar';
+
+/**
+ * `open` only matters below 1024px (`lg`), where the sidebar is a slide-in
+ * panel over the page (app/(dashboard)/layout.tsx owns the state, the backdrop,
+ * Esc and focus return). Closed there, it is `invisible` as well as off-screen,
+ * so its links are out of the tab order. From `lg` up every `max-lg:` class
+ * falls away and it is the sticky 248px column, unchanged.
+ */
+export function Sidebar({ open = false }: { open?: boolean }) {
   const pathname = usePathname();
+  const asideRef = useRef<HTMLElement>(null);
+
+  // Opening moves focus into the panel: the current page's link, else the first.
+  useEffect(() => {
+    if (!open) return;
+    const root = asideRef.current;
+    const target =
+      root?.querySelector<HTMLElement>('a[aria-current="page"]') ?? root?.querySelector<HTMLElement>('a, button');
+    target?.focus();
+  }, [open]);
   const admin = useAdmin();
   const logout = useLogout();
   const { data: attendance } = useAttendance();
@@ -99,21 +121,29 @@ export function Sidebar() {
 
   return (
     <aside
-      className="sticky top-0 flex h-screen w-[248px] shrink-0 flex-col px-[18px] py-5"
+      ref={asideRef}
+      id={SIDEBAR_ID}
+      role={open ? 'dialog' : undefined}
+      aria-modal={open ? true : undefined}
+      aria-label={open ? 'Menu de navigation' : undefined}
+      className={cn(
+        'sticky top-0 flex h-screen w-[248px] shrink-0 flex-col px-[18px] py-5',
+        'max-lg:fixed max-lg:inset-y-0 max-lg:left-0 max-lg:z-50 max-lg:h-dvh max-lg:duration-200',
+        // Opening transitions only the slide, so the panel is visible at once
+        // and the focus effect below can land in it. Closing also transitions
+        // visibility, which keeps it visible until the slide-out has finished.
+        open
+          ? 'max-lg:translate-x-0 max-lg:transition-transform'
+          : 'max-lg:invisible max-lg:-translate-x-full max-lg:transition-[transform,visibility]'
+      )}
       style={{ background: 'var(--side-bg)', boxShadow: 'var(--shadow-side)' }}
     >
       {/* Brand block */}
       <div className="mb-4 flex items-center gap-[10px] border-b pb-4" style={{ borderColor: 'var(--side-hair)' }}>
-        <span
-          className="flex h-[34px] w-[34px] items-center justify-center text-[16px] font-extrabold text-white"
-          style={{
-            background: 'linear-gradient(150deg, var(--jade), var(--jade6))',
-            borderRadius: '30%',
-            boxShadow: '0 4px 12px rgba(29,158,117,0.35)',
-          }}
-        >
-          U
-        </span>
+        {/* The landing page's icon, byte for byte (public/brand/). Square,
+            gradient and corners come from the file. Decorative: "Unipocket"
+            is written beside it. */}
+        <img src="/brand/unipocket-icon.svg" alt="" width={34} height={34} className="block shrink-0" />
         <div>
           <div className="text-[15.5px] font-extrabold leading-tight text-white">Unipocket</div>
           <div className="font-mono text-[10px]" style={{ color: 'var(--side-muted)' }}>

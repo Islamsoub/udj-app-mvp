@@ -256,7 +256,7 @@ export default function GradeEntryPage() {
 
       {loading ? (
         <>
-          <div className="mb-5 grid grid-cols-4 gap-4">
+          <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-[86px] animate-pulse rounded-[16px] bg-sunken" />
             ))}
@@ -266,7 +266,7 @@ export default function GradeEntryPage() {
       ) : (
         <>
           {/* Metric strip */}
-          <div className="mb-5 grid grid-cols-4 gap-4">
+          <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Card pad={14}>
               <SectionLabel>Étudiants</SectionLabel>
               <div className="mt-1 text-[22px] font-extrabold text-ink">{roster.length}</div>
@@ -301,8 +301,8 @@ export default function GradeEntryPage() {
 
           {/* Editable table */}
           <Card pad={0} className="overflow-hidden">
-            <div className="flex items-center justify-between gap-3 border-b border-hair p-3">
-              <div className="w-[280px]">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-hair p-3">
+              <div className="w-full sm:w-[280px]">
                 <TextInput
                   icon={<Search size={15} />}
                   placeholder="Filtrer les étudiants…"
@@ -318,7 +318,7 @@ export default function GradeEntryPage() {
                     : 'Entrée ou ↓ ligne suivante · → vers CF'}
               </div>
             </div>
-            <Table>
+            <Table className="min-w-[720px]">
               <THead>
                 <tr>
                   <Th className="w-10">#</Th>

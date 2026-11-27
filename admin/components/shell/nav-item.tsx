@@ -23,6 +23,7 @@ export function NavItem({ href, icon, label, active, badge }: NavItemProps) {
   return (
     <Link
       href={href}
+      aria-current={active ? 'page' : undefined}
       className={cn(
         'relative flex items-center gap-[11px] rounded-[10px] px-3 py-[9px] text-[13.5px] no-underline transition-colors duration-150',
         active ? 'font-bold text-white' : 'font-medium hover:bg-[rgba(255,255,255,0.05)]'
@@ -44,8 +45,11 @@ export function NavItem({ href, icon, label, active, badge }: NavItemProps) {
           : icon}
       </span>
       <span className="flex-1 truncate">{label}</span>
+      {/* A pale bubble on the dark sidebar: jade50 is 11.01:1 against --side-bg,
+          8.73:1 on the active row, 9.51:1 on hover; the jade6 number is 5.59:1
+          inside it. A jade6 bubble was 1.97:1 against the sidebar and vanished. */}
       {badge != null && badge > 0 && (
-        <span className="rounded-full bg-jade px-[7px] py-[1px] font-mono text-[11px] font-medium text-white">
+        <span className="rounded-full bg-jade50 px-[7px] py-[1px] font-mono text-[11px] font-medium text-jade6">
           {badge}
         </span>
       )}

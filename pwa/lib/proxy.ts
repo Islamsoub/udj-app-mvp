@@ -43,11 +43,18 @@ export function cookieOptions() {
 }
 
 /**
- * The browser's IP as seen by the edge. x-forwarded-for accumulates one entry
- * per hop, so the leftmost is the original client; x-real-ip is the fallback for
- * proxies that only set that.
+ * The browser's IP as seen by the edge.
+ *
+ * cf-connecting-ip comes first: on Cloudflare Workers it is set by Cloudflare's
+ * edge to the connecting client and cannot be forged by the browser (Cloudflare
+ * overwrites any incoming value). x-forwarded-for accumulates one entry per hop,
+ * so its leftmost is the original client on other hosts (Vercel, `next start`);
+ * x-real-ip is the last fallback for proxies that only set that.
  */
 export function clientIp(req: Request): string | null {
+  const cf = req.headers.get('cf-connecting-ip')?.trim();
+  if (cf) return cf;
+
   const forwarded = req.headers.get('x-forwarded-for');
   if (forwarded) {
     const first = forwarded.split(',')[0]?.trim();

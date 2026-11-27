@@ -6,20 +6,42 @@ import { I18nProvider } from '@/lib/i18n';
 // Values, not types, so they must come from the non-client module — every export
 // of lib/i18n.tsx is a client reference and cannot be called while rendering here.
 import { LANG_COOKIE, dirFor, resolveLang } from '@/lib/i18n-shared';
+import { DOCUMENT_TITLES } from '@/lib/i18n-types';
 import { ThemeProvider } from '@/lib/theme';
 import { THEME_BOOTSTRAP, THEME_COOKIE, resolveThemePref, serverTheme } from '@/lib/theme-shared';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'Unipocket PWA',
+/** Everything but the title, which depends on the language (generateMetadata). */
+const BASE_METADATA: Metadata = {
   description: 'Unipocket — Université de Djibouti.',
-  // The installable app: public/manifest.json, icons generated from the logo.
+  // The installable app: public/manifest.json. The icons in public/icons/ are
+  // byte-for-byte copies of the landing page's (landing/assets/favicons/), so
+  // the tab icon is the same on every Unipocket site. Replace them by copying
+  // from there, never by regenerating them here.
   manifest: '/manifest.json',
   icons: {
-    icon: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
-    apple: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+    icon: [
+      { url: '/icons/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icons/favicon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/favicon-16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [{ url: '/icons/apple-touch-icon-180.png', sizes: '180x180', type: 'image/png' }],
   },
 };
+
+/**
+ * The tab title follows the language the student picked: read from the same
+ * cookie as <html lang> below, so the first byte of HTML already carries it.
+ * A page with its own title (login's "Connexion — Unipocket") overrides it.
+ * A switch without a reload is handled on the client by I18nProvider, which
+ * swaps one DOCUMENT_TITLES entry for the other and leaves any other title
+ * alone.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const store = await cookies();
+  const lang = resolveLang(store.get(LANG_COOKIE)?.value);
+  return { ...BASE_METADATA, title: DOCUMENT_TITLES[lang] };
+}
 
 /**
  * The browser chrome colour while the app runs installed: --hero-bg (light),

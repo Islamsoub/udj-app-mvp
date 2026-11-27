@@ -150,7 +150,7 @@ export default function SchedulePage() {
       />
 
       {/* Segmented control (§30.7) */}
-      <div className="mb-5 flex items-center gap-3">
+      <div className="mb-5 flex flex-wrap items-center gap-3">
         <div className="inline-flex gap-[2px] rounded-[10px] bg-surface2 p-[3px]">
           {MODES.map((m) => {
             const active = m.key === mode;
@@ -209,6 +209,10 @@ export default function SchedulePage() {
           </div>
 
           <Card pad={0} className="overflow-hidden">
+            {/* The week scrolls sideways inside the card below 720px rather than
+                crushing five day columns or widening the page. */}
+            <div className="overflow-x-auto">
+            <div className="min-w-[720px]">
             {/* Day headers */}
             <div className="grid" style={{ gridTemplateColumns: '64px repeat(5, 1fr)' }}>
               <div className="border-b border-hair" />
@@ -312,6 +316,8 @@ export default function SchedulePage() {
                     })}
                 </div>
               ))}
+            </div>
+            </div>
             </div>
           </Card>
         </>

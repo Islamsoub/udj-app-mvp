@@ -17,7 +17,10 @@
   --hair: rgba(28, 35, 32, 0.08);
   --hair2: rgba(28, 35, 32, 0.13);
 
-  /* Jade brand */
+  /* Jade brand.
+     --jade is for dots, lines, accents and icons only: white text on it is
+     3.39:1, under AA. A fill behind white text is --jade6 (6.20:1, the landing
+     page's button), hovering to --jade7 (8.76:1). */
   --jade: #1d9e75;
   --jade6: #0f6e56;
   --jade7: #0b5544;

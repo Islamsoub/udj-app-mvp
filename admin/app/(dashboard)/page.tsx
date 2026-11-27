@@ -62,16 +62,16 @@ function activityMeta(action: string): { tone: Tone; icon: ReactNode } {
 function DashboardSkeleton() {
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
           <div key={i} className="h-[140px] animate-pulse rounded-[16px] bg-sunken" />
         ))}
       </div>
-      <div className="grid grid-cols-[1.55fr_1fr] gap-4">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.55fr_1fr]">
         <div className="h-[280px] animate-pulse rounded-[16px] bg-sunken" />
         <div className="h-[280px] animate-pulse rounded-[16px] bg-sunken" />
       </div>
-      <div className="grid grid-cols-[1.55fr_1fr] gap-4">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1.55fr_1fr]">
         <div className="h-[320px] animate-pulse rounded-[16px] bg-sunken" />
         <div className="h-[320px] animate-pulse rounded-[16px] bg-sunken" />
       </div>
@@ -143,7 +143,7 @@ export default function DashboardPage() {
       />
 
       {/* ── Row 1: stat cards ── */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           icon={<Users size={18} />}
           tone="jade"
@@ -197,7 +197,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Row 2: distribution + trend ── */}
-      <div className="mt-4 grid grid-cols-[1.55fr_1fr] gap-4">
+      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1.55fr_1fr]">
         <Card>
           <div className="mb-2 flex items-center justify-between">
             <div className="text-[15.5px] font-bold text-ink">Répartition des moyennes</div>
@@ -249,7 +249,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Row 3: activity + at-risk ── */}
-      <div className="mt-4 grid grid-cols-[1.55fr_1fr] gap-4">
+      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1.55fr_1fr]">
         <Card pad={0}>
           <div className="px-5 pb-3 pt-[18px] text-[15.5px] font-bold text-ink">
             Activité récente

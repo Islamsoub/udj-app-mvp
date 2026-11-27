@@ -8,6 +8,10 @@ import { ArrowLeft } from 'lucide-react';
  * PageHead (impl spec §7): optional 34×34 back tile (arrow-l, bordered
  * surface) + title 25/800 −0.02em + optional subtitle (14 ink2) +
  * right-aligned actions cluster (gap 10). Used on every page.
+ *
+ * Wraps rather than squeezes: the title keeps a 14rem basis, so on a narrow
+ * window the actions drop below it instead of crushing it. Wide windows have
+ * room for both on one line, as before.
  */
 export interface PageHeadProps {
   title: ReactNode;
@@ -19,7 +23,7 @@ export interface PageHeadProps {
 export function PageHead({ title, sub, back, actions }: PageHeadProps) {
   const router = useRouter();
   return (
-    <div className="mb-6 flex items-start gap-3">
+    <div className="mb-6 flex flex-wrap items-start gap-3">
       {back && (
         <button
           type="button"
@@ -30,13 +34,13 @@ export function PageHead({ title, sub, back, actions }: PageHeadProps) {
           <ArrowLeft size={16} />
         </button>
       )}
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-[1_1_14rem]">
         <h1 className="m-0 text-[25px] font-extrabold leading-[1.15] tracking-[-0.02em] text-ink">
           {title}
         </h1>
         {sub && <div className="mt-[4px] text-[14px] text-ink2">{sub}</div>}
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-[10px]">{actions}</div>}
+      {actions && <div className="flex shrink-0 flex-wrap items-center gap-[10px]">{actions}</div>}
     </div>
   );
 }

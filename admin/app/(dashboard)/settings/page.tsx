@@ -78,6 +78,11 @@ function SettingsCard({
   );
 }
 
+/**
+ * Label and description on the left, the control on the right. When the card
+ * is too narrow for both (the text would drop under 10rem), the control wraps
+ * below the text instead of squeezing it.
+ */
 function SettingsRow({
   title,
   desc,
@@ -88,8 +93,8 @@ function SettingsRow({
   children: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-t border-hair py-3 first:border-0">
-      <div className="min-w-0">
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-hair py-3 first:border-0">
+      <div className="min-w-0 flex-[1_1_10rem]">
         <div className="text-[13.5px] font-semibold text-ink">{title}</div>
         {desc && <div className="mt-[2px] text-[12px] text-ink2">{desc}</div>}
       </div>
@@ -108,7 +113,7 @@ const MENTIONS = [
 
 function SettingsSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
       {[0, 1, 2, 3].map((i) => (
         <div key={i} className="h-[220px] animate-pulse rounded-[16px] bg-sunken" />
       ))}
@@ -188,7 +193,7 @@ function CategoriesCard() {
     );
 
   return (
-    <SettingsCard icon={<Megaphone size={18} />} title="Catégories d'actualités" className="col-span-2">
+    <SettingsCard icon={<Megaphone size={18} />} title="Catégories d'actualités" className="xl:col-span-2">
       <div className="mt-1 flex flex-col gap-[6px]">
         {items.map((c, i) => (
           <div
@@ -343,7 +348,7 @@ export default function SettingsPage() {
         }
       />
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         {/* ─── Période académique ────────────────────────────────────────── */}
         <SettingsCard icon={<Calendar size={18} />} title="Période académique">
           {/*
@@ -482,7 +487,7 @@ export default function SettingsPage() {
             <div className="flex gap-[6px]">
               <button
                 type="button"
-                className="cursor-default rounded-[9px] border-0 bg-jade px-[13px] py-[7px] text-[13px] font-bold text-white"
+                className="cursor-default rounded-[9px] border-0 bg-jade6 px-[13px] py-[7px] text-[13px] font-bold text-white"
               >
                 Français
               </button>

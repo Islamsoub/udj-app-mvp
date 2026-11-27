@@ -13,7 +13,6 @@ import { useModal } from '@/hooks/use-modal';
 import { useLogin } from '@/hooks/use-auth';
 import { useAuthStore } from '@/stores/auth-store';
 import { loginSchema, type LoginValues } from '@/lib/validations';
-import { C } from '@/lib/tokens';
 
 /**
  * Login (impl spec §10, supplement §2). Full-screen, no shell: dark jade
@@ -78,12 +77,8 @@ export default function LoginPage() {
         />
 
         <div className="relative flex items-center gap-3">
-          <span
-            className="flex h-[34px] w-[34px] items-center justify-center rounded-[10px] text-[17px] font-extrabold text-white"
-            style={{ background: `linear-gradient(135deg, ${C.jade}, ${C.jade6})` }}
-          >
-            U
-          </span>
+          {/* The landing page's icon, byte for byte (public/brand/). */}
+          <img src="/brand/unipocket-icon.svg" alt="" width={34} height={34} className="block shrink-0" />
           <div className="flex flex-col leading-tight">
             <span className="text-[17px] font-bold text-white">Unipocket</span>
             <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-white/50">

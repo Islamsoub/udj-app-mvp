@@ -1,9 +1,19 @@
 import type { ReactNode, ThHTMLAttributes, TdHTMLAttributes } from 'react';
 import { cn } from '@/lib/utils';
 
-/** Base table primitives styled with tokens (rows hover to surface2). */
+/**
+ * Base table primitives styled with tokens (rows hover to surface2).
+ *
+ * Wrapped in its own sideways scroller, so a wide table never widens the page.
+ * Give it a min-w-[…] className (at or under its width on a 1280px window) for
+ * where it should stop shrinking and start scrolling.
+ */
 export function Table({ children, className }: { children: ReactNode; className?: string }) {
-  return <table className={cn('w-full border-collapse text-[13.5px]', className)}>{children}</table>;
+  return (
+    <div className="overflow-x-auto">
+      <table className={cn('w-full border-collapse text-[13.5px]', className)}>{children}</table>
+    </div>
+  );
 }
 
 export function THead({ children }: { children: ReactNode }) {

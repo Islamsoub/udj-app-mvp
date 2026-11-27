@@ -69,12 +69,12 @@
 }
 
 .installPrimary {
-  background: var(--jade);
-  color: var(--on-jade);
+  background: var(--jade-fill);
+  color: var(--on-jade-fill);
 }
 
 .installPrimary:hover:not(:disabled) {
-  background: var(--jade-hover);
+  background: var(--jade-fill-hover);
 }
 
 .installPrimary:disabled {

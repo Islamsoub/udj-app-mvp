@@ -129,7 +129,7 @@ const VARIANT_PATTERN = /^(fr|ar)\|(light|dark|system)$/;
  * in. The logo the shell draws (sidebar, booting screen) is here too, so a
  * cached shell still shows its mark offline. And so an installed app opened
  * offline can still read its own manifest and the icons it names. Keep the icon
- * list in step with public/manifest.json.
+ * list in step with public/manifest.json and the icons in app/layout.tsx.
  *
  * The two /brand/ entries are LOGO_ON_COLOUR and LOGO_ON_NEUTRAL from
  * lib/brand.ts, written out by hand because a service worker cannot import it.
@@ -140,10 +140,13 @@ const PRECACHE_URLS = [
   '/brand/logo-on-colour.svg',
   '/brand/logo-on-neutral.svg',
   '/manifest.json',
+  '/icons/favicon.svg',
+  '/icons/favicon-16.png',
+  '/icons/favicon-32.png',
+  '/icons/apple-touch-icon-180.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
-  '/icons/icon-maskable-192.png',
-  '/icons/icon-maskable-512.png',
+  '/icons/icon-512-maskable.png',
   '/fonts/PlusJakartaSans-Regular.woff2',
   '/fonts/PlusJakartaSans-Medium.woff2',
   '/fonts/PlusJakartaSans-Bold.woff2',

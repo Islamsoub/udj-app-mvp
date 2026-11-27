@@ -96,8 +96,8 @@
   min-height: 44px;
   padding: 0 16px;
   border-radius: var(--r-sm);
-  background: var(--jade);
-  color: var(--on-jade);
+  background: var(--jade-fill);
+  color: var(--on-jade-fill);
   font-size: 13.5px;
   font-weight: 700;
   text-decoration: none;
@@ -933,8 +933,8 @@ html[lang="ar"] .title {
   padding-inline: 16px;
   border: none;
   border-radius: 9999px;
-  background: var(--jade);
-  color: var(--on-jade);
+  background: var(--jade-fill);
+  color: var(--on-jade-fill);
   font-family: inherit;
   font-size: 13.5px;
   font-weight: 700;
@@ -944,7 +944,7 @@ html[lang="ar"] .title {
 }
 
 .toastAction:hover {
-  background: var(--jade-hover);
+  background: var(--jade-fill-hover);
 }
 
 .toastAction:active {
@@ -1069,8 +1069,8 @@ html[lang="ar"] .title {
   min-height: 48px;
   border: none;
   border-radius: var(--r-md);
-  background: var(--jade);
-  color: var(--on-jade);
+  background: var(--jade-fill);
+  color: var(--on-jade-fill);
   font-family: inherit;
   font-size: 14.5px;
   font-weight: 700;
@@ -1080,7 +1080,7 @@ html[lang="ar"] .title {
 }
 
 .buttonPrimary:hover {
-  background: var(--jade-hover);
+  background: var(--jade-fill-hover);
 }
 
 .buttonPrimary:active {
