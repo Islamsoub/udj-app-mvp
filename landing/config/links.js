@@ -5,8 +5,8 @@ window.UNIPOCKET_LINKS = {
   googlePlay: '',        // e.g. 'https://play.google.com/store/apps/details?id=io.unipocket.app'
   apk: '',               // e.g. 'downloads/unipocket-1.0.0.apk' (also update apkVersion)
   appStore: '',          // empty: the badge stays "Bientôt sur App Store"
-  studentWebsite: '',    // the student web app (pwa/), e.g. 'https://app.unipocket.io'
-  adminPortal: '',       // the staff portal (admin/), e.g. 'https://admin.unipocket.io'
+  studentWebsite: 'https://app.unipocket.io',  // the student web app (pwa/), e.g. 'https://app.unipocket.io'
+  adminPortal: 'https://admin.unipocket.io',     // the staff portal (admin/), e.g. 'https://admin.unipocket.io'
   privacy: 'privacy.html',
   terms: 'terms.html',
   supportEmail: '',      // e-mail address only, e.g. 'support@unipocket.io'; mailto: is added automatically
