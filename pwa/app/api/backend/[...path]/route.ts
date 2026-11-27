@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { BackendTimeoutError, backendFetch, readJson } from '@/lib/proxy';
+import { BackendTimeoutError, backendFetch } from '@/lib/proxy';
+// TEMP DIAGNOSTIC: remove after the Render 429 investigation (restore readJson from @/lib/proxy).
+import { readJsonWithDiagnostic } from '@/lib/upstream-diagnostic';
 
 export const runtime = 'nodejs';
 // Long enough to sit through a Render free-tier cold start (30-50s).
@@ -163,7 +165,8 @@ async function forward(req: Request, context: Context, body?: string) {
     return new NextResponse(null, { status: 204 });
   }
 
-  const data = await readJson(upstream);
+  // TEMP DIAGNOSTIC: remove after the Render 429 investigation (was readJson(upstream)).
+  const data = await readJsonWithDiagnostic(upstream, 'backend');
 
   // Status and body pass through untouched — the client needs to tell 401 from
   // 404 from 429, and /student/attendance returns short-lived signed Storage
@@ -359,7 +362,8 @@ export async function POST(req: Request, context: Context) {
     return NextResponse.json({ error: 'Backend unreachable' }, { status: 502 });
   }
 
-  const data = await readJson(upstream);
+  // TEMP DIAGNOSTIC: remove after the Render 429 investigation (was readJson(upstream)).
+  const data = await readJsonWithDiagnostic(upstream, 'backend');
 
   // Straight through, like the other verbs: the client distinguishes 400 from
   // 404 from 409, and the success body carries a fresh signed Storage URL that
