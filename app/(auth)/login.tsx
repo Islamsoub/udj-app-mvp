@@ -22,6 +22,7 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts, spacing, radius, sizing, withAlpha, colors, HERO_PAD, fz, type Palette } from '@/constants/theme';
+import { PRIVACY_POLICY_URL } from '@/constants/links';
 import { useColors } from '@/hooks/useColors';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
@@ -626,7 +627,7 @@ export default function LoginScreen() {
                   {t('auth.privacy_notice')}{' '}
                   <Text
                     style={styles.privacyLink}
-                    onPress={() => void Linking.openURL('https://udj-api.onrender.com/public/privacy-policy.html')}
+                    onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}
                   >
                     {t('auth.privacy_link')}
                   </Text>

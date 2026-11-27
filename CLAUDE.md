@@ -360,8 +360,11 @@ non-recoverable data. allowBackup remains false. Requires an EAS dev/native
 build — SQLCipher will not run in Expo Go.
 
 ### Privacy policy — DEPLOYED
-Privacy policy is hosted and linked from Settings → Confidentialité:
-https://udj-api.onrender.com/public/privacy-policy.html
+Privacy policy is hosted on the landing site (landing/privacy.html, FR + AR)
+and linked from the login screen and Settings → Confidentialité:
+https://unipocket.io/privacy (constants/links.ts, PRIVACY_POLICY_URL).
+backend/public/privacy-policy.html stays online only for app builds testers
+installed before the link changed; do not link to it.
 Data collected: student profile, grades, attendance, FCM push token,
 course notes (local only). No location. Crash reporting via Sentry
 sends no PII (sendDefaultPii: false). Satisfies the Google Play
