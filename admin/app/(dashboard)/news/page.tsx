@@ -83,8 +83,8 @@ export default function NewsPage() {
         <div className="h-[420px] animate-pulse rounded-[16px] bg-sunken" />
       ) : (
         <Card pad={0} className="overflow-hidden">
-          <div className="flex items-center justify-between gap-3 border-b border-hair p-3">
-            <div className="w-[280px]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-hair p-3">
+            <div className="w-full sm:w-[280px]">
               <TextInput
                 icon={<Search size={15} />}
                 placeholder="Rechercher un article…"

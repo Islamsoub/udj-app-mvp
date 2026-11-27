@@ -264,12 +264,12 @@ export default function StudentsImportPage() {
               Associez chaque champ requis à une colonne de votre fichier.
             </div>
             {REQUIRED_FIELDS.map((field) => (
-              <div key={field.key} className="flex items-center gap-3 border-t border-hair py-3 first:border-t-0">
+              <div key={field.key} className="flex flex-wrap items-center gap-3 border-t border-hair py-3 first:border-t-0">
                 <span className="w-[160px] shrink-0 rounded-[8px] bg-surface2 px-3 py-[6px] font-mono text-[12px] text-ink">
                   {field.label}
                 </span>
                 <ChevronRight size={15} className="shrink-0 text-ink3" />
-                <div className="w-[260px]">
+                <div className="w-full sm:w-[260px]">
                   <Dropdown
                     value={mapping[field.key] ?? null}
                     onChange={(v) => {
@@ -295,7 +295,7 @@ export default function StudentsImportPage() {
         {/* ── Step 2: verify ── */}
         {step === 2 && (
           <>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="rounded-[12px] bg-jade-faint p-4 text-center">
                 <div className="text-[22px] font-extrabold text-jade-text">{validRows.length}</div>
                 <div className="text-[12px] font-semibold text-jade-text">Prêts</div>
@@ -311,7 +311,7 @@ export default function StudentsImportPage() {
             </div>
 
             <div className="mt-4 overflow-hidden rounded-[12px] border border-hair">
-              <Table>
+              <Table className="min-w-[640px]">
                 <THead>
                   <tr>
                     <Th>Matricule</Th>

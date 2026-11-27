@@ -37,7 +37,7 @@ const SCOPE_FALLBACK: Record<AdminRole, string> = {
 function AdminsSkeleton() {
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
           <div key={i} className="h-[96px] animate-pulse rounded-[16px] bg-sunken" />
         ))}
@@ -90,7 +90,7 @@ export default function AdminsPage() {
         <AdminsSkeleton />
       ) : (
         <>
-          <div className="mb-4 grid grid-cols-4 gap-4">
+          <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {ROLE_ORDER.map((r) => (
               <Card key={r} pad={16}>
                 <Badge tone={ROLE_META[r].tone}>{ROLE_META[r].label}</Badge>
@@ -103,7 +103,7 @@ export default function AdminsPage() {
           </div>
 
           <Card pad={0} className="overflow-hidden">
-            <Table>
+            <Table className="min-w-[780px]">
               <THead>
                 <tr>
                   <Th>Administrateur</Th>

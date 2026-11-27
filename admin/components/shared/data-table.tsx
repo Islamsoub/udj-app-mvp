@@ -42,6 +42,12 @@ export interface DataTableProps<TData> {
   emptyState?: ReactNode;
   rowClassName?: (row: Row<TData>) => string | undefined;
   serverPagination?: ServerPagination;
+  /**
+   * Narrowest the table gets, in px, before it scrolls sideways inside its
+   * wrapper. Keep it at or under the width the table has on a 1280px window,
+   * so wide layouts are unchanged.
+   */
+  minWidth?: number;
 }
 
 export function DataTable<TData>({
@@ -53,6 +59,7 @@ export function DataTable<TData>({
   emptyState,
   rowClassName,
   serverPagination,
+  minWidth,
 }: DataTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const manual = serverPagination != null;
@@ -85,7 +92,10 @@ export function DataTable<TData>({
 
   return (
     <div>
-      <table className="w-full border-collapse text-[13.5px]">
+      {/* Scrolls sideways inside its card on a narrow window, never the page.
+          minWidth is where it stops shrinking; wide windows never reach it. */}
+      <div className="overflow-x-auto">
+      <table className="w-full border-collapse text-[13.5px]" style={minWidth ? { minWidth } : undefined}>
         <thead className="bg-surface2">
           {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
@@ -148,6 +158,7 @@ export function DataTable<TData>({
           )}
         </tbody>
       </table>
+      </div>
       <div className="flex items-center justify-between border-t border-hair px-4 py-3">
         <div className="text-[12.5px] text-ink2">
           {totalLabel

@@ -132,7 +132,7 @@ function NewsEditor() {
         }
       />
 
-      <div className="grid gap-5" style={{ gridTemplateColumns: '1fr 320px' }}>
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_320px]">
         {/* Editor */}
         <Card>
           <input

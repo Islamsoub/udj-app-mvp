@@ -92,12 +92,12 @@ export default function NotificationsPage() {
     <>
       <PageHead title="Notifications" sub="Envoyez une notification push aux étudiants" />
 
-      <div className="grid grid-cols-[1fr_340px] gap-5">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_340px]">
         {/* ─── Composer ──────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-5">
           <Card>
             <div className="mb-3 text-[15.5px] font-bold text-ink">Destinataires</div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {NOTIFICATION_TARGETS.map((t) => {
                 const active = t.key === target;
                 return (
@@ -136,7 +136,7 @@ export default function NotificationsPage() {
             )}
 
             {target === 'programme' && (
-              <div className="mt-4 grid grid-cols-2 gap-[14px]">
+              <div className="mt-4 grid grid-cols-1 gap-[14px] sm:grid-cols-2">
                 <FField label="Faculté" required>
                   <Dropdown
                     value={facultyId}
@@ -323,7 +323,7 @@ export default function NotificationsPage() {
                   />
                 </button>
                 {expanded && (
-                  <div className="grid grid-cols-2 gap-3 bg-surface2 p-4 text-[12.5px]">
+                  <div className="grid grid-cols-1 gap-3 bg-surface2 p-4 text-[12.5px] sm:grid-cols-2">
                     <div>
                       <SectionLabel>Cible</SectionLabel>
                       <div className="mt-[2px] text-ink">{targetLabel(h.target)}</div>

@@ -148,9 +148,9 @@ export default function SessionPage() {
         }
       />
 
-      <div className="mb-5 flex items-center gap-3">
+      <div className="mb-5 flex flex-wrap items-center gap-3">
         <Dropdown
-          className="w-[280px]"
+          className="w-full sm:w-[280px]"
           value={activeSubjectId}
           onChange={setSubjectId}
           options={(subjects ?? []).map((s) => ({ value: s.id, label: `${s.nameFr} (${s.code})` }))}
@@ -159,7 +159,7 @@ export default function SessionPage() {
         <DatePicker value={date} onChange={setDate} />
       </div>
 
-      <div className="mb-5 grid grid-cols-4 gap-4">
+      <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={<UserCheck size={18} />} tone="jade" label="Présents" value={present} />
         <StatCard icon={<PieChart size={18} />} tone="amber" label="Partiels" value={partial} />
         <StatCard icon={<UserX size={18} />} tone="danger" label="Absents" value={absent} />

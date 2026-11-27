@@ -23,6 +23,7 @@ export function NavItem({ href, icon, label, active, badge }: NavItemProps) {
   return (
     <Link
       href={href}
+      aria-current={active ? 'page' : undefined}
       className={cn(
         'relative flex items-center gap-[11px] rounded-[10px] px-3 py-[9px] text-[13.5px] no-underline transition-colors duration-150',
         active ? 'font-bold text-white' : 'font-medium hover:bg-[rgba(255,255,255,0.05)]'

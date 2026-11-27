@@ -25,7 +25,7 @@ export interface TabsProps<K extends string = string> {
 
 export function Tabs<K extends string = string>({ tabs, active, onChange, className }: TabsProps<K>) {
   return (
-    <div className={cn('flex items-center gap-[6px]', className)}>
+    <div className={cn('flex flex-wrap items-center gap-[6px]', className)}>
       {tabs.map((t) => {
         const isActive = t.key === active;
         const tone = t.tone ?? 'jade';
@@ -36,7 +36,7 @@ export function Tabs<K extends string = string>({ tabs, active, onChange, classN
             type="button"
             onClick={() => onChange(t.key)}
             className={cn(
-              'flex cursor-pointer items-center gap-[7px] rounded-[9px] border-0 px-[13px] py-[7px] text-[13px] transition-colors',
+              'flex cursor-pointer items-center gap-[7px] whitespace-nowrap rounded-[9px] border-0 px-[13px] py-[7px] text-[13px] transition-colors',
               isActive ? 'font-bold' : 'bg-transparent font-medium text-ink2 hover:bg-sunken'
             )}
             style={isActive ? { background: bg, color: fg } : undefined}

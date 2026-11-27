@@ -130,7 +130,7 @@ export default function AttendancePage() {
 
       {loading ? (
         <>
-          <div className="mb-5 grid grid-cols-4 gap-4">
+          <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-[120px] animate-pulse rounded-[16px] bg-sunken" />
             ))}
@@ -139,7 +139,7 @@ export default function AttendancePage() {
         </>
       ) : (
         <>
-          <div className="mb-5 grid grid-cols-4 gap-4">
+          <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard icon={<Clock size={18} />} tone="amber" label="En attente" value={pending.length} />
             <StatCard icon={<Check size={18} />} tone="jade" label="Validés" value={approved.length} />
             <StatCard
@@ -175,7 +175,7 @@ export default function AttendancePage() {
                     message="Aucune matière pour ce programme au semestre courant."
                   />
                 ) : (
-                  <Table>
+                  <Table className="min-w-[640px]">
                     <THead>
                       <tr>
                         <Th>Matière</Th>
@@ -255,7 +255,7 @@ export default function AttendancePage() {
             <span className="h-px flex-1 bg-hair" />
           </div>
 
-          <div className="grid gap-5" style={{ gridTemplateColumns: '1fr 400px' }}>
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_400px]">
             {/* Queue list */}
             <Card pad={0} className="overflow-hidden">
               <div className="border-b border-hair p-3">

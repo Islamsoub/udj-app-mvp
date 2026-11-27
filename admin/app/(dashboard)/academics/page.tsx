@@ -55,7 +55,7 @@ function semesterTone(label: string | undefined): Tone {
 
 function AcademicsSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {[0, 1, 2, 3].map((i) => (
         <div key={i} className="h-[120px] animate-pulse rounded-[16px] bg-sunken" />
       ))}
@@ -163,7 +163,7 @@ export default function AcademicsPage() {
             <EmptyState icon={<BookOpen size={20} />} message="Aucune faculté enregistrée." />
           </Card>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {visibleFaculties.map((f) => (
               <Card key={f.id} hover onClick={() => open(<FacultyForm faculty={f} />)}>
                 <div className="flex items-center gap-3">

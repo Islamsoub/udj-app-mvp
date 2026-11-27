@@ -109,7 +109,7 @@ function parseNote(v: string): number | null {
 
 function DetailSkeleton() {
   return (
-    <div className="grid grid-cols-[320px_1fr] gap-5">
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-[320px_1fr]">
       <div className="h-[420px] animate-pulse rounded-[16px] bg-sunken" />
       <div className="flex flex-col gap-5">
         <div className="h-[300px] animate-pulse rounded-[16px] bg-sunken" />
@@ -398,7 +398,7 @@ export default function StudentDetailPage() {
         }
       />
 
-      <div className="grid grid-cols-[320px_1fr] gap-5">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[320px_1fr]">
         {/* ── Left: profile card ── */}
         <Card className="self-start">
           <div className="flex flex-col items-center text-center">
@@ -415,7 +415,7 @@ export default function StudentDetailPage() {
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="rounded-[12px] bg-surface2 p-3 text-center">
               <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink3">
                 Moyenne
@@ -493,7 +493,7 @@ export default function StudentDetailPage() {
                 )}
               </div>
             </div>
-            <Table>
+            <Table className="min-w-[560px]">
               <THead>
                 <tr>
                   <Th>Matière</Th>
@@ -588,7 +588,7 @@ export default function StudentDetailPage() {
                     <span className="min-w-0 flex-1 truncate text-[13.5px] text-ink">
                       {row.name}
                     </span>
-                    <span className="h-[6px] w-[160px] shrink-0 overflow-hidden rounded-full bg-sunken">
+                    <span className="h-[6px] w-[min(160px,30%)] shrink-0 overflow-hidden rounded-full bg-sunken">
                       <span
                         className="block h-full rounded-full"
                         style={{ width: `${row.pct}%`, background: barColor }}
