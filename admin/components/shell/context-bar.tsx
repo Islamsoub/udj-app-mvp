@@ -40,8 +40,11 @@ export function isScopedPath(pathname: string): boolean {
 // One 46px row from 1280px up, as designed. Narrower, the groups wrap onto
 // extra rows (the bar grows) instead of squeezing the dropdowns or pushing
 // the counter out of the window.
+// Sticky only from 1024px. Below that the wrapped bar is two or three rows
+// tall, and pinning it under the TopBar left a phone with a third of its
+// screen covered; there it scrolls away with the page.
 const BAR_BASE =
-  'sticky top-16 z-30 flex min-h-[46px] flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-2 transition-colors md:px-6 lg:px-8 xl:h-[46px] xl:flex-nowrap xl:py-0';
+  'relative z-30 flex min-h-[46px] flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-2 transition-colors md:px-6 lg:sticky lg:top-16 lg:px-8 xl:h-[46px] xl:flex-nowrap xl:py-0';
 
 // Compact override for the Dropdown trigger so the ~40px control fits the 46px
 // strip (~32px → 7px breathing room). Dropdown's `className` prop lands on its
@@ -57,7 +60,11 @@ const DD_ICON =
 function barStyle(active: boolean): React.CSSProperties {
   return active
     ? {
-        background: 'linear-gradient(90deg, var(--jade-faint) 0%, rgba(29,158,117,0.035) 60%)',
+        // The jade tint is translucent, so it is laid over the page background
+        // (--bg, what it sat on before): the same look at the top of the page,
+        // and opaque once the bar sticks and content scrolls under it.
+        background:
+          'linear-gradient(90deg, var(--jade-faint) 0%, rgba(29,158,117,0.035) 60%), var(--bg)',
         borderColor: 'var(--jade)',
       }
     : { background: 'var(--surface)', borderColor: 'var(--hair)' };
