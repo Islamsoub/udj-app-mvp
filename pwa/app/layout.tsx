@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import type { ReactNode } from 'react';
 import { PwaLayer } from '@/components/pwa/PwaLayer';
 import { I18nProvider } from '@/lib/i18n';
@@ -86,6 +86,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // in the first byte of HTML. `system` renders light here and THEME_BOOTSTRAP
   // corrects it from prefers-color-scheme before first paint.
   const themePref = resolveThemePref(store.get(THEME_COOKIE)?.value);
+  // Set by proxy.ts on every page request; the CSP only lets nonced inline
+  // scripts run, so the two bootstrap scripts below must carry it.
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   return (
     // suppressHydrationWarning: LANG_BOOTSTRAP may rewrite lang/dir, and
@@ -112,8 +115,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         {lang === 'ar' && (
           <link rel="preload" href="/fonts/NotoNaskhArabic-Regular.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         )}
-        <script dangerouslySetInnerHTML={{ __html: LANG_BOOTSTRAP }} />
-        <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: LANG_BOOTSTRAP }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
       </head>
       <body>
         {/* The Arabic body face comes from the `html[lang="ar"] body` rule in
