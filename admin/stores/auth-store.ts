@@ -28,6 +28,8 @@ export interface AuthState {
   setAccessToken: (accessToken: string) => void;
 }
 
+const AUTH_STORAGE_KEY = 'unipocket-admin-auth';
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -35,11 +37,16 @@ export const useAuthStore = create<AuthState>()(
       admin: null,
       isAuthenticated: false,
       login: (accessToken, admin) => set({ accessToken, admin, isAuthenticated: true }),
-      logout: () => set({ accessToken: null, admin: null, isAuthenticated: false }),
+      logout: () => {
+        set({ accessToken: null, admin: null, isAuthenticated: false });
+        // Leave nothing behind, not even an empty record: the next person on a
+        // shared computer finds no trace of who was signed in.
+        useAuthStore.persist.clearStorage();
+      },
       setAccessToken: (accessToken) => set({ accessToken }),
     }),
     {
-      name: 'unipocket-admin-auth',
+      name: AUTH_STORAGE_KEY,
       storage: createJSONStorage(() => localStorage),
       // Whitelist what reaches localStorage — a future state field can never
       // leak in by accident, and no token of any kind can come back.
@@ -64,3 +71,29 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+/**
+ * Sign-out reaches every open tab.
+ *
+ * Each tab holds its own copy of this store in memory. Signing out in one tab
+ * cleared localStorage, but a second tab kept the admin's identity and a live
+ * access token (valid up to 15 minutes) and went on showing data — and its
+ * next write to the store put the identity back into localStorage. The
+ * `storage` event fires in every other tab of the origin when the record is
+ * removed or marked signed out; those tabs drop their state too, and the
+ * dashboard guard sends them to /login.
+ */
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key !== AUTH_STORAGE_KEY && event.key !== null) return; // null: storage.clear()
+    let signedIn = false;
+    try {
+      signedIn = event.newValue ? JSON.parse(event.newValue)?.state?.isAuthenticated === true : false;
+    } catch {
+      signedIn = false;
+    }
+    if (!signedIn && useAuthStore.getState().isAuthenticated) {
+      useAuthStore.getState().logout();
+    }
+  });
+}
