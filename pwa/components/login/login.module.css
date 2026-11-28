@@ -278,6 +278,15 @@ html[lang="ar"] .brand {
   border-color: var(--danger);
 }
 
+/* "Entrez votre …" under an empty field. --danger-ink is the text-safe red
+   (--danger itself is for borders and fills). */
+.fieldError {
+  margin-top: 6px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--danger-ink);
+}
+
 /*
  * Chrome paints an autofilled field its own pale yellow through a UA rule that
  * `background` cannot override, and recolours the text. An inset shadow covering

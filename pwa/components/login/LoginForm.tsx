@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { takeReturnPath } from '@/lib/return-path';
 import { login } from '@/lib/auth-client';
 import { useI18n } from '@/lib/i18n';
 import { ErrorCard } from './ErrorCard';
@@ -21,6 +22,8 @@ export function LoginForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<LoginError | null>(null);
   const [forgotOpen, setForgotOpen] = useState(false);
+  // Fields left empty on the last submit. Each clears as soon as it is typed in.
+  const [missing, setMissing] = useState({ studentId: false, password: false });
   const online = useOnline();
 
   // The lockout and the rate limit own the button until their deadline passes;
@@ -87,8 +90,14 @@ export function LoginForm() {
     event.preventDefault();
     if (disabled) return;
 
-    if (!studentId.trim()) return;
-    if (!password) return;
+    // An empty field used to make the button do nothing at all. Say which one
+    // is missing, and put the cursor in it.
+    const nowMissing = { studentId: !studentId.trim(), password: !password };
+    if (nowMissing.studentId || nowMissing.password) {
+      setMissing(nowMissing);
+      document.getElementById(nowMissing.studentId ? 'student-id' : 'password')?.focus();
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
@@ -96,8 +105,9 @@ export function LoginForm() {
     try {
       await login(studentId.trim(), password);
       // The token is already in memory, held by lib/auth-token. Nothing is
-      // persisted here and there is no guard to satisfy yet.
-      router.push('/');
+      // persisted here and there is no guard to satisfy yet. Back to the page
+      // the student was sent here from, if any (lib/return-path).
+      router.push(takeReturnPath());
     } catch (err) {
       setError(toLoginError(err));
       setSubmitting(false);
@@ -120,15 +130,24 @@ export function LoginForm() {
           autoComplete="username"
           autoCapitalize="characters"
           spellCheck={false}
-          className={`${styles.input} ${styles.inputId} ${fieldsInvalid ? styles.inputError : ''}`}
+          className={`${styles.input} ${styles.inputId} ${
+            fieldsInvalid || missing.studentId ? styles.inputError : ''
+          }`}
           placeholder={t('login.student_id_placeholder')}
           value={studentId}
-          aria-invalid={fieldsInvalid}
+          aria-invalid={fieldsInvalid || missing.studentId}
+          aria-describedby={missing.studentId ? 'student-id-missing' : undefined}
           onChange={(e) => {
             setStudentId(e.target.value);
+            setMissing((m) => ({ ...m, studentId: false }));
             clearTransientError();
           }}
         />
+        {missing.studentId && (
+          <p id="student-id-missing" className={styles.fieldError}>
+            {t('login.errors.student_id_required')}
+          </p>
+        )}
       </div>
 
       <div className={styles.field}>
@@ -142,13 +161,15 @@ export function LoginForm() {
             type={passwordVisible ? 'text' : 'password'}
             autoComplete="current-password"
             className={`${styles.input} ${styles.inputPassword} ${
-              fieldsInvalid ? styles.inputError : ''
+              fieldsInvalid || missing.password ? styles.inputError : ''
             }`}
             placeholder={t('login.password_placeholder')}
             value={password}
-            aria-invalid={fieldsInvalid}
+            aria-invalid={fieldsInvalid || missing.password}
+            aria-describedby={missing.password ? 'password-missing' : undefined}
             onChange={(e) => {
               setPassword(e.target.value);
+              setMissing((m) => ({ ...m, password: false }));
               clearTransientError();
             }}
           />
@@ -167,6 +188,11 @@ export function LoginForm() {
             {passwordVisible ? <EyeOffIcon /> : <EyeIcon />}
           </button>
         </div>
+        {missing.password && (
+          <p id="password-missing" className={styles.fieldError}>
+            {t('login.errors.password_required')}
+          </p>
+        )}
       </div>
 
       <OfflineDataSwitch />
