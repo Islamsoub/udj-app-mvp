@@ -5,7 +5,7 @@
  * Hits the live Render deployment SEQUENTIALLY (free tier can't take parallel
  * load) and prints PASS/FAIL per scenario, with a total at the end.
  *
- * Run:  cd backend && npm run test:prod
+ * Run:  cd backend && PROD_TEST_PASSWORD=… npm run test:prod
  *
  * ⚠️  This talks to PRODUCTION and Group 8 deliberately locks the test account
  *     for 5 minutes (the real lockout window). If you re-run within 5 minutes,
@@ -26,7 +26,16 @@
 import { randomUUID } from 'node:crypto';
 
 const BASE = 'https://udj-api.onrender.com';
-const CREDS = { studentId: 'UDJ-2024-0432', password: 'test1234' };
+// The password is never written here: the repository is public.
+//   PROD_TEST_PASSWORD=… npm run test:prod
+const CREDS = {
+  studentId: process.env.PROD_TEST_STUDENT_ID ?? 'UDJ-2024-0432',
+  password: process.env.PROD_TEST_PASSWORD ?? '',
+};
+if (!CREDS.password) {
+  console.error('Set PROD_TEST_PASSWORD (and PROD_TEST_STUDENT_ID for another account) to run this suite.');
+  process.exit(1);
+}
 
 // ── Shared state carried between tests ────────────────────────────────────────
 let accessToken = '';

@@ -28,8 +28,10 @@ npm run dev                  # http://localhost:3001 (or next default 3000)
 |---|---|---|
 | `NEXT_PUBLIC_API_URL` | Backend base URL (routes live under `/admin`) | `https://udj-api.onrender.com` |
 
-Default test login (from the backend seed): `hassan.aden@univ.dj` /
-`admin1234` (SUPER_ADMIN).
+Test login from the backend admin seed (`backend/prisma/seed-admin.ts`):
+`hassan.aden@univ.dj` (SUPER_ADMIN), with the password from
+`SEED_ADMIN_PASSWORD`, or the one the seed prints when that is unset. No
+password is written in the repository.
 
 ## Commands
 

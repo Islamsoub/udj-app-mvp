@@ -8,10 +8,20 @@ import {
   NotificationType,
 } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { announcePassword, assertSafeToWipe, seedPassword } from './seed-guard';
 
 const prisma = new PrismaClient();
 
 async function main() {
+  // Refuses to wipe a database that already holds people (seed-guard.ts).
+  const [existingStudents, existingAdmins, existingGrades] = await Promise.all([
+    prisma.student.count(),
+    prisma.admin.count(),
+    prisma.grade.count(),
+  ]);
+  assertSafeToWipe('seed', { students: existingStudents, admins: existingAdmins, grades: existingGrades });
+  const studentPassword = seedPassword('SEED_STUDENT_PASSWORD');
+
   // ── Clear all tables in reverse dependency order ──────────────────────────
   await prisma.refreshToken.deleteMany();
   await prisma.qrToken.deleteMany();
@@ -350,7 +360,7 @@ async function main() {
   ]);
 
   // ── STEP 5 — Student Ahmed ────────────────────────────────────────────────
-  const passwordHash = await bcrypt.hash('test1234', 12);
+  const passwordHash = await bcrypt.hash(studentPassword.password, 12);
   const ahmed = await prisma.student.create({
     data: {
       studentIdDisplay: 'UDJ-2024-0432',
@@ -1608,6 +1618,7 @@ async function main() {
     `${schC} schedule entries, ${attC} attendance records, ` +
     `${notifC} notifications, ${newsC} news articles`
   );
+  announcePassword('seed', 'SEED_STUDENT_PASSWORD', 'Student accounts', studentPassword);
 }
 
 main()

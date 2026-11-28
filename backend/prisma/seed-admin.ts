@@ -4,7 +4,8 @@
  *   npx tsx prisma/seed-admin.ts     (or wire into package.json scripts)
  *
  * Seeds:
- *   • 6 admin accounts (reconciliation §4) — all password "admin1234".
+ *   • 6 admin accounts (reconciliation §4) — password from SEED_ADMIN_PASSWORD,
+ *     or generated and printed once (prisma/seed-guard.ts).
  *   • 1 SystemSettings singleton row with defaults.
  *   • 19 AuditLog entries (implementation spec AuditEntry data, LOG-91NN ids).
  *   • 5 notification-history entries (NotifHistory data) as notification.send
@@ -12,14 +13,16 @@
  *
  * Idempotent: clears admin-scoped tables (audit_logs, admin_refresh_tokens,
  * admins, system_settings) and reseeds. Student/academic data is untouched.
+ * Refuses to clear admins that already exist unless SEED_WIPE_CONFIRM names the
+ * database host (prisma/seed-guard.ts).
  */
 import { PrismaClient, AdminRole } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { announcePassword, assertSafeToWipe, seedPassword } from './seed-guard';
 
 const prisma = new PrismaClient();
 
 const BCRYPT_COST = 12;
-const DEFAULT_PASSWORD = 'admin1234';
 
 interface AdminSeed {
   firstName: string;
@@ -47,6 +50,12 @@ function daysAgo(n: number, hour = 9, minute = 0): Date {
 }
 
 async function main() {
+  assertSafeToWipe('seed-admin', {
+    admins: await prisma.admin.count(),
+    'audit entries': await prisma.auditLog.count(),
+  });
+  const adminPassword = seedPassword('SEED_ADMIN_PASSWORD');
+
   console.log('[seed-admin] clearing admin tables…');
   await prisma.auditLog.deleteMany();
   await prisma.adminRefreshToken.deleteMany();
@@ -65,7 +74,7 @@ async function main() {
   console.log(`[seed-admin] FACULTY_ADMIN scope → ${fst.code} (${fst.nameFr})`);
 
   // ── Admins ────────────────────────────────────────────────────────────────
-  const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, BCRYPT_COST);
+  const passwordHash = await bcrypt.hash(adminPassword.password, BCRYPT_COST);
   const adminByName = new Map<string, string>();
 
   for (const a of ADMIN_SEED_DATA) {
@@ -83,7 +92,7 @@ async function main() {
     });
     adminByName.set(`${a.firstName} ${a.lastName}`, admin.id);
   }
-  console.log(`[seed-admin] created ${ADMIN_SEED_DATA.length} admins (password "${DEFAULT_PASSWORD}")`);
+  console.log(`[seed-admin] created ${ADMIN_SEED_DATA.length} admins`);
 
   const superId = adminByName.get('Hassan Aden')!;
   const registrarId = adminByName.get('Saïd Warsama')!;
@@ -195,7 +204,8 @@ async function main() {
   }
   console.log(`[seed-admin] created ${notifHistory.length} notification-history entries`);
 
-  console.log('[seed-admin] ✓ done — log in with hassan.aden@univ.dj / admin1234 (SUPER_ADMIN)');
+  console.log('[seed-admin] ✓ done — SUPER_ADMIN is hassan.aden@univ.dj');
+  announcePassword('seed-admin', 'SEED_ADMIN_PASSWORD', 'Admin accounts', adminPassword);
 }
 
 main()

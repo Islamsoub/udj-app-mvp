@@ -383,7 +383,14 @@ Seeds 7 faculties, 11 programmes, 2 semesters and 68 subjects (S1 + S2), then **
 
 ### Test Accounts
 
-All accounts share the password **`test1234`**.
+All accounts share one password: the value of `SEED_STUDENT_PASSWORD` when you
+run the seed, or a random one the seed prints once at the end. It is never
+written in the repository, which is public.
+
+`npm run seed` deletes every table first. It refuses to run against a database
+that already holds students, admins or grades unless `SEED_WIPE_CONFIRM` is set
+to that database's host — never do this against the live database
+(`backend/prisma/seed-guard.ts`).
 
 | Name | Student ID | Programme | Faculty | Level | Sem. |
 |------|------------|-----------|---------|-------|------|
