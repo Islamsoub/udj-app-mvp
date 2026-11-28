@@ -30,6 +30,31 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BUILD_ID: BUILD_ID,
   },
   devIndicators: false,
+  // No "x-powered-by: Next.js" on every response — it only tells a scanner
+  // which framework (and roughly which CVEs) to try.
+  poweredByHeader: false,
+  // Sent on every response, API and static files included. The CSP itself is
+  // per request (it carries a nonce), so it lives in proxy.ts.
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          // Old browsers that ignore CSP frame-ancestors.
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          // Other sites learn the origin at most, never a path such as
+          // /news?article=<id>.
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          // The site uses none of these; a script that gets in cannot ask.
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+          },
+        ],
+      },
+    ];
+  },
   // pwa/ installs independently (its own node_modules + lockfile), exactly like
   // admin/. Without this, Turbopack walks up and infers the repo root — which
   // holds the React Native app's lockfile — as the workspace root.
