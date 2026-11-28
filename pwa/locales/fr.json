@@ -746,5 +746,10 @@
   "language": {
     "fr": "Français",
     "ar": "العربية"
+  },
+  "not_found": {
+    "title": "Page introuvable",
+    "body": "Cette page n'existe pas ou a été déplacée.",
+    "home": "Retour à l'accueil"
   }
 }

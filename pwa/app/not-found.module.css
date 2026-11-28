@@ -1,0 +1,68 @@
+.page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg);
+}
+
+.card {
+  width: 100%;
+  max-width: 380px;
+  padding: 32px 28px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  text-align: center;
+}
+
+.mark {
+  display: block;
+  margin: 0 auto 16px;
+}
+
+.code {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--ink2);
+}
+
+.title {
+  margin: 6px 0 8px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.body {
+  margin: 0 0 24px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink2);
+}
+
+/* White on --jade-fill, 6.20:1 (light) / 4.53:1 (dark), as every filled button. */
+.home {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: var(--r-md);
+  background: var(--jade-fill);
+  color: var(--on-jade-fill);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.home:hover {
+  background: var(--jade-fill-hover);
+}
+
+.home:focus-visible {
+  outline: 2px solid var(--jade);
+  outline-offset: 2px;
+}
