@@ -82,7 +82,12 @@ function NewsEditor() {
   );
   const willUnpin = urgent && urgentOthers.length >= MAX_URGENT ? urgentOthers[0] : null;
 
-  const canPublish = title.trim() !== '' && stripHtml(body).trim() !== '';
+  // The server refuses any article, draft or not, without a title and a body
+  // (routes/admin/news.ts), so both buttons need them. The draft button used to
+  // stay enabled on an empty form and the admin got the server's English
+  // "Invalid article data".
+  const hasContent = title.trim() !== '' && stripHtml(body).trim() !== '';
+  const canPublish = hasContent;
   const busy = create.isPending || update.isPending;
 
   const selectedCategory = (categories ?? []).find((c) => c.slug === category);
@@ -118,12 +123,19 @@ function NewsEditor() {
         title={id ? "Modifier l'article" : 'Nouvel article'}
         actions={
           <>
-            <Button kind="ghost" icon={<Save size={17} />} disabled={busy} onClick={() => save(false)}>
+            <Button
+              kind="ghost"
+              icon={<Save size={17} />}
+              disabled={!hasContent || busy}
+              title={hasContent ? undefined : 'Ajoutez un titre et un texte pour enregistrer'}
+              onClick={() => save(false)}
+            >
               Enregistrer le brouillon
             </Button>
             <Button
               icon={<Send size={17} />}
               disabled={!canPublish || busy}
+              title={canPublish ? undefined : 'Ajoutez un titre et un texte pour publier'}
               onClick={() => save(true)}
             >
               Publier

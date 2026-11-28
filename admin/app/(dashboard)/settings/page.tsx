@@ -37,8 +37,9 @@ import {
   useUpdateGradeFormula,
   useUpdateJustificationDeadline,
 } from '@/hooks/queries/use-settings';
-import { cn, apiErrorMessage } from '@/lib/utils';
+import { cn, apiErrorMessage, fmtDate } from '@/lib/utils';
 import type { NewsCategory } from '@/lib/types';
+import { semesterHasEnded } from '@/lib/semester';
 
 /**
  * Settings (impl spec §26; Pass C-2 change-set §30.9) — SUPER_ADMIN only. Adds
@@ -359,8 +360,13 @@ export default function SettingsPage() {
             title="Semestre en cours"
             desc="Déterminé automatiquement par les dates des semestres"
           >
-            <div className="text-[13.5px] font-semibold text-ink">
+            <div className="text-end text-[13.5px] font-semibold text-ink">
               {currentSemester ? `${currentSemester.label} — ${currentSemester.academicYear}` : 'Aucun semestre'}
+              {currentSemester && semesterHasEnded(currentSemester) && (
+                <div className="mt-[2px] text-[12px] font-medium" style={{ color: 'var(--amber-on-tint)' }}>
+                  Terminé le {fmtDate(currentSemester.endDate)} · ajoutez le semestre suivant
+                </div>
+              )}
             </div>
           </SettingsRow>
           <SettingsRow title="Année universitaire">

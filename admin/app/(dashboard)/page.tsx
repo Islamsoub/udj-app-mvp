@@ -115,6 +115,7 @@ export default function DashboardPage() {
   }
 
   const presencePct = stats.attendancePercentage;
+  const gradeCount = stats.gradeDistribution.reduce((sum, b) => sum + b.count, 0);
   const presenceBarColor = TONE_COLORS[presenceTone(presencePct)][0];
 
   return (
@@ -200,9 +201,12 @@ export default function DashboardPage() {
       <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1.55fr_1fr]">
         <Card>
           <div className="mb-2 flex items-center justify-between">
-            <div className="text-[15.5px] font-bold text-ink">Répartition des moyennes</div>
+            {/* Each bar counts published final marks, one per student per
+                subject (backend dashboard.ts) — not students. The badge said
+                "7 étudiants" over bars that added up to 68. */}
+            <div className="text-[15.5px] font-bold text-ink">Répartition des notes finales</div>
             <Badge tone="jade">
-              {stats.studentsCount} étudiant{stats.studentsCount !== 1 ? 's' : ''}
+              {gradeCount} note{gradeCount !== 1 ? 's' : ''}
             </Badge>
           </div>
           <ResponsiveContainer width="100%" height={200}>

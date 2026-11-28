@@ -374,25 +374,31 @@ export default function StudentDetailPage() {
             >
               Modifier
             </Button>
+            {/* Only the moves that change something: an active student is
+                not offered "Réactiver", a suspended one not "Suspendre". */}
             <Menu
-              items={[
-                {
-                  icon: <AlertTriangle size={15} />,
-                  label: 'Suspendre',
-                  onClick: () => openStatus('suspend'),
-                },
-                {
-                  icon: <GraduationCap size={15} />,
-                  label: 'Marquer diplômé',
-                  onClick: () => openStatus('graduate'),
-                },
-                { divider: true },
-                {
-                  icon: <RotateCcw size={15} />,
-                  label: 'Réactiver',
-                  onClick: () => openStatus('reactivate'),
-                },
-              ]}
+              items={
+                student.status === 'ACTIVE'
+                  ? [
+                      {
+                        icon: <AlertTriangle size={15} />,
+                        label: 'Suspendre',
+                        onClick: () => openStatus('suspend'),
+                      },
+                      {
+                        icon: <GraduationCap size={15} />,
+                        label: 'Marquer diplômé',
+                        onClick: () => openStatus('graduate'),
+                      },
+                    ]
+                  : [
+                      {
+                        icon: <RotateCcw size={15} />,
+                        label: 'Réactiver',
+                        onClick: () => openStatus('reactivate'),
+                      },
+                    ]
+              }
             />
           </>
         }
@@ -418,7 +424,8 @@ export default function StudentDetailPage() {
           <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="rounded-[12px] bg-surface2 p-3 text-center">
               <div className="text-[11px] font-medium uppercase tracking-[0.08em] text-ink3">
-                Moyenne
+                {/* All semesters together; the transcript beside it has each semester's. */}
+                Moyenne du cursus
               </div>
               <div className="mt-1 flex items-baseline justify-center gap-[2px]">
                 <span

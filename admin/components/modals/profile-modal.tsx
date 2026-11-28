@@ -8,6 +8,8 @@ import { Avatar } from '@/components/shared/avatar';
 import { useModal } from '@/hooks/use-modal';
 import { useAdmin } from '@/hooks/use-admin';
 import { useFaculties } from '@/hooks/queries/use-academics';
+import { useMe } from '@/hooks/queries/use-me';
+import { fmtDateTime } from '@/lib/utils';
 import { ROLE_META } from '@/lib/constants';
 
 /**
@@ -27,6 +29,9 @@ export function ProfileModal() {
   const { close } = useModal();
   const admin = useAdmin();
   const { data: faculties } = useFaculties();
+  // The stored identity has no login time; the server does (it was shown as a
+  // fixed '—' while the Administrateurs page had the real value).
+  const { data: me } = useMe();
 
   if (!admin) return null;
 
@@ -58,7 +63,7 @@ export function ProfileModal() {
       <div className="mt-4 border-t border-hair pt-2">
         <InfoRow label="Rôle" value={admin.roleLabel} />
         <InfoRow label="Périmètre" value={perimeter} />
-        <InfoRow label="Dernière connexion" value="—" />
+        <InfoRow label="Dernière connexion" value={me?.lastLoginAt ? fmtDateTime(me.lastLoginAt) : '—'} />
       </div>
       <div className="mt-3 text-[11.5px] text-ink3">
         Modifiable par un super administrateur depuis la page Administrateurs.
