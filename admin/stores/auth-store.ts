@@ -15,9 +15,9 @@ import type { AdminIdentity } from '@/lib/types';
  * read means nothing to steal.
  *
  * No UX cost: the admin identity still persists (so a reload doesn't flash the
- * login screen), and the first API call after a reload goes out unauthenticated,
- * gets a 401, and the interceptor in lib/api.ts silently exchanges the httpOnly
- * refresh cookie for a fresh access token and retries the request.
+ * login screen), and the first API call after a reload waits in the request
+ * interceptor (lib/api.ts) while the httpOnly refresh cookie is exchanged for a
+ * fresh access token, then goes out with it.
  */
 export interface AuthState {
   accessToken: string | null;
