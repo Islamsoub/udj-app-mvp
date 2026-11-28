@@ -206,11 +206,18 @@ router.post('/refresh', async (req: Request, res: Response, next: NextFunction) 
       return;
     }
 
-    // Rotate: revoke old, issue new (same pattern as student auth).
-    await prisma.adminRefreshToken.update({
-      where: { id: stored.id },
+    // Rotate: revoke old, issue new (same pattern as student auth). The revoke
+    // is a claim — it only succeeds while the token is still live — so two
+    // concurrent refreshes with one cookie cannot both mint a session.
+    const claimed = await prisma.adminRefreshToken.updateMany({
+      where: { id: stored.id, isRevoked: false },
       data: { isRevoked: true },
     });
+    if (claimed.count !== 1) {
+      res.clearCookie(REFRESH_COOKIE, { path: REFRESH_COOKIE_PATH });
+      res.status(401).json({ error: 'Invalid refresh token' });
+      return;
+    }
 
     const newPlain = crypto.randomUUID();
     await prisma.adminRefreshToken.create({

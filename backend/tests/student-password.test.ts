@@ -323,6 +323,31 @@ test('other sessions are signed out; the device that changed it stays signed in'
   assert.equal(tokens.filter((t) => t.studentId === s.id && !t.isRevoked).length, 1);
 });
 
+test('two refreshes at once with the same token: one session, not two', async () => {
+  const s = newStudent();
+  const phone = seedSession(s.id, 'phone');
+
+  // A real database lookup takes time, so both requests pass the "is it still
+  // live?" lookup before either revokes. The in-memory one answers at once;
+  // hold the lookup for a moment so the two overlap the same way.
+  const realFindFirst = fakeDb.refreshToken.findFirst;
+  fakeDb.refreshToken.findFirst = async (args: any) => {
+    const row = await realFindFirst(args);
+    await new Promise((r) => setTimeout(r, 30));
+    return row;
+  };
+  let a, b;
+  try {
+    [a, b] = await Promise.all([refresh(phone), refresh(phone)]);
+  } finally {
+    fakeDb.refreshToken.findFirst = realFindFirst;
+  }
+  assert.deepEqual([a.status, b.status].sort(), [200, 401]);
+
+  // One new live token, from the one refresh that won.
+  assert.equal(tokens.filter((t) => t.studentId === s.id && !t.isRevoked).length, 1);
+});
+
 test("another student's sessions are untouched", async () => {
   const s = newStudent();
   const other = newStudent();
