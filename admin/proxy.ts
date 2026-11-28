@@ -40,6 +40,10 @@ function buildCsp(nonce: string, isDev: boolean): string {
     // Tailwind and the component library inject style tags at runtime.
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
+    // Justification documents are signed links to Supabase Storage; a PDF one
+    // is shown in an <iframe> in the document viewer. Without frame-src the
+    // iframe falls back to default-src 'self' and the browser blocks it.
+    "frame-src https://*.supabase.co",
     `connect-src 'self'${apiOrigin ? ` ${apiOrigin}` : ''}`,
     "font-src 'self' data:",
     "object-src 'none'",

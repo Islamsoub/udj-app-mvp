@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FileText, Image as ImageIcon, ZoomIn, ZoomOut } from 'lucide-react';
+import { FileText, ZoomIn, ZoomOut } from 'lucide-react';
 import { Modal } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useModal } from '@/hooks/use-modal';
@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useDecideJustification } from '@/hooks/queries/use-attendance';
 import { apiErrorMessage, fmtDate } from '@/lib/utils';
 import type { AttendanceRecordRow } from '@/lib/types';
+import { justificationDocKind } from '@/lib/justification-doc';
 
 const STRIPES = {
   background: 'repeating-linear-gradient(45deg, var(--surface2) 0 12px, var(--sunken) 12px 24px)',
@@ -25,10 +26,11 @@ export function DocViewer({ record }: { record: AttendanceRecordRow }) {
   const [scale, setScale] = useState(1);
 
   const url = record.justificationDocUrl ?? '';
-  const isImage = /\.(jpe?g|png|webp)$/i.test(url);
-  const isPdf = /\.pdf$/i.test(url);
+  const kind = justificationDocKind(url);
+  const isImage = kind === 'image';
+  const isPdf = kind === 'pdf';
   const studentName = `${record.student.firstName} ${record.student.lastName}`;
-  const filename = `justificatif_${record.id}.${isPdf ? 'pdf' : 'jpg'}`;
+  const filename = `justificatif_${record.id}${isPdf ? '.pdf' : isImage ? '.jpg' : ''}`;
 
   const zoom = (delta: number) =>
     setScale((s) => Math.min(2, Math.max(0.5, Math.round((s + delta) * 100) / 100)));
@@ -99,7 +101,7 @@ export function DocViewer({ record }: { record: AttendanceRecordRow }) {
             <iframe src={url} title={filename} className="h-full w-full border-0 bg-surface" />
           ) : (
             <span className="flex h-[60px] w-[60px] items-center justify-center rounded-[12px] bg-surface text-ink3 shadow">
-              {isImage ? <ImageIcon size={24} /> : <FileText size={24} />}
+              <FileText size={24} />
             </span>
           )}
         </div>
