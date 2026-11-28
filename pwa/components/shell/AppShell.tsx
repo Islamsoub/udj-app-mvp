@@ -27,6 +27,7 @@ import { useLayoutMode } from './useLayoutMode';
 import { useOnline } from './useOnline';
 import { useServedFromCache } from './useServedFromCache';
 import styles from './shell.module.css';
+import { rememberReturnPath } from '@/lib/return-path';
 
 /** Where an unauthenticated visitor, or a student who signs out, is sent. */
 const LOGIN_PATH = '/login';
@@ -128,6 +129,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       }
       // The session is over: nothing of it stays on this device.
       void endOfflineSession();
+      // So signing in brings the student back to the page they opened.
+      rememberReturnPath(window.location.pathname + window.location.search);
       // replace, not push: a failed session check must not leave an entry that
       // the back button returns to, which would bounce straight back here.
       router.replace(LOGIN_PATH);
@@ -164,6 +167,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const goToLogin = useCallback(() => {
     setExpired(false);
     void endOfflineSession();
+    rememberReturnPath(window.location.pathname + window.location.search);
     router.replace(LOGIN_PATH);
   }, [router]);
 
