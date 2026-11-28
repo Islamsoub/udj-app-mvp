@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { withNoStore } from '@/lib/no-store';
 import {
   BackendTimeoutError,
   REFRESH_COOKIE,
@@ -23,7 +24,7 @@ export const maxDuration = 60;
  * body is readable by any script that gets injected into the page, a token in an
  * httpOnly cookie is not.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const body = await req.json().catch(() => null);
   const { studentId, password } = (body ?? {}) as {
     studentId?: unknown;
@@ -85,3 +86,6 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ accessToken, student });
 }
+
+// Carries tokens or session state: never cached (lib/no-store.ts).
+export const POST = withNoStore(handlePOST);

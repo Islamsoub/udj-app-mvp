@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { withNoStore } from '@/lib/no-store';
 import {
   BackendTimeoutError,
   REFRESH_COOKIE,
@@ -21,7 +22,7 @@ export const maxDuration = 60;
  * the client cannot read and therefore cannot send itself. The backend rotates
  * the token on every refresh, so the cookie is overwritten with the new one.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const store = await cookies();
   const refreshToken = store.get(REFRESH_COOKIE)?.value;
 
@@ -83,3 +84,6 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ accessToken });
 }
+
+// Carries tokens or session state: never cached (lib/no-store.ts).
+export const POST = withNoStore(handlePOST);
