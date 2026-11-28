@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { withNoStore } from '@/lib/no-store';
 import {
   REFRESH_COOKIE,
   backendFetch,
@@ -21,7 +22,7 @@ export const maxDuration = 60;
  * The worst case is a refresh token that stays valid upstream until it expires,
  * and it is no longer reachable from this browser.
  */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const store = await cookies();
   const refreshToken = store.get(REFRESH_COOKIE)?.value;
   const authorization = req.headers.get('authorization');
@@ -44,3 +45,6 @@ export async function POST(req: Request) {
 
   return new NextResponse(null, { status: 204 });
 }
+
+// Carries tokens or session state: never cached (lib/no-store.ts).
+export const POST = withNoStore(handlePOST);

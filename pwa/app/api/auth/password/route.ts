@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { withNoStore } from '@/lib/no-store';
 import {
   BackendTimeoutError,
   REFRESH_COOKIE,
@@ -43,7 +44,7 @@ const MAX_BODY_BYTES = 4 * 1024;
  * backend's limit on this route (5 per 15 minutes) is keyed on the student id
  * in that token, not on the IP.
  */
-export async function PATCH(req: Request) {
+async function handlePATCH(req: Request) {
   const authorization = req.headers.get('authorization');
   if (!authorization || !authorization.startsWith('Bearer ')) {
     return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
@@ -117,3 +118,6 @@ export async function PATCH(req: Request) {
 
   return NextResponse.json({ accessToken });
 }
+
+// Carries tokens or session state: never cached (lib/no-store.ts).
+export const PATCH = withNoStore(handlePATCH);

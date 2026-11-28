@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { withNoStore } from '@/lib/no-store';
 import { BackendTimeoutError, backendFetch, readJson } from '@/lib/proxy';
 
 export const runtime = 'nodejs';
@@ -174,7 +175,7 @@ async function forward(req: Request, context: Context, body?: string) {
 }
 
 /** GET /api/backend/{student,news}/... */
-export async function GET(req: Request, context: Context) {
+async function handleGET(req: Request, context: Context) {
   return forward(req, context);
 }
 
@@ -200,7 +201,7 @@ function isAllowedPatch(segments: string[]): boolean {
 }
 
 /** PATCH /api/backend/student/... — the targets above only; JSON body forwarded as received. */
-export async function PATCH(req: Request, context: Context) {
+async function handlePATCH(req: Request, context: Context) {
   const { path } = await context.params;
   const target = upstreamPath(path, new URL(req.url).search);
   if (!target || !path || !isAllowedPatch(path)) {
@@ -218,7 +219,7 @@ export async function PATCH(req: Request, context: Context) {
  * deadline, 504 on timeout, 502 when unreachable, status passed through).
  * Nothing from the incoming body is read or sent.
  */
-export async function DELETE(req: Request, context: Context) {
+async function handleDELETE(req: Request, context: Context) {
   const { path } = await context.params;
   const target = upstreamPath(path, new URL(req.url).search);
   if (!target || !path || !(isCourseNoteDelete(path) || isSavedArticle(path))) {
@@ -233,7 +234,7 @@ export async function DELETE(req: Request, context: Context) {
  * (`createdAt`) is forwarded as received, after a size check; an empty body is
  * forwarded as none.
  */
-export async function PUT(req: Request, context: Context) {
+async function handlePUT(req: Request, context: Context) {
   const { path } = await context.params;
   const target = upstreamPath(path, new URL(req.url).search);
   if (!target || !path || !isSavedArticle(path)) {
@@ -315,7 +316,7 @@ async function postCourseNote(req: Request, context: Context) {
  */
 const MAX_UPLOAD_BYTES = 4.5 * 1024 * 1024;
 
-export async function POST(req: Request, context: Context) {
+async function handlePOST(req: Request, context: Context) {
   const { path } = await context.params;
 
   // The GET allow-list still applies, and each POST rule narrows it further.
@@ -368,3 +369,10 @@ export async function POST(req: Request, context: Context) {
     status: upstream.status,
   });
 }
+
+// Every answer, early errors included, is marked no-store (lib/no-store.ts).
+export const GET = withNoStore(handleGET);
+export const POST = withNoStore(handlePOST);
+export const PATCH = withNoStore(handlePATCH);
+export const PUT = withNoStore(handlePUT);
+export const DELETE = withNoStore(handleDELETE);
