@@ -27,12 +27,29 @@ export const api = axios.create({
   withCredentials: true,
 });
 
-// ─── Request: inject bearer token ────────────────────────────────────────────
+const isAuthUrl = (url: string | undefined) =>
+  !!url && (url.includes('/admin/auth/login') || url.includes('/admin/auth/refresh'));
 
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const { accessToken } = useAuthStore.getState();
-  if (accessToken && config.headers) {
-    config.headers.Authorization = `Bearer ${accessToken}`;
+// ─── Request: inject bearer token ────────────────────────────────────────────
+//
+// The access token lives in memory only (stores/auth-store.ts), so after a
+// reload the portal is signed in but holds no token. Sending the page's first
+// requests bare meant each came back 401 — five to seven red errors on every
+// load, and on a cold server each one waited the full wake-up before the
+// refresh could even start. Instead, a request that finds no token while the
+// admin is signed in waits for the one shared refresh, then goes out with it.
+
+api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  const { accessToken, isAuthenticated } = useAuthStore.getState();
+  let token = accessToken;
+  if (!token && isAuthenticated && !isAuthUrl(config.url)) {
+    token = await sharedRefresh();
+    // The refresh failed and has already signed the admin out; don't let the
+    // 401 that follows start a second one.
+    if (!token) (config as InternalAxiosRequestConfig & { _retried?: boolean })._retried = true;
+  }
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -40,6 +57,16 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 // ─── Response: silent refresh on 401 (single-flight) ─────────────────────────
 
 let refreshPromise: Promise<string | null> | null = null;
+
+/** One refresh at a time: every caller that needs a token waits for the same one. */
+function sharedRefresh(): Promise<string | null> {
+  if (!refreshPromise) {
+    refreshPromise = refreshTokens().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+}
 
 async function refreshTokens(): Promise<string | null> {
   const { setAccessToken, logout } = useAuthStore.getState();
@@ -71,13 +98,11 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const original = error.config as (InternalAxiosRequestConfig & { _retried?: boolean }) | undefined;
-    const isAuthCall = original?.url?.includes('/admin/auth/login') || original?.url?.includes('/admin/auth/refresh');
 
-    if (error.response?.status === 401 && original && !original._retried && !isAuthCall) {
+    // An access token can still expire mid-session (15 min): refresh and retry once.
+    if (error.response?.status === 401 && original && !original._retried && !isAuthUrl(original.url)) {
       original._retried = true;
-      refreshPromise = refreshPromise ?? refreshTokens();
-      const newToken = await refreshPromise;
-      refreshPromise = null;
+      const newToken = await sharedRefresh();
       if (newToken) {
         original.headers.Authorization = `Bearer ${newToken}`;
         return api.request(original);
