@@ -139,6 +139,12 @@ router.post('/login', authLoginLimiter, async (req: Request, res: Response, next
         data: updateData,
       });
 
+      // As on the student side: the attempt that locks the account says so.
+      if (updateData.lockedUntil) {
+        res.status(423).json({ error: 'Account locked', lockedUntil: updateData.lockedUntil });
+        return;
+      }
+
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }

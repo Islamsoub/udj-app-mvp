@@ -98,6 +98,15 @@ router.post('/login', authLoginLimiter, async (req: Request, res: Response, next
         data: updateData,
       });
 
+      // The attempt that locks the account answers as locked, with the time it
+      // unlocks — the same 423 a further attempt would get. Answering 401 with
+      // "0 attempts left" here told the student nothing about the lock, and
+      // the countdown only appeared on a fourth try.
+      if (updateData.lockedUntil) {
+        res.status(423).json({ error: 'Account locked', lockedUntil: updateData.lockedUntil });
+        return;
+      }
+
       res.status(401).json({ error: 'Invalid credentials', attemptsLeft: 3 - newAttempts });
       return;
     }

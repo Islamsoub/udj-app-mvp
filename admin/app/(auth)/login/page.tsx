@@ -25,7 +25,10 @@ export default function LoginPage() {
   const login = useLogin();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const [showPw, setShowPw] = useState(false);
-  const [failed, setFailed] = useState(false);
+  // Why the last attempt failed. A locked account and a rate limit are not
+  // wrong credentials, and saying "Identifiants incorrects" for them sent
+  // admins back to retype a password that was right.
+  const [failure, setFailure] = useState<string | null>(null);
 
   const {
     register,
@@ -34,7 +37,7 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: 'said.warsama@univ.dj', password: '', stayConnected: true },
+    defaultValues: { email: '', password: '', stayConnected: true },
   });
 
   useEffect(() => {
@@ -44,12 +47,12 @@ export default function LoginPage() {
   const pending = isSubmitting || login.isPending;
 
   const onSubmit = handleSubmit(async (values) => {
-    setFailed(false);
+    setFailure(null);
     try {
       await login.mutateAsync(values);
       router.replace('/');
-    } catch {
-      setFailed(true);
+    } catch (err) {
+      setFailure(loginFailureMessage(err));
       setFocus('password');
     }
   });
@@ -110,9 +113,12 @@ export default function LoginPage() {
             Accédez à votre espace administrateur.
           </div>
 
-          {failed && (
-            <div className="mt-4 rounded-[10px] bg-danger-bg px-[13px] py-[10px] text-[13px] font-medium text-danger">
-              Identifiants incorrects. Veuillez réessayer.
+          {failure && (
+            <div
+              role="alert"
+              className="mt-4 rounded-[10px] bg-danger-bg px-[13px] py-[10px] text-[13px] font-medium text-danger"
+            >
+              {failure}
             </div>
           )}
 
@@ -202,4 +208,27 @@ export default function LoginPage() {
       </div>
     </div>
   );
+}
+
+/** The banner text for a failed login, from the server's answer. */
+function loginFailureMessage(err: unknown): string {
+  const res = (err as { response?: { status?: number; data?: { lockedUntil?: string } } })?.response;
+  switch (res?.status) {
+    case 401:
+      return 'Identifiants incorrects. Veuillez réessayer.';
+    case 423: {
+      const until = res.data?.lockedUntil ? new Date(res.data.lockedUntil) : null;
+      const at =
+        until && !Number.isNaN(until.getTime())
+          ? ` jusqu’à ${until.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
+          : '';
+      return `Compte temporairement bloqué${at} après plusieurs tentatives échouées.`;
+    }
+    case 429:
+      return 'Trop de tentatives depuis ce réseau. Patientez une minute puis réessayez.';
+    case undefined:
+      return 'Connexion au serveur impossible. Vérifiez votre réseau.';
+    default:
+      return 'Une erreur est survenue. Réessayez.';
+  }
 }
