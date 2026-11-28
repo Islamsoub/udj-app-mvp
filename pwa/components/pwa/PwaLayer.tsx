@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { Toast } from '@/components/shell/Toast';
 import { useI18n } from '@/lib/i18n';
 import { useTheme } from '@/lib/theme';
@@ -24,6 +25,10 @@ export function PwaLayer({ children }: { children: ReactNode }) {
   const { t, lang } = useI18n();
   const { pref } = useTheme();
   const [waiting, setWaiting] = useState<ServiceWorker | null>(null);
+  // The card check (/verify) is opened by people checking a student's card —
+  // a guard, a desk — not by students; offering them the app is noise.
+  const pathname = usePathname();
+  const offerInstall = pathname !== '/verify';
 
   useEffect(() => startServiceWorker(setWaiting), []);
 
@@ -34,7 +39,7 @@ export function PwaLayer({ children }: { children: ReactNode }) {
 
   return (
     <>
-      <InstallBanner />
+      {offerInstall && <InstallBanner />}
       {children}
       <Toast
         message={waiting === null ? null : t('pwa.update.message')}
