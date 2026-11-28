@@ -34,6 +34,7 @@ import { useSettings } from '@/hooks/queries/use-settings';
 import { useScopeStore } from '@/stores/scope-store';
 import { apiErrorMessage, cn, fmtDate } from '@/lib/utils';
 import type { AttendanceRecordRow, JustificationStatus } from '@/lib/types';
+import { justificationDocKind } from '@/lib/justification-doc';
 
 const STRIPES = {
   background: 'repeating-linear-gradient(45deg, var(--surface2) 0 12px, var(--sunken) 12px 24px)',
@@ -52,7 +53,8 @@ function studentName(r: AttendanceRecordRow): string {
 }
 
 function docType(r: AttendanceRecordRow): string {
-  return (r.justificationDocUrl ?? '').toLowerCase().endsWith('.pdf') ? 'PDF' : 'Photo';
+  const kind = justificationDocKind(r.justificationDocUrl);
+  return kind === 'pdf' ? 'PDF' : kind === 'image' ? 'Photo' : 'Document';
 }
 
 /**
@@ -110,7 +112,8 @@ export default function AttendancePage() {
   };
 
   const loading = !data;
-  const isPdf = selected ? (selected.justificationDocUrl ?? '').toLowerCase().endsWith('.pdf') : false;
+  const selectedKind = selected ? justificationDocKind(selected.justificationDocUrl) : 'unknown';
+  const isPdf = selectedKind === 'pdf';
 
   return (
     <div>
@@ -347,10 +350,10 @@ export default function AttendancePage() {
                     style={STRIPES}
                   >
                     <span className="flex h-[60px] w-[60px] items-center justify-center rounded-[12px] bg-surface text-ink3 shadow">
-                      {isPdf ? <FileText size={24} /> : <ImageIcon size={24} />}
+                      {selectedKind === 'image' ? <ImageIcon size={24} /> : <FileText size={24} />}
                     </span>
                     <span className="font-mono text-[11px] text-ink3">
-                      justificatif_{selected.id}.{isPdf ? 'pdf' : 'jpg'}
+                      justificatif_{selected.id}{isPdf ? '.pdf' : selectedKind === 'image' ? '.jpg' : ''}
                     </span>
                     <Button
                       kind="soft"
