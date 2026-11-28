@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { post, patch } from '@/lib/api';
 import { useAuthStore } from '@/stores/auth-store';
@@ -19,9 +19,14 @@ interface LoginInput {
  */
 export function useLogin() {
   const login = useAuthStore((s) => s.login);
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: LoginInput) => post<LoginResponse>('/admin/auth/login', input),
     onSuccess: (data) => {
+      // A tab signed out from elsewhere still holds the previous session's
+      // query cache. Query keys do not carry the admin, so without this a
+      // faculty admin signing in would briefly see the last admin's lists.
+      queryClient.clear();
       login(data.accessToken, data.admin);
     },
   });
@@ -31,11 +36,15 @@ export function useLogin() {
 export function useLogout() {
   const router = useRouter();
   const logout = useAuthStore((s) => s.logout);
+  const queryClient = useQueryClient();
 
   return () => {
     // Fire-and-forget; local state clears regardless of the network result.
     post('/admin/auth/logout').catch(() => undefined);
     logout();
+    // The navigation below is client-side, so the cache (students, grades,
+    // justifications) would otherwise stay in memory after sign-out.
+    queryClient.clear();
     router.replace('/login');
   };
 }
