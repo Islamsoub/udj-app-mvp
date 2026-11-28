@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { fonts, fz, lightColors, radius, sizing, spacing, elevation, withAlpha, type Palette } from '@/constants/theme';
 import { useColors } from '@/hooks/useColors';
 import { PressBox } from '@/components/PressBox';
+import { secondsLeft as secondsLeftOf, type CardCode } from '@/utils/cardCode';
 
 // White text/strokes sit on the jade gradient — must stay white in both themes.
 const BRAND_FG = lightColors.surface;
@@ -36,7 +37,8 @@ interface StudentCardProps {
   name: string;
   id: string;
   programme: string;
-  qrToken: string | null;
+  /** Live (60 s) or offline (24 h) signed code; null before any was fetched. */
+  cardCode: CardCode | null;
 }
 
 function getInitials(name: string): string {
@@ -46,7 +48,7 @@ function getInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) {
+export function StudentCard({ name, id, programme, cardCode }: StudentCardProps) {
   const { t } = useTranslation();
   const { colors } = useColors();
 
@@ -61,18 +63,23 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
 
   const [expanded, setExpanded] = useState(false);
   const heightAnim = useRef(new Animated.Value(COLLAPSED_HEIGHT)).current;
-  const [secondsLeft, setSecondsLeft] = useState(CYCLE_SECONDS);
-
+  // Counted from the code's own expiry, not a fixed cycle, so the ring and
+  // the pill tell the truth even when a refresh comes late.
+  const [now, setNow] = useState(() => new Date());
   useEffect(() => {
-    setSecondsLeft(CYCLE_SECONDS);
-  }, [qrToken]);
-
-  useEffect(() => {
-    const intv = setInterval(() => {
-      setSecondsLeft((s) => (s <= 1 ? CYCLE_SECONDS : s - 1));
-    }, 1000);
+    const intv = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(intv);
   }, []);
+  const isOffline = cardCode?.kind === 'offline';
+  const secondsLeft = cardCode && !isOffline ? Math.min(CYCLE_SECONDS, secondsLeftOf(cardCode, now)) : 0;
+  const offlineUntil =
+    cardCode && isOffline
+      ? new Date(cardCode.expiresAt).toLocaleTimeString(I18nManager.isRTL ? 'ar-u-nu-latn' : 'fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hourCycle: 'h23',
+        })
+      : '';
 
   useEffect(() => {
     if (expanded) {
@@ -96,7 +103,9 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
     }).start();
   };
 
-  const qrValue = qrToken ?? id;
+  // No fallback to the bare matricule: anyone can turn that into a QR code,
+  // and no scanner can check it. Until a first code is fetched, say so.
+  const qrValue = cardCode?.value ?? null;
   const dashOffset = RING_CIRC * (1 - secondsLeft / CYCLE_SECONDS);
   const countdownLabel = `00:${String(secondsLeft).padStart(2, '0')}`;
   const initials = getInitials(name);
@@ -121,9 +130,20 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
             // ── Expanded: large QR centered ──────────────────────────────────
             <View style={styles.expanded}>
               <View style={styles.qrBoxFull}>
-                <QRCode value={qrValue} size={QR_FULL_SIZE} backgroundColor="#FFFFFF" />
+                {qrValue ? (
+                  <QRCode value={qrValue} size={QR_FULL_SIZE} backgroundColor="#FFFFFF" />
+                ) : (
+                  <View style={styles.qrMissingFull}>
+                    <Text style={styles.qrMissingText}>{t('profile.card.no_code')}</Text>
+                  </View>
+                )}
               </View>
 
+              {isOffline ? (
+                <Text style={styles.countdownMono} numberOfLines={1}>
+                  {t('profile.card.offline_until', { time: offlineUntil })}
+                </Text>
+              ) : qrValue ? (
               <View style={styles.countdownRow}>
                 <Svg width={RING_SIZE} height={RING_SIZE}>
                   <Circle
@@ -149,6 +169,7 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
                 </Svg>
                 <Text style={styles.countdownMono}>{countdownLabel}</Text>
               </View>
+              ) : null}
 
               <Text style={styles.collapseHint} numberOfLines={1}>
                 {t('profile.card.collapse_hint')}
@@ -172,13 +193,21 @@ export function StudentCard({ name, id, programme, qrToken }: StudentCardProps) 
               {/* Access panel: inset QR + valid pill + tap hint */}
               <View style={styles.accessPanel}>
                 <View style={styles.qrBoxMini}>
-                  <QRCode value={qrValue} size={QR_MINI_SIZE} backgroundColor="#FFFFFF" />
+                  {qrValue ? (
+                    <QRCode value={qrValue} size={QR_MINI_SIZE} backgroundColor="#FFFFFF" />
+                  ) : (
+                    <Ionicons name="qr-code-outline" size={QR_MINI_SIZE - spacing.sp16} color={colors.textTertiary} />
+                  )}
                 </View>
                 <View style={styles.accessInfo}>
                   <View style={styles.validPill}>
                     <View style={styles.validDot} />
                     <Text style={styles.validPillText} numberOfLines={1}>
-                      {t('profile.card.valid_expires', { seconds: secondsLeft })}
+                      {!qrValue
+                        ? t('profile.card.no_code_short')
+                        : isOffline
+                          ? t('profile.card.offline_until', { time: offlineUntil })
+                          : t('profile.card.valid_expires', { seconds: secondsLeft })}
                     </Text>
                   </View>
                   <Text style={styles.tapHint} numberOfLines={1}>
@@ -328,6 +357,21 @@ const makeStyles = (colors: Palette, cardTextDim: string) => StyleSheet.create({
     padding: QR_FULL_BOX_PADDING,
     borderRadius: radius.rBtn,
     backgroundColor: colors.white, // always white — QR code requires white background for readability
+  },
+  // Same footprint as the QR it stands in for, so the card does not jump
+  // when the first code arrives.
+  qrMissingFull: {
+    width: QR_FULL_SIZE,
+    height: QR_FULL_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.sp12,
+  },
+  qrMissingText: {
+    fontSize: fz(13),
+    fontFamily: fonts.sans,
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
   countdownRow: {
     flexDirection: 'row',

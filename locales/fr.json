@@ -273,7 +273,10 @@
       "show_qr": "Afficher QR",
       "collapse_hint": "Appuyer pour réduire",
       "valid_expires": "Valide · expire dans {{seconds}}s",
-      "tap_expand": "Appuyer pour agrandir"
+      "tap_expand": "Appuyer pour agrandir",
+      "no_code": "Connectez-vous à internet une fois pour activer votre carte.",
+      "no_code_short": "Carte à activer en ligne",
+      "offline_until": "Code hors ligne · valable jusqu'à {{time}}"
     },
     "section": {
       "academic": "INFORMATIONS ACADEMIQUES",
@@ -383,7 +386,8 @@
       "account_info": "Informations du compte",
       "account_info_value": "Ahmed Omar",
       "privacy": "Politique de confidentialité",
-      "logout": "Déconnexion"
+      "logout": "Déconnexion",
+      "verify_card": "Vérifier une carte"
     },
     "restart_title": "Redémarrage requis",
     "restart_message": "Redémarre l'app pour appliquer le changement de langue.",
@@ -759,5 +763,36 @@
     "maintenance_body": "L'application sera disponible\ndans quelques minutes. Merci de votre patience.",
     "welcome_subtitle": "Votre application étudiante\nofficielle de l'Université de Djibouti",
     "update_body": "Une nouvelle version de l'app est disponible.\nMettez à jour pour continuer\nà accéder à vos données."
+  },
+  "verifyCard": {
+    "title": "Vérifier une carte",
+    "subtitle": "Scannez le QR code de la carte d'un étudiant",
+    "permission_title": "Accès à la caméra",
+    "permission_body": "La caméra sert uniquement à lire le QR code de la carte. Aucune image n'est enregistrée.",
+    "permission_allow": "Autoriser la caméra",
+    "permission_denied": "L'accès à la caméra est refusé. Autorisez-le dans les réglages du téléphone.",
+    "open_settings": "Ouvrir les réglages",
+    "aim": "Placez le QR code dans le cadre",
+    "checking": "Vérification…",
+    "valid": "Carte valide",
+    "expired": "Code expiré",
+    "expired_hint": "Demandez à l'étudiant d'afficher un nouveau code.",
+    "invalid": "Code non reconnu",
+    "invalid_hint": "Ce code n'a pas été émis par Unipocket, ou il a été modifié.",
+    "inactive": "Carte non valable",
+    "inactive_hint": "Le code est authentique, mais l'étudiant n'est plus inscrit.",
+    "status_suspended": "Suspendu",
+    "status_graduated": "Diplômé",
+    "kind_live": "Code en direct",
+    "kind_offline": "Code hors ligne",
+    "offline_hint": "Valable 24 h, il peut provenir d'une capture : comparez la photo.",
+    "issued_at": "Émis le {{date}} à {{time}}",
+    "matricule": "Matricule",
+    "programme": "Filière",
+    "faculty": "Faculté",
+    "semester": "Semestre {{n}}",
+    "not_unipocket": "Ce QR code n'est pas une carte Unipocket.",
+    "error": "Vérification impossible. Vérifiez la connexion et réessayez.",
+    "scan_again": "Scanner une autre carte"
   }
 }

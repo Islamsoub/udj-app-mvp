@@ -30,7 +30,9 @@ import { SecuritySection } from '@/components/profile/SecuritySection';
 import { Ionicons } from '@expo/vector-icons';
 import { DevSwitcher } from '@/components/ui/DevSwitcher';
 import { useAuthStore } from '@/stores/authStore';
-import { getStudentMe, getQrToken } from '@/services/api';
+import { getStudentMe } from '@/services/api';
+import { fetchCardCode, loadOfflineCardCode } from '@/services/studentCard';
+import type { CardCode } from '@/utils/cardCode';
 import type { StudentProfileCache } from '@/services/api';
 import { useOfflineQuery } from '@/hooks/useOfflineQuery';
 import { getStudentProfile, upsertProfile } from '@/services/db';
@@ -87,7 +89,7 @@ function QuickTile({
 
 interface ProfileBodyProps {
   student: StudentProfileCache | null;
-  qrToken: string | null;
+  cardCode: CardCode | null;
   onPresencePress: () => void;
   onFacultyPress: () => void;
   onProgrammePress: () => void;
@@ -98,7 +100,7 @@ interface ProfileBodyProps {
 
 function ProfileBody({
   student,
-  qrToken,
+  cardCode,
   onPresencePress,
   onFacultyPress,
   onProgrammePress,
@@ -142,7 +144,7 @@ function ProfileBody({
 
   return (
     <View style={styles.body}>
-      <StudentCard name={name} id={id} programme={filiere} qrToken={qrToken} />
+      <StudentCard name={name} id={id} programme={filiere} cardCode={cardCode} />
 
       {/* Quick-action tiles */}
       <View style={styles.tilesRow}>
@@ -340,7 +342,7 @@ export default function ProfileScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const insets = useSafeAreaInsets();
 
-  const [qrToken, setQrToken] = useState<string | null>(null);
+  const [cardCode, setCardCode] = useState<CardCode | null>(null);
   const qrIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const handleLogout = () => {
@@ -388,12 +390,20 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     let cancelled = false;
+    // Online: the live 60 s code (the 24 h offline one is stored on the way).
+    // Offline or failing: the stored offline code while it is still valid, so
+    // the card always shows something a scanner can check.
     const fetchQr = () => {
-      getQrToken()
-        .then((res) => { if (!cancelled) setQrToken(res.token); })
-        .catch(() => {});
+      fetchCardCode()
+        .then((code) => { if (!cancelled) setCardCode(code); })
+        .catch(async () => {
+          const offline = await loadOfflineCardCode();
+          if (cancelled) return;
+          setCardCode((current) =>
+            current?.kind === 'live' && Date.parse(current.expiresAt) > Date.now() ? current : offline,
+          );
+        });
     };
-    // Only try to refresh QR when online
     fetchQr();
     qrIntervalRef.current = setInterval(fetchQr, 55000);
     return () => {
@@ -459,7 +469,7 @@ export default function ProfileScreen() {
         {showBody && (
           <ProfileBody
             student={hook.data}
-            qrToken={qrToken}
+            cardCode={cardCode}
             onPresencePress={() => router.push('/attendance')}
             // Detail screens self-load from the store and treat `id` as an
             // optional guard, so navigate without it. The cache (hook.data)
