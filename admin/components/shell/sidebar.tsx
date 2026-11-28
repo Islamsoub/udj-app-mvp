@@ -12,6 +12,7 @@ import {
   ListChecks,
   LogOut,
   Megaphone,
+  ScanLine,
   Settings,
   Shield,
   Users,
@@ -41,6 +42,7 @@ const ICON = (node: React.ReactNode) => node;
 const MAIN: NavDef[] = [
   { page: 'dashboard', href: '/', label: 'Tableau de bord', icon: ICON(<LayoutGrid size={20} strokeWidth={1.7} />) },
   { page: 'students', href: '/students', label: 'Étudiants', icon: ICON(<Users size={20} strokeWidth={1.7} />) },
+  { page: 'scan', href: '/scan', label: 'Vérifier une carte', icon: ICON(<ScanLine size={20} strokeWidth={1.7} />) },
   { page: 'grades', href: '/grades', label: 'Notes', icon: ICON(<GraduationCap size={20} strokeWidth={1.7} />) },
   { page: 'attendance', href: '/attendance', label: 'Présence', icon: ICON(<CalendarCheck size={20} strokeWidth={1.7} />) },
   { page: 'news', href: '/news', label: 'Actualités', icon: ICON(<Megaphone size={20} strokeWidth={1.7} />) },

@@ -119,6 +119,7 @@ export const PROGRAMME_LEVELS: { value: string; label: string }[] = [
 export type PageKey =
   | 'dashboard'
   | 'students'
+  | 'scan'
   | 'grades'
   | 'attendance'
   | 'news'
@@ -140,6 +141,9 @@ const ALL: AdminRole[] = ['SUPER_ADMIN', 'FACULTY_ADMIN', 'REGISTRAR', 'NEWS_EDI
 export const PAGE_ACCESS: Record<PageKey, AdminRole[]> = {
   dashboard: ALL,
   students: ['SUPER_ADMIN', 'REGISTRAR', 'FACULTY_ADMIN'],
+  // Checking a student card is open to every role: a card's validity is not
+  // a secret (the public page shows it too).
+  scan: ALL,
   grades: ['SUPER_ADMIN', 'REGISTRAR', 'FACULTY_ADMIN'],
   attendance: ['SUPER_ADMIN', 'REGISTRAR', 'FACULTY_ADMIN'],
   news: ['SUPER_ADMIN', 'REGISTRAR', 'NEWS_EDITOR'],

@@ -747,3 +747,26 @@ export interface SystemSettings {
 export interface ApiError {
   error: string;
 }
+
+// ─── Student card check (POST /admin/card/verify) ───────────────────────────
+
+export interface CardVerdict {
+  valid: boolean;
+  reason?: 'expired' | 'invalid' | 'inactive';
+  kind?: 'live' | 'offline';
+  issuedAt?: string;
+  expiresAt?: string;
+  checkedAt: string;
+  student?: {
+    firstName: string;
+    lastName: string;
+    studentIdDisplay: string;
+    photoUrl: string | null;
+    status: StudentStatus;
+    currentSemester: number;
+    programme: { nameFr: string; nameAr: string; level: string };
+    faculty: { nameFr: string; nameAr: string };
+  };
+  /** For the link to the record; null outside a faculty admin's scope. */
+  studentId: string | null;
+}
