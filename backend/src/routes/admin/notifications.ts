@@ -6,6 +6,7 @@ import { AppError } from '../../utils/AppError';
 import adminAuth from '../../middleware/adminAuth';
 import { rbac } from '../../middleware/rbac';
 import { audit } from '../../middleware/auditLog';
+import { createNotification } from '../../utils/notify';
 
 const router = Router();
 
@@ -82,18 +83,20 @@ router.post(
 
       if (recipientIds.length === 0) throw new AppError('Aucun destinataire pour cette cible', 400);
 
-      // Persist an in-app notification for each recipient. (FCM push dispatch is
-      // wired at the service layer; here we create the durable records.)
-      await prisma.notification.createMany({
-        data: recipientIds.map((studentId) => ({
-          studentId,
-          type: NotificationType.GENERAL,
-          titleFr: d.title,
-          titleAr: d.titleAr ?? '',
-          bodyFr: d.body,
-          bodyAr: d.bodyAr ?? '',
-        })),
-      });
+      // In-app record for each recipient, then the push to their devices —
+      // the same helper as every automated send (grades, schedule, news,
+      // justifications). This route used to write the records only and answer
+      // "Envoyé via FCM": no push ever left the server for a manual send.
+      // The push is fire-and-forget, like everywhere else, so the answer says
+      // what is known when it is sent: the records exist, the push is queued.
+      const count = await createNotification(
+        recipientIds,
+        NotificationType.GENERAL,
+        d.title,
+        d.body,
+        d.titleAr ?? '',
+        d.bodyAr ?? ''
+      );
 
       // The response body becomes the AuditLog `after` snapshot, which the
       // history endpoint reads back (no separate NotificationBatch model needed).
@@ -103,10 +106,10 @@ router.post(
         programmeId: d.programmeId ?? null,
         title: d.title,
         body: d.body,
-        count: recipientIds.length,
+        count,
         sentAt: new Date().toISOString(),
-        status: 'Envoyé via FCM',
-        message: `Notification envoyée à ${recipientIds.length} étudiants`,
+        status: "Dans l'application · push en cours d'envoi",
+        message: `Notification envoyée à ${count} étudiant${count > 1 ? 's' : ''}`,
       });
     } catch (err) {
       next(err);
@@ -137,7 +140,9 @@ router.get('/history', adminAuth, rbac(...ALL_ROLES), async (_req, res, next) =>
           count: after.count ?? 0,
           sentBy: `${l.admin.firstName} ${l.admin.lastName}`,
           when: l.createdAt,
-          status: after.status ?? 'Envoyé via FCM',
+          // Entries written before this change say "Envoyé via FCM", which was
+          // never true; they are read back as stored.
+          status: after.status ?? "Dans l'application",
         };
       })
     );
