@@ -8,6 +8,7 @@ import { clearAllCache } from './db';
 import { clearCourseNotesOnLogout } from './courseNotesSync';
 import { clearSavedArticlesOnLogout } from './savedArticles';
 import { BIOMETRIC_ENABLED_KEY, BIOMETRIC_ASKED_KEY } from '@/services/biometric';
+import { clearCardCode } from '@/services/studentCard';
 
 // Identity shown on the login screen ("Bon retour, Ahmed") before re-auth.
 const LAST_STUDENT_NAME_KEY = 'lastStudentName';
@@ -73,6 +74,8 @@ export async function logout(): Promise<void> {
   }
 
   await SecureStore.deleteItemAsync(REFRESH_KEY);
+  // The offline card code is a credential for 24 h: it goes with the session.
+  await clearCardCode();
   // Clear the biometric opt-in too — otherwise the login screen offers
   // fingerprint sign-in for an account that has been logged out.
   await SecureStore.deleteItemAsync(BIOMETRIC_ENABLED_KEY);

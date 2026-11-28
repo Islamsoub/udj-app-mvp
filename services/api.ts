@@ -3,6 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import { API_BASE_URL, TIMEOUT } from '@/constants/api';
 import { useAuthStore, REFRESH_KEY } from '@/stores/authStore';
 import type { StudentProfile } from '@/stores/authStore';
+import type { QrTokenResponse } from '@/utils/cardCode';
 
 export type { StudentProfile } from '@/stores/authStore';
 
@@ -526,9 +527,33 @@ export const patchPreferences = (payload: PreferencesPayload) =>
   instance.patch('/student/preferences', payload).then((r) => r.data);
 
 export const getQrToken = () =>
-  instance
-    .get<{ token: string; expiresAt: string }>('/student/qr-token')
-    .then((r) => r.data);
+  instance.get<QrTokenResponse>('/student/qr-token').then((r) => r.data);
+
+/**
+ * POST /verify/card — the public student-card check (no sign-in needed; the
+ * bearer token the instance adds is ignored). Used by the app's scanner.
+ */
+export const verifyCardCode = (code: string) =>
+  instance.post<CardVerdict>('/verify/card', { code }).then((r) => r.data);
+
+export interface CardVerdict {
+  valid: boolean;
+  reason?: 'expired' | 'invalid' | 'inactive';
+  kind?: 'live' | 'offline';
+  issuedAt?: string;
+  expiresAt?: string;
+  checkedAt: string;
+  student?: {
+    firstName: string;
+    lastName: string;
+    studentIdDisplay: string;
+    photoUrl: string | null;
+    status: string;
+    currentSemester: number;
+    programme: { nameFr: string; nameAr: string; level: string };
+    faculty: { nameFr: string; nameAr: string };
+  };
+}
 
 export const getNews = (params?: NewsParams) =>
   instance.get<NewsListResponse>('/news', { params }).then((r) => r.data);

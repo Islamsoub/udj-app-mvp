@@ -261,6 +261,10 @@ function SettingsBody({ isOffline }: { isOffline: boolean }) {
           onPress={() => router.push('/account-info')}
         />
         <SettingsRow
+          label={t('settings.row.verify_card')}
+          onPress={() => router.push('/verify-card')}
+        />
+        <SettingsRow
           label={t('infoCenter.title')}
           onPress={() => router.push('/info-center')}
         />

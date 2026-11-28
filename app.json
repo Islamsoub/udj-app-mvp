@@ -45,6 +45,14 @@
       "expo-secure-store",
       "expo-local-authentication",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "La caméra sert uniquement à lire le QR code d'une carte étudiante, pour la vérifier.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
         "expo-sqlite",
         {
           "useSQLCipher": true
