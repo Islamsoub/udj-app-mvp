@@ -1,4 +1,6 @@
 import * as Sentry from '@sentry/react-native';
+import { useAuthStore } from '@/stores/authStore';
+import { REDACTED, buildNameMatcher, isGradeKey, redactNames } from '@/utils/piiScrub';
 
 const SENTRY_DSN =
   'https://c557bb7db56036263c93e0f6bfa60633@o4511608504320000.ingest.de.sentry.io/4511608512053328';
@@ -7,11 +9,25 @@ const SENTRY_DSN =
 // Safety net, not a primary control: the app never calls setUser / setTag /
 // setContext / addBreadcrumb, and sendDefaultPii is false. This only catches
 // identifiers that reach an event by accident (an error message that embeds a
-// matricule, a breadcrumb that carries a token). Names and grades are not
-// matched by pattern on purpose — a bare number is not identifying, and the
-// false positives would destroy our own stack traces.
+// matricule, a breadcrumb that carries a token).
+//
+// Names and grades are not matched by pattern — a bare number is not
+// identifying, and guessing at capitalised words would destroy our own stack
+// traces. Instead (utils/piiScrub.ts):
+//   - the signed-in student's own first and last name are removed exactly,
+//     wherever a string is scrubbed below;
+//   - any value under a key that only holds marks (cc_score, finalScore, gpa,
+//     average…) is replaced whole.
 
-export const REDACTED = '[redacted]';
+export { REDACTED };
+
+// The signed-in student's name, kept in step with the auth store by
+// initSentry(). Null when nobody is signed in.
+let nameMatcher: RegExp | null = null;
+
+export function setReportedStudentName(firstName?: string | null, lastName?: string | null): void {
+  nameMatcher = buildNameMatcher(firstName, lastName);
+}
 
 // Student matricule, e.g. UDJ-2024-0432 (backend/prisma/seed.ts). The backend
 // validator (MATRICULE_REGEX in backend/src/utils/adminHelpers.ts) accepts 3–4
@@ -27,10 +43,13 @@ const BEARER_RE = /\bBearer\s+[A-Za-z0-9\-._~+/]+=*/gi;
 const JWT_RE = /\beyJ[A-Za-z0-9_-]*\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*/g;
 
 export function redact(value: string): string {
-  return value
-    .replace(BEARER_RE, `Bearer ${REDACTED}`)
-    .replace(JWT_RE, REDACTED)
-    .replace(STUDENT_ID_RE, REDACTED);
+  return redactNames(
+    value
+      .replace(BEARER_RE, `Bearer ${REDACTED}`)
+      .replace(JWT_RE, REDACTED)
+      .replace(STUDENT_ID_RE, REDACTED),
+    nameMatcher,
+  );
 }
 
 // Breadcrumb data, request bodies and frame vars are arbitrary JSON-ish input.
@@ -65,7 +84,7 @@ function redactDeep(
   const out: Record<string, unknown> = {};
   copies.set(value, out);
   for (const [key, item] of Object.entries(value)) {
-    out[key] = redactDeep(item, depth + 1, copies);
+    out[key] = isGradeKey(key) ? REDACTED : redactDeep(item, depth + 1, copies);
   }
   return out;
 }
@@ -158,6 +177,15 @@ export const filterBreadcrumb: BeforeBreadcrumb = (breadcrumb) => {
 };
 
 export function initSentry() {
+  // Follow sign-in, profile load and sign-out: the name to remove is always the
+  // current student's, and nobody's once signed out.
+  const follow = (student: ReturnType<typeof useAuthStore.getState>['student']) =>
+    setReportedStudentName(student?.firstName, student?.lastName);
+  follow(useAuthStore.getState().student);
+  useAuthStore.subscribe((state, prev) => {
+    if (state.student !== prev.student) follow(state.student);
+  });
+
   Sentry.init({
     dsn: SENTRY_DSN,
     enabled: !__DEV__, // Only report in production/preview builds, not dev
