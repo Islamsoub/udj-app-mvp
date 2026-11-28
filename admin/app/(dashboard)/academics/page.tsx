@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ReactNode } from 'react';
 import {
+  AlertTriangle,
   BookOpen,
   Calendar,
   GraduationCap,
@@ -32,6 +33,7 @@ import {
 import { useScopeStore } from '@/stores/scope-store';
 import { PROGRAMME_LEVELS } from '@/lib/constants';
 import { fmtDate } from '@/lib/utils';
+import { semesterHasEnded } from '@/lib/semester';
 import type { Semester } from '@/lib/types';
 import type { Tone } from '@/lib/tokens';
 
@@ -123,6 +125,8 @@ export default function AcademicsPage() {
    * API's answer, so this page never reads the calendar itself.
    */
   const currentStart = (semesters ?? []).find((s) => s.isCurrent)?.startDate;
+  // The current semester has already ended: no semester covers today.
+  const staleCurrent = (semesters ?? []).find((s) => s.isCurrent && semesterHasEnded(s));
   const semesterStatus = (s: Semester) =>
     s.isCurrent
       ? 'current'
@@ -317,6 +321,7 @@ export default function AcademicsPage() {
           </Card>
         ) : (
           <div className="flex flex-col gap-3">
+            {staleCurrent && <StaleSemesterNotice semester={staleCurrent} />}
             {(semesters ?? []).map((s) => (
               <Card key={s.id} className="flex items-center gap-4">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-blue-bg text-blue">
@@ -330,7 +335,11 @@ export default function AcademicsPage() {
                     {fmtDate(s.startDate)} → {fmtDate(s.endDate)}
                   </div>
                 </div>
-                {semesterStatus(s) === 'current' ? (
+                {semesterStatus(s) === 'current' && semesterHasEnded(s) ? (
+                  <Badge tone="amber" dot>
+                    Terminé · encore utilisé
+                  </Badge>
+                ) : semesterStatus(s) === 'current' ? (
                   <Badge tone="jade" dot>
                     En cours
                   </Badge>
@@ -347,5 +356,23 @@ export default function AcademicsPage() {
           </div>
         ))}
     </>
+  );
+}
+
+/** Shown when no semester covers today and the last one is still in use. */
+function StaleSemesterNotice({ semester }: { semester: Semester }) {
+  return (
+    <div
+      role="status"
+      className="flex items-start gap-2 rounded-[10px] bg-amber-bg px-3 py-[10px] text-[13px]"
+      style={{ color: 'var(--amber-on-tint)' }}
+    >
+      <AlertTriangle size={15} className="mt-[2px] shrink-0" />
+      <span>
+        Aucun semestre ne couvre la date d&apos;aujourd&apos;hui. Le portail et l&apos;application
+        utilisent encore {semester.label} · {semester.academicYear}, terminé le {fmtDate(semester.endDate)}.
+        Ajoutez le semestre suivant pour que les étudiants voient la bonne période.
+      </span>
+    </div>
   );
 }

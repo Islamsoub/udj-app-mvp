@@ -144,7 +144,10 @@ function StudentsInner() {
       },
       {
         accessorKey: 'gpa',
-        header: 'Moyenne',
+        // All published semesters together (backend computeGpa), which is not
+        // the semester average the student sees on their own home page. Named
+        // as on the student's Profile, where "du cursus" means the whole programme.
+        header: 'Moy. du cursus',
         cell: ({ row }) => {
           const gpa = row.original.gpa;
           return (
