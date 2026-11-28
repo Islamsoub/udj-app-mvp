@@ -166,10 +166,19 @@ router.post('/refresh', authRefreshLimiter, async (req: Request, res: Response, 
       return;
     }
 
-    await prisma.refreshToken.update({
-      where: { id: storedToken.id },
+    // Claim the token: revoke it only if it is still live, in one statement.
+    // The check above and this write used to be separate, so two refreshes
+    // sent at once with the same token both passed the check and both got a
+    // new token pair — one stolen refresh token turned into two sessions. The
+    // database serialises this update, so exactly one caller sees count 1.
+    const claimed = await prisma.refreshToken.updateMany({
+      where: { id: storedToken.id, isRevoked: false },
       data: { isRevoked: true },
     });
+    if (claimed.count !== 1) {
+      res.status(401).json({ error: 'Invalid refresh token' });
+      return;
+    }
 
     const accessToken = jwt.sign(
       { studentId: storedToken.studentId, type: 'access' },
