@@ -16,6 +16,7 @@ import authRouter from './routes/auth';
 import studentRouter from './routes/student';
 import newsRouter from './routes/news';
 import adminRouter from './routes/admin';
+import verifyRouter from './routes/verify';
 
 const app = express();
 
@@ -61,6 +62,8 @@ app.use('/auth', authRouter);
 app.use('/student', studentRouter);
 app.use('/news', newsRouter);
 app.use('/admin', adminRouter);
+// Public student-card check (routes/verify.ts) — no sign-in, rate-limited.
+app.use('/verify', verifyRouter);
 
 app.use(errorHandler);
 

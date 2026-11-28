@@ -12,6 +12,7 @@ import notificationsRouter from './notifications';
 import usersRouter from './users';
 import auditRouter from './audit';
 import settingsRouter from './settings';
+import cardRouter from './card';
 
 /**
  * Aggregates every admin sub-router. Mount once in src/index.ts:
@@ -38,6 +39,7 @@ adminRouter.use('/news', newsRouter);
 adminRouter.use('/notifications', notificationsRouter);
 adminRouter.use('/users', usersRouter);
 adminRouter.use('/audit', auditRouter);
+adminRouter.use('/card', cardRouter);
 adminRouter.use('/settings', settingsRouter);
 
 // academics defines its own sub-paths (/faculties, /programmes, /semesters, /subjects)

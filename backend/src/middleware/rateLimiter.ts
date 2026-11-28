@@ -192,3 +192,16 @@ export const passwordChangeLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+/**
+ * 30/min per IP on the public card check (POST /verify/card). Enough for a
+ * desk checking a queue of students; far too few to probe tokens.
+ */
+export const cardVerifyLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  keyGenerator: clientIpKey,
+  message: TOO_MANY,
+  standardHeaders: true,
+  legacyHeaders: false,
+});

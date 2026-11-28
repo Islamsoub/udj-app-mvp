@@ -1,11 +1,10 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { issueCardToken } from '../utils/studentCard';
 import multer from 'multer';
 import { fromBuffer } from 'file-type';
 import { z } from 'zod';
 import { AttendanceStatus } from '@prisma/client';
 import prisma from '../utils/prisma';
-import { env } from '../utils/env';
 import { supabase, JUSTIFICATION_BUCKET } from '../utils/supabase';
 import authMiddleware from '../middleware/auth';
 import {
@@ -994,35 +993,25 @@ router.get('/qr-token', async (req: Request, res: Response, next: NextFunction) 
 
     const student = await prisma.student.findUnique({
       where: { id: studentId },
-      select: { firstName: true, lastName: true, studentIdDisplay: true },
+      select: { status: true },
     });
     if (!student) throw new AppError('Student not found', 404);
 
-    await prisma.qrToken.deleteMany({
-      where: { expiresAt: { lt: new Date() } },
-    });
-
+    // The card token and its check live in utils/studentCard.ts. The token
+    // names the student by id only; names used to be signed into it, which
+    // made the QR denser and put them in every screenshot of it.
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + 60_000);
+    const live = issueCardToken(studentId, 'live', now);
+    const offline = issueCardToken(studentId, 'offline', now);
 
-    const token = jwt.sign(
-      {
-        studentId,
-        studentIdDisplay: student.studentIdDisplay,
-        firstName: student.firstName,
-        lastName: student.lastName,
-        issuedAt: now.toISOString(),
-        expiresAt: expiresAt.toISOString(),
-      },
-      env.QR_SECRET,
-      { expiresIn: '60s' }
-    );
-
-    await prisma.qrToken.create({
-      data: { studentId, jwtToken: token, issuedAt: now, expiresAt },
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.status(200).json({
+      // token + expiresAt: the fields older app builds read.
+      token: live.token,
+      expiresAt: live.expiresAt,
+      url: live.url,
+      offline: { token: offline.token, url: offline.url, expiresAt: offline.expiresAt },
     });
-
-    res.status(200).json({ token, expiresAt: expiresAt.toISOString() });
   } catch (err) {
     next(err);
   }
